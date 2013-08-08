@@ -1,18 +1,8 @@
-# Rainforest::Cli
+# Rainforest-cli
 
-TODO: Write a gem description
+A command line interface to interact with RainforestQA.
 
 ## Installation
-
-Add this line to your application's Gemfile:
-
-    gem 'rainforest-cli'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
 
     $ gem install rainforest-cli
 
@@ -20,11 +10,11 @@ Or install it yourself as:
 
 Run all of your tests
 
-  rainforest run all
+    rainforest run all
 
 Run and report
 
-  rainforest run --fg all
+    rainforest run --fg all
 
 ## Contributing
 

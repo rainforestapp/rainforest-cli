@@ -18,7 +18,13 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Run all of your tests
+
+  rainforest run all
+
+Run and report
+
+  rainforest run --fg all
 
 ## Contributing
 

@@ -16,6 +16,10 @@ Run and report
 
     rainforest run --fg all
 
+Run all tests with tag 'run-me' and abort previous in-progress runs.
+
+    rainforest run --token a8b2fe2dd7360ec72aaef0a0312fa7fa --tag run-me --conflict abort
+
 ## Contributing
 
 1. Fork it

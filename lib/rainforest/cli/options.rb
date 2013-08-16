@@ -3,10 +3,11 @@ require 'optparse'
 module Rainforest
   module Cli
     class OptionParser
-      attr_reader :command, :token
+      attr_reader :command, :token, :tags, :conflict
 
       def initialize(args)
         @args = args.dup
+        @tags = []
 
         @parsed = ::OptionParser.new do |opts|
           opts.on("--fg", "Run the tests in foreground.") do |value|
@@ -15,6 +16,14 @@ module Rainforest
 
           opts.on("--token TOKEN", String, "Your rainforest API token.") do |value|
             @token = value
+          end
+
+          opts.on("--tag TOKEN", String, "A tag to run the tests with") do |value|
+            @tags << value
+          end
+
+          opts.on("--conflict MODE", String, "How should Rainforest handle existing in progress runs?") do |value|
+            @conflict = value
           end
         end.parse!(@args)
 

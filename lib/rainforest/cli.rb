@@ -10,11 +10,22 @@ module Rainforest
     def self.start(args)
       @options = OptionParser.new(args)
 
-      response = post(API_URL, tests: @options.tests)
+      post_opts = {}
+      if !@options.tags.empty?
+        post_opts[:tags] = @options.tags
+      else
+        post_opts[:tests] = @options.tests
+      end
+
+      post_opts[:conflict] = @options.conflict if @options.conflict
+
+      response = post(API_URL, post_opts)
       run_id = response["id"]
       running = true
 
-      while running
+      return unless @options.foreground?
+
+      while running 
         sleep 5
         response = get "#{API_URL}/#{run_id}"
         if %w(queued in_progress sending_webhook waiting_for_callback).include?(response["state"])

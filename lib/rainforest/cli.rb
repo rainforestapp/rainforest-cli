@@ -1,7 +1,7 @@
 require "rainforest/cli/version"
 require "rainforest/cli/options"
-require 'httparty'
-require 'json'
+require "httparty"
+require "json"
 
 module Rainforest
   module Cli 

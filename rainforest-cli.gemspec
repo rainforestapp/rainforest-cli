@@ -6,11 +6,11 @@ require 'rainforest/cli/version'
 Gem::Specification.new do |spec|
   spec.name          = "rainforest-cli"
   spec.version       = Rainforest::Cli::VERSION
-  spec.authors       = ["Simon Mathieu"]
-  spec.email         = ["simon.math@gmail.com"]
+  spec.authors       = ["Simon Mathieu", "Russell Smith"]
+  spec.email         = ["simon@rainforestqa.com", "russ@rainforestqa.com"]
   spec.description   = %q{Command line utility for RainforestQA}
   spec.summary       = %q{Command line utility for RainforestQA}
-  spec.homepage      = "http://rainforestqa.com"
+  spec.homepage      = "https://www.rainforestqa.com/"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)

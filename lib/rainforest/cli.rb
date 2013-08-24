@@ -29,7 +29,7 @@ module Rainforest
         sleep 5
         response = get "#{API_URL}/#{run_id}"
         if %w(queued in_progress sending_webhook waiting_for_callback).include?(response["state"])
-          puts "Run #{run_id} is still running: #{response['current_progress']['percent']}% complete and has #{response["result"]}"
+          puts "Run #{run_id} is #{response['state']} and is #{response['current_progress']['percent']}% complete"
           running = false if response["result"] == 'failed' && @options.failfast?
         else
           puts "Run #{run_id} is now #{response["state"]} and has #{response["result"]}"

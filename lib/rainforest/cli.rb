@@ -19,6 +19,8 @@ module Rainforest
 
       post_opts[:conflict] = @options.conflict if @options.conflict
 
+      puts "Issuing run"
+
       response = post(API_URL, post_opts)
       run_id = response["id"]
       running = true

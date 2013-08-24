@@ -28,4 +28,9 @@ describe Rainforest::Cli::OptionParser do
     let(:args) { ["run", "--conflict", "abort",  "all"] }
     its(:conflict) { should == "abort"}
   end
+
+  context "it parses the fail-fast flag" do
+    let(:args) { ["run", "--fail-fast"] }
+    its(:failfast?) { should be_true }
+  end
 end

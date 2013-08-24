@@ -14,6 +14,10 @@ module Rainforest
             @foreground = value
           end
 
+          opts.on("--fail-fast", String, "Fail as soon as there is a failure (don't wait for completion)") do |value|
+            @failfast = true
+          end
+
           opts.on("--token TOKEN", String, "Your rainforest API token.") do |value|
             @token = value
           end
@@ -33,6 +37,10 @@ module Rainforest
 
       def tests
         @tests
+      end
+
+      def failfast?
+        @failfast
       end
 
       def foreground?

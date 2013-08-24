@@ -1,3 +1,4 @@
 --color
---format progress
+--format=nested
 --require spec_helper
+--profile

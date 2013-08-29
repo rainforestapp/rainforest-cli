@@ -7,18 +7,19 @@ A command line interface to interact with RainforestQA.
     $ gem install rainforest-cli
 
 ## Usage
+To use the cli client, you'll need your API token from a test settings page from inside [Rainforest](https://app.rainforestqa.com/).
 
 Run all of your tests
 
-    rainforest run all
+    rainforest run all --token YOUR_TOKEN_HERE
 
 Run and report
 
-    rainforest run --fg all
+    rainforest run --fg all --token YOUR_TOKEN_HERE
 
 Run all tests with tag 'run-me' and abort previous in-progress runs.
 
-    rainforest run --token a8b2fe2dd7360ec72aaef0a0312fa7fa --tag run-me --conflict abort
+    rainforest run --tag run-me --conflict abort --token YOUR_TOKEN_HERE 
 
 ## Contributing
 

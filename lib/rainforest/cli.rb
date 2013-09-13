@@ -22,6 +22,12 @@ module Rainforest
       puts "Issuing run"
 
       response = post(API_URL, post_opts)
+
+      if response['error']
+        puts "Error starting your run: #{response['error']}"
+        exit
+      end
+
       run_id = response["id"]
       running = true
 

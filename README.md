@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/rainforestapp/rainforest-cli.png?branch=master)](https://travis-ci.org/rainforestapp/rainforest-cli)
+
 # Rainforest-cli
 
 A command line interface to interact with RainforestQA.

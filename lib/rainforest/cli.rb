@@ -19,6 +19,7 @@ module Rainforest
 
       post_opts[:conflict] = @options.conflict if @options.conflict
       post_opts[:browsers] = @options.browsers if @options.browsers
+      post_opts[:gem_version] = Rainforest::Cli::VERSION
 
       puts "Issuing run"
 
@@ -36,7 +37,7 @@ module Rainforest
 
       while running 
         sleep 5
-        response = get "#{API_URL}/#{run_id}"
+        response = get "#{API_URL}/#{run_id}?gem_version=#{Rainforest::Cli::VERSION}"
         if %w(queued in_progress sending_webhook waiting_for_callback).include?(response["state"])
           puts "Run #{run_id} is #{response['state']} and is #{response['current_progress']['percent']}% complete"
           running = false if response["result"] == 'failed' && @options.failfast?

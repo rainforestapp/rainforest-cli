@@ -18,6 +18,7 @@ module Rainforest
       end
 
       post_opts[:conflict] = @options.conflict if @options.conflict
+      post_opts[:browsers] = @options.browsers if @options.browsers
 
       puts "Issuing run"
 

@@ -20,7 +20,6 @@ module Rainforest
         @browsers = nil
 
         @parsed = ::OptionParser.new do |opts|
-          puts opts.inspect
           opts.on("--fg", "Run the tests in foreground.") do |value|
             @foreground = value
           end

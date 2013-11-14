@@ -5,7 +5,7 @@ require 'rainforest/cli/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "rainforest-cli"
-  spec.version       = Rainforest::Cli::VERSION
+  spec.version       = RainforestCli::VERSION
   spec.authors       = ["Simon Mathieu", "Russell Smith"]
   spec.email         = ["simon@rainforestqa.com", "russ@rainforestqa.com"]
   spec.description   = %q{Command line utility for RainforestQA}
@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "httparty"
+  spec.add_dependency "rainforest", "~> 1.0.5"
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
 end

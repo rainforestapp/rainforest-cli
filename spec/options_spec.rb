@@ -1,5 +1,5 @@
-describe Rainforest::Cli::OptionParser do
-  subject { Rainforest::Cli::OptionParser.new(args) }
+describe RainforestCli::OptionParser do
+  subject { RainforestCli::OptionParser.new(args) }
 
   context "run all tests" do
     let(:args) { ["run", "all"] }
@@ -22,7 +22,7 @@ describe Rainforest::Cli::OptionParser do
     let(:args) { ["run", "--browsers", "lulbrower"] }
 
     it "raises an exception" do
-      expect{subject}.to raise_error(Rainforest::Cli::BrowserException)
+      expect{subject}.to raise_error(RainforestCli::BrowserException)
     end
   end
 

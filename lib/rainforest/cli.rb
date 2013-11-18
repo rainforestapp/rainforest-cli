@@ -1,6 +1,6 @@
 require "rainforest/cli/version"
 require "rainforest/cli/options"
-require 'rainforest'
+require "rainforest"
 require "json"
 
 module RainforestCli

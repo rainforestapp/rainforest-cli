@@ -1,5 +1,3 @@
-module Rainforest
-  module Cli
-    VERSION = "0.0.12"
-  end
+module RainforestCli
+  VERSION = "0.0.12"
 end

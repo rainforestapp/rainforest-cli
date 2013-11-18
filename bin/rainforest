@@ -4,4 +4,4 @@ $LOAD_PATH.unshift File.join(File.dirname(__FILE__), "../lib")
 
 require "rainforest/cli"
 
-Rainforest::Cli.start(ARGV)
+RainforestCli.start(ARGV)

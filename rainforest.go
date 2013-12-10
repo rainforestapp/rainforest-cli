@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+const endpoint_url = string("https://app.rainforestqa.com/")
+
 func print_usage() {
 	fmt.Println("Usage:")
 	flag.PrintDefaults()
@@ -65,8 +67,7 @@ func main() {
 		params += "&conflict=abort"
 	}
 
-	// req, err := http.NewRequest("POST", "https://app.rainforestqa.com/api/1/runs?"+params, nil)
-	req, err := http.NewRequest("POST", "http://app.rainforest.dev/api/1/runs?"+params, nil)
+	req, err := http.NewRequest("POST", endpoint_url+"/api/1/runs?"+params, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -111,14 +112,14 @@ func main() {
 		fmt.Printf("Error resp\n\n%s\n", response)
 		log.Fatal(err)
 	} else {
-		log.Println(fmt.Sprintf("Run %d started. See https://app.rainforestqa.com/runs/%d for web progress.", run_id, run_id))
+		log.Println(fmt.Sprintf("Run %d started. See %sruns/%d for web progress.", run_id, endpoint_url, run_id))
 	}
 
 	if *fg == true {
 		for true {
 			time.Sleep(1000 * time.Millisecond)
 
-			req, err := http.NewRequest("GET", fmt.Sprintf("http://app.rainforest.dev/api/1/runs/%d", run_id), nil)
+			req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/1/runs/%d", endpoint_url, run_id), nil)
 			if err != nil {
 				log.Fatal(err)
 			}

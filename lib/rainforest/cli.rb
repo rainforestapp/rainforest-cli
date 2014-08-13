@@ -7,8 +7,7 @@ require "json"
 module Rainforest
   module Cli 
     API_URL = 'https://app.rainforestqa.com/api/1'.freeze
-    #API_URL = 'http://app.rainforest.dev/api/1'.freeze
-
+    
     def self.start(args)
       @options = OptionParser.new(args)
       
@@ -75,9 +74,14 @@ module Rainforest
       generator = list_generators.select {|g| g['type'] == 'custom' && g['key'] == name }.first
       delete("#{API_URL}/generators/#{generator['id']}") if generator
     end
-    
-    def self.import_generator(name, csv)
+
+    def self.delete(url, body = {})
+      response = HTTParty.delete url, {
+        body: body, 
+        headers: {"CLIENT_TOKEN" => @options.token}
+      }
       
+      JSON.parse(response.body)
     end
 
     def self.post(url, body = {})
@@ -86,15 +90,6 @@ module Rainforest
         headers: {"CLIENT_TOKEN" => @options.token}
       }
 
-      JSON.parse(response.body)
-    end
-
-    def self.delete(url, body = {})
-      response = HTTParty.delete url, {
-        body: body, 
-        headers: {"CLIENT_TOKEN" => @options.token}
-      }
-      
       JSON.parse(response.body)
     end
 

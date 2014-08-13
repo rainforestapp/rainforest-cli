@@ -1,6 +1,16 @@
 describe Rainforest::Cli::OptionParser do
   subject { Rainforest::Cli::OptionParser.new(args) }
 
+  context "importing csv file" do
+    let(:args) { ["import-variable-csv-file", "some_file.csv"] }
+    its(:import_file_name) { should == ["some_file.csv"]}
+  end
+
+  context "importing name" do
+    let(:args) { ["import-variable-name", "some_name"] }
+    its(:import_name) { should == ["some_name"]}
+  end
+
   context "run all tests" do
     let(:args) { ["run", "all"] }
     its(:tests) { should == ["all"]}

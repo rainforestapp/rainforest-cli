@@ -10,7 +10,7 @@ module Rainforest
     end
 
     class OptionParser
-      attr_reader :command, :token, :tags, :conflict, :browsers
+      attr_reader :command, :token, :tags, :conflict, :browsers, :import_file_name, :import_name
 
       VALID_BROWSERS = %w{chrome firefox safari ie8 ie9}.freeze
 
@@ -20,6 +20,14 @@ module Rainforest
         @browsers = nil
 
         @parsed = ::OptionParser.new do |opts|
+          opts.on("--import-variable-csv-file FILE", "Import step variables; CSV data") do |value|
+            @import_file_name = value
+          end
+
+          opts.on("--import-variable-name NAME", "Import step variables; Name of variable (note, will be replaced if exists)") do |value|
+            @import_name = value
+          end
+
           opts.on("--fg", "Run the tests in foreground.") do |value|
             @foreground = value
           end

@@ -25,6 +25,7 @@ module Rainforest
           end
 
           opts.on("--import-variable-name NAME", "Import step variables; Name of variable (note, will be replaced if exists)") do |value|
+            puts value
             @import_name = value
           end
 

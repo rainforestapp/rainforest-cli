@@ -41,7 +41,7 @@ module Rainforest
 
       if response['error']
         puts "Error starting your run: #{response['error']}"
-        exit
+        exit 1
       end
 
       run_id = response["id"]
@@ -50,20 +50,23 @@ module Rainforest
       return unless @options.foreground?
 
       while running 
-        sleep 5
+        Kernel.sleep 5
         response = get "#{API_URL}/runs/#{run_id}?gem_version=#{Rainforest::Cli::VERSION}"
-        if %w(queued in_progress sending_webhook waiting_for_callback).include?(response["state"])
-          puts "Run #{run_id} is #{response['state']} and is #{response['current_progress']['percent']}% complete"
-          running = false if response["result"] == 'failed' && @options.failfast?
-        else
-          puts "Run #{run_id} is now #{response["state"]} and has #{response["result"]}"
-          running = false
+        if response 
+          if %w(queued in_progress sending_webhook waiting_for_callback).include?(response["state"])
+            puts "Run #{run_id} is #{response['state']} and is #{response['current_progress']['percent']}% complete"
+            running = false if response["result"] == 'failed' && @options.failfast?
+          else
+            puts "Run #{run_id} is now #{response["state"]} and has #{response["result"]}"
+            running = false
+          end
         end
       end
 
       if response["result"] != "passed"
         exit 1
       end
+      true
     end
     
     def self.list_generators
@@ -99,7 +102,11 @@ module Rainforest
         headers: {"CLIENT_TOKEN" => @options.token}
       }
 
-      JSON.parse(response.body)
+      if response.code == 200
+        JSON.parse(response.body)
+      else
+        nil
+      end
     end
   end
 end

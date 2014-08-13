@@ -14,14 +14,14 @@ module Rainforest
       if @options.import_file_name && @options.import_name
         unless File.exists?(@options.import_file_name)
           puts "Input file: #{@options.import_file_name} not found"
-          exit
+          exit 2
         end
         
         delete_generator(@options.import_name)
         CSVImporter.new(@options.import_name, @options.import_file_name, @options.token).import
       elsif @options.import_file_name || @options.import_name
         puts "You must pass both --import-variable-csv-file and --import-variable-name"
-        exit
+        exit 2
       end
 
       post_opts = {}

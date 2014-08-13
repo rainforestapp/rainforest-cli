@@ -14,7 +14,7 @@ module Rainforest
       end
 
       def post url, body
-        HTTParty.post(Rainforest::Cli::API_URL + url, body: body.to_json, headers: {'Content-Type' => 'application/json', "CLIENT_TOKEN" => @token}, verify: false)
+        HTTParty.post(Rainforest::Cli::API_URL + url, body: body.to_json, headers: {'Content-Type' => 'application/json', "CLIENT_TOKEN" => @token})
       end
 
       def row_data columns, values

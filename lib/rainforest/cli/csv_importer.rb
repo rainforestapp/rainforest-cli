@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 require 'csv'
-require 'HTTParty'
+require 'httparty'
 require 'parallel'
 require 'ruby-progressbar'
 

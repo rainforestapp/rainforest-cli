@@ -6,8 +6,8 @@ require "json"
 
 module Rainforest
   module Cli 
-    #API_URL = 'https://app.rainforestqa.com/api/1'.freeze
-    API_URL = 'http://app.rainforest.dev/api/1'.freeze
+    API_URL = 'https://app.rainforestqa.com/api/1'.freeze
+    #API_URL = 'http://app.rainforest.dev/api/1'.freeze
 
     def self.start(args)
       @options = OptionParser.new(args)

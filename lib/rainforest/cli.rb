@@ -74,7 +74,7 @@ module Rainforest
     end
     
     def self.delete_generator(name)
-      generator = list_generators.select {|g| g['type'] == 'custom' && g['key'] == name }.first
+      generator = list_generators.find {|g| g['type'] == 'custom' && g['key'] == name }
       delete("#{API_URL}/generators/#{generator['id']}") if generator
     end
 

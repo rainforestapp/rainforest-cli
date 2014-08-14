@@ -23,26 +23,25 @@ module Rainforest
 
       def import
         rows = []
-        puts "Loading data"
         CSV.foreach(@file, encoding: 'windows-1251:utf-8') do |row|
           rows << row
         end
 
         # Create the generator
-        puts "Parsing rows"
         columns = rows.shift.map do |column|
           {name: column.downcase.strip.gsub(/\s/, '_')}
         end
-        raise 'Invalid generator schema' if not columns
+        raise 'Invalid schema in CSV. You must include headers in first row.' if not columns
 
-        puts "Creating generator"
+        print "Creating custom step variable"
         response = post "/generators", { name: @generator_name, description: @generator_name, columns: columns }
-        raise "Error creating generator: #{response.code}, #{response.body}" unless response.code == 201
-
+        raise "Error creating custom step variable: #{response.code}, #{response.body}" unless response.code == 201
+        puts "\t[OK]"
+        
         @columns = response['columns']
         @generator_id = response['id']
 
-        puts "Uploading data"
+        puts "Uploading data..."
         p = ProgressBar.create(title: 'Rows', total: rows.count, format: '%a %B %p%% %t')
 
         # Insert the data

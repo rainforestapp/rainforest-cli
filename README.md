@@ -36,7 +36,7 @@ The options are:
 - `--conflict abort` - if you trigger rainforest more than once, anything running will be aborted and a fresh run started
 - `--fail-fast` - fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done
 - `--fg` - results in the foreground - this is what you want to make the build pass / fail dependent on rainforest results 
-- `--site-id` - only run tests for a specific site
+- `--site-id` - only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
 - `--custom-url` - use a custom url for this run. Example use case: an ad-hoc QA environment with [Fourchette](https://github.com/rainforestapp/fourchette). You will need to specify a `site_id` too for this to work. Please note that we will be creating environments under the hood and will not affect your test permanently.
 
 

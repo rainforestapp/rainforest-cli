@@ -1,6 +1,7 @@
 describe Rainforest::Cli do
   before do
     Kernel.stub(:sleep)
+    stub_const("Rainforest::Cli::API_URL", 'http://app.rainforest.dev/api/1')
   end
 
   describe ".start" do
@@ -14,7 +15,7 @@ describe Rainforest::Cli do
           begin
             described_class.start(%w(--site 3))
           rescue SystemExit => e
-            # That's fine, this is expected but estede in a differnet assertion
+            # That's fine, this is expected but tested in a differnet assertion
           end
         end
 
@@ -34,7 +35,7 @@ describe Rainforest::Cli do
           begin
             described_class.start(%w(--custom-url http://ad-hoc.example.com))
           rescue SystemExit => e
-            # That's fine, this is expected but estede in a differnet assertion
+            # That's fine, this is expected but tested in a differnet assertion
           end
         end
 
@@ -46,6 +47,41 @@ describe Rainforest::Cli do
             expect(error.status).to eq 1
           }
         end
+      end
+    end
+
+    context "with site-id and custom-url" do
+      it "creates a new environment" do
+        allow(described_class).to receive(:post).and_return { exit }
+        expect(described_class).to receive(:post).with(
+            "http://app.rainforest.dev/api/1/environments",
+            {
+              :name => "temporary-env-for-custom-url-via-CLI",
+              :url=>"http://ad-hoc.example.com"
+            }
+          ).and_return(
+            { 'id' => 333 }
+          )
+
+        # This is a hack because when expecting a function to be called with
+        # parameters, the last call is compared but I want to compare the first
+        # call, not the call to create a run, so I exit, but rescue from it here
+        # so that the spec doesn't fail. It's horrible, sorry!
+        begin
+          described_class.start(%w(--site 3 --custom-url http://ad-hoc.example.com))
+        rescue SystemExit => e
+          # That's fine, this is expected but tested in a differnet assertion
+        end
+      end
+
+      it "starts the run with site_id and environment_id" do
+        allow(described_class).to receive(:get_environment_id).and_return(333)
+
+        expect(described_class).to receive(:post).with(
+          "http://app.rainforest.dev/api/1/runs",
+          { :tests=>[], :site_id=>3, :gem_version=>"0.0.13", :environment_id=>333 }
+        ).and_return( {} )
+        described_class.start(%w(--site 3 --custom-url http://ad-hoc.example.com))
       end
     end
 

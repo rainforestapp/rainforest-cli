@@ -100,4 +100,18 @@ describe Rainforest::Cli do
       end
     end
   end
+
+  describe ".get_environment_id" do
+    context "with an invalid URL" do
+      it 'errors out and exits' do
+        expect(STDOUT).to receive(:puts).with("The custom URL is invalid")
+        expect {
+          described_class.start(%w(--site-id 1 --custom-url http://some=weird))
+        }.to raise_error { |error|
+          expect(error).to be_a(SystemExit)
+          expect(error.status).to eq 1
+        }
+      end
+    end
+  end
 end

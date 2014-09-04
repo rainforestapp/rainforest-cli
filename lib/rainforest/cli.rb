@@ -118,6 +118,12 @@ module Rainforest
     end
 
     def self.get_environment_id url
+      begin
+        URI.parse(url)
+      rescue URI::InvalidURIError
+        puts "The custom URL is invalid"
+        exit 1
+      end
       env_post_body = { name: 'temporary-env-for-custom-url-via-CLI', url: url }
       environment = post("#{API_URL}/environments", env_post_body)
       return environment['id']

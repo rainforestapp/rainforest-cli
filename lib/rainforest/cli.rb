@@ -124,8 +124,17 @@ module Rainforest
         puts "The custom URL is invalid"
         exit 1
       end
+
       env_post_body = { name: 'temporary-env-for-custom-url-via-CLI', url: url }
       environment = post("#{API_URL}/environments", env_post_body)
+
+      if environment['error']
+        # I am talking about a URL here because the environments are pretty
+        # much hidden from clients so far.
+        puts "Error creating the ad-hoc URL: #{environment['error']}"
+        exit 1
+      end
+
       return environment['id']
     end
   end

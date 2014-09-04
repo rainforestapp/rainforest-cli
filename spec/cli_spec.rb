@@ -106,7 +106,23 @@ describe Rainforest::Cli do
       it 'errors out and exits' do
         expect(STDOUT).to receive(:puts).with("The custom URL is invalid")
         expect {
-          described_class.start(%w(--site-id 1 --custom-url http://some=weird))
+          described_class.get_environment_id('http://some=weird')
+        }.to raise_error { |error|
+          expect(error).to be_a(SystemExit)
+          expect(error.status).to eq 1
+        }
+      end
+    end
+
+    context 'on API error' do
+      before do
+        allow(described_class).to receive(:post).and_return( {"error"=>"Some API error"} )
+      end
+
+      it 'errors out and exits' do
+        expect(STDOUT).to receive(:puts).with("Error creating the ad-hoc URL: Some API error")
+        expect {
+          described_class.get_environment_id('http://example.com')
         }.to raise_error { |error|
           expect(error).to be_a(SystemExit)
           expect(error.status).to eq 1

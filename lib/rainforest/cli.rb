@@ -13,7 +13,7 @@ module Rainforest
 
       if (@options.site_id || @options.custom_url) && !(@options.site_id && @options.custom_url)
         puts "The site-id and custom-url options work together, you need both of them."
-        exit 0
+        exit 1
       end
 
       if @options.import_file_name && @options.import_name

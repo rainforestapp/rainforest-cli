@@ -11,7 +11,7 @@ module Rainforest
     def self.start(args)
       @options = OptionParser.new(args)
 
-      if (@options.site_id || @options.custom_url) && !(@options.site_id && @options.custom_url)
+      if @options.custom_url && @options.site_id.nil?
         puts "The site-id and custom-url options work together, you need both of them."
         exit 1
       end

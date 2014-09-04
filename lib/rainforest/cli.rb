@@ -41,11 +41,7 @@ module Rainforest
       post_opts[:site_id] = @options.site_id if @options.site_id
       post_opts[:gem_version] = Rainforest::Cli::VERSION
 
-      if @options.custom_url
-        env_post_body = { name: 'temporary-env-for-custom-url-via-CLI', url: @options.custom_url }
-        environment = post("#{API_URL}/environments", env_post_body)
-        post_opts[:environment_id] = environment['id']
-      end
+      post_opts[:environment_id] = get_environment_id(@options.custom_url) if @options.custom_url
 
       puts "Issuing run"
 
@@ -119,6 +115,12 @@ module Rainforest
       else
         nil
       end
+    end
+
+    def self.get_environment_id url
+      env_post_body = { name: 'temporary-env-for-custom-url-via-CLI', url: url }
+      environment = post("#{API_URL}/environments", env_post_body)
+      return environment['id']
     end
   end
 end

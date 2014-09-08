@@ -10,13 +10,18 @@ module Rainforest
     
     def self.start(args)
       @options = OptionParser.new(args)
-      
+
+      if @options.custom_url && @options.site_id.nil?
+        puts "The site-id and custom-url options work together, you need both of them."
+        exit 1
+      end
+
       if @options.import_file_name && @options.import_name
         unless File.exists?(@options.import_file_name)
           puts "Input file: #{@options.import_file_name} not found"
           exit 2
         end
-        
+
         delete_generator(@options.import_name)
         CSVImporter.new(@options.import_name, @options.import_file_name, @options.token).import
       elsif @options.import_file_name || @options.import_name
@@ -33,7 +38,10 @@ module Rainforest
 
       post_opts[:conflict] = @options.conflict if @options.conflict
       post_opts[:browsers] = @options.browsers if @options.browsers
+      post_opts[:site_id] = @options.site_id if @options.site_id
       post_opts[:gem_version] = Rainforest::Cli::VERSION
+
+      post_opts[:environment_id] = get_environment_id(@options.custom_url) if @options.custom_url
 
       puts "Issuing run"
 
@@ -68,11 +76,11 @@ module Rainforest
       end
       true
     end
-    
+
     def self.list_generators
       get("#{API_URL}/generators")
     end
-    
+
     def self.delete_generator(name)
       generator = list_generators.find {|g| g['type'] == 'custom' && g['key'] == name }
       delete("#{API_URL}/generators/#{generator['id']}") if generator
@@ -83,7 +91,7 @@ module Rainforest
         body: body, 
         headers: {"CLIENT_TOKEN" => @options.token}
       }
-      
+
       JSON.parse(response.body)
     end
 
@@ -107,6 +115,27 @@ module Rainforest
       else
         nil
       end
+    end
+
+    def self.get_environment_id url
+      begin
+        URI.parse(url)
+      rescue URI::InvalidURIError
+        puts "The custom URL is invalid"
+        exit 1
+      end
+
+      env_post_body = { name: 'temporary-env-for-custom-url-via-CLI', url: url }
+      environment = post("#{API_URL}/environments", env_post_body)
+
+      if environment['error']
+        # I am talking about a URL here because the environments are pretty
+        # much hidden from clients so far.
+        puts "Error creating the ad-hoc URL: #{environment['error']}"
+        exit 1
+      end
+
+      return environment['id']
     end
   end
 end

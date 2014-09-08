@@ -10,7 +10,8 @@ module Rainforest
     end
 
     class OptionParser
-      attr_reader :command, :token, :tags, :conflict, :browsers, :import_file_name, :import_name
+      attr_reader :command, :token, :tags, :conflict, :browsers, :site_id,
+                  :import_file_name, :import_name, :custom_url
 
       VALID_BROWSERS = %w{chrome firefox safari ie8 ie9}.freeze
 
@@ -52,6 +53,14 @@ module Rainforest
 
           opts.on("--conflict MODE", String, "How should Rainforest handle existing in progress runs?") do |value|
             @conflict = value
+          end
+
+          opts.on("--site-id ID", Integer, "Only run tests for a specific site") do |value|
+            @site_id = value
+          end
+
+          opts.on("--custom-url URL", String, "Use a custom url for this run. You will need to specify a site_id too for this to work.") do |value|
+            @custom_url = value
           end
         end.parse!(@args)
 

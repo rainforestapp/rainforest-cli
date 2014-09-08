@@ -61,4 +61,14 @@ describe Rainforest::Cli::OptionParser do
     let(:args) { ["run", "--fail-fast"] }
     its(:failfast?) { should be_true }
   end
+
+  context "it parses the site-id flag" do
+    let(:args) { ["run", "--site-id", '3'] }
+    its(:site_id) { should eq 3 }
+  end
+
+  context "it parses the custom-url flag" do
+    let(:args) { ["run", "--custom-url", 'http://ad-hoc.example.com'] }
+    its(:custom_url) { should eq 'http://ad-hoc.example.com' }
+  end
 end

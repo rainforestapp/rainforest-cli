@@ -59,7 +59,7 @@ describe Rainforest::Cli do
 
         expect(described_class).to receive(:post).with(
           "http://app.rainforest.dev/api/1/runs",
-          { :tests=>[], :site_id=>3, :gem_version=>"0.0.13", :environment_id=>333 }
+          { :tests=>[], :site_id=>3, :gem_version=>Rainforest::Cli::VERSION, :environment_id=>333 }
         ).and_return( {} )
         described_class.start(%w(--site 3 --custom-url http://ad-hoc.example.com))
       end

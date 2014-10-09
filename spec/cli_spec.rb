@@ -98,7 +98,7 @@ describe Rainforest::Cli do
         let(:params) { %w(--token x --tag x --git-trigger) }
 
         it "warns about the parameter being ignored" do
-          expect_any_instance_of(Logger).to receive(:warn).with("Specified tags are ignored when using the git_trigger option")
+          expect_any_instance_of(Logger).to receive(:warn).with("Specified tags are ignored when using --git-trigger")
           
           start_with_params(params, 0)
         end
@@ -108,7 +108,7 @@ describe Rainforest::Cli do
         let(:params) { %w(all --token x --git-trigger) }
 
         it "warns about the parameter being ignored" do
-          expect_any_instance_of(Logger).to receive(:warn).with("Specified tests are ignored when using the git_trigger option")
+          expect_any_instance_of(Logger).to receive(:warn).with("Specified tests are ignored when using --git-trigger")
           
           start_with_params(params, 0)
         end

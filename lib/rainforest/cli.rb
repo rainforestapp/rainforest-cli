@@ -44,9 +44,9 @@ module Rainforest
 
         # Show some messages to users about tests/tags being overriden
         unless @options.tags.empty?
-          logger.warn "Specified tags are ignored when using the git_trigger option"
+          logger.warn "Specified tags are ignored when using --git-trigger"
         else
-          logger.warn "Specified tests are ignored when using the git_trigger option"
+          logger.warn "Specified tests are ignored when using --git-trigger"
         end
 
         if self.git_trigger_should_run?(commit_message)

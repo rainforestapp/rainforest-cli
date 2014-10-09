@@ -38,6 +38,7 @@ The options are:
 - `--fg` - results in the foreground - this is what you want to make the build pass / fail dependent on rainforest results 
 - `--site-id` - only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
 - `--custom-url` - use a custom url for this run. Example use case: an ad-hoc QA environment with [Fourchette](https://github.com/rainforestapp/fourchette). You will need to specify a `site_id` too for this to work. Please note that we will be creating environments under the hood and will not affect your test permanently.
+- `--git-trigger` - only trigger a run when the last commit (for a git repo in the current working directory) has contains `@rainforest` and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged `checkout`. This over-rides `--tag` and any tests specified. If no `@rainforest` is detected it will exit 0.
 
 
 ## Contributing

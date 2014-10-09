@@ -1,5 +1,6 @@
 require "rainforest/cli/version"
 require "rainforest/cli/options"
+require "rainforest/cli/git_trigger"
 require "rainforest/cli/csv_importer"
 require "httparty"
 require "json"
@@ -39,7 +40,7 @@ module Rainforest
 
       if @options.git_trigger?
         logger.debug "Checking last git commit message:"
-        commit_message = self.last_commit_message
+        commit_message = GitTrigger.last_commit_message
         logger.debug commit_message
 
         # Show some messages to users about tests/tags being overriden
@@ -49,8 +50,8 @@ module Rainforest
           logger.warn "Specified tests are ignored when using --git-trigger"
         end
 
-        if self.git_trigger_should_run?(commit_message)
-          tags = self.extract_hashtags(commit_message)
+        if GitTrigger.git_trigger_should_run?(commit_message)
+          tags = GitTrigger.extract_hashtags(commit_message)
           if tags.empty?
             logger.error "Triggered via git, but no hashtags detected. Please use commit message format:"
             logger.error "\t'some message. @rainforest #tag1 #tag2"
@@ -111,18 +112,6 @@ module Rainforest
         exit 1
       end
       true
-    end
-
-    def self.git_trigger_should_run?(commit_message)
-      commit_message.include?('@rainforest')
-    end
-
-    def self.extract_hashtags(commit_message)
-      commit_message.scan(/#([\w_-]+)/).flatten.map {|s| s.gsub('#','') }
-    end
-
-    def self.last_commit_message
-      `git log -1 --pretty=%B`.strip
     end
 
     def self.list_generators

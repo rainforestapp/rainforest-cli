@@ -4,31 +4,6 @@ describe Rainforest::Cli do
     stub_const("Rainforest::Cli::API_URL", 'http://app.rainforest.dev/api/1')
   end
 
-  describe ".last_commit_message" do
-    it "returns a string" do
-      default_dir = Dir.pwd
-
-      Dir.chdir(File.join([default_dir, 'spec', 'test-repo']))
-      expect(described_class.last_commit_message).to eq "Initial commit"
-      Dir.chdir(default_dir)
-    end
-  end
-
-  describe ".git_trigger_should_run?" do
-    it "returns true when @rainforest is in the string" do
-      expect(described_class.git_trigger_should_run?('hello, world')).to eq false
-      expect(described_class.git_trigger_should_run?('hello @rainforest')).to eq true
-    end
-  end
-
-  describe ".extract_hashtags" do
-    it "returns a list of hashtags" do
-      expect(described_class.extract_hashtags('hello, world')).to eq []
-      expect(described_class.extract_hashtags('#hello, #world')).to eq ['hello', 'world']
-      expect(described_class.extract_hashtags('#dashes-work, #underscores_work #007')).to eq ['dashes-work', 'underscores_work', '007']
-    end
-  end
-
   describe ".start" do
     let(:valid_args) { %w(--token foo run --fg all) }
     let(:ok_progress) { {"state" => "in_progress", "current_progress" => {"percent" => "1"} } }
@@ -91,7 +66,7 @@ describe Rainforest::Cli do
       end
 
       before do
-        described_class.stub(:last_commit_message) { commit_message }
+        Rainforest::Cli::GitTrigger.stub(:last_commit_message) { commit_message }
       end
       
       describe "with tags parameter passed" do

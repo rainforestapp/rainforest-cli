@@ -29,6 +29,10 @@ module Rainforest
             @import_name = value
           end
 
+          opts.on("--git-trigger", "Only run if the last commit contains @rainforestapp") do |value|
+            @git_trigger = true
+          end
+
           opts.on("--fg", "Run the tests in foreground.") do |value|
             @foreground = value
           end
@@ -70,6 +74,10 @@ module Rainforest
 
       def tests
         @tests
+      end
+
+      def git_trigger?
+        @git_trigger
       end
 
       def failfast?

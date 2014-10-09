@@ -41,6 +41,12 @@ describe Rainforest::Cli::OptionParser do
     its(:browsers) { should == ["ie8", "chrome"]}
   end
 
+  context "it parses the --git-trigger flag" do
+    let(:args) { ["run", "--git-trigger", "all"] }
+    its(:tests) { should == ["all"]}
+    its(:git_trigger?) { should be_true }
+  end
+
   context "it parses the --fg flag" do
     let(:args) { ["run", "--fg", "all"] }
     its(:tests) { should == ["all"]}

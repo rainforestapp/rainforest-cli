@@ -3,6 +3,7 @@ require "rainforest/cli/options"
 require "rainforest/cli/csv_importer"
 require "httparty"
 require "json"
+require "logger"
 
 module Rainforest
   module Cli 
@@ -11,29 +12,63 @@ module Rainforest
     def self.start(args)
       @options = OptionParser.new(args)
 
+      unless @options.token
+        logger.fatal "You must pass your API token using: --token TOKEN"
+        exit 2
+      end
+
       if @options.custom_url && @options.site_id.nil?
-        puts "The site-id and custom-url options work together, you need both of them."
-        exit 1
+        logger.fatal "The site-id and custom-url options are both required."
+        exit 2
       end
 
       if @options.import_file_name && @options.import_name
         unless File.exists?(@options.import_file_name)
-          puts "Input file: #{@options.import_file_name} not found"
+          logger.fatal "Input file: #{@options.import_file_name} not found"
           exit 2
         end
 
         delete_generator(@options.import_name)
         CSVImporter.new(@options.import_name, @options.import_file_name, @options.token).import
       elsif @options.import_file_name || @options.import_name
-        puts "You must pass both --import-variable-csv-file and --import-variable-name"
+        logger.fatal "You must pass both --import-variable-csv-file and --import-variable-name"
         exit 2
       end
 
       post_opts = {}
-      if !@options.tags.empty?
-        post_opts[:tags] = @options.tags
+
+      if @options.git_trigger?
+        logger.debug "Checking last git commit message:"
+        commit_message = self.last_commit_message
+        logger.debug commit_message
+
+        # Show some messages to users about tests/tags being overriden
+        unless @options.tags.empty?
+          logger.warn "Specified tags are ignored when using the git_trigger option"
+        else
+          logger.warn "Specified tests are ignored when using the git_trigger option"
+        end
+
+        if self.git_trigger_should_run?(commit_message)
+          tags = self.extract_hashtags(commit_message)
+          if tags.empty?
+            logger.error "Triggered via git, but no hashtags detected. Please use commit message format:"
+            logger.error "\t'some message. @rainforest #tag1 #tag2"
+            exit 2
+          else
+            post_opts[:tags] = [tags.join(',')]
+          end
+        else
+          logger.info "Not triggering as @rainforest was not mentioned in last commit message."
+          exit 0
+        end
       else
-        post_opts[:tests] = @options.tests
+        # Not using git_trigger, so look for the 
+        if !@options.tags.empty?
+          post_opts[:tags] = @options.tags
+        else
+          post_opts[:tests] = @options.tests
+        end
       end
 
       post_opts[:conflict] = @options.conflict if @options.conflict
@@ -43,12 +78,13 @@ module Rainforest
 
       post_opts[:environment_id] = get_environment_id(@options.custom_url) if @options.custom_url
 
-      puts "Issuing run"
+      logger.debug "POST options: #{post_opts.inspect}"
+      logger.info "Issuing run"
 
       response = post(API_URL + '/runs', post_opts)
 
       if response['error']
-        puts "Error starting your run: #{response['error']}"
+        logger.fatal "Error starting your run: #{response['error']}"
         exit 1
       end
 
@@ -62,10 +98,10 @@ module Rainforest
         response = get "#{API_URL}/runs/#{run_id}?gem_version=#{Rainforest::Cli::VERSION}"
         if response 
           if %w(queued in_progress sending_webhook waiting_for_callback).include?(response["state"])
-            puts "Run #{run_id} is #{response['state']} and is #{response['current_progress']['percent']}% complete"
+            logger.info "Run #{run_id} is #{response['state']} and is #{response['current_progress']['percent']}% complete"
             running = false if response["result"] == 'failed' && @options.failfast?
           else
-            puts "Run #{run_id} is now #{response["state"]} and has #{response["result"]}"
+            logger.info "Run #{run_id} is now #{response["state"]} and has #{response["result"]}"
             running = false
           end
         end
@@ -75,6 +111,18 @@ module Rainforest
         exit 1
       end
       true
+    end
+
+    def self.git_trigger_should_run?(commit_message)
+      commit_message.include?('@rainforest')
+    end
+
+    def self.extract_hashtags(commit_message)
+      commit_message.scan(/#([\w_-]+)/).flatten.map {|s| s.gsub('#','') }
+    end
+
+    def self.last_commit_message
+      `git log -1 --pretty=%B`.strip
     end
 
     def self.list_generators
@@ -121,8 +169,8 @@ module Rainforest
       begin
         URI.parse(url)
       rescue URI::InvalidURIError
-        puts "The custom URL is invalid"
-        exit 1
+        logger.fatal "The custom URL is invalid"
+        exit 2
       end
 
       env_post_body = { name: 'temporary-env-for-custom-url-via-CLI', url: url }
@@ -131,11 +179,15 @@ module Rainforest
       if environment['error']
         # I am talking about a URL here because the environments are pretty
         # much hidden from clients so far.
-        puts "Error creating the ad-hoc URL: #{environment['error']}"
+        logger.fatal "Error creating the ad-hoc URL: #{environment['error']}"
         exit 1
       end
 
       return environment['id']
+    end
+
+    def self.logger
+      @logger ||= Logger.new(STDOUT)
     end
   end
 end

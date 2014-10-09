@@ -6,13 +6,9 @@ describe Rainforest::Cli do
 
   describe ".last_commit_message" do
     it "returns a string" do
-      require 'tmpdir'
-
-      wd = Dir.mktmpdir
-      `cd #{wd} && touch README.md && git init && git add . && git commit -am "Initial commit" --author="A U Thor <author@example.com>"`
       default_dir = Dir.pwd
 
-      Dir.chdir(wd)
+      Dir.chdir(File.join([default_dir, 'spec', 'test-repo']))
       expect(described_class.last_commit_message).to eq "Initial commit"
       Dir.chdir(default_dir)
     end

@@ -9,8 +9,6 @@ describe Rainforest::Cli do
       require 'tmpdir'
 
       wd = Dir.mktmpdir
-      `git config --global user.email "you@example.com"`
-      `
       `cd #{wd} && touch README.md && git init && git add . && git commit -am "Initial commit" --author="A U Thor <author@example.com>"`
       default_dir = Dir.pwd
 

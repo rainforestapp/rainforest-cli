@@ -9,28 +9,120 @@ describe Rainforest::Cli do
     let(:ok_progress) { {"state" => "in_progress", "current_progress" => {"percent" => "1"} } }
 
     context "with bad parameters" do
-      context "with custom-url with no site-id" do
+      context "no token" do
+        let(:params) { %w(--custom-url http://ad-hoc.example.com) }
         it 'errors out' do
-          expect(STDOUT).to receive(:puts).with('The site-id and custom-url options work together, you need both of them.')
+          expect_any_instance_of(Logger).to receive(:fatal).with('You must pass your API token using: --token TOKEN')
           begin
-            described_class.start(%w(--custom-url http://ad-hoc.example.com))
+            described_class.start(params)
           rescue SystemExit => e
             # That's fine, this is expected but tested in a differnet assertion
           end
         end
 
-        it 'exits with exit code 1' do
+        it 'exits with exit code 2' do
           expect {
-            described_class.start(%w(--custom-url http://ad-hoc.example.com))
+            described_class.start(params)
           }.to raise_error { |error|
             expect(error).to be_a(SystemExit)
-            expect(error.status).to eq 1
+            expect(error.status).to eq 2
+          }
+        end
+      end
+
+      context "with custom-url with no site-id" do
+        let(:params) { %w(--token x --custom-url http://ad-hoc.example.com) }
+
+        it 'errors out' do
+          expect_any_instance_of(Logger).to receive(:fatal).with('The site-id and custom-url options are both required.')
+          begin
+            described_class.start(params)
+          rescue SystemExit => e
+            # That's fine, this is expected but tested in a differnet assertion
+          end
+        end
+
+        it 'exits with exit code 2' do
+          expect {
+            described_class.start(params)
+          }.to raise_error { |error|
+            expect(error).to be_a(SystemExit)
+            expect(error.status).to eq 2
           }
         end
       end
     end
 
+    context "git-trigger" do
+      let(:params) { %w(--token x --git-trigger) }
+      let(:commit_message) { 'a test commit message' }
+
+      def start_with_params(params, expected_exit_code = 2)
+        begin
+          described_class.start(params)
+        rescue SystemExit => error
+          expect(error.status).to eq expected_exit_code
+        end
+      end
+
+      before do
+        Rainforest::Cli::GitTrigger.stub(:last_commit_message) { commit_message }
+      end
+      
+      describe "with tags parameter passed" do
+        let(:params) { %w(--token x --tag x --git-trigger) }
+
+        it "warns about the parameter being ignored" do
+          expect_any_instance_of(Logger).to receive(:warn).with("Specified tags are ignored when using --git-trigger")
+          
+          start_with_params(params, 0)
+        end
+      end
+      
+      describe "with tags parameter passed" do
+        let(:params) { %w(all --token x --git-trigger) }
+
+        it "warns about the parameter being ignored" do
+          expect_any_instance_of(Logger).to receive(:warn).with("Specified tests are ignored when using --git-trigger")
+          
+          start_with_params(params, 0)
+        end
+      end
+
+      describe "with no @rainforest in the commit message" do
+        it "exit 0's and logs the reason" do
+          expect_any_instance_of(Logger).to receive(:info).with("Not triggering as @rainforest was not mentioned in last commit message.")
+          start_with_params(params, 0)
+        end
+      end
+
+      describe "with @rainforest in the commit message, but no tags" do
+        let(:commit_message) { 'a test commit message @rainforest' }
+
+        it "exit 2's and logs the reason" do
+          expect_any_instance_of(Logger).to receive(:error).with("Triggered via git, but no hashtags detected. Please use commit message format:")
+          expect_any_instance_of(Logger).to receive(:error).with("\t'some message. @rainforest #tag1 #tag2")
+          
+          start_with_params(params, 2)
+        end
+      end
+
+      describe "with @rainforest in the commit message + hashtags" do
+        let(:commit_message) { 'a test commit message @rainforest #run-me' }
+
+        it "starts the run with the specified tags" do
+          expect(described_class).to receive(:post).with(
+            "http://app.rainforest.dev/api/1/runs",
+            { :tags=>['run-me'], :gem_version=>Rainforest::Cli::VERSION }
+          ).and_return( {} )
+
+          start_with_params(params, 0)
+        end
+      end
+    end
+
     context "with site-id and custom-url" do
+      let(:params) { %w(--token x --site 3 --custom-url http://ad-hoc.example.com) }
       it "creates a new environment" do
         allow(described_class).to receive(:post).and_return { exit }
         expect(described_class).to receive(:post).with(
@@ -48,7 +140,7 @@ describe Rainforest::Cli do
         # call, not the call to create a run, so I exit, but rescue from it here
         # so that the spec doesn't fail. It's horrible, sorry!
         begin
-          described_class.start(%w(--site 3 --custom-url http://ad-hoc.example.com))
+          described_class.start(params)
         rescue SystemExit => e
           # That's fine, this is expected but tested in a differnet assertion
         end
@@ -61,7 +153,7 @@ describe Rainforest::Cli do
           "http://app.rainforest.dev/api/1/runs",
           { :tests=>[], :site_id=>3, :gem_version=>Rainforest::Cli::VERSION, :environment_id=>333 }
         ).and_return( {} )
-        described_class.start(%w(--site 3 --custom-url http://ad-hoc.example.com))
+        described_class.start(params)
       end
     end
 
@@ -104,12 +196,12 @@ describe Rainforest::Cli do
   describe ".get_environment_id" do
     context "with an invalid URL" do
       it 'errors out and exits' do
-        expect(STDOUT).to receive(:puts).with("The custom URL is invalid")
+        expect_any_instance_of(Logger).to receive(:fatal).with("The custom URL is invalid")
         expect {
           described_class.get_environment_id('http://some=weird')
         }.to raise_error { |error|
           expect(error).to be_a(SystemExit)
-          expect(error.status).to eq 1
+          expect(error.status).to eq 2
         }
       end
     end
@@ -120,7 +212,7 @@ describe Rainforest::Cli do
       end
 
       it 'errors out and exits' do
-        expect(STDOUT).to receive(:puts).with("Error creating the ad-hoc URL: Some API error")
+        expect_any_instance_of(Logger).to receive(:fatal).with("Error creating the ad-hoc URL: Some API error")
         expect {
           described_class.get_environment_id('http://example.com')
         }.to raise_error { |error|

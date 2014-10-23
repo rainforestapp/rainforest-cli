@@ -7,9 +7,9 @@ require "json"
 require "logger"
 
 module Rainforest
-  module Cli 
-    API_URL = 'https://app.rainforestqa.com/api/1'.freeze
-    
+  module Cli
+    API_URL = 'http://app.rainforest.dev/api/1'.freeze
+
     def self.start(args)
       @options = OptionParser.new(args)
 
@@ -64,7 +64,7 @@ module Rainforest
           exit 0
         end
       else
-        # Not using git_trigger, so look for the 
+        # Not using git_trigger, so look for the
         if !@options.tags.empty?
           post_opts[:tags] = @options.tags
         else
@@ -94,10 +94,10 @@ module Rainforest
 
       return unless @options.foreground?
 
-      while running 
+      while running
         Kernel.sleep 5
         response = get "#{API_URL}/runs/#{run_id}?gem_version=#{Rainforest::Cli::VERSION}"
-        if response 
+        if response
           if %w(queued in_progress sending_webhook waiting_for_callback).include?(response["state"])
             logger.info "Run #{run_id} is #{response['state']} and is #{response['current_progress']['percent']}% complete"
             running = false if response["result"] == 'failed' && @options.failfast?
@@ -125,7 +125,7 @@ module Rainforest
 
     def self.delete(url, body = {})
       response = HTTParty.delete url, {
-        body: body, 
+        body: body,
         headers: {"CLIENT_TOKEN" => @options.token}
       }
 
@@ -134,7 +134,7 @@ module Rainforest
 
     def self.post(url, body = {})
       response = HTTParty.post url, {
-        body: body, 
+        body: body,
         headers: {"CLIENT_TOKEN" => @options.token}
       }
 
@@ -143,7 +143,7 @@ module Rainforest
 
     def self.get(url, body = {})
       response = HTTParty.get url, {
-        body: body, 
+        body: body,
         headers: {"CLIENT_TOKEN" => @options.token}
       }
 

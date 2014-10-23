@@ -14,8 +14,17 @@ module Rainforest
       end
 
       def post url, body
-        HTTParty.post(Rainforest::Cli::API_URL + url, body: body.to_json, headers: {'Content-Type' => 'application/json', "CLIENT_TOKEN" => @token})
+        HTTParty.post(Rainforest::Cli::API_URL + url, body: body.to_json, headers: request_headers)
       end
+
+      def get url
+        HTTParty.get(Rainforest::Cli::API_URL + url, headers: request_headers)
+      end
+
+      def delete url
+        HTTParty.delete(Rainforest::Cli::API_URL + url, headers: request_headers)
+      end
+
 
       def row_data columns, values
         Hash[(columns.map {|c| c['id']}).zip(values)]
@@ -34,10 +43,10 @@ module Rainforest
         raise 'Invalid schema in CSV. You must include headers in first row.' if not columns
 
         print "Creating custom step variable"
-        response = post "/generators", { name: @generator_name, description: @generator_name, columns: columns }
+        response = create_variable(name: @generator_name, description: @generator_name, columns: columns)
         raise "Error creating custom step variable: #{response.code}, #{response.body}" unless response.code == 201
         puts "\t[OK]"
-        
+
         @columns = response['columns']
         @generator_id = response['id']
 
@@ -49,6 +58,25 @@ module Rainforest
           response = post("/generators/#{@generator_id}/rows", {data: row_data(@columns, row)})
           raise response.to_json unless response.code == 201
         end
+      end
+
+      def create_variable(name:, description:, columns:)
+
+        response = post "/generators", {name: name, description: description, columns: columns}
+
+        if response.code == 400 and response["error"] == "Name is already in use"
+          generators = get("/generators")
+          id = generators.detect { |g| g["name"] == name }["id"]
+          print "\nFound existing generator with name \"#{name}\". Replacing it."
+          delete("/generators/#{id}")
+          response = post "/generators", {name: name, description: description, columns: columns}
+        end
+
+        response
+      end
+
+      def request_headers
+        {'Content-Type' => 'application/json', "CLIENT_TOKEN" => @token}
       end
     end
   end

@@ -85,7 +85,7 @@ module Rainforest
       response = post(API_URL + '/runs', post_opts)
 
       if response['error']
-        if response['error'].include? "There are no steps in this run"
+        if !response['error'].index("There are no steps in this run").nil?
           logger.error "Error starting your run: #{response['error']}"
         else
           logger.fatal "Error starting your run: #{response['error']}"

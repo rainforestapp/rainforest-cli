@@ -66,6 +66,11 @@ module Rainforest
           opts.on("--custom-url URL", String, "Use a custom url for this run. You will need to specify a site_id too for this to work.") do |value|
             @custom_url = value
           end
+          
+          opts.on_tail("--help", "Display help message and exit") do |value|
+            puts opts
+            exit 0
+          end
         end.parse!(@args)
 
         @command = @args.shift

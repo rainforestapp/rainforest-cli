@@ -36,6 +36,26 @@ module Rainforest
         exit 2
       end
 
+      if @options.abort
+        if @options.run_ids.nil?
+          logger.fatal "You must pass a list of runs to abort"
+          exit 2
+        end
+        
+        @options.run_ids.each do |runid|
+          logger.debug "URL: " + API_URL + '/runs/' + runid.to_s + '.json'
+          logger.info "Issuing delete"
+          response = delete(API_URL + '/runs/' + runid.to_s + '.json')
+          
+          unless response['error'].nil?
+            logger.fatal "Error starting your run: #{response['error']}"
+            exit 1
+          end
+          
+          return
+        end
+      end
+      
       post_opts = {}
 
       if @options.git_trigger?

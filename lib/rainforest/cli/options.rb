@@ -11,7 +11,8 @@ module Rainforest
 
     class OptionParser
       attr_reader :command, :token, :tags, :conflict, :browsers, :site_id,
-                  :import_file_name, :import_name, :custom_url, :tests
+                  :import_file_name, :import_name, :custom_url, :tests, 
+                  :abort, :run_ids
 
       VALID_BROWSERS = %w{chrome firefox safari ie8 ie9}.freeze
 
@@ -19,6 +20,7 @@ module Rainforest
         @args = args.dup
         @tags = []
         @tests = []
+        @run_ids = []
         @browsers = nil
 
         @parsed = ::OptionParser.new do |opts|
@@ -52,6 +54,11 @@ module Rainforest
 
           opts.on("--tests TEST[,TEST]", String, "A set of test ids to run") do |value|
             @tests << value
+          end
+
+          opts.on("--abort RUN[,RUN]", String, "A set of runs to abort") do |value|
+            @abort = true
+            @run_ids << value
           end
 
           opts.on("--browsers LIST", "Run against the specified browsers") do |value|

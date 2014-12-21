@@ -11,7 +11,8 @@ module Rainforest
 
     class OptionParser
       attr_reader :command, :token, :tags, :conflict, :browsers, :site_id,
-                  :import_file_name, :import_name, :custom_url
+                  :import_file_name, :import_name, :custom_url, :list_tests,
+                  :list_sites
 
       VALID_BROWSERS = %w{chrome firefox safari ie8 ie9}.freeze
 
@@ -65,6 +66,14 @@ module Rainforest
 
           opts.on("--custom-url URL", String, "Use a custom url for this run. You will need to specify a site_id too for this to work.") do |value|
             @custom_url = value
+          end
+
+          opts.on("--list-tests", String, "List client's tests and exit") do |value|
+            @list_tests = true
+          end
+
+          opts.on("--list-sites", String, "List client's sites and exit") do |value|
+            @list_sites = true
           end
         end.parse!(@args)
 

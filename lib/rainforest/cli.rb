@@ -5,6 +5,7 @@ require "rainforest/cli/csv_importer"
 require "httparty"
 require "json"
 require "logger"
+require "table_print"
 
 module Rainforest
   module Cli 
@@ -16,6 +17,23 @@ module Rainforest
       unless @options.token
         logger.fatal "You must pass your API token using: --token TOKEN"
         exit 2
+      end
+      
+      if @options.list_tests
+        response = get(API_URL + '/tests.json')
+        response.map { |test| test['tags'] = test['tags'].join(', ') }
+        response.map { |test| test['browsers'] = test['browsers'].map{|b| b['state'] == 'enabled' ? b = b['name'] + ', ' : b = []}.join()[0..-3] }
+        response.map { |test| test['last_run'] = test['last_run']['created_at'] if !test['last_run'].nil? }
+        tp.set :max_width, 40
+        tp response, "test_id", "site_id", "title", "start_uri", "tags", "browsers", "last_run", "result"
+        exit 0
+      end
+      
+      if @options.list_sites
+        response = get(API_URL + '/sites.json')
+        tp.set :max_width, 40
+        tp response, "id", "name"
+        exit 0
       end
 
       if @options.custom_url && @options.site_id.nil?

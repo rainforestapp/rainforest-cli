@@ -35,6 +35,16 @@ module Rainforest
         tp response, "id", "name"
         exit 0
       end
+      
+      if @options.list_runs
+        url_append = @options.list_runs == true ? '/runs.json' : '/runs.json?state=' + @options.list_runs
+        response = get(API_URL + url_append)
+        tp.set :max_width, 60
+        response.map { |test| test['tests'] = test['tests'].map{|b| b = b['id']}.join(', ')}
+        response.map { |test| test['browsers'] = test['browsers'].map{|b| b['state'] == 'enabled' ? b = b['name'] + ', ' : b = []}.join()[0..-3] }
+        tp response, "id", "created_at", "tests", "browsers", "state", "result"
+        exit 0
+      end
 
       if @options.custom_url && @options.site_id.nil?
         logger.fatal "The site-id and custom-url options are both required."

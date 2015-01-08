@@ -12,7 +12,8 @@ module Rainforest
     
     def self.start(args)
       @options = OptionParser.new(args)
-
+      OptionParser.new(['--help']) if args.size == 0
+      
       unless @options.token
         logger.fatal "You must pass your API token using: --token TOKEN"
         exit 2

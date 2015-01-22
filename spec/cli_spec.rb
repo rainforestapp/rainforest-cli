@@ -14,40 +14,9 @@ describe Rainforest::Cli do
         let(:params) { %w(--custom-url http://ad-hoc.example.com) }
         it 'errors out' do
           expect_any_instance_of(Logger).to receive(:fatal).with('You must pass your API token using: --token TOKEN')
-          begin
-            described_class.start(params)
-          rescue SystemExit => e
-            # That's fine, this is expected but tested in a differnet assertion
-          end
-        end
-
-        it 'exits with exit code 2' do
           expect {
             described_class.start(params)
-          }.to raise_error { |error|
-            expect(error).to be_a(SystemExit)
-            expect(error.status).to eq 2
-          }
-        end
-      end
-
-      context "with custom-url with no site-id" do
-        let(:params) { %w(--token x --custom-url http://ad-hoc.example.com) }
-
-        it 'errors out' do
-          expect_any_instance_of(Logger).to receive(:fatal).with('The site-id and custom-url options are both required.')
-          begin
-            described_class.start(params)
-          rescue SystemExit => e
-            # That's fine, this is expected but tested in a differnet assertion
-          end
-        end
-
-        it 'exits with exit code 2' do
-          expect {
-            described_class.start(params)
-          }.to raise_error { |error|
-            expect(error).to be_a(SystemExit)
+          }.to raise_error(SystemExit) { |error|
             expect(error.status).to eq 2
           }
         end

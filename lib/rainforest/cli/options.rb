@@ -66,7 +66,7 @@ module Rainforest
           opts.on("--custom-url URL", String, "Use a custom url for this run. You will need to specify a site_id too for this to work.") do |value|
             @custom_url = value
           end
-          
+
           opts.on_tail("--help", "Display help message and exit") do |value|
             puts opts
             exit 0
@@ -91,6 +91,29 @@ module Rainforest
 
       def foreground?
         @foreground
+      end
+
+      def validate!
+        unless token
+          raise ValidationError, "You must pass your API token using: --token TOKEN"
+        end
+
+        if custom_url && site_id.nil?
+          raise ValidationError, "The site-id and custom-url options are both required."
+        end
+
+        if import_file_name && import_name
+          unless File.exists?(import_file_name)
+            raise ValidationError, "Input file: #{import_file_name} not found"
+          end
+
+        elsif import_file_name || import_name
+          raise ValidationError, "You must pass both --import-variable-csv-file and --import-variable-name"
+        end
+        true
+      end
+
+      class ValidationError < RuntimeError
       end
     end
   end

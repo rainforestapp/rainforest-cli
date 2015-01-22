@@ -14,35 +14,17 @@ module Rainforest
       options = OptionParser.new(args)
       OptionParser.new(['--help']) if args.size == 0
 
-      validate_options!(options)
+      begin
+        options.validate!
+      rescue OptionParser::ValidationError => e
+        logger.fatal e.message
+        exit 2
+      end
 
       runner = Runner.new(options)
       runner.run
 
       true
-    end
-
-    def self.validate_options!(options)
-      unless options.token
-        logger.fatal "You must pass your API token using: --token TOKEN"
-        exit 2
-      end
-
-      if options.custom_url && options.site_id.nil?
-        logger.fatal "The site-id and custom-url options are both required."
-        exit 2
-      end
-
-      if options.import_file_name && options.import_name
-        unless File.exists?(options.import_file_name)
-          logger.fatal "Input file: #{options.import_file_name} not found"
-          exit 2
-        end
-
-      elsif options.import_file_name || options.import_name
-        logger.fatal "You must pass both --import-variable-csv-file and --import-variable-name"
-        exit 2
-      end
     end
 
     def self.logger

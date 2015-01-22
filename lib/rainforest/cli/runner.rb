@@ -95,7 +95,6 @@ module Rainforest
         post_opts[:conflict] = options.conflict if options.conflict
         post_opts[:browsers] = options.browsers if options.browsers
         post_opts[:site_id] = options.site_id if options.site_id
-        post_opts[:gem_version] = Rainforest::Cli::VERSION
 
         if options.custom_url
           post_opts[:environment_id] = get_environment_id(options.custom_url)

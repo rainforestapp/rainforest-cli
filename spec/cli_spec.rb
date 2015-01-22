@@ -153,7 +153,7 @@ describe Rainforest::Cli do
 
         http_client.should_receive(:post).with(
           "/runs",
-          { :tests=>[], :site_id=>3, :gem_version=>Rainforest::Cli::VERSION, :environment_id=>333 }
+          { :tests=>[], :site_id=>3, :environment_id=>333 }
         ).and_return( {} )
         described_class.start(params)
       end

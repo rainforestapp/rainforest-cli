@@ -44,7 +44,10 @@ module Rainforest
       end
 
       def headers
-        {"CLIENT_TOKEN" => @token}
+        {
+          "CLIENT_TOKEN" => @token,
+          "User-Agent" => "Rainforest-cli-#{Rainforest::Cli::VERSION}"
+        }
       end
     end
   end

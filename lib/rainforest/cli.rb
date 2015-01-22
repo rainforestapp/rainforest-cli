@@ -155,10 +155,15 @@ module Rainforest
       end
     end
 
+    def self.url_valid?(url)
+      return false unless URI::regexp === url
+
+      uri = URI.parse(url)
+      %w(http https).include?(uri.scheme)
+    end
+
     def self.get_environment_id url
-      begin
-        URI.parse(url)
-      rescue URI::InvalidURIError
+      unless url_valid?(url)
         logger.fatal "The custom URL is invalid"
         exit 2
       end
@@ -178,6 +183,10 @@ module Rainforest
 
     def self.logger
       @logger ||= Logger.new(STDOUT)
+    end
+
+    def self.logger=(logger)
+      @logger = logger
     end
   end
 end

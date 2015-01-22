@@ -193,14 +193,38 @@ describe Rainforest::Cli do
     end
   end
 
+  describe ".url_valid?" do
+    subject { described_class.url_valid?(url) }
+    [
+      "http://example.org",
+      "https://example.org",
+      "http://example.org/",
+      "http://example.org?foo=bar",
+    ].each do |valid_url|
+      context "#{valid_url}" do
+        let(:url) { valid_url }
+        it { should be(true) }
+      end
+    end
+
+    [
+      "ftp://example.org",
+      "example.org",
+      "",
+    ].each do |valid_url|
+      context "#{valid_url}" do
+        let(:url) { valid_url }
+        it { should be(false) }
+      end
+    end
+  end
+
   describe ".get_environment_id" do
     context "with an invalid URL" do
-      xit 'errors out and exits' do
-        expect_any_instance_of(Logger).to receive(:fatal).with("The custom URL is invalid")
+      it 'errors out and exits' do
         expect {
-          described_class.get_environment_id('http://some=weird')
-        }.to raise_error { |error|
-          expect(error).to be_a(SystemExit)
+          described_class.get_environment_id('some=weird')
+        }.to raise_error(SystemExit) { |error|
           expect(error.status).to eq 2
         }
       end
@@ -215,8 +239,7 @@ describe Rainforest::Cli do
         expect_any_instance_of(Logger).to receive(:fatal).with("Error creating the ad-hoc URL: Some API error")
         expect {
           described_class.get_environment_id('http://example.com')
-        }.to raise_error { |error|
-          expect(error).to be_a(SystemExit)
+        }.to raise_error(SystemExit) { |error|
           expect(error.status).to eq 1
         }
       end

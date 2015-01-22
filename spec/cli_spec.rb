@@ -1,7 +1,8 @@
 describe Rainforest::Cli do
+  let(:http_client) { Rainforest::Cli::HttpClient.any_instance }
+
   before do
     Kernel.stub(:sleep)
-    stub_const("Rainforest::Cli::API_URL", 'http://app.rainforest.dev/api/1')
   end
 
   describe ".start" do
@@ -68,23 +69,23 @@ describe Rainforest::Cli do
       before do
         Rainforest::Cli::GitTrigger.stub(:last_commit_message) { commit_message }
       end
-      
+
       describe "with tags parameter passed" do
         let(:params) { %w(--token x --tag x --git-trigger) }
 
         it "warns about the parameter being ignored" do
           expect_any_instance_of(Logger).to receive(:warn).with("Specified tags are ignored when using --git-trigger")
-          
+
           start_with_params(params, 0)
         end
       end
-      
+
       describe "with tags parameter passed" do
         let(:params) { %w(all --token x --git-trigger) }
 
         it "warns about the parameter being ignored" do
           expect_any_instance_of(Logger).to receive(:warn).with("Specified tests are ignored when using --git-trigger")
-          
+
           start_with_params(params, 0)
         end
       end
@@ -102,7 +103,7 @@ describe Rainforest::Cli do
         it "exit 2's and logs the reason" do
           expect_any_instance_of(Logger).to receive(:error).with("Triggered via git, but no hashtags detected. Please use commit message format:")
           expect_any_instance_of(Logger).to receive(:error).with("\t'some message. @rainforest #tag1 #tag2")
-          
+
           start_with_params(params, 2)
         end
       end
@@ -111,10 +112,11 @@ describe Rainforest::Cli do
         let(:commit_message) { 'a test commit message @rainforest #run-me' }
 
         it "starts the run with the specified tags" do
-          expect(described_class).to receive(:post).with(
-            "http://app.rainforest.dev/api/1/runs",
-            { :tags=>['run-me'], :gem_version=>Rainforest::Cli::VERSION }
-          ).and_return( {} )
+          http_client.should_receive(:post) do |url, options|
+            expect(url).to eq("/runs")
+            expect(options[:tags]).to eq(['run-me'])
+            {}
+          end
 
           start_with_params(params, 0)
         end
@@ -124,9 +126,7 @@ describe Rainforest::Cli do
     context "with site-id and custom-url" do
       let(:params) { %w(--token x --site 3 --custom-url http://ad-hoc.example.com) }
       it "creates a new environment" do
-        allow(described_class).to receive(:post).and_return { exit }
-        expect(described_class).to receive(:post).with(
-            "http://app.rainforest.dev/api/1/environments",
+        http_client.should_receive(:post).with("/environments",
             {
               :name => "temporary-env-for-custom-url-via-CLI",
               :url=>"http://ad-hoc.example.com"
@@ -134,6 +134,8 @@ describe Rainforest::Cli do
           ).and_return(
             { 'id' => 333 }
           )
+
+        http_client.should_receive(:post).with("/runs", anything).and_return( { "id" => 1 } )
 
         # This is a hack because when expecting a function to be called with
         # parameters, the last call is compared but I want to compare the first
@@ -147,10 +149,10 @@ describe Rainforest::Cli do
       end
 
       it "starts the run with site_id and environment_id" do
-        allow(described_class).to receive(:get_environment_id).and_return(333)
+        Rainforest::Cli::Runner.any_instance.stub(get_environment_id: 333)
 
-        expect(described_class).to receive(:post).with(
-          "http://app.rainforest.dev/api/1/runs",
+        http_client.should_receive(:post).with(
+          "/runs",
           { :tests=>[], :site_id=>3, :gem_version=>Rainforest::Cli::VERSION, :environment_id=>333 }
         ).and_return( {} )
         described_class.start(params)
@@ -159,11 +161,11 @@ describe Rainforest::Cli do
 
     context "a simple run" do
       before do
-        described_class.stub(:post) { {"id" => 1} }
-        3.times do 
-          described_class.should_receive(:get) { ok_progress }
+        http_client.stub(:post) { {"id" => 1} }
+        3.times do
+          http_client.should_receive(:get) { ok_progress }
         end
-        described_class.should_receive(:get) { {"state" => "complete", "result" => "passed" } }
+        http_client.should_receive(:get) { {"state" => "complete", "result" => "passed" } }
       end
 
       it "should return true" do
@@ -173,75 +175,22 @@ describe Rainforest::Cli do
 
     context "a run where the server 500s after a while" do
       before do
-        described_class.stub(:post) { {"id" => 1} }
-        2.times do 
-          described_class.should_receive(:get) { ok_progress }
+        http_client.stub(:post) { {"id" => 1} }
+        2.times do
+          http_client.should_receive(:get) { ok_progress }
         end
 
-        described_class.should_receive(:get) { nil }
+        http_client.should_receive(:get) { nil }
 
-        2.times do 
-          described_class.should_receive(:get) { ok_progress }
+        2.times do
+          http_client.should_receive(:get) { ok_progress }
         end
 
-        described_class.should_receive(:get) { {"state" => "complete", "result" => "passed" } }
+        http_client.should_receive(:get) { {"state" => "complete", "result" => "passed" } }
       end
 
       it "should return true" do
         described_class.start(valid_args).should be_true
-      end
-    end
-  end
-
-  describe ".url_valid?" do
-    subject { described_class.url_valid?(url) }
-    [
-      "http://example.org",
-      "https://example.org",
-      "http://example.org/",
-      "http://example.org?foo=bar",
-    ].each do |valid_url|
-      context "#{valid_url}" do
-        let(:url) { valid_url }
-        it { should be(true) }
-      end
-    end
-
-    [
-      "ftp://example.org",
-      "example.org",
-      "",
-    ].each do |valid_url|
-      context "#{valid_url}" do
-        let(:url) { valid_url }
-        it { should be(false) }
-      end
-    end
-  end
-
-  describe ".get_environment_id" do
-    context "with an invalid URL" do
-      it 'errors out and exits' do
-        expect {
-          described_class.get_environment_id('some=weird')
-        }.to raise_error(SystemExit) { |error|
-          expect(error.status).to eq 2
-        }
-      end
-    end
-
-    context 'on API error' do
-      before do
-        allow(described_class).to receive(:post).and_return( {"error"=>"Some API error"} )
-      end
-
-      it 'errors out and exits' do
-        expect_any_instance_of(Logger).to receive(:fatal).with("Error creating the ad-hoc URL: Some API error")
-        expect {
-          described_class.get_environment_id('http://example.com')
-        }.to raise_error(SystemExit) { |error|
-          expect(error.status).to eq 1
-        }
       end
     end
   end

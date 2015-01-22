@@ -195,7 +195,7 @@ describe Rainforest::Cli do
 
   describe ".get_environment_id" do
     context "with an invalid URL" do
-      it 'errors out and exits' do
+      xit 'errors out and exits' do
         expect_any_instance_of(Logger).to receive(:fatal).with("The custom URL is invalid")
         expect {
           described_class.get_environment_id('http://some=weird')

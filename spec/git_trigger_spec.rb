@@ -2,7 +2,7 @@ describe Rainforest::Cli::GitTrigger do
   subject { described_class }
 
   describe ".last_commit_message" do
-    it "returns a string" do
+    xit "returns a string" do
       default_dir = Dir.pwd
 
       Dir.chdir(File.join([default_dir, 'spec', 'test-repo']))

@@ -1,6 +1,16 @@
 describe Rainforest::Cli::OptionParser do
   subject { Rainforest::Cli::OptionParser.new(args) }
 
+  context "importing csv file" do
+    let(:args) { ["--import-variable-csv-file", "some_file.csv"] }
+    its(:import_file_name) { should == "some_file.csv" }
+  end
+
+  context "importing name" do
+    let(:args) { ["--import-variable-name", "some_name"] }
+    its(:import_name) { should == "some_name" }
+  end
+
   context "run all tests" do
     let(:args) { ["run", "all"] }
     its(:tests) { should == ["all"]}
@@ -31,6 +41,12 @@ describe Rainforest::Cli::OptionParser do
     its(:browsers) { should == ["ie8", "chrome"]}
   end
 
+  context "it parses the --git-trigger flag" do
+    let(:args) { ["run", "--git-trigger", "all"] }
+    its(:tests) { should == ["all"]}
+    its(:git_trigger?) { should be_true }
+  end
+
   context "it parses the --fg flag" do
     let(:args) { ["run", "--fg", "all"] }
     its(:tests) { should == ["all"]}
@@ -50,5 +66,15 @@ describe Rainforest::Cli::OptionParser do
   context "it parses the fail-fast flag" do
     let(:args) { ["run", "--fail-fast"] }
     its(:failfast?) { should be_true }
+  end
+
+  context "it parses the site-id flag" do
+    let(:args) { ["run", "--site-id", '3'] }
+    its(:site_id) { should eq 3 }
+  end
+
+  context "it parses the custom-url flag" do
+    let(:args) { ["run", "--custom-url", 'http://ad-hoc.example.com'] }
+    its(:custom_url) { should eq 'http://ad-hoc.example.com' }
   end
 end

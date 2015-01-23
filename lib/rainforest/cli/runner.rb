@@ -51,6 +51,10 @@ module Rainforest
           end
         end
 
+        if url = response["frontend_url"]
+          logger.info "The detailed results are available at #{url}"
+        end
+
         if response["result"] != "passed"
           exit 1
         end

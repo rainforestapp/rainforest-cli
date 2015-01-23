@@ -1,7 +1,9 @@
 module Rainforest
   module Cli
     class HttpClient
-      API_URL = 'https://app.rainforestqa.com/api/1'.freeze
+      API_URL = ENV.fetch("RAINFOREST_API_URL") do
+        'https://app.rainforestqa.com/api/1'
+      end.freeze
 
       def initialize(token:)
         @token = token

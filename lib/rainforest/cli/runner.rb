@@ -41,7 +41,8 @@ module Rainforest
           Kernel.sleep 5
           response = client.get("/runs/#{run_id}")
           if response
-            if %w(queued validating in_progress sending_webhook waiting_for_callback).include?(response["state"])
+            state_details = response.fetch('state_details')
+            unless state_details.fetch("is_final_state")
               logger.info "Run #{run_id} is #{response['state']} and is #{response['current_progress']['percent']}% complete"
               running = false if response["result"] == 'failed' && options.failfast?
             else

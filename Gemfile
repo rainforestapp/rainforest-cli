@@ -5,5 +5,5 @@ gemspec
 
 group :test do
   gem "rspec", "2.14"
-  gem "pry-byebug"
+  gem "pry-byebug", platforms: [:mri_20, :mri_21]
 end

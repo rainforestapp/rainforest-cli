@@ -5,8 +5,8 @@ module Rainforest
         'https://app.rainforestqa.com/api/1'
       end.freeze
 
-      def initialize(token:)
-        @token = token
+      def initialize(options)
+        @token = options.fetch(:token)
       end
 
       def delete(url, body = {})

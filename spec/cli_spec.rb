@@ -7,7 +7,23 @@ describe Rainforest::Cli do
 
   describe ".start" do
     let(:valid_args) { %w(--token foo run --fg all) }
-    let(:ok_progress) { {"state" => "in_progress", "current_progress" => {"percent" => "1"} } }
+    let(:ok_progress) do
+      {
+        "state" => "in_progress",
+        "current_progress" => {"percent" => "1"},
+        "state_details" => { "is_final_state" => false },
+        "result" => "no_result",
+      }
+    end
+
+    let(:complete_response) do
+      {
+        "state" => "complete",
+        "current_progress" => {"percent" => "100"},
+        "state_details" => { "is_final_state" => true},
+        "result" => "passed",
+      }
+    end
 
     context "with bad parameters" do
       context "no token" do
@@ -134,7 +150,7 @@ describe Rainforest::Cli do
         3.times do
           http_client.should_receive(:get) { ok_progress }
         end
-        http_client.should_receive(:get) { {"state" => "complete", "result" => "passed" } }
+        http_client.should_receive(:get) { complete_response }
       end
 
       it "should return true" do
@@ -155,7 +171,7 @@ describe Rainforest::Cli do
           http_client.should_receive(:get) { ok_progress }
         end
 
-        http_client.should_receive(:get) { {"state" => "complete", "result" => "passed" } }
+        http_client.should_receive(:get) { complete_response }
       end
 
       it "should return true" do

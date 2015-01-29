@@ -4,5 +4,6 @@ source 'https://rubygems.org'
 gemspec
 
 group :test do
-  gem "rspec"
+  gem "rspec", "2.14"
+  gem "pry-byebug"
 end

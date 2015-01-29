@@ -5,7 +5,6 @@
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
-require 'pry-byebug'
 require "rainforest/cli"
 
 Rainforest::Cli.logger = Logger.new(StringIO.new)

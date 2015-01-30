@@ -8,11 +8,13 @@ This is the easiest way to integrate Rainforest with your deploy scripts or CI s
 
 ## Installation
 
+You can install rainforest-cli with the [gem](https://rubygems.org/) utility.
+
 ```bash
-$ gem install rainforest-cli
+gem install rainforest-cli
 ```
 
-or add to your Gemfile if you're in a ruby project.
+Alternatively, you can add to your Gemfile if you're in a ruby project.
 
 ```ruby
 gem "rainforest-cli", require: false

@@ -1,5 +1,5 @@
 module Rainforest
   module Cli
-    VERSION = "0.0.17"
+    VERSION = "1.0.0"
   end
 end

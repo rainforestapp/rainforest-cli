@@ -14,7 +14,7 @@ You can install rainforest-cli with the [gem](https://rubygems.org/) utility.
 gem install rainforest-cli
 ```
 
-Alternatively, you can add to your Gemfile if you're in a ruby project.
+Alternatively, you can add to your Gemfile if you're in a ruby project. This is *not recommended* for most users. The reason being that we update this gem frequently and you usually want to ensure you have the latest version.
 
 ```ruby
 gem "rainforest-cli", require: false

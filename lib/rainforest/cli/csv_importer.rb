@@ -14,7 +14,7 @@ module Rainforest
       end
 
       def post url, body
-        HTTParty.post(Rainforest::Cli::API_URL + url, body: body.to_json, headers: {'Content-Type' => 'application/json', "CLIENT_TOKEN" => @token})
+        HTTParty.post(Rainforest::Cli::HttpClient::API_URL + url, body: body.to_json, headers: {'Content-Type' => 'application/json', "CLIENT_TOKEN" => @token})
       end
 
       def row_data columns, values
@@ -37,7 +37,7 @@ module Rainforest
         response = post "/generators", { name: @generator_name, description: @generator_name, columns: columns }
         raise "Error creating custom step variable: #{response.code}, #{response.body}" unless response.code == 201
         puts "\t[OK]"
-        
+
         @columns = response['columns']
         @generator_id = response['id']
 

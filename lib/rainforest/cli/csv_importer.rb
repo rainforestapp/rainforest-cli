@@ -7,14 +7,12 @@ require 'ruby-progressbar'
 module Rainforest
   module Cli
     class CSVImporter
+      attr_reader :client
+
       def initialize name, file, token
         @generator_name = name
         @file = file
-        @token = token
-      end
-
-      def post url, body
-        HTTParty.post(Rainforest::Cli::API_URL + url, body: body.to_json, headers: {'Content-Type' => 'application/json', "CLIENT_TOKEN" => @token})
+        @client = HttpClient.new token: token
       end
 
       def row_data columns, values
@@ -34,10 +32,10 @@ module Rainforest
         raise 'Invalid schema in CSV. You must include headers in first row.' if not columns
 
         print "Creating custom step variable"
-        response = post "/generators", { name: @generator_name, description: @generator_name, columns: columns }
-        raise "Error creating custom step variable: #{response.code}, #{response.body}" unless response.code == 201
+        response = client.post "/generators", { name: @generator_name, description: @generator_name, columns: columns }
+        raise "Error creating custom step variable: #{response['error']}" if response['error']
         puts "\t[OK]"
-        
+
         @columns = response['columns']
         @generator_id = response['id']
 
@@ -45,9 +43,9 @@ module Rainforest
         p = ProgressBar.create(title: 'Rows', total: rows.count, format: '%a %B %p%% %t')
 
         # Insert the data
-        Parallel.each(rows, in_processes: 16, finish: lambda { |item, i, result| p.increment }) do |row|
-          response = post("/generators/#{@generator_id}/rows", {data: row_data(@columns, row)})
-          raise response.to_json unless response.code == 201
+        Parallel.each(rows, in_threads: 16, finish: lambda { |item, i, result| p.increment }) do |row|
+          response = client.post("/generators/#{@generator_id}/rows", {data: row_data(@columns, row)})
+          raise response['error'] if response['error']
         end
       end
     end

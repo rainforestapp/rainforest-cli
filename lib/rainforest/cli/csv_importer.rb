@@ -43,7 +43,7 @@ module Rainforest
         p = ProgressBar.create(title: 'Rows', total: rows.count, format: '%a %B %p%% %t')
 
         # Insert the data
-        Parallel.each(rows, in_processes: 16, finish: lambda { |item, i, result| p.increment }) do |row|
+        Parallel.each(rows, in_threads: 16, finish: lambda { |item, i, result| p.increment }) do |row|
           response = client.post("/generators/#{@generator_id}/rows", {data: row_data(@columns, row)})
           raise response['error'] if response['error']
         end

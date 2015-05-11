@@ -38,7 +38,7 @@ rainforest run all --fg --token YOUR_TOKEN_HERE
 Run all tests with tag 'run-me' and abort previous in-progress runs.
 
 ```bash
-rainforest run --tag run-me --fg --conflict abort --token YOUR_TOKEN_HERE 
+rainforest run --tag run-me --fg --conflict abort --token YOUR_TOKEN_HERE
 ```
 
 
@@ -51,16 +51,18 @@ Required:
 
 
 ### Running Tests
-The options are:
+The most popular options are:
 
 - `--browsers ie8` or `--browsers ie8,chrome` - specficy the browsers you wish to run against. This overrides the test own settings. Valid browsers are ie8, ie9, chrome, firefox and safari.
 - `--tag run-me` - only run tests which have this tag (recommended if you have lots of [test-steps](http://docs.rainforestqa.com/pages/example-test-suite.html#test_steps))!)
 - `--site-id` - only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
 - `--conflict abort` - if you trigger rainforest more than once, anything running will be aborted and a fresh run started
-- `--fg` - results in the foreground - rainforest-cli will not return until the run is complete. This is what you want to make the build pass / fail dependent on rainforest results 
+- `--fg` - results in the foreground - rainforest-cli will not return until the run is complete. This is what you want to make the build pass / fail dependent on rainforest results
 - `--fail-fast` - fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Use with `--fg`.
 - `--custom-url` - use a custom url for this run. Example use case: an ad-hoc QA environment with [Fourchette](https://github.com/rainforestapp/fourchette). You will need to specify a `site_id` too for this to work. Note that we will be creating a new environment for this particular run.
 - `--git-trigger` - only trigger a run when the last commit (for a git repo in the current working directory) has contains `@rainforest` and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged `checkout`. This over-rides `--tag` and any tests specified. If no `@rainforest` is detected it will exit 0.
+
+More detailed info on options can be [found here](https://github.com/rainforestapp/rainforest-cli/blob/master/lib/rainforest/cli/options.rb#L23-L74).
 
 ## Support
 

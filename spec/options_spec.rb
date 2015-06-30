@@ -78,6 +78,11 @@ describe Rainforest::Cli::OptionParser do
       let(:args) { ["run", "--custom-url", 'http://ad-hoc.example.com'] }
       its(:custom_url) { should eq 'http://ad-hoc.example.com' }
     end
+
+    context "it add a run description" do
+      let(:args) { ["run", "--run-description", 'test description'] }
+      its(:run_description) { should eq 'test description' }
+    end
   end
 
   describe "#validate!" do

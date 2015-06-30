@@ -67,7 +67,7 @@ module Rainforest
             @custom_url = value
           end
 
-          opts.on("--run-description DESCRIPTION", "Add a description for the run been started.") do |value|
+          opts.on("--run-description DESCRIPTION", "Add a description for the run.") do |value|
             @run_description = value
           end
 

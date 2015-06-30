@@ -67,10 +67,15 @@ module Rainforest
             @custom_url = value
           end
 
+          opts.run_description("--run-description", "Add a description for the run been started.") do |value|
+            @run_description = value
+          end
+
           opts.on_tail("--help", "Display help message and exit") do |value|
             puts opts
             exit 0
           end
+
         end.parse!(@args)
 
         @command = @args.shift

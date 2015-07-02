@@ -80,8 +80,8 @@ describe Rainforest::Cli::OptionParser do
     end
 
     context "it add a run description" do
-      let(:args) { ["run", "--run-description", 'test description'] }
-      its(:run_description) { should eq 'test description' }
+      let(:args) { ["run", "--description", 'test description'] }
+      its(:description) { should eq 'test description' }
     end
   end
 

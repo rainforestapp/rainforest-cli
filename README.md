@@ -4,7 +4,7 @@
 
 A command line interface to interact with RainforestQA.
 
-This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation](http://support.rainforestqa.com/hc/en-us/sections/200597986-Continuous-Integration) on the subject.
+This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation](http://support.rainforestqa.com/hc/en-us/articles/205876128-Continuous-Integration) on the subject.
 
 ## Installation
 

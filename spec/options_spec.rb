@@ -74,6 +74,11 @@ describe Rainforest::Cli::OptionParser do
       its(:site_id) { should eq 3 }
     end
 
+    context "it parses the environment-id flag" do
+      let(:args) { ["run", "--environment-id", '3'] }
+      its(:environment_id) { should eq 3 }
+    end
+
     context "it parses the custom-url flag" do
       let(:args) { ["run", "--custom-url", 'http://ad-hoc.example.com'] }
       its(:custom_url) { should eq 'http://ad-hoc.example.com' }

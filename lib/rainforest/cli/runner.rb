@@ -104,6 +104,8 @@ module Rainforest
 
         if options.custom_url
           post_opts[:environment_id] = get_environment_id(options.custom_url)
+        elsif options.environment_id
+          post_opts[:environment_id] = options.environment_id
         end
 
         post_opts

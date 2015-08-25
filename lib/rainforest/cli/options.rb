@@ -10,7 +10,7 @@ module Rainforest
     end
 
     class OptionParser
-      attr_reader :command, :token, :tags, :conflict, :browsers, :site_id,
+      attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
                   :import_file_name, :import_name, :custom_url, :description
 
       VALID_BROWSERS = %w{chrome firefox safari ie8 ie9}.freeze
@@ -57,6 +57,10 @@ module Rainforest
 
           opts.on("--conflict MODE", String, "How should Rainforest handle existing in progress runs?") do |value|
             @conflict = value
+          end
+
+          opts.on("--environment-id ID", Integer, "Run using this environment. If excluded, will use your default") do |value|
+            @environment_id = value
           end
 
           opts.on("--site-id ID", Integer, "Only run tests for a specific site") do |value|

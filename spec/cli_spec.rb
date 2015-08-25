@@ -144,6 +144,20 @@ describe Rainforest::Cli do
       end
     end
 
+    context "with environment-id" do
+      let(:params) { %w(--token x --environment 123) }
+
+      it "starts the run with environment_id" do
+        Rainforest::Cli::Runner.any_instance.stub(get_environment_id: 333)
+
+        http_client.should_receive(:post).with(
+          "/runs",
+          { :tests=>[], :environment_id=>123 }
+        ).and_return( {} )
+        described_class.start(params)
+      end
+    end
+
     context "a simple run" do
       before do
         http_client.stub(:post) { {"id" => 1} }

@@ -1,6 +1,6 @@
 # Rainforest CLI Changelog
 
-## 1.0.4 - 25th August 2015
+## 1.0.5 - 25th August 2015
 - Added environment support (278f4fe9a1ca9f507fe1e4b11935d9c37056786b)
 
 ## 0.0.11 - 30th Sept 2013

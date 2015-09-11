@@ -11,7 +11,7 @@ module Rainforest
 
     class OptionParser
       attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
-                  :import_file_name, :import_name, :custom_url, :description
+                  :import_file_name, :import_name, :custom_url, :description, :folder
 
       VALID_BROWSERS = %w{chrome firefox safari ie8 ie9}.freeze
 
@@ -47,6 +47,10 @@ module Rainforest
 
           opts.on("--tag TAG", String, "A tag to run the tests with") do |value|
             @tags << value
+          end
+
+          opts.on("--folder ID", "Run tests in the specified folders") do |value|
+            @folder = value
           end
 
           opts.on("--browsers LIST", "Run against the specified browsers") do |value|

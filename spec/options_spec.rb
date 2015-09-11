@@ -24,6 +24,11 @@ describe Rainforest::Cli::OptionParser do
       its(:tags) { should == ["run-me"]}
     end
 
+    context "run from folder" do
+      let(:args) { ["run", "--folder", "12"] }
+      its(:folder) { should == "12"}
+    end
+
     context "only run in specific browsers" do
       let(:args) { ["run", "--browsers", "ie8"] }
       its(:browsers) { should == ["ie8"]}

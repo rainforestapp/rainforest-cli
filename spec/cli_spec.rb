@@ -65,7 +65,7 @@ describe Rainforest::Cli do
         end
       end
 
-      describe "with tags parameter passed" do
+      describe "without tags parameter passed" do
         let(:params) { %w(all --token x --git-trigger) }
 
         it "warns about the parameter being ignored" do
@@ -153,6 +153,18 @@ describe Rainforest::Cli do
         http_client.should_receive(:post).with(
           "/runs",
           { :tests=>[], :environment_id=>123 }
+        ).and_return( {} )
+        described_class.start(params)
+      end
+    end
+
+    context "with smart_folder_id" do
+      let(:params) { %w(--token x --folder 123) }
+
+      it "starts the run with smart folder" do
+        http_client.should_receive(:post).with(
+          "/runs",
+          { :smart_folder_id=>123 }
         ).and_return( {} )
         described_class.start(params)
       end

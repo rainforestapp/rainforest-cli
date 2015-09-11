@@ -92,6 +92,8 @@ module Rainforest
           # Not using git_trigger, so look for the
           if !options.tags.empty?
             post_opts[:tags] = options.tags
+          elsif !options.folder.nil?
+            post_opts[:smart_folder_id] = @options.folder.to_i
           else
             post_opts[:tests] = options.tests
           end

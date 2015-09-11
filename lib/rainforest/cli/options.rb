@@ -10,7 +10,7 @@ module Rainforest
     end
 
     class OptionParser
-      attr_reader :command, :token, :tags, :conflict, :browsers
+      attr_reader :command, :token, :tags, :conflict, :browsers, :folders
 
       VALID_BROWSERS = %w{chrome firefox safari ie8 ie9}.freeze
 
@@ -18,6 +18,7 @@ module Rainforest
         @args = args.dup
         @tags = []
         @browsers = nil
+        @folders = nil
 
         @parsed = ::OptionParser.new do |opts|
           opts.on("--fg", "Run the tests in foreground.") do |value|
@@ -45,6 +46,10 @@ module Rainforest
           opts.on("--conflict MODE", String, "How should Rainforest handle existing in progress runs?") do |value|
             @conflict = value
           end
+
+          opts.on("--folders LIST", String, "Run test on a smart folder(s)") do |value|
+            @folders = value.split(',').map{|x| x.strip.downcase }.uniq
+          end
         end.parse!(@args)
 
         @command = @args.shift
@@ -65,4 +70,3 @@ module Rainforest
     end
   end
 end
-

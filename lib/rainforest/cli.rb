@@ -4,7 +4,7 @@ require "httparty"
 require "json"
 
 module Rainforest
-  module Cli 
+  module Cli
     API_URL = 'https://app.rainforestqa.com/api/1/runs'
 
     def self.start(args)
@@ -13,6 +13,8 @@ module Rainforest
       post_opts = {}
       if !@options.tags.empty?
         post_opts[:tags] = @options.tags
+      elsif !@options.folders.empty
+        post_opts[:smart_folder_id] = @options.folders
       else
         post_opts[:tests] = @options.tests
       end
@@ -35,7 +37,7 @@ module Rainforest
 
       return unless @options.foreground?
 
-      while running 
+      while running
         sleep 5
         response = get "#{API_URL}/#{run_id}?gem_version=#{Rainforest::Cli::VERSION}"
         if %w(queued in_progress sending_webhook waiting_for_callback).include?(response["state"])
@@ -54,7 +56,7 @@ module Rainforest
 
     def self.post(url, body = {})
       response = HTTParty.post url, {
-        body: body, 
+        body: body,
         headers: {"CLIENT_TOKEN" => @options.token}
       }
 
@@ -63,7 +65,7 @@ module Rainforest
 
     def self.get(url, body = {})
       response = HTTParty.get url, {
-        body: body, 
+        body: body,
         headers: {"CLIENT_TOKEN" => @options.token}
       }
 

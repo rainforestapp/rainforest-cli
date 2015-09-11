@@ -51,4 +51,9 @@ describe Rainforest::Cli::OptionParser do
     let(:args) { ["run", "--fail-fast"] }
     its(:failfast?) { should be_true }
   end
+
+  context "accepts multiple smart folder ids" do
+    let(:args) { ["run", "--folders", "1,2"] }
+    its(:folders) { should == ["1", "2"]}
+  end
 end

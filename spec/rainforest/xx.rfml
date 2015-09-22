@@ -1,0 +1,13 @@
+#! c70b9020-4e0b-4913-80fa-55ed1536164d
+#
+# Abort a run
+#
+
+If you see a login screen, login with the email "t-{{ logins.client_no }}@e.rainforestqa.com" and the password "{{ logins.password }}"
+Are you logged in?
+
+Click on the Results Link at the top
+Do you see an 'abort' button at the top left of this display?
+
+Click on the abort button
+Has a confirmation window popped up?

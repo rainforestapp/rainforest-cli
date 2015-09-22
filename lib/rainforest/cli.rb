@@ -4,6 +4,8 @@ require "rainforest/cli/runner"
 require "rainforest/cli/http_client"
 require "rainforest/cli/git_trigger"
 require "rainforest/cli/csv_importer"
+require "rainforest/cli/test_importer"
+require "rainforest/cli/test_parser"
 require "erb"
 require "httparty"
 require "json"
@@ -22,8 +24,20 @@ module Rainforest
         exit 2
       end
 
-      runner = Runner.new(options)
-      runner.run
+      case options.command
+      when 'run'
+        runner = Runner.new(options)
+        runner.run
+      when 'new'
+        t = TestImporter.new(options)
+        t.create_new
+      when 'validate'
+        t = TestImporter.new(options)
+        t.validate
+      else
+        logger.fatal "Unknown command"
+        exit 2
+      end
 
       true
     end

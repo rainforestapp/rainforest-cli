@@ -11,7 +11,8 @@ module Rainforest
 
     class OptionParser
       attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
-                  :import_file_name, :import_name, :custom_url, :description, :folder
+                  :import_file_name, :import_name, :custom_url, :description, :folder,
+                  :debug, :file_name
 
       VALID_BROWSERS = %w{chrome firefox safari ie8 ie9}.freeze
 
@@ -19,8 +20,18 @@ module Rainforest
         @args = args.dup
         @tags = []
         @browsers = nil
+        @require_token = true
+        @debug = false
 
         @parsed = ::OptionParser.new do |opts|
+          opts.on("--debug") do
+            @debug = true
+          end
+
+          opts.on("--file") do |value|
+            @file_name = value
+          end
+
           opts.on("--import-variable-csv-file FILE", "Import step variables; CSV data") do |value|
             @import_file_name = value
           end
@@ -87,7 +98,14 @@ module Rainforest
         end.parse!(@args)
 
         @command = @args.shift
+
+        if @command == 'new'
+          @file_name = @args.shift
+        end
+
         @tests = @args.dup
+
+        @require_token = false if @command == 'new' || @command == 'validate'
       end
 
       def tests
@@ -107,8 +125,10 @@ module Rainforest
       end
 
       def validate!
-        unless token
-          raise ValidationError, "You must pass your API token using: --token TOKEN"
+        if @require_token 
+          unless token
+            raise ValidationError, "You must pass your API token using: --token TOKEN"
+          end
         end
 
         if custom_url && site_id.nil?

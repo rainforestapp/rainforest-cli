@@ -1,4 +1,4 @@
-module Rainforest::Cli::TestParser
+module RainforestCli::TestParser
   class EmbeddedTest < Struct.new(:test_name)
     def to_s
       "--> embed: #{test_name}"

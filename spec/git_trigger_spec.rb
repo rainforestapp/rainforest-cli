@@ -1,4 +1,4 @@
-describe Rainforest::Cli::GitTrigger do
+describe RainforestCli::GitTrigger do
   subject { described_class }
 
   let(:default_dir) { __dir__ }

@@ -1,6 +1,6 @@
 require 'securerandom'
 
-class Rainforest::Cli::TestImporter
+class RainforestCli::TestImporter
   attr_reader :options, :client
   SPEC_FOLDER = 'spec/rainforest'.freeze
   EXT = ".rfml".freeze
@@ -31,7 +31,12 @@ EOF
   end
 
   def logger
-    Rainforest::Cli.logger
+    RainforestCli.logger
+  end
+
+  def upload
+    ::Rainforest.api_key = @options.token
+    test = Rainforest::Test.retrieve(123)
   end
 
   def validate
@@ -39,7 +44,7 @@ EOF
     has_errors = []
     
     Dir.glob("#{SPEC_FOLDER}/**/*#{EXT}").each do |file_name|
-      out = Rainforest::Cli::TestParser::Parser.new(File.read(file_name)).process
+      out = RainforestCli::TestParser::Parser.new(File.read(file_name)).process
 
       tests[file_name] = out
       has_errors << file_name if out.errors != {}

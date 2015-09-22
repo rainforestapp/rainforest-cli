@@ -1,5 +1,5 @@
-describe Rainforest::Cli do
-  let(:http_client) { Rainforest::Cli::HttpClient.any_instance }
+describe RainforestCli do
+  let(:http_client) { RainforestCli::HttpClient.any_instance }
 
   before do
     Kernel.stub(:sleep)
@@ -52,7 +52,7 @@ describe Rainforest::Cli do
       end
 
       before do
-        Rainforest::Cli::GitTrigger.stub(:last_commit_message) { commit_message }
+        RainforestCli::GitTrigger.stub(:last_commit_message) { commit_message }
       end
 
       describe "with tags parameter passed" do
@@ -134,7 +134,7 @@ describe Rainforest::Cli do
       end
 
       it "starts the run with site_id and environment_id" do
-        Rainforest::Cli::Runner.any_instance.stub(get_environment_id: 333)
+        RainforestCli::Runner.any_instance.stub(get_environment_id: 333)
 
         http_client.should_receive(:post).with(
           "/runs",
@@ -148,7 +148,7 @@ describe Rainforest::Cli do
       let(:params) { %w(--token x --environment 123) }
 
       it "starts the run with environment_id" do
-        Rainforest::Cli::Runner.any_instance.stub(get_environment_id: 333)
+        RainforestCli::Runner.any_instance.stub(get_environment_id: 333)
 
         http_client.should_receive(:post).with(
           "/runs",

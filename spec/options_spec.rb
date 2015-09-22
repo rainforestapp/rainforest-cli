@@ -1,5 +1,5 @@
-describe Rainforest::Cli::OptionParser do
-  subject { Rainforest::Cli::OptionParser.new(args) }
+describe RainforestCli::OptionParser do
+  subject { RainforestCli::OptionParser.new(args) }
 
   describe "#initialize" do
     context "importing csv file" do
@@ -38,7 +38,7 @@ describe Rainforest::Cli::OptionParser do
       let(:args) { ["run", "--browsers", "lulbrower"] }
 
       it "raises an exception" do
-        expect{subject}.to raise_error(Rainforest::Cli::BrowserException)
+        expect{subject}.to raise_error(RainforestCli::BrowserException)
       end
     end
 

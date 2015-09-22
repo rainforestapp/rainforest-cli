@@ -1,4 +1,4 @@
-describe Rainforest::Cli::CSVImporter do
+describe RainforestCli::CSVImporter do
   let(:csv_file) { "#{File.dirname(__FILE__)}/fixtures/variables.txt" }
 
   describe '.import' do
@@ -15,7 +15,7 @@ describe Rainforest::Cli::CSVImporter do
     end
 
     before do
-      Rainforest::Cli::HttpClient.stub(:new).and_return(http_client)
+      RainforestCli::HttpClient.stub(:new).and_return(http_client)
     end
 
     it 'should post the schema to the generators API' do

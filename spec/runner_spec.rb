@@ -1,6 +1,6 @@
-describe Rainforest::Cli::Runner do
+describe RainforestCli::Runner do
   let(:args) { %w(run all) }
-  let(:options) { Rainforest::Cli::OptionParser.new(args) }
+  let(:options) { RainforestCli::OptionParser.new(args) }
   subject { described_class.new(options) }
 
   describe "#get_environment_id" do

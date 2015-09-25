@@ -5,7 +5,7 @@ require 'rainforest/cli/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "rainforest-cli"
-  spec.version       = Rainforest::Cli::VERSION
+  spec.version       = RainforestCli::VERSION
   spec.authors       = ["Simon Mathieu", "Russell Smith"]
   spec.email         = ["simon@rainforestqa.com", "russ@rainforestqa.com"]
   spec.description   = %q{Command line utility for Rainforest QA}

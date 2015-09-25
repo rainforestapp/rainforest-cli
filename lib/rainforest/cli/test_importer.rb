@@ -1,4 +1,7 @@
 require 'securerandom'
+require 'rainforest'
+require 'parallel'
+require 'ruby-progressbar'
 
 class RainforestCli::TestImporter
   attr_reader :options, :client
@@ -34,9 +37,143 @@ EOF
     RainforestCli.logger
   end
 
+  def export
+    ::Rainforest.api_key = @options.token
+
+    tests = Rainforest::Test.all(page_size: 1000)
+    Parallel.each(tests, in_threads: 32, finish: lambda { |item, i, result| p.increment }) do |test|
+      @options.file_name = sprintf('%010d', test.id) + "_" + test.title.strip.gsub(/[^a-z0-9 ]+/i, '').gsub(/ +/, '_').downcase
+      file_name = create_new
+
+      # Truncate it
+      File.truncate(file_name, 0)
+
+      # Get the full test from the API
+      test = Rainforest::Test.retrieve(test.id)
+      
+      File.open(file_name, 'a') do |file|
+        file.puts _get_header(test)
+
+        index = 0
+        test.elements.each do |element|
+          index = _process_element(file, element, index)
+        end
+      end
+    end
+  end
+
+  def _process_element file, element, index
+    case element[:type]
+    when 'test'
+      element[:element][:elements].each do |sub_element|
+        index = _process_element(file, sub_element, index)
+      end
+    when 'step'
+      file.puts "" unless index == 0
+      file.puts "# step #{index + 1}" if @options.debug
+      file.puts element[:element][:action]
+      file.puts element[:element][:response]
+    else
+      raise "Unknown element type: #{element[:type]}"
+    end
+
+    index += 1
+    index
+  end
+
+  # add comments if not already present
+  def _get_header test
+    out = []
+
+    has_id = false
+    test.description.to_s.strip.lines.map(&:chomp).each_with_index do |line, line_no|
+      line = line.gsub(/\#+$/, '').strip
+
+      # make sure the test has an ID
+      has_id = true if line[0] == "!"
+ 
+      out << "#" + line
+    end
+
+    unless has_id
+      out = ["#! #{SecureRandom.uuid}", "# title: #{test.title}", "# start_uri: #{test.start_uri}", "#", " "] + out
+    end
+
+    out.compact.join("\n")
+  end
+
+  def _get_id test
+    id = nil
+    test.description.to_s.strip.lines.map(&:chomp).each_with_index do |line, line_no|
+      line = line.gsub(/\#+$/, '').strip
+      if line[0] == "!"
+        id = line[1..-1].split(' ').first 
+        break
+      end
+    end
+    id
+  end
+
   def upload
     ::Rainforest.api_key = @options.token
-    test = Rainforest::Test.retrieve(123)
+
+    ids = {}
+    logger.info "Syncing tests"
+    Rainforest::Test.all(page_size: 1000).each do |test|
+      id = _get_id(test)
+
+      next if id.nil?
+
+      # note, this test id is numeric
+      ids[id] = test.id
+    end
+
+    logger.debug ids.inspect if @options.debug
+
+    tests = validate.values
+
+    logger.info "Uploading tests..."
+    p = ProgressBar.create(title: 'Rows', total: tests.count, format: '%a %B %p%% %t')
+
+    # Insert the data
+    Parallel.each(tests, in_threads: 32, finish: lambda { |item, i, result| p.increment }) do |test|
+      next unless test.steps.count > 0
+
+      if @options.debug
+        logger.debug "Starting: #{test.id}"
+        logger.debug "\t#{test.start_uri || "/"}"
+      end
+
+      test_obj = {
+        start_uri: test.start_uri || "/",
+        title: test.title,
+        description: test.description,
+        tags: ["ro"],
+        elements: test.steps.map do |step|
+          {type: 'step', redirection: true, element: {
+            action: step.action,
+            response: step.response
+          }}
+        end
+      }
+
+      # Create the test
+      begin
+        if ids[test.id]
+          t = Rainforest::Test.update(ids[test.id], test_obj)
+
+          logger.info "\tUpdated #{test.id} -- ##{t.id}" if @options.debug
+
+        else
+          t = Rainforest::Test.create(test_obj)
+
+          logger.info "\tCreated #{test.id} -- ##{t.id}" if @options.debug
+        end
+      rescue => e
+        logger.fatal "#{test.id}: #{e}"
+        exit 2
+      end
+    end
   end
 
   def validate
@@ -75,6 +212,8 @@ EOF
     else
       logger.info "[VALID]"
     end
+    
+    return tests
   end
 
   def create_new
@@ -88,5 +227,6 @@ EOF
     File.open(name, "w") { |file| file.write(sprintf(SAMPLE_FILE, uuid)) }
 
     logger.info "Created #{name}"
+    name
   end
 end

@@ -36,6 +36,9 @@ module RainforestCli
     when 'upload'
       t = TestImporter.new(options)
       t.upload
+    when 'export'
+      t = TestImporter.new(options)
+      t.export
     else
       logger.fatal "Unknown command"
       exit 2

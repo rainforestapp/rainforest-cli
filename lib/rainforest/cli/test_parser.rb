@@ -17,7 +17,7 @@ module RainforestCli::TestParser
     end
   end
 
-  class Test < Struct.new(:id, :description, :steps, :errors)
+  class Test < Struct.new(:id, :description, :title, :start_uri, :steps, :errors)
   end
 
   class Parser
@@ -39,10 +39,17 @@ module RainforestCli::TestParser
         if line[0..1] == '#!'
           # special comment, don't ignore!
           @test.id = line[2..-1].strip.split(" ")[0]
+          @test.description += line[1..-1] + "\n"
 
         elsif line[0] == '#'
           # comment, store in description
           @test.description += line[1..-1] + "\n"
+
+          [:start_uri, :title].each do |field|
+            if line[1..-1].strip[0..(field.length)] == "#{field}:"
+              @test[field] = line[1..-1].split(" ")[1..-1].join(" ")
+            end
+          end
 
         elsif scratch.count == 0 && line.strip != ''
           if line[0] == '-'

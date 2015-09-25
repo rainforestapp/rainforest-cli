@@ -25,7 +25,6 @@ module RainforestCli
         exit 1
       end
 
-
       if options.foreground?
         run_id = response.fetch("id")
         wait_for_run_completion(run_id)

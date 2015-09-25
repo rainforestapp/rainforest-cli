@@ -9,7 +9,7 @@ module RainforestCli
   end
 
   class OptionParser
-    attr_writer :file_name
+    attr_writer :file_name, :tags
     attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
                 :import_file_name, :import_name, :custom_url, :description, :folder,
                 :debug, :file_name

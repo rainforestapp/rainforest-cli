@@ -165,14 +165,13 @@ EOF
           t = Rainforest::Test.update(ids[test.id], test_obj)
 
           logger.info "\tUpdated #{test.id} -- ##{t.id}" if @options.debug
-
         else
           t = Rainforest::Test.create(test_obj)
 
           logger.info "\tCreated #{test.id} -- ##{t.id}" if @options.debug
         end
       rescue => e
-        logger.fatal "#{test.id}: #{e}"
+        logger.fatal "Error: #{test.id}: #{e}"
         exit 2
       end
     end

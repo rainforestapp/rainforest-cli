@@ -12,6 +12,7 @@ module RainforestCli
       response = HTTParty.delete make_url(url), {
         body: body,
         headers: headers,
+        verify: false
       }
 
       JSON.parse(response.body)
@@ -21,6 +22,7 @@ module RainforestCli
       response = HTTParty.post make_url(url), {
         body: body,
         headers: headers,
+        verify: false
       }
 
       JSON.parse(response.body)
@@ -30,6 +32,7 @@ module RainforestCli
       response = HTTParty.get make_url(url), {
         body: body,
         headers: headers,
+        verify: false
       }
 
       if response.code == 200

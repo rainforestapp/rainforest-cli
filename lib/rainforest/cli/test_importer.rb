@@ -7,6 +7,7 @@ class RainforestCli::TestImporter
   attr_reader :options, :client
   SPEC_FOLDER = 'spec/rainforest'.freeze
   EXT = ".rfml".freeze
+  THREADS = 32.freeze
 
   SAMPLE_FILE = <<EOF
 #! %s do not edit this line
@@ -41,11 +42,12 @@ EOF
     ::Rainforest.api_key = @options.token
 
     tests = Rainforest::Test.all(page_size: 1000)
-    Parallel.each(tests, in_threads: 32, finish: lambda { |item, i, result| p.increment }) do |test|
-      @options.file_name = sprintf('%010d', test.id) + "_" + test.title.strip.gsub(/[^a-z0-9 ]+/i, '').gsub(/ +/, '_').downcase
-      file_name = create_new
+    p = ProgressBar.create(title: 'Rows', total: tests.count, format: '%a %B %p%% %t')
+    Parallel.each(tests, in_threads: THREADS, finish: lambda { |item, i, result| p.increment }) do |test|
 
-      # Truncate it
+      # File name
+      file_name = sprintf('%010d', test.id) + "_" + test.title.strip.gsub(/[^a-z0-9 ]+/i, '').gsub(/ +/, '_').downcase
+      file_name = create_new(file_name)
       File.truncate(file_name, 0)
 
       # Get the full test from the API
@@ -136,7 +138,7 @@ EOF
     p = ProgressBar.create(title: 'Rows', total: tests.count, format: '%a %B %p%% %t')
 
     # Insert the data
-    Parallel.each(tests, in_threads: 32, finish: lambda { |item, i, result| p.increment }) do |test|
+    Parallel.each(tests, in_threads: THREADS, finish: lambda { |item, i, result| p.increment }) do |test|
       next unless test.steps.count > 0
 
       if @options.debug
@@ -148,7 +150,7 @@ EOF
         start_uri: test.start_uri || "/",
         title: test.title,
         description: test.description,
-        tags: ["ro"],
+        tags: ["RO"],
         elements: test.steps.map do |step|
           {type: 'step', redirection: true, element: {
             action: step.action,
@@ -216,8 +218,9 @@ EOF
     return tests
   end
 
-  def create_new
+  def create_new file_name = nil
     name = @options.file_name if @options.file_name
+    name = file_name if !file_name.nil?
 
     uuid = SecureRandom.uuid
     name = "#{uuid}#{EXT}" unless name
@@ -226,7 +229,7 @@ EOF
 
     File.open(name, "w") { |file| file.write(sprintf(SAMPLE_FILE, uuid)) }
 
-    logger.info "Created #{name}"
+    logger.info "Created #{name}" if file_name.nil?
     name
   end
 end

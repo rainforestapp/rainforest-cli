@@ -57,7 +57,7 @@ The most popular options are:
 - `--tag run-me` - only run tests which have this tag (recommended if you have lots of [test-steps](http://docs.rainforestqa.com/pages/example-test-suite.html#test_steps))!)
 - `--site-id` - only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
 - `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
-- `--conflict abort` - if you trigger rainforest more than once, anything running on the same environment will be aborted and a fresh run started
+- `--conflict OPTION` - use the `abort` option to abort any runs in progress in the same environment as your new run. use the `abort-all` option to abort all runs in progress.
 - `--fg` - results in the foreground - rainforest-cli will not return until the run is complete. This is what you want to make the build pass / fail dependent on rainforest results
 - `--fail-fast` - fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Use with `--fg`.
 - `--custom-url` - use a custom url for this run. Example use case: an ad-hoc QA environment with [Fourchette](https://github.com/rainforestapp/fourchette). You will need to specify a `site_id` too for this to work. Note that we will be creating a new environment for this particular run.

@@ -37,9 +37,9 @@ module RainforestCli
       t = TestImporter.new(options)
       t.upload
 
-      options.tags = ['ro']
-      runner = Runner.new(options)
-      runner.run
+      # options.tags = ['ro']
+      # runner = Runner.new(options)
+      # runner.run
     when 'export'
       t = TestImporter.new(options)
       t.export

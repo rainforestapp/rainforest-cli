@@ -10,9 +10,8 @@ class RainforestCli::TestImporter
   THREADS = 32.freeze
 
   SAMPLE_FILE = <<EOF
-#! %s do not edit this line
-#
-# New test
+#! %s (this is the ID, don't edit it)
+# title: New test
 #
 # 1. steps:
 #   a) pairs of lines are steps (first line = action, second = response)

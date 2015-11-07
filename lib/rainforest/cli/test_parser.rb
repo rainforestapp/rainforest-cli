@@ -17,7 +17,7 @@ module RainforestCli::TestParser
     end
   end
 
-  class Test < Struct.new(:id, :description, :title, :start_uri, :steps, :errors)
+  class Test < Struct.new(:id, :description, :title, :start_uri, :steps, :errors, :tags, :browsers)
   end
 
   class Parser
@@ -30,7 +30,12 @@ module RainforestCli::TestParser
       @test.description = ""
       @test.steps = []
       @test.errors = {}
+      @test.tags = ""
+      @test.browsers = ""
     end
+
+    TEXT_FIELDS = [:start_uri, :title, :tags].freeze
+    CSV_FIELDS = [:tags, :browsers].freeze
 
     def process
       scratch = []
@@ -45,9 +50,15 @@ module RainforestCli::TestParser
           # comment, store in description
           @test.description += line[1..-1] + "\n"
 
-          [:start_uri, :title].each do |field|
-            if line[1..-1].strip[0..(field.length)] == "#{field}:"
-              @test[field] = line[1..-1].split(" ")[1..-1].join(" ")
+          (CSV_FIELDS + TEXT_FIELDS).each do |field|
+            next unless line[1..-1].strip[0..(field.length)] == "#{field}:"
+
+            # extract just the text of the field
+            @test[field] = line[1..-1].split(" ")[1..-1].join(" ").strip
+
+            # if it's supposed to be a CSV field, split and trim it
+            if CSV_FIELDS.include?(field)
+              @test[field] = @test[field].split(',').map(&:strip).map(&:downcase)
             end
           end
 

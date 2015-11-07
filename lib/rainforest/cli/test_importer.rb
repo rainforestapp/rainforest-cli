@@ -17,9 +17,7 @@ class RainforestCli::TestImporter
 #   a) pairs of lines are steps (first line = action, second = response)
 #   b) second line must have a ?
 #   c) second line must not be blank
-# 2. embeds
-#   a) lines starting with - are embedded tests
-# 3. comments
+# 2. comments:
 #   a) lines starting # are comments
 #
 
@@ -97,7 +95,8 @@ EOF
     end
 
     unless has_id
-      out = ["#! #{SecureRandom.uuid}", "# title: #{test.title}", "# start_uri: #{test.start_uri}", "#", " "] + out
+      browsers = test.browsers.map {|b| b[:name] if b[:state] == "enabled" }.compact
+      out = ["#! #{SecureRandom.uuid}", "# title: #{test.title}", "# start_uri: #{test.start_uri}", "# tags: #{test.tags.join(", ")}", "# browsers: #{browsers.join(", ")}", "#", " "] + out
     end
 
     out.compact.join("\n")
@@ -149,7 +148,10 @@ EOF
         start_uri: test.start_uri || "/",
         title: test.title,
         description: test.description,
-        tags: ["RO"],
+        tags: (["ro"] + test.tags).uniq,
+        browsers: test.browsers.map {|b|
+          {'state': 'enabled', 'name': b}
+        },
         elements: test.steps.map do |step|
           {type: 'step', redirection: true, element: {
             action: step.action,

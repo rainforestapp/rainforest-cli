@@ -26,7 +26,7 @@ EOF
   def initialize(options)
     @options = options
     unless File.exists?(SPEC_FOLDER)
-      logger.fatal "Rainforest folder not found (#{SPEC_FOLDER})" 
+      logger.fatal "Rainforest folder not found (#{SPEC_FOLDER})"
       exit 2
     end
   end
@@ -49,7 +49,7 @@ EOF
 
       # Get the full test from the API
       test = Rainforest::Test.retrieve(test.id)
-      
+
       File.open(file_name, 'a') do |file|
         file.puts _get_header(test)
 
@@ -90,7 +90,7 @@ EOF
 
       # make sure the test has an ID
       has_id = true if line[0] == "!"
- 
+
       out << "#" + line
     end
 
@@ -107,7 +107,7 @@ EOF
     test.description.to_s.strip.lines.map(&:chomp).each_with_index do |line, line_no|
       line = line.gsub(/\#+$/, '').strip
       if line[0] == "!"
-        id = line[1..-1].split(' ').first 
+        id = line[1..-1].split(' ').first
         break
       end
     end
@@ -149,9 +149,6 @@ EOF
         title: test.title,
         description: test.description,
         tags: (["ro"] + test.tags).uniq,
-        browsers: test.browsers.map {|b|
-          {'state': 'enabled', 'name': b}
-        },
         elements: test.steps.map do |step|
           {type: 'step', redirection: true, element: {
             action: step.action,
@@ -159,6 +156,12 @@ EOF
           }}
         end
       }
+
+      unless test.browsers.empty?
+        test_obj[:browsers] = test.browsers.map {|b|
+          {'state': 'enabled', 'name': b}
+        }
+      end
 
       # Create the test
       begin
@@ -181,7 +184,7 @@ EOF
   def validate
     tests = {}
     has_errors = []
-    
+
     Dir.glob("#{SPEC_FOLDER}/**/*#{EXT}").each do |file_name|
       out = RainforestCli::TestParser::Parser.new(File.read(file_name)).process
 
@@ -214,7 +217,7 @@ EOF
     else
       logger.info "[VALID]"
     end
-    
+
     return tests
   end
 

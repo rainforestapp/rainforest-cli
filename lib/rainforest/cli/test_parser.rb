@@ -30,8 +30,8 @@ module RainforestCli::TestParser
       @test.description = ""
       @test.steps = []
       @test.errors = {}
-      @test.tags = ""
-      @test.browsers = ""
+      @test.tags = []
+      @test.browsers = []
     end
 
     TEXT_FIELDS = [:start_uri, :title, :tags].freeze

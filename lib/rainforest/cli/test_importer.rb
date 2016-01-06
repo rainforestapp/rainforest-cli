@@ -159,7 +159,7 @@ EOF
 
       unless test.browsers.empty?
         test_obj[:browsers] = test.browsers.map {|b|
-          {'state': 'enabled', 'name': b}
+          {'state' => 'enabled', 'name' => b}
         }
       end
 

@@ -65,8 +65,15 @@ describe RainforestCli::OptionParser do
     end
 
     context "it parses the conflict flag" do
-      let(:args) { ["run", "--conflict", "abort",  "all"] }
-      its(:conflict) { should == "abort"}
+      context "when abort" do
+        let(:args) { ["run", "--conflict", "abort",  "all"] }
+        its(:conflict) { should == "abort"}
+      end
+
+      context "when abort-all" do
+        let(:args) { ["run", "--conflict", "abort-all", "all"]}
+        its(:conflict) { should == "abort-all" }
+      end
     end
 
     context "it parses the fail-fast flag" do

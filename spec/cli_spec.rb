@@ -6,7 +6,7 @@ describe RainforestCli do
   end
 
   describe ".start" do
-    let(:valid_args) { %w(--token foo run --fg all) }
+    let(:valid_args) { %w(run --token foo run --fg all) }
     let(:ok_progress) do
       {
         "state" => "in_progress",
@@ -27,7 +27,7 @@ describe RainforestCli do
 
     context "with bad parameters" do
       context "no token" do
-        let(:params) { %w(--custom-url http://ad-hoc.example.com) }
+        let(:params) { %w(run --custom-url http://ad-hoc.example.com) }
         it 'errors out' do
           expect_any_instance_of(Logger).to receive(:fatal).with('You must pass your API token using: --token TOKEN')
           expect {
@@ -40,7 +40,7 @@ describe RainforestCli do
     end
 
     context "git-trigger" do
-      let(:params) { %w(--token x --git-trigger) }
+      let(:params) { %w(run --token x --git-trigger) }
       let(:commit_message) { 'a test commit message' }
 
       def start_with_params(params, expected_exit_code = 2)
@@ -56,7 +56,7 @@ describe RainforestCli do
       end
 
       describe "with tags parameter passed" do
-        let(:params) { %w(--token x --tag x --git-trigger) }
+        let(:params) { %w(run --token x --tag x --git-trigger) }
 
         it "warns about the parameter being ignored" do
           expect_any_instance_of(Logger).to receive(:warn).with("Specified tags are ignored when using --git-trigger")
@@ -66,7 +66,7 @@ describe RainforestCli do
       end
 
       describe "without tags parameter passed" do
-        let(:params) { %w(all --token x --git-trigger) }
+        let(:params) { %w(run all --token x --git-trigger) }
 
         it "warns about the parameter being ignored" do
           expect_any_instance_of(Logger).to receive(:warn).with("Specified tests are ignored when using --git-trigger")
@@ -109,7 +109,7 @@ describe RainforestCli do
     end
 
     context "with site-id and custom-url" do
-      let(:params) { %w(--token x --site 3 --custom-url http://ad-hoc.example.com) }
+      let(:params) { %w(run --token x --site 3 --custom-url http://ad-hoc.example.com) }
       it "creates a new environment" do
         http_client.should_receive(:post).with("/environments",
             {
@@ -145,7 +145,7 @@ describe RainforestCli do
     end
 
     context "with environment-id" do
-      let(:params) { %w(--token x --environment 123) }
+      let(:params) { %w(run --token x --environment 123) }
 
       it "starts the run with environment_id" do
         RainforestCli::Runner.any_instance.stub(get_environment_id: 333)
@@ -159,7 +159,7 @@ describe RainforestCli do
     end
 
     context "with smart_folder_id" do
-      let(:params) { %w(--token x --folder 123) }
+      let(:params) { %w(run --token x --folder 123) }
 
       it "starts the run with smart folder" do
         http_client.should_receive(:post).with(

@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 1.1.2 - 15th January 2016
+- Fixed a bug for users of Pivotal which caused tags to be incorrectly parsed (82966e7e739b590b396266d12d72605d6e19c12b, @chaselee)
+
 ## 1.1.0 - 6th January 2016
 - Added support for tests stored in plain text format, so you can store them locally
 

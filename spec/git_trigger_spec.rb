@@ -33,9 +33,11 @@ describe RainforestCli::GitTrigger do
   describe ".extract_hashtags" do
     it "returns a list of hashtags" do
       expect(described_class.extract_hashtags('hello, world')).to eq []
-      expect(described_class.extract_hashtags('#hello, #world')).to eq ['hello', 'world']
-      expect(described_class.extract_hashtags('#hello,#world')).to eq ['hello', 'world']
-      expect(described_class.extract_hashtags('#dashes-work, #underscores_work #007')).to eq ['dashes-work', 'underscores_work', '007']
+      expect(described_class.extract_hashtags('#hello, #world')).to eq []
+      expect(described_class.extract_hashtags('@rainforest #hello, #world')).to eq ['hello', 'world']
+      expect(described_class.extract_hashtags('#notForRainforest @rainforest #hello, #world')).to eq ['hello', 'world']
+      expect(described_class.extract_hashtags('@rainforest #hello,#world')).to eq ['hello', 'world']
+      expect(described_class.extract_hashtags('@rainforest #dashes-work, #underscores_work #007')).to eq ['dashes-work', 'underscores_work', '007']
     end
   end
 

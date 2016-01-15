@@ -25,8 +25,8 @@ EOF
 
   def initialize(options)
     @options = options
-    unless File.exists?(SPEC_FOLDER)
-      logger.fatal "Rainforest folder not found (#{SPEC_FOLDER})"
+    unless File.exists?(@options.test_spec_folder)
+      logger.fatal "Rainforest test folder not found (#{@options.test_spec_folder})"
       exit 2
     end
   end
@@ -185,7 +185,7 @@ EOF
     tests = {}
     has_errors = []
 
-    Dir.glob("#{SPEC_FOLDER}/**/*#{EXT}").each do |file_name|
+    Dir.glob("#{@options.test_spec_folder}/**/*#{EXT}").each do |file_name|
       out = RainforestCli::TestParser::Parser.new(File.read(file_name)).process
 
       tests[file_name] = out
@@ -228,7 +228,7 @@ EOF
     uuid = SecureRandom.uuid
     name = "#{uuid}#{EXT}" unless name
     name += EXT unless name[-EXT.length..-1] == EXT
-    name = File.join([SPEC_FOLDER, name])
+    name = File.join([@options.test_spec_folder, name])
 
     File.open(name, "w") { |file| file.write(sprintf(SAMPLE_FILE, uuid)) }
 

@@ -14,7 +14,9 @@ module RainforestCli
                 :import_file_name, :import_name, :custom_url, :description, :folder,
                 :debug, :file_name
 
-    VALID_BROWSERS = %w{chrome firefox safari ie8 ie9}.freeze
+    # Note, not all of these may be available to your account
+    # also, we may remove this in the future.
+    VALID_BROWSERS = %w{android_phone_landscape android_phone_portrait android_tablet_landscape android_tablet_portrait chrome chrome_1440_900 chrome_adblock chrome_ghostery chrome_guru chrome_ublock firefox firefox_1440_900 ie10 ie10_1440_900 ie11 ie11_1440_900 ie8 ie8_1440_900 ie9 ie9_1440_900 ios_iphone4s office2010 office2013 osx_chrome osx_firefox safari ubuntu_chrome ubuntu_firefox}.freeze
 
     def initialize(args)
       @args = args.dup

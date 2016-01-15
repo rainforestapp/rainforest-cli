@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 1.1.3 - 15th January 2016
+- Customizable folder location for rainforest tests (fa4418738311cee8ca25cbb22a8ca52aa9cbd873, @ukd1)
+- Update valid browser list, though this doesn't include custom browsers today (e6195c42f95cce72a17f49643bfe8c297baf8dd9, @ukd1)
+
 ## 1.1.2 - 15th January 2016
 - Fixed specs (7c4af508d8cfa95363ee9976f1fa6f01f7c8d27b, @ukd1)
 - Fixed a bug for users of Pivotal which caused tags to be incorrectly parsed (82966e7e739b590b396266d12d72605d6e19c12b, @chaselee)

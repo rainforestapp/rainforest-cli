@@ -24,7 +24,6 @@ module RainforestCli
       @browsers = nil
       @require_token = true
       @debug = false
-      @test_spec_folder = RainforestCli::TestImporter::SPEC_FOLDER
 
       @parsed = ::OptionParser.new do |opts|
         opts.on("--debug") do
@@ -134,9 +133,15 @@ module RainforestCli
     end
 
     def validate!
-      if @require_token 
+      if @require_token
         unless token
           raise ValidationError, "You must pass your API token using: --token TOKEN"
+        end
+      end
+
+      if @test_spec_folder
+        unless File.exists?(@test_spec_folder)
+          raise ValidationError, "Specified test folder (#{@test_spec_folder}) does not exist."
         end
       end
 
@@ -148,10 +153,10 @@ module RainforestCli
         unless File.exists?(import_file_name)
           raise ValidationError, "Input file: #{import_file_name} not found"
         end
-
       elsif import_file_name || import_name
         raise ValidationError, "You must pass both --import-variable-csv-file and --import-variable-name"
       end
+
       true
     end
 

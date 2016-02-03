@@ -4,9 +4,7 @@ require 'parallel'
 require 'ruby-progressbar'
 
 class RainforestCli::TestImporter
-  attr_reader :options, :client
-  SPEC_FOLDER = 'spec/rainforest'.freeze
-  EXT = ".rfml".freeze
+  attr_reader :options, :client, :test_files
   THREADS = 32.freeze
 
   SAMPLE_FILE = <<EOF
@@ -25,10 +23,7 @@ EOF
 
   def initialize(options)
     @options = options
-    unless File.exists?(@options.test_spec_folder)
-      logger.fatal "Rainforest test folder not found (#{@options.test_spec_folder})"
-      exit 2
-    end
+    @test_files = TestFiles.new(@options.test_spec_folder)
   end
 
   def logger
@@ -185,7 +180,7 @@ EOF
     tests = {}
     has_errors = []
 
-    Dir.glob("#{@options.test_spec_folder}/**/*#{EXT}").each do |file_name|
+    Dir.glob(test_files.test_paths).each do |file_name|
       out = RainforestCli::TestParser::Parser.new(File.read(file_name)).process
 
       tests[file_name] = out
@@ -224,10 +219,11 @@ EOF
   def create_new file_name = nil
     name = @options.file_name if @options.file_name
     name = file_name if !file_name.nil?
+    ext = test_files.file_extension
 
     uuid = SecureRandom.uuid
-    name = "#{uuid}#{EXT}" unless name
-    name += EXT unless name[-EXT.length..-1] == EXT
+    name = "#{uuid}#{ext}" unless name
+    name += ext unless name[-ext.length..-1] == ext
     name = File.join([@options.test_spec_folder, name])
 
     File.open(name, "w") { |file| file.write(sprintf(SAMPLE_FILE, uuid)) }

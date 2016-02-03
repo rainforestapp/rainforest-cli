@@ -112,16 +112,16 @@ EOF
   end
 
   def upload
-    ids = {}
+    rf_ids = {}
     logger.info "Syncing tests"
     Rainforest::Test.all(page_size: 1000, rfml_ids: test_files.rfml_ids).each do |rf_test|
       rfml_id = rf_test.rfml_id
       next if rfml_id.nil?
 
-      ids[rfml_id] = rf_test.id
+      rf_ids[rfml_id] = rf_test.id
     end
 
-    logger.debug ids.inspect if @options.debug
+    logger.debug rf_ids.inspect if @options.debug
 
     rfml_tests = test_files.test_data
 
@@ -133,8 +133,8 @@ EOF
       next unless rfml_test.steps.count > 0
 
       if @options.debug
-        logger.debug "Starting: #{test.id}"
-        logger.debug "\t#{test.start_uri || "/"}"
+        logger.debug "Starting: #{rfml_test.rfml_id}"
+        logger.debug "\t#{rfml_test.start_uri || "/"}"
       end
 
       test_obj = {
@@ -144,10 +144,25 @@ EOF
         tags: (["ro"] + rfml_test.tags).uniq,
         rfml_id: rfml_test.rfml_id,
         elements: rfml_test.steps.map do |step|
-          {type: 'step', redirection: true, element: {
-            action: step.action,
-            response: step.response
-          }}
+          case step.type
+          when :step
+            {
+              type: 'step',
+              redirection: true,
+              element: {
+                action: step.action,
+                response: step.response
+              }
+            }
+          when :test
+            {
+              type: 'test',
+              redirection: true,
+              element: {
+                id: rf_ids[step.rfml_id]
+              }
+            }
+          end
         end
       }
 
@@ -159,8 +174,8 @@ EOF
 
       # Create the test
       begin
-        if ids[rfml_test.rfml_id]
-          t = Rainforest::Test.update(ids[rfml_test.rfml_id], test_obj)
+        if rf_ids[rfml_test.rfml_id]
+          t = Rainforest::Test.update(rf_ids[rfml_test.rfml_id], test_obj)
 
           logger.info "\tUpdated #{rfml_test.id} -- ##{t.id}" if @options.debug
         else
@@ -169,7 +184,7 @@ EOF
           logger.info "\tCreated #{rfml_test.id} -- ##{t.id}" if @options.debug
         end
       rescue => e
-        logger.fatal "Error: #{rfml_test.id}: #{e}"
+        logger.fatal "Error: #{rfml_test.rfml_id}: #{e}"
         exit 2
       end
     end

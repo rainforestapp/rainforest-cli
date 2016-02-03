@@ -1,11 +1,19 @@
 module RainforestCli::TestParser
-  class EmbeddedTest < Struct.new(:test_name)
+  class EmbeddedTest < Struct.new(:rfml_id)
+    def type
+      :test
+    end
+
     def to_s
-      "--> embed: #{test_name}"
+      "--> embed: #{rfml_id}"
     end
   end
 
   class Step < Struct.new(:action, :response)
+    def type
+      :step
+    end
+
     def to_s
       "#{action} --> #{response}"
     end

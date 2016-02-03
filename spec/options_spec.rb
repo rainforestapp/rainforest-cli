@@ -12,11 +12,6 @@ describe RainforestCli::OptionParser do
       its(:test_spec_folder) { should == "/path/to/folder" }
     end
 
-    context "test folder (when not passed)" do
-      let(:args) { [] }
-      its(:test_spec_folder) { should == RainforestCli::TestImporter::SPEC_FOLDER }
-    end
-
     context "importing name" do
       let(:args) { ["--import-variable-name", "some_name"] }
       its(:import_name) { should == "some_name" }

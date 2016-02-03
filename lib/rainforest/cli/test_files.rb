@@ -1,4 +1,4 @@
-class RainforestCli::TestImporter::TestFiles
+class RainforestCli::TestFiles
   DEFAULT_TEST_FOLDER = '/spec/rainforest'.freeze
   EXT = ".rfml".freeze
 

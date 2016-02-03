@@ -22,8 +22,12 @@ class RainforestCli::TestImporter
 EOF
 
   def initialize(options)
+    # FIXME: Temporarily switching the api to local. Do not keep it this way!
+    ::Rainforest.api_base = 'http://app.rainforest.dev/api/1'
+
     @options = options
-    @test_files = TestFiles.new(@options.test_spec_folder)
+    ::Rainforest.api_key = @options.token
+    @test_files = RainforestCli::TestFiles.new(@options.test_spec_folder)
   end
 
   def logger
@@ -31,8 +35,6 @@ EOF
   end
 
   def export
-    ::Rainforest.api_key = @options.token
-
     tests = Rainforest::Test.all(page_size: 1000)
     p = ProgressBar.create(title: 'Rows', total: tests.count, format: '%a %B %p%% %t')
     Parallel.each(tests, in_threads: THREADS, finish: lambda { |item, i, result| p.increment }) do |test|
@@ -110,29 +112,25 @@ EOF
   end
 
   def upload
-    ::Rainforest.api_key = @options.token
-
     ids = {}
     logger.info "Syncing tests"
-    Rainforest::Test.all(page_size: 1000).each do |test|
-      id = _get_id(test)
+    Rainforest::Test.all(page_size: 1000, rfml_ids: test_files.rfml_ids).each do |rf_test|
+      rfml_id = rf_test.rfml_id
+      next if rfml_id.nil?
 
-      next if id.nil?
-
-      # note, this test id is numeric
-      ids[id] = test.id
+      ids[rfml_id] = rf_test.id
     end
 
     logger.debug ids.inspect if @options.debug
 
-    tests = validate.values
+    rfml_tests = test_files.test_data
 
     logger.info "Uploading tests..."
-    p = ProgressBar.create(title: 'Rows', total: tests.count, format: '%a %B %p%% %t')
+    p = ProgressBar.create(title: 'Rows', total: rfml_tests.count, format: '%a %B %p%% %t')
 
     # Insert the data
-    Parallel.each(tests, in_threads: THREADS, finish: lambda { |item, i, result| p.increment }) do |test|
-      next unless test.steps.count > 0
+    Parallel.each(rfml_tests, in_threads: THREADS, finish: lambda { |item, i, result| p.increment }) do |rfml_test|
+      next unless rfml_test.steps.count > 0
 
       if @options.debug
         logger.debug "Starting: #{test.id}"
@@ -140,11 +138,12 @@ EOF
       end
 
       test_obj = {
-        start_uri: test.start_uri || "/",
-        title: test.title,
-        description: test.description,
-        tags: (["ro"] + test.tags).uniq,
-        elements: test.steps.map do |step|
+        start_uri: rfml_test.start_uri || "/",
+        title: rfml_test.title,
+        description: rfml_test.description,
+        tags: (["ro"] + rfml_test.tags).uniq,
+        rfml_id: rfml_test.rfml_id,
+        elements: rfml_test.steps.map do |step|
           {type: 'step', redirection: true, element: {
             action: step.action,
             response: step.response
@@ -152,25 +151,25 @@ EOF
         end
       }
 
-      unless test.browsers.empty?
-        test_obj[:browsers] = test.browsers.map {|b|
+      unless rfml_test.browsers.empty?
+        test_obj[:browsers] = rfml_test.browsers.map {|b|
           {'state' => 'enabled', 'name' => b}
         }
       end
 
       # Create the test
       begin
-        if ids[test.id]
-          t = Rainforest::Test.update(ids[test.id], test_obj)
+        if ids[rfml_test.rfml_id]
+          t = Rainforest::Test.update(ids[rfml_test.rfml_id], test_obj)
 
-          logger.info "\tUpdated #{test.id} -- ##{t.id}" if @options.debug
+          logger.info "\tUpdated #{rfml_test.id} -- ##{t.id}" if @options.debug
         else
           t = Rainforest::Test.create(test_obj)
 
-          logger.info "\tCreated #{test.id} -- ##{t.id}" if @options.debug
+          logger.info "\tCreated #{rfml_test.id} -- ##{t.id}" if @options.debug
         end
       rescue => e
-        logger.fatal "Error: #{test.id}: #{e}"
+        logger.fatal "Error: #{rfml_test.id}: #{e}"
         exit 2
       end
     end
@@ -224,7 +223,7 @@ EOF
     uuid = SecureRandom.uuid
     name = "#{uuid}#{ext}" unless name
     name += ext unless name[-ext.length..-1] == ext
-    name = File.join([@options.test_spec_folder, name])
+    name = File.join([@test_files.test_folder, name])
 
     File.open(name, "w") { |file| file.write(sprintf(SAMPLE_FILE, uuid)) }
 

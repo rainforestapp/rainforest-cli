@@ -156,7 +156,6 @@ module RainforestCli
       elsif import_file_name || import_name
         raise ValidationError, "You must pass both --import-variable-csv-file and --import-variable-name"
       end
-
       true
     end
 

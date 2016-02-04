@@ -25,4 +25,8 @@ class RainforestCli::TestFiles
   def rfml_ids
     @test_data.map(&:rfml_id)
   end
+
+  def count
+    @test_data.count
+  end
 end

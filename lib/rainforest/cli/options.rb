@@ -153,6 +153,7 @@ module RainforestCli
         unless File.exists?(import_file_name)
           raise ValidationError, "Input file: #{import_file_name} not found"
         end
+
       elsif import_file_name || import_name
         raise ValidationError, "You must pass both --import-variable-csv-file and --import-variable-name"
       end

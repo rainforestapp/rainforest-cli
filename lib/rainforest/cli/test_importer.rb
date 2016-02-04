@@ -112,24 +112,10 @@ EOF
   end
 
   def upload
-    rf_ids = {}
-    logger.info "Syncing tests"
-    Rainforest::Test.all(page_size: 1000, rfml_ids: test_files.rfml_ids).each do |rf_test|
-      rfml_id = rf_test.rfml_id
-      next if rfml_id.nil?
-
-      rf_ids[rfml_id] = rf_test.id
-    end
-
-    logger.debug rf_ids.inspect if @options.debug
-
-    rfml_tests = test_files.test_data
-
     logger.info "Uploading tests..."
-    p = ProgressBar.create(title: 'Rows', total: rfml_tests.count, format: '%a %B %p%% %t')
+    p = ProgressBar.create(title: 'Rows', total: test_files.count, format: '%a %B %p%% %t')
 
-    # Insert the data
-    Parallel.each(rfml_tests, in_threads: THREADS, finish: lambda { |item, i, result| p.increment }) do |rfml_test|
+    Parallel.each(test_files.test_data, in_threads: THREADS, finish: lambda { |item, i, result| p.increment }) do |rfml_test|
       next unless rfml_test.steps.count > 0
 
       if @options.debug
@@ -137,45 +123,12 @@ EOF
         logger.debug "\t#{rfml_test.start_uri || "/"}"
       end
 
-      test_obj = {
-        start_uri: rfml_test.start_uri || "/",
-        title: rfml_test.title,
-        description: rfml_test.description,
-        tags: (["ro"] + rfml_test.tags).uniq,
-        rfml_id: rfml_test.rfml_id,
-        elements: rfml_test.steps.map do |step|
-          case step.type
-          when :step
-            {
-              type: 'step',
-              redirection: true,
-              element: {
-                action: step.action,
-                response: step.response
-              }
-            }
-          when :test
-            {
-              type: 'test',
-              redirection: true,
-              element: {
-                id: rf_ids[step.rfml_id]
-              }
-            }
-          end
-        end
-      }
+      test_obj = create_test_obj(rfml_test)
 
-      unless rfml_test.browsers.empty?
-        test_obj[:browsers] = rfml_test.browsers.map {|b|
-          {'state' => 'enabled', 'name' => b}
-        }
-      end
-
-      # Create the test
+      # Upload the test
       begin
-        if rf_ids[rfml_test.rfml_id]
-          t = Rainforest::Test.update(rf_ids[rfml_test.rfml_id], test_obj)
+        if rfml_id_mappings[rfml_test.rfml_id]
+          t = Rainforest::Test.update(rfml_id_mappings[rfml_test.rfml_id], test_obj)
 
           logger.info "\tUpdated #{rfml_test.id} -- ##{t.id}" if @options.debug
         else
@@ -244,5 +197,58 @@ EOF
 
     logger.info "Created #{name}" if file_name.nil?
     name
+  end
+
+  private
+
+  def create_rfml_id_mappings
+    @_id_mappings ||= {}.tap do |id_mappings|
+      logger.info "Syncing tests"
+      Rainforest::Test.all(page_size: 1000, rfml_ids: test_files.rfml_ids).each do |rf_test|
+        rfml_id = rf_test.rfml_id
+        next if rfml_id.nil?
+
+        id_mappings[rfml_id] = rf_test.id
+      end
+    end
+  end
+
+  def create_test_obj(rfml_test)
+    test_obj = {
+      start_uri: rfml_test.start_uri || "/",
+      title: rfml_test.title,
+      description: rfml_test.description,
+      tags: (["ro"] + rfml_test.tags).uniq,
+      rfml_id: rfml_test.rfml_id,
+      elements: rfml_test.steps.map do |step|
+        case step.type
+        when :step
+          {
+            type: 'step',
+            redirection: true,
+            element: {
+              action: step.action,
+              response: step.response
+            }
+          }
+        when :test
+          {
+            type: 'test',
+            redirection: true,
+            element: {
+              id: rf_ids[step.rfml_id]
+            }
+          }
+        end
+      end
+    }
+
+    unless rfml_test.browsers.empty?
+      test_obj[:browsers] = rfml_test.browsers.map {|b|
+        {'state' => 'enabled', 'name' => b}
+      }
+    end
+
+    test_obj
   end
 end

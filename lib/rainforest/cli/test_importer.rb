@@ -112,34 +112,35 @@ EOF
   end
 
   def upload
-    logger.info "Uploading tests..."
-    p = ProgressBar.create(title: 'Rows', total: test_files.count, format: '%a %B %p%% %t')
+    # Prioritize embedded tests before other tests
+    upload_groups = []
+    unordered_tests = []
+    queued_tests = test_files.test_data.dup
 
-    Parallel.each(test_files.test_data, in_threads: THREADS, finish: lambda { |item, i, result| p.increment }) do |rfml_test|
-      next unless rfml_test.steps.count > 0
+    until queued_tests.empty?
+      new_ordered_group = []
+      ordered_ids = upload_groups.flatten.map(&:rfml_id)
 
-      if @options.debug
-        logger.debug "Starting: #{rfml_test.rfml_id}"
-        logger.debug "\t#{rfml_test.start_uri || "/"}"
-      end
-
-      test_obj = create_test_obj(rfml_test)
-
-      # Upload the test
-      begin
-        if rfml_id_mappings[rfml_test.rfml_id]
-          t = Rainforest::Test.update(rfml_id_mappings[rfml_test.rfml_id], test_obj)
-
-          logger.info "\tUpdated #{rfml_test.id} -- ##{t.id}" if @options.debug
+      queued_tests.each do |rfml_test|
+        if (rfml_test.embedded_ids - ordered_ids).empty?
+          new_ordered_group << rfml_test
         else
-          t = Rainforest::Test.create(test_obj)
-
-          logger.info "\tCreated #{rfml_test.id} -- ##{t.id}" if @options.debug
+          unordered_tests << rfml_test
         end
-      rescue => e
-        logger.fatal "Error: #{rfml_test.rfml_id}: #{e}"
-        exit 2
       end
+
+      upload_groups << new_ordered_group
+      queued_tests = unordered_tests
+      unordered_tests = []
+    end
+
+    logger.info "Uploading tests..."
+
+    # Upload in parallel if order doesn't matter
+    if upload_groups.count > 1
+      upload_groups_sequentially(upload_groups)
+    else
+      upload_group_in_parallel(upload_groups.first)
     end
   end
 
@@ -201,16 +202,65 @@ EOF
 
   private
 
-  def create_rfml_id_mappings
-    @_id_mappings ||= {}.tap do |id_mappings|
-      logger.info "Syncing tests"
-      Rainforest::Test.all(page_size: 1000, rfml_ids: test_files.rfml_ids).each do |rf_test|
-        rfml_id = rf_test.rfml_id
-        next if rfml_id.nil?
-
-        id_mappings[rfml_id] = rf_test.id
+  def upload_groups_sequentially(upload_groups)
+    progress_bar = ProgressBar.create(title: 'Rows', total: test_files.count, format: '%a %B %p%% %t')
+    upload_groups.each_with_index do |rfml_tests, idx|
+      if idx == (rfml_tests.length - 1)
+        upload_group_in_parallel(rfml_tests, progress_bar)
+      else
+        rfml_tests.each { |rfml_test| upload_test(rfml_test) }
+        progress_bar.increment
       end
     end
+  end
+
+  def upload_group_in_parallel(rfml_tests, progress_bar = nil)
+    progress_bar ||= ProgressBar.create(title: 'Rows', total: rfml_tests.count, format: '%a %B %p%% %t')
+    Parallel.each(rfml_tests, in_threads: THREADS, finish: lambda { |item, i, result| progress_bar.increment }) do |rfml_test|
+      upload_test(rfml_test)
+    end
+  end
+
+  def upload_test(rfml_test)
+    return unless rfml_test.steps.count > 0
+
+    if @options.debug
+      logger.debug "Starting: #{rfml_test.rfml_id}"
+      logger.debug "\t#{rfml_test.start_uri || "/"}"
+    end
+
+    test_obj = create_test_obj(rfml_test)
+    # Upload the test
+    begin
+      if rfml_id_mappings[rfml_test.rfml_id]
+        t = Rainforest::Test.update(rfml_id_mappings[rfml_test.rfml_id], test_obj)
+
+        logger.info "\tUpdated #{rfml_test.rfml_id} -- ##{t.id}" if @options.debug
+      else
+        t = Rainforest::Test.create(test_obj)
+
+        logger.info "\tCreated #{rfml_test.rfml_id} -- ##{t.id}" if @options.debug
+        rfml_id_mappings[rfml_test.rfml_id] = t.id
+      end
+    rescue => e
+      logger.fatal "Error: #{rfml_test.rfml_id}: #{e}"
+      exit 2
+    end
+  end
+
+  def rfml_id_mappings
+    if @_id_mappings.nil?
+      @_id_mappings = {}.tap do |id_mappings|
+        logger.info "Syncing tests"
+        Rainforest::Test.all(page_size: 1000, rfml_ids: test_files.rfml_ids).each do |rf_test|
+          rfml_id = rf_test.rfml_id
+          next if rfml_id.nil?
+
+          id_mappings[rfml_id] = rf_test.id
+        end
+      end
+    end
+    @_id_mappings
   end
 
   def create_test_obj(rfml_test)
@@ -236,7 +286,7 @@ EOF
             type: 'test',
             redirection: true,
             element: {
-              id: rf_ids[step.rfml_id]
+              id: rfml_id_mappings[step.rfml_id]
             }
           }
         end

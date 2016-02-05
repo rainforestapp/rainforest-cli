@@ -26,6 +26,9 @@ module RainforestCli::TestParser
   end
 
   class Test < Struct.new(:rfml_id, :description, :title, :start_uri, :steps, :errors, :tags, :browsers)
+    def embedded_ids
+      steps.inject([]) { |embeds, step| step.type == :test ? embeds + [step.rfml_id] : embeds }
+    end
   end
 
   class Parser

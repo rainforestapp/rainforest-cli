@@ -8,15 +8,17 @@ class RainforestCli::TestImporter
   THREADS = 32.freeze
 
   SAMPLE_FILE = <<EOF
-#! %s (this is the ID, don't edit it)
+#! %s (Test ID - only edit if this test has not yet been uploaded)
 # title: New test
+# start_uri: /
 #
-# 1. steps:
-#   a) pairs of lines are steps (first line = action, second = response)
-#   b) second line must have a ?
-#   c) second line must not be blank
-# 2. comments:
-#   a) lines starting # are comments
+# Lines starting with # are test attributes or comments
+# Possible attributes: #{RainforestCli::TestParser::Parser::TEXT_FIELDS.join(', ')}
+#
+# Steps are composed of two lines: an action and a question. Example:
+#
+# This is a step action.
+# This is a question?
 #
 
 EOF

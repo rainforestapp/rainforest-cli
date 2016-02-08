@@ -22,12 +22,9 @@ class RainforestCli::TestImporter
 EOF
 
   def initialize(options)
-    # FIXME: Temporarily switching the api to local. Do not keep it this way!
-    ::Rainforest.api_base = 'http://app.rainforest.dev/api/1'
-
     @options = options
     ::Rainforest.api_key = @options.token
-    @test_files = RainforestCli::TestFiles.new(@options.test_spec_folder)
+    @test_files = RainforestCli::TestFiles.new(@options.test_folder)
   end
 
   def logger
@@ -251,7 +248,6 @@ EOF
   def rfml_id_mappings
     if @_id_mappings.nil?
       @_id_mappings = {}.tap do |id_mappings|
-        logger.info "Syncing tests"
         Rainforest::Test.all(page_size: 1000, rfml_ids: test_files.rfml_ids).each do |rf_test|
           rfml_id = rf_test.rfml_id
           next if rfml_id.nil?

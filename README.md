@@ -41,6 +41,17 @@ Run all tests with tag 'run-me' and abort previous in-progress runs.
 rainforest run --tag run-me --fg --conflict abort --token YOUR_TOKEN_HERE
 ```
 
+Create new Rainforest test in RFML format (Rainforest Markup Language).
+
+```bash
+rainforest new
+```
+
+Upload rainforest
+
+```bash
+rainforest upload --token YOUR_TOKEN_HERE
+```
 
 ## Options
 

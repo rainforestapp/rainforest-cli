@@ -102,7 +102,7 @@ module RainforestCli::TestParser
       end
 
       if @test.rfml_id == nil
-        @test.errors[0] = Error.new(0, "Missing test ID. Please start a line #! followed by a unique id.")
+        @test.errors[0] = Error.new(0, "Missing RFML ID. Please start a line #! followed by a unique id.")
       end
 
       return @test

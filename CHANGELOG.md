@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 1.2.0 - 8th February 2016
+- Add support for embedded tests.
+- Add support for customizable RFML ids.
+
 ## 1.1.4 - 15th January 2016
 - Customizable folder location for rainforest tests (fa4418738311cee8ca25cbb22a8ca52aa9cbd873, @ukd1)
 - Update valid browser list, though this doesn't include custom browsers today (e6195c42f95cce72a17f49643bfe8c297baf8dd9, @ukd1)

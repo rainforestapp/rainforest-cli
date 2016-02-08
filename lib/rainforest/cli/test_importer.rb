@@ -17,8 +17,8 @@ class RainforestCli::TestImporter
 #
 # Steps are composed of two lines: an action and a question. Example:
 #
-# This is a step action.
-# This is a question?
+# This is the step action.
+# This is the step question?
 #
 
 EOF

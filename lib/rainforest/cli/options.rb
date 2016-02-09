@@ -12,7 +12,7 @@ module RainforestCli
     attr_writer :file_name, :tags
     attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
                 :import_file_name, :import_name, :custom_url, :description, :folder,
-                :debug, :file_name, :test_spec_folder
+                :debug, :file_name, :test_folder
 
     # Note, not all of these may be available to your account
     # also, we may remove this in the future.
@@ -24,7 +24,6 @@ module RainforestCli
       @browsers = nil
       @require_token = true
       @debug = false
-      @test_spec_folder = RainforestCli::TestImporter::SPEC_FOLDER
 
       @parsed = ::OptionParser.new do |opts|
         opts.on("--debug") do
@@ -36,7 +35,7 @@ module RainforestCli
         end
 
         opts.on("--test-folder spec/rainforest", "Specify the test folder. Defaults to spec/rainforest if not set.") do |value|
-          @test_spec_folder = value
+          @test_folder = value
         end
 
         opts.on("--import-variable-csv-file FILE", "Import step variables; CSV data") do |value|
@@ -134,7 +133,7 @@ module RainforestCli
     end
 
     def validate!
-      if @require_token 
+      if @require_token
         unless token
           raise ValidationError, "You must pass your API token using: --token TOKEN"
         end

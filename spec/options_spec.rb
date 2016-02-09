@@ -9,12 +9,7 @@ describe RainforestCli::OptionParser do
 
     context "test folder (when passed)" do
       let(:args) { ["--test-folder", "/path/to/folder"] }
-      its(:test_spec_folder) { should == "/path/to/folder" }
-    end
-
-    context "test folder (when not passed)" do
-      let(:args) { [] }
-      its(:test_spec_folder) { should == RainforestCli::TestImporter::SPEC_FOLDER }
+      its(:test_folder) { should == "/path/to/folder" }
     end
 
     context "importing name" do

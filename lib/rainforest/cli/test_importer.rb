@@ -4,31 +4,29 @@ require 'parallel'
 require 'ruby-progressbar'
 
 class RainforestCli::TestImporter
-  attr_reader :options, :client
-  SPEC_FOLDER = 'spec/rainforest'.freeze
-  EXT = ".rfml".freeze
+  attr_reader :options, :client, :test_files
   THREADS = 32.freeze
 
   SAMPLE_FILE = <<EOF
-#! %s (this is the ID, don't edit it)
+#! %s (Test ID - only edit if this test has not yet been uploaded)
 # title: New test
+# start_uri: /
 #
-# 1. steps:
-#   a) pairs of lines are steps (first line = action, second = response)
-#   b) second line must have a ?
-#   c) second line must not be blank
-# 2. comments:
-#   a) lines starting # are comments
+# Lines starting with # are test attributes or comments
+# Possible attributes: #{RainforestCli::TestParser::Parser::TEXT_FIELDS.join(', ')}
+#
+# Steps are composed of two lines: an action and a question. Example:
+#
+# This is the step action.
+# This is the step question?
 #
 
 EOF
 
   def initialize(options)
     @options = options
-    unless File.exists?(@options.test_spec_folder)
-      logger.fatal "Rainforest test folder not found (#{@options.test_spec_folder})"
-      exit 2
-    end
+    ::Rainforest.api_key = @options.token
+    @test_files = RainforestCli::TestFiles.new(@options.test_folder)
   end
 
   def logger
@@ -36,8 +34,6 @@ EOF
   end
 
   def export
-    ::Rainforest.api_key = @options.token
-
     tests = Rainforest::Test.all(page_size: 1000)
     p = ProgressBar.create(title: 'Rows', total: tests.count, format: '%a %B %p%% %t')
     Parallel.each(tests, in_threads: THREADS, finish: lambda { |item, i, result| p.increment }) do |test|
@@ -115,69 +111,35 @@ EOF
   end
 
   def upload
-    ::Rainforest.api_key = @options.token
+    # Prioritize embedded tests before other tests
+    upload_groups = []
+    unordered_tests = []
+    queued_tests = test_files.test_data.dup
 
-    ids = {}
-    logger.info "Syncing tests"
-    Rainforest::Test.all(page_size: 1000).each do |test|
-      id = _get_id(test)
+    until queued_tests.empty?
+      new_ordered_group = []
+      ordered_ids = upload_groups.flatten.map(&:rfml_id)
 
-      next if id.nil?
+      queued_tests.each do |rfml_test|
+        if (rfml_test.embedded_ids - ordered_ids).empty?
+          new_ordered_group << rfml_test
+        else
+          unordered_tests << rfml_test
+        end
+      end
 
-      # note, this test id is numeric
-      ids[id] = test.id
+      upload_groups << new_ordered_group
+      queued_tests = unordered_tests
+      unordered_tests = []
     end
 
-    logger.debug ids.inspect if @options.debug
-
-    tests = validate.values
-
     logger.info "Uploading tests..."
-    p = ProgressBar.create(title: 'Rows', total: tests.count, format: '%a %B %p%% %t')
 
-    # Insert the data
-    Parallel.each(tests, in_threads: THREADS, finish: lambda { |item, i, result| p.increment }) do |test|
-      next unless test.steps.count > 0
-
-      if @options.debug
-        logger.debug "Starting: #{test.id}"
-        logger.debug "\t#{test.start_uri || "/"}"
-      end
-
-      test_obj = {
-        start_uri: test.start_uri || "/",
-        title: test.title,
-        description: test.description,
-        tags: (["ro"] + test.tags).uniq,
-        elements: test.steps.map do |step|
-          {type: 'step', redirection: true, element: {
-            action: step.action,
-            response: step.response
-          }}
-        end
-      }
-
-      unless test.browsers.empty?
-        test_obj[:browsers] = test.browsers.map {|b|
-          {'state' => 'enabled', 'name' => b}
-        }
-      end
-
-      # Create the test
-      begin
-        if ids[test.id]
-          t = Rainforest::Test.update(ids[test.id], test_obj)
-
-          logger.info "\tUpdated #{test.id} -- ##{t.id}" if @options.debug
-        else
-          t = Rainforest::Test.create(test_obj)
-
-          logger.info "\tCreated #{test.id} -- ##{t.id}" if @options.debug
-        end
-      rescue => e
-        logger.fatal "Error: #{test.id}: #{e}"
-        exit 2
-      end
+    # Upload in parallel if order doesn't matter
+    if upload_groups.count > 1
+      upload_groups_sequentially(upload_groups)
+    else
+      upload_group_in_parallel(upload_groups.first)
     end
   end
 
@@ -185,7 +147,7 @@ EOF
     tests = {}
     has_errors = []
 
-    Dir.glob("#{@options.test_spec_folder}/**/*#{EXT}").each do |file_name|
+    Dir.glob(test_files.test_paths).each do |file_name|
       out = RainforestCli::TestParser::Parser.new(File.read(file_name)).process
 
       tests[file_name] = out
@@ -224,15 +186,117 @@ EOF
   def create_new file_name = nil
     name = @options.file_name if @options.file_name
     name = file_name if !file_name.nil?
+    ext = test_files.file_extension
 
     uuid = SecureRandom.uuid
-    name = "#{uuid}#{EXT}" unless name
-    name += EXT unless name[-EXT.length..-1] == EXT
-    name = File.join([@options.test_spec_folder, name])
+    name = "#{uuid}#{ext}" unless name
+    name += ext unless name[-ext.length..-1] == ext
+    name = File.join([@test_files.test_folder, name])
 
     File.open(name, "w") { |file| file.write(sprintf(SAMPLE_FILE, uuid)) }
 
     logger.info "Created #{name}" if file_name.nil?
     name
+  end
+
+  private
+
+  def upload_groups_sequentially(upload_groups)
+    progress_bar = ProgressBar.create(title: 'Rows', total: test_files.count, format: '%a %B %p%% %t')
+    upload_groups.each_with_index do |rfml_tests, idx|
+      if idx == (rfml_tests.length - 1)
+        upload_group_in_parallel(rfml_tests, progress_bar)
+      else
+        rfml_tests.each { |rfml_test| upload_test(rfml_test) }
+        progress_bar.increment
+      end
+    end
+  end
+
+  def upload_group_in_parallel(rfml_tests, progress_bar = nil)
+    progress_bar ||= ProgressBar.create(title: 'Rows', total: rfml_tests.count, format: '%a %B %p%% %t')
+    Parallel.each(rfml_tests, in_threads: THREADS, finish: lambda { |item, i, result| progress_bar.increment }) do |rfml_test|
+      upload_test(rfml_test)
+    end
+  end
+
+  def upload_test(rfml_test)
+    return unless rfml_test.steps.count > 0
+
+    if @options.debug
+      logger.debug "Starting: #{rfml_test.rfml_id}"
+      logger.debug "\t#{rfml_test.start_uri || "/"}"
+    end
+
+    test_obj = create_test_obj(rfml_test)
+    # Upload the test
+    begin
+      if rfml_id_mappings[rfml_test.rfml_id]
+        t = Rainforest::Test.update(rfml_id_mappings[rfml_test.rfml_id], test_obj)
+
+        logger.info "\tUpdated #{rfml_test.rfml_id} -- ##{t.id}" if @options.debug
+      else
+        t = Rainforest::Test.create(test_obj)
+
+        logger.info "\tCreated #{rfml_test.rfml_id} -- ##{t.id}" if @options.debug
+        rfml_id_mappings[rfml_test.rfml_id] = t.id
+      end
+    rescue => e
+      logger.fatal "Error: #{rfml_test.rfml_id}: #{e}"
+      exit 2
+    end
+  end
+
+  def rfml_id_mappings
+    if @_id_mappings.nil?
+      @_id_mappings = {}.tap do |id_mappings|
+        Rainforest::Test.all(page_size: 1000, rfml_ids: test_files.rfml_ids).each do |rf_test|
+          rfml_id = rf_test.rfml_id
+          next if rfml_id.nil?
+
+          id_mappings[rfml_id] = rf_test.id
+        end
+      end
+    end
+    @_id_mappings
+  end
+
+  def create_test_obj(rfml_test)
+    test_obj = {
+      start_uri: rfml_test.start_uri || "/",
+      title: rfml_test.title,
+      description: rfml_test.description,
+      tags: (["ro"] + rfml_test.tags).uniq,
+      rfml_id: rfml_test.rfml_id,
+      elements: rfml_test.steps.map do |step|
+        case step.type
+        when :step
+          {
+            type: 'step',
+            redirection: true,
+            element: {
+              action: step.action,
+              response: step.response
+            }
+          }
+        when :test
+          {
+            type: 'test',
+            redirection: true,
+            element: {
+              id: rfml_id_mappings[step.rfml_id]
+            }
+          }
+        end
+      end
+    }
+
+    unless rfml_test.browsers.empty?
+      test_obj[:browsers] = rfml_test.browsers.map {|b|
+        {'state' => 'enabled', 'name' => b}
+      }
+    end
+
+    test_obj
   end
 end

@@ -1,11 +1,19 @@
 module RainforestCli::TestParser
-  class EmbeddedTest < Struct.new(:test_name)
+  class EmbeddedTest < Struct.new(:rfml_id)
+    def type
+      :test
+    end
+
     def to_s
-      "--> embed: #{test_name}"
+      "--> embed: #{rfml_id}"
     end
   end
 
   class Step < Struct.new(:action, :response)
+    def type
+      :step
+    end
+
     def to_s
       "#{action} --> #{response}"
     end
@@ -17,7 +25,10 @@ module RainforestCli::TestParser
     end
   end
 
-  class Test < Struct.new(:id, :description, :title, :start_uri, :steps, :errors, :tags, :browsers)
+  class Test < Struct.new(:rfml_id, :description, :title, :start_uri, :steps, :errors, :tags, :browsers)
+    def embedded_ids
+      steps.inject([]) { |embeds, step| step.type == :test ? embeds + [step.rfml_id] : embeds }
+    end
   end
 
   class Parser
@@ -43,7 +54,7 @@ module RainforestCli::TestParser
       text.lines.map(&:chomp).each_with_index do |line, line_no|
         if line[0..1] == '#!'
           # special comment, don't ignore!
-          @test.id = line[2..-1].strip.split(" ")[0]
+          @test.rfml_id = line[2..-1].strip.split(" ")[0]
           @test.description += line[1..-1] + "\n"
 
         elsif line[0] == '#'
@@ -90,8 +101,8 @@ module RainforestCli::TestParser
         end
       end
 
-      if @test.id == nil
-        @test.errors[0] = Error.new(0, "Missing test ID. Please start a line #! followed by a unique id.")
+      if @test.rfml_id == nil
+        @test.errors[0] = Error.new(0, "Missing RFML ID. Please start a line #! followed by a unique id.")
       end
 
       return @test

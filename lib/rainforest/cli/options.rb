@@ -28,7 +28,7 @@ module RainforestCli
           @file_name = value
         end
 
-        opts.on("--test-folder FILE_PATH", "Specify the test folder. Defaults to spec/rainforest if not set.") do |value|
+        opts.on('--test-folder FILE_PATH', 'Specify the test folder. Defaults to spec/rainforest if not set.') do |value|
           @test_folder = value
         end
 
@@ -52,7 +52,7 @@ module RainforestCli
           @failfast = true
         end
 
-        opts.on("--token API_TOKEN", String, "Your rainforest API token.") do |value|
+        opts.on('--token API_TOKEN', String, 'Your rainforest API token.') do |value|
           @token = value
         end
 
@@ -140,16 +140,16 @@ module RainforestCli
       end
 
       if custom_url && site_id.nil?
-        raise ValidationError, 'The site-id and custom-url options are both required.'
+        raise ValidationError, "The site-id and custom-url options are both required."
       end
 
       if import_file_name && import_name
-        unless File.exist?(import_file_name)
+        unless File.exists?(import_file_name)
           raise ValidationError, "Input file: #{import_file_name} not found"
         end
 
       elsif import_file_name || import_name
-        raise ValidationError, 'You must pass both --import-variable-csv-file and --import-variable-name'
+        raise ValidationError, "You must pass both --import-variable-csv-file and --import-variable-name"
       end
       true
     end

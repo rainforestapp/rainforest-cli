@@ -32,11 +32,24 @@ class RainforestCli::TestFiles
   private
 
   def create_test_folder
-    folder_string = test_folder[0..1] == './' ? test_folder[2..-1] : test_folder
-    folders = folder_string.split('/')
+    test_folder_string = test_folder.dup
+
+    # preserve leading slash for absolute paths
+    leading_slash = ''
+    if test_folder_string[0] == '/'
+      leading_slash = '/'
+      test_folder_string = test_folder_string[1..-1]
+    end
+
+    # Remove leading `./` for simplicity
+    test_folder_string = test_folder_string[0..1] == './' ? test_folder_string[2..-1] : test_folder_string
+
+    folders = test_folder_string.split('/')
+    folders.first.prepend(leading_slash)
 
     (0...folders.length).each do |idx|
-      Dir.mkdir(folders[0..idx].join('/'))
+      dir_name = folders[0..idx].join('/')
+      Dir.mkdir(dir_name) unless Dir.exist?(dir_name)
     end
   end
 end

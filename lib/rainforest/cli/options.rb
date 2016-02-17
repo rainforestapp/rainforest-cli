@@ -131,14 +131,6 @@ module RainforestCli
         raise BrowserException, browsers unless (browsers - VALID_BROWSERS).empty?
       end
 
-      if folder
-        # Allow it to start with `./` but not with just `/`
-        # Followed by an alphanumeric character or period
-        unless folder.match(/^(\.\/)?[[:alnum:]\.]+.*$/)
-          raise ValidationError, "Test folder format is invalid. Examples: 'foo/bar/baz', './foo/bar/baz'"
-        end
-      end
-
       if custom_url && site_id.nil?
         raise ValidationError, "The site-id and custom-url options are both required."
       end

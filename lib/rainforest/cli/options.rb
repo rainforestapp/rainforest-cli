@@ -133,8 +133,8 @@ module RainforestCli
 
       if folder
         # Allow it to start with `./` but not with just `/`
-        # Followed by a letter or period
-        unless folder.match(/^(\.\/)?[a-zA-Z\.]+.*$/)
+        # Followed by an alphanumeric character or period
+        unless folder.match(/^(\.\/)?[[:alnum:]\.]+.*$/)
           raise ValidationError, "Test folder format is invalid. Examples: 'foo/bar/baz', './foo/bar/baz'"
         end
       end

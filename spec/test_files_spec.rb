@@ -18,8 +18,6 @@ describe RainforestCli::TestFiles do
     end
 
     context 'when test folder name is supplied' do
-      subject { described_class.new(folder_name) }
-
       before do
         expect(Dir).to receive(:mkdir).with(expected_folder_arg).once
         described_class.new(folder_name)

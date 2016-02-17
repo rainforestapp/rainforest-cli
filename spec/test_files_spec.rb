@@ -18,7 +18,7 @@ describe RainforestCli::TestFiles do
     end
 
     context 'when test folder name is supplied' do
-      before do
+      def creates_the_expected_folder
         expect(Dir).to receive(:mkdir).with(expected_folder_arg).once
         described_class.new(folder_name)
       end
@@ -27,24 +27,21 @@ describe RainforestCli::TestFiles do
         let(:folder_name) { './foo' }
         let(:expected_folder_arg) { 'foo' }
 
-        it 'creates the supplied folder if file does not exist' do
-        end
+        it { creates_the_expected_folder }
       end
 
       context 'when folder name has to prefix' do
         let(:folder_name) { 'foo' }
         let(:expected_folder_arg) { 'foo' }
 
-        it 'creates the supplied folder if file does not exist' do
-        end
+        it { creates_the_expected_folder }
       end
 
       context 'when absolute path is used' do
         let(:folder_name) { '/foo' }
         let(:expected_folder_arg) { '/foo' }
 
-        it 'creates the supplied folder if file does not exist' do
-        end
+        it { creates_the_expected_folder }
       end
     end
 

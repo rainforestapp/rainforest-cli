@@ -1,13 +1,7 @@
+# frozen_string_literal: true
 require 'optparse'
 
 module RainforestCli
-  class BrowserException < Exception
-    def initialize browsers
-      invalid_browsers = browsers - OptionParser::VALID_BROWSERS
-      super "#{invalid_browsers.join(', ')} is not valid. Valid browsers: #{OptionParser::VALID_BROWSERS.join(', ')}"
-    end
-  end
-
   class OptionParser
     attr_writer :file_name, :tags
     attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
@@ -17,12 +11,12 @@ module RainforestCli
     # Note, not all of these may be available to your account
     # also, we may remove this in the future.
     VALID_BROWSERS = %w{android_phone_landscape android_phone_portrait android_tablet_landscape android_tablet_portrait chrome chrome_1440_900 chrome_adblock chrome_ghostery chrome_guru chrome_ublock firefox firefox_1440_900 ie10 ie10_1440_900 ie11 ie11_1440_900 ie8 ie8_1440_900 ie9 ie9_1440_900 ios_iphone4s office2010 office2013 osx_chrome osx_firefox safari ubuntu_chrome ubuntu_firefox}.freeze
+    TOKEN_NOT_REQUIRED = %w{new validate}.freeze
 
     def initialize(args)
       @args = args.dup
       @tags = []
       @browsers = nil
-      @require_token = true
       @debug = false
 
       @parsed = ::OptionParser.new do |opts|
@@ -34,7 +28,7 @@ module RainforestCli
           @file_name = value
         end
 
-        opts.on("--test-folder spec/rainforest", "Specify the test folder. Defaults to spec/rainforest if not set.") do |value|
+        opts.on("--test-folder FILE_PATH", "Specify the test folder. Defaults to spec/rainforest if not set.") do |value|
           @test_folder = value
         end
 
@@ -58,7 +52,7 @@ module RainforestCli
           @failfast = true
         end
 
-        opts.on("--token TOKEN", String, "Your rainforest API token.") do |value|
+        opts.on("--token API_TOKEN", String, "Your rainforest API token.") do |value|
           @token = value
         end
 
@@ -72,8 +66,6 @@ module RainforestCli
 
         opts.on("--browsers LIST", "Run against the specified browsers") do |value|
           @browsers = value.split(',').map{|x| x.strip.downcase }.uniq
-
-          raise BrowserException, @browsers unless (@browsers - VALID_BROWSERS).empty?
         end
 
         opts.on("--conflict MODE", String, "How should Rainforest handle existing in progress runs?") do |value|
@@ -110,10 +102,6 @@ module RainforestCli
       end
 
       @tests = @args.dup
-
-      # A couple of commands don't need the token
-      token_not_required = %w{new validate}
-      @require_token = false if token_not_required.include?(@command)
     end
 
     def tests
@@ -133,28 +121,47 @@ module RainforestCli
     end
 
     def validate!
-      if @require_token
+      if !TOKEN_NOT_REQUIRED.include?(command)
         unless token
-          raise ValidationError, "You must pass your API token using: --token TOKEN"
+          raise ValidationError, 'You must pass your API token using: --token TOKEN'
+        end
+      end
+
+      if browsers
+        raise BrowserException, browsers unless (browsers - VALID_BROWSERS).empty?
+      end
+
+      if folder
+        # Allow it to start with `./` but not with just `/`
+        # Followed by a letter or period
+        unless folder.match(/^(\.\/)?[a-zA-Z\.]+.*$/)
+          raise ValidationError, "Test folder format is invalid. Examples: 'foo/bar/baz', './foo/bar/baz'"
         end
       end
 
       if custom_url && site_id.nil?
-        raise ValidationError, "The site-id and custom-url options are both required."
+        raise ValidationError, 'The site-id and custom-url options are both required.'
       end
 
       if import_file_name && import_name
-        unless File.exists?(import_file_name)
+        unless File.exist?(import_file_name)
           raise ValidationError, "Input file: #{import_file_name} not found"
         end
 
       elsif import_file_name || import_name
-        raise ValidationError, "You must pass both --import-variable-csv-file and --import-variable-name"
+        raise ValidationError, 'You must pass both --import-variable-csv-file and --import-variable-name'
       end
       true
     end
 
     class ValidationError < RuntimeError
+    end
+
+    class BrowserException < ValidationError
+      def initialize browsers
+        invalid_browsers = browsers - OptionParser::VALID_BROWSERS
+        super "#{invalid_browsers.join(', ')} is not valid. Valid browsers: #{OptionParser::VALID_BROWSERS.join(', ')}"
+      end
     end
   end
 end

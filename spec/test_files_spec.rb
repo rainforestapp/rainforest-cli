@@ -43,6 +43,14 @@ describe RainforestCli::TestFiles do
 
         it { creates_the_expected_folder }
       end
+
+      context 'when existing folder name already given' do
+        let(:folder_name) { 'spec/rainforest-example' }
+
+        it 'does not throw an error' do
+          expect(described_class.new(folder_name)).to_not raise_error
+        end
+      end
     end
 
     context 'creates multiple levels of folders' do

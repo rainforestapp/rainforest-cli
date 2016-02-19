@@ -1,6 +1,7 @@
+# frozen_string_literal: true
 module RainforestCli
   class HttpClient
-    API_URL = ENV.fetch("RAINFOREST_API_URL") do
+    API_URL = ENV.fetch('RAINFOREST_API_URL') do
       'https://app.rainforestqa.com/api/1'
     end.freeze
 
@@ -49,8 +50,8 @@ module RainforestCli
 
     def headers
       {
-        "CLIENT_TOKEN" => @token,
-        "User-Agent" => "Rainforest-cli-#{RainforestCli::VERSION}"
+        'CLIENT_TOKEN' => @token,
+        'User-Agent' => "Rainforest-cli-#{RainforestCli::VERSION}"
       }
     end
   end

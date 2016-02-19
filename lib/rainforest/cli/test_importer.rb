@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'securerandom'
 require 'rainforest'
 require 'parallel'
@@ -36,10 +37,10 @@ EOF
   def export
     tests = Rainforest::Test.all(page_size: 1000)
     p = ProgressBar.create(title: 'Rows', total: tests.count, format: '%a %B %p%% %t')
-    Parallel.each(tests, in_threads: THREADS, finish: lambda { |item, i, result| p.increment }) do |test|
+    Parallel.each(tests, in_threads: THREADS, finish: lambda { |_item, _i, _result| p.increment }) do |test|
 
       # File name
-      file_name = sprintf('%010d', test.id) + "_" + test.title.strip.gsub(/[^a-z0-9 ]+/i, '').gsub(/ +/, '_').downcase
+      file_name = sprintf('%010d', test.id) + '_' + test.title.strip.gsub(/[^a-z0-9 ]+/i, '').gsub(/ +/, '_').downcase
       file_name = create_new(file_name)
       File.truncate(file_name, 0)
 
@@ -64,7 +65,7 @@ EOF
         index = _process_element(file, sub_element, index)
       end
     when 'step'
-      file.puts "" unless index == 0
+      file.puts '' unless index == 0
       file.puts "# step #{index + 1}" if @options.debug
       file.puts element[:element][:action]
       file.puts element[:element][:response]
@@ -81,18 +82,18 @@ EOF
     out = []
 
     has_id = false
-    test.description.to_s.strip.lines.map(&:chomp).each_with_index do |line, line_no|
+    test.description.to_s.strip.lines.map(&:chomp).each_with_index do |line, _line_no|
       line = line.gsub(/\#+$/, '').strip
 
       # make sure the test has an ID
-      has_id = true if line[0] == "!"
+      has_id = true if line[0] == '!'
 
-      out << "#" + line
+      out << '#' + line
     end
 
     unless has_id
-      browsers = test.browsers.map {|b| b[:name] if b[:state] == "enabled" }.compact
-      out = ["#! #{SecureRandom.uuid}", "# title: #{test.title}", "# start_uri: #{test.start_uri}", "# tags: #{test.tags.join(", ")}", "# browsers: #{browsers.join(", ")}", "#", " "] + out
+      browsers = test.browsers.map {|b| b[:name] if b[:state] == 'enabled' }.compact
+      out = ["#! #{SecureRandom.uuid}", "# title: #{test.title}", "# start_uri: #{test.start_uri}", "# tags: #{test.tags.join(", ")}", "# browsers: #{browsers.join(", ")}", '#', ' '] + out
     end
 
     out.compact.join("\n")
@@ -100,9 +101,9 @@ EOF
 
   def _get_id test
     id = nil
-    test.description.to_s.strip.lines.map(&:chomp).each_with_index do |line, line_no|
+    test.description.to_s.strip.lines.map(&:chomp).each_with_index do |line, _line_no|
       line = line.gsub(/\#+$/, '').strip
-      if line[0] == "!"
+      if line[0] == '!'
         id = line[1..-1].split(' ').first
         break
       end
@@ -133,7 +134,7 @@ EOF
       unordered_tests = []
     end
 
-    logger.info "Uploading tests..."
+    logger.info 'Uploading tests...'
 
     # Upload in parallel if order doesn't matter
     if upload_groups.count > 1
@@ -155,12 +156,12 @@ EOF
     end
 
     if !has_errors.empty?
-      logger.error "Parsing errors:"
-      logger.error ""
+      logger.error 'Parsing errors:'
+      logger.error ''
       has_errors.each do |file_name|
-        logger.error " " + file_name
-        tests[file_name].errors.each do |line, error|
-          logger.error "\t#{error.to_s}"
+        logger.error ' ' + file_name
+        tests[file_name].errors.each do |_line, error|
+          logger.error "\t#{error}"
         end
       end
 
@@ -177,7 +178,7 @@ EOF
         end
       end
     else
-      logger.info "[VALID]"
+      logger.info '[VALID]'
     end
 
     return tests
@@ -193,7 +194,7 @@ EOF
     name += ext unless name[-ext.length..-1] == ext
     name = File.join([@test_files.test_folder, name])
 
-    File.open(name, "w") { |file| file.write(sprintf(SAMPLE_FILE, uuid)) }
+    File.open(name, 'w') { |file| file.write(sprintf(SAMPLE_FILE, uuid)) }
 
     logger.info "Created #{name}" if file_name.nil?
     name
@@ -215,7 +216,7 @@ EOF
 
   def upload_group_in_parallel(rfml_tests, progress_bar = nil)
     progress_bar ||= ProgressBar.create(title: 'Rows', total: rfml_tests.count, format: '%a %B %p%% %t')
-    Parallel.each(rfml_tests, in_threads: THREADS, finish: lambda { |item, i, result| progress_bar.increment }) do |rfml_test|
+    Parallel.each(rfml_tests, in_threads: THREADS, finish: lambda { |_item, _i, _result| progress_bar.increment }) do |rfml_test|
       upload_test(rfml_test)
     end
   end
@@ -263,10 +264,10 @@ EOF
 
   def create_test_obj(rfml_test)
     test_obj = {
-      start_uri: rfml_test.start_uri || "/",
+      start_uri: rfml_test.start_uri || '/',
       title: rfml_test.title,
       description: rfml_test.description,
-      tags: (["ro"] + rfml_test.tags).uniq,
+      tags: (['ro'] + rfml_test.tags).uniq,
       rfml_id: rfml_test.rfml_id,
       elements: rfml_test.steps.map do |step|
         case step.type
@@ -292,9 +293,9 @@ EOF
     }
 
     unless rfml_test.browsers.empty?
-      test_obj[:browsers] = rfml_test.browsers.map {|b|
+      test_obj[:browsers] = rfml_test.browsers.map do|b|
         {'state' => 'enabled', 'name' => b}
-      }
+      end
     end
 
     test_obj

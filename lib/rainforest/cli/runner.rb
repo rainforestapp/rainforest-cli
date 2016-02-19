@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module RainforestCli
   class Runner
     attr_reader :options, :client
@@ -16,7 +17,7 @@ module RainforestCli
       post_opts = make_create_run_options
 
       logger.debug "POST options: #{post_opts.inspect}"
-      logger.info "Issuing run"
+      logger.info 'Issuing run'
 
       response = client.post('/runs', post_opts)
 
@@ -26,7 +27,7 @@ module RainforestCli
       end
 
       if options.foreground?
-        run_id = response.fetch("id")
+        run_id = response.fetch('id')
         wait_for_run_completion(run_id)
       else
         true
@@ -40,9 +41,9 @@ module RainforestCli
         response = client.get("/runs/#{run_id}")
         if response
           state_details = response.fetch('state_details')
-          unless state_details.fetch("is_final_state")
+          unless state_details.fetch('is_final_state')
             logger.info "Run #{run_id} is #{response['state']} and is #{response['current_progress']['percent']}% complete"
-            running = false if response["result"] == 'failed' && options.failfast?
+            running = false if response['result'] == 'failed' && options.failfast?
           else
             logger.info "Run #{run_id} is now #{response["state"]} and has #{response["result"]}"
             running = false
@@ -50,11 +51,11 @@ module RainforestCli
         end
       end
 
-      if url = response["frontend_url"]
-        logger.info "The detailed results are available at #{url}"
+      if response['frontend_url']
+        logger.info "The detailed results are available at #{response['frontend_url']}"
       end
 
-      if response["result"] != "passed"
+      if response['result'] != 'passed'
         exit 1
       end
     end
@@ -62,28 +63,28 @@ module RainforestCli
     def make_create_run_options
       post_opts = {}
       if options.git_trigger?
-        logger.debug "Checking last git commit message:"
+        logger.debug 'Checking last git commit message:'
         commit_message = GitTrigger.last_commit_message
         logger.debug commit_message
 
         # Show some messages to users about tests/tags being overriden
         unless options.tags.empty?
-          logger.warn "Specified tags are ignored when using --git-trigger"
+          logger.warn 'Specified tags are ignored when using --git-trigger'
         else
-          logger.warn "Specified tests are ignored when using --git-trigger"
+          logger.warn 'Specified tests are ignored when using --git-trigger'
         end
 
         if GitTrigger.git_trigger_should_run?(commit_message)
           tags = GitTrigger.extract_hashtags(commit_message)
           if tags.empty?
-            logger.error "Triggered via git, but no hashtags detected. Please use commit message format:"
+            logger.error 'Triggered via git, but no hashtags detected. Please use commit message format:'
             logger.error "\t'some message. @rainforest #tag1 #tag2"
             exit 2
           else
             post_opts[:tags] = [tags.join(',')]
           end
         else
-          logger.info "Not triggering as @rainforest was not mentioned in last commit message."
+          logger.info 'Not triggering as @rainforest was not mentioned in last commit message.'
           exit 0
         end
       else
@@ -116,7 +117,7 @@ module RainforestCli
     end
 
     def list_generators
-      client.get("/generators")
+      client.get('/generators')
     end
 
     def delete_generator(name)
@@ -133,12 +134,12 @@ module RainforestCli
 
     def get_environment_id url
       unless url_valid?(url)
-        logger.fatal "The custom URL is invalid"
+        logger.fatal 'The custom URL is invalid'
         exit 2
       end
 
       env_post_body = { name: 'temporary-env-for-custom-url-via-CLI', url: url }
-      environment = client.post("/environments", env_post_body)
+      environment = client.post('/environments', env_post_body)
 
       if environment['error']
         # I am talking about a URL here because the environments are pretty

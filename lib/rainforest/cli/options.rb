@@ -20,11 +20,11 @@ module RainforestCli
       @debug = false
 
       @parsed = ::OptionParser.new do |opts|
-        opts.on("--debug") do
+        opts.on('--debug') do
           @debug = true
         end
 
-        opts.on("--file") do |value|
+        opts.on('--file') do |value|
           @file_name = value
         end
 
@@ -32,23 +32,23 @@ module RainforestCli
           @test_folder = value
         end
 
-        opts.on("--import-variable-csv-file FILE", "Import step variables; CSV data") do |value|
+        opts.on('--import-variable-csv-file FILE', 'Import step variables; CSV data') do |value|
           @import_file_name = value
         end
 
-        opts.on("--import-variable-name NAME", "Import step variables; Name of variable (note, will be replaced if exists)") do |value|
+        opts.on('--import-variable-name NAME', 'Import step variables; Name of variable (note, will be replaced if exists)') do |value|
           @import_name = value
         end
 
-        opts.on("--git-trigger", "Only run if the last commit contains @rainforestapp") do |value|
+        opts.on('--git-trigger', 'Only run if the last commit contains @rainforestapp') do |_value|
           @git_trigger = true
         end
 
-        opts.on("--fg", "Run the tests in foreground.") do |value|
+        opts.on('--fg', 'Run the tests in foreground.') do |value|
           @foreground = value
         end
 
-        opts.on("--fail-fast", String, "Fail as soon as there is a failure (don't wait for completion)") do |value|
+        opts.on('--fail-fast', String, "Fail as soon as there is a failure (don't wait for completion)") do |_value|
           @failfast = true
         end
 
@@ -56,39 +56,39 @@ module RainforestCli
           @token = value
         end
 
-        opts.on("--tag TAG", String, "A tag to run the tests with") do |value|
+        opts.on('--tag TAG', String, 'A tag to run the tests with') do |value|
           @tags << value
         end
 
-        opts.on("--folder ID", "Run tests in the specified folders") do |value|
+        opts.on('--folder ID', 'Run tests in the specified folders') do |value|
           @folder = value
         end
 
-        opts.on("--browsers LIST", "Run against the specified browsers") do |value|
+        opts.on('--browsers LIST', 'Run against the specified browsers') do |value|
           @browsers = value.split(',').map{|x| x.strip.downcase }.uniq
         end
 
-        opts.on("--conflict MODE", String, "How should Rainforest handle existing in progress runs?") do |value|
+        opts.on('--conflict MODE', String, 'How should Rainforest handle existing in progress runs?') do |value|
           @conflict = value
         end
 
-        opts.on("--environment-id ID", Integer, "Run using this environment. If excluded, will use your default") do |value|
+        opts.on('--environment-id ID', Integer, 'Run using this environment. If excluded, will use your default') do |value|
           @environment_id = value
         end
 
-        opts.on("--site-id ID", Integer, "Only run tests for a specific site") do |value|
+        opts.on('--site-id ID', Integer, 'Only run tests for a specific site') do |value|
           @site_id = value
         end
 
-        opts.on("--custom-url URL", String, "Use a custom url for this run. You will need to specify a site_id too for this to work.") do |value|
+        opts.on('--custom-url URL', String, 'Use a custom url for this run. You will need to specify a site_id too for this to work.') do |value|
           @custom_url = value
         end
 
-        opts.on("--description DESCRIPTION", "Add a description for the run.") do |value|
+        opts.on('--description DESCRIPTION', 'Add a description for the run.') do |value|
           @description = value
         end
 
-        opts.on_tail("--help", "Display help message and exit") do |value|
+        opts.on_tail('--help', 'Display help message and exit') do |_value|
           puts opts
           exit 0
         end
@@ -132,16 +132,16 @@ module RainforestCli
       end
 
       if custom_url && site_id.nil?
-        raise ValidationError, "The site-id and custom-url options are both required."
+        raise ValidationError, 'The site-id and custom-url options are both required.'
       end
 
       if import_file_name && import_name
-        unless File.exists?(import_file_name)
+        unless File.exist?(import_file_name)
           raise ValidationError, "Input file: #{import_file_name} not found"
         end
 
       elsif import_file_name || import_name
-        raise ValidationError, "You must pass both --import-variable-csv-file and --import-variable-name"
+        raise ValidationError, 'You must pass both --import-variable-csv-file and --import-variable-name'
       end
       true
     end

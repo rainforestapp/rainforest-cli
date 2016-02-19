@@ -1,16 +1,17 @@
-require "rainforest/cli/version"
-require "rainforest/cli/options"
-require "rainforest/cli/runner"
-require "rainforest/cli/http_client"
-require "rainforest/cli/git_trigger"
-require "rainforest/cli/csv_importer"
-require "rainforest/cli/test_parser"
-require "rainforest/cli/test_files"
-require "rainforest/cli/test_importer"
-require "erb"
-require "httparty"
-require "json"
-require "logger"
+# frozen_string_literal: true
+require 'rainforest/cli/version'
+require 'rainforest/cli/options'
+require 'rainforest/cli/runner'
+require 'rainforest/cli/http_client'
+require 'rainforest/cli/git_trigger'
+require 'rainforest/cli/csv_importer'
+require 'rainforest/cli/test_parser'
+require 'rainforest/cli/test_files'
+require 'rainforest/cli/test_importer'
+require 'erb'
+require 'httparty'
+require 'json'
+require 'logger'
 
 module RainforestCli
   def self.start(args)
@@ -41,7 +42,7 @@ module RainforestCli
       t = TestImporter.new(options)
       t.export
     else
-      logger.fatal "Unknown command"
+      logger.fatal 'Unknown command'
       exit 2
     end
 

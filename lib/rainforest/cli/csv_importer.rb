@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 require 'csv'
 require 'httparty'
 require 'parallel'
@@ -28,21 +29,21 @@ module RainforestCli
       columns = rows.shift.map do |column|
         {name: column.downcase.strip.gsub(/\s/, '_')}
       end
-      raise 'Invalid schema in CSV. You must include headers in first row.' if not columns
+      raise 'Invalid schema in CSV. You must include headers in first row.' if !columns
 
-      print "Creating custom step variable"
-      response = client.post "/generators", { name: @generator_name, description: @generator_name, columns: columns }
+      print 'Creating custom step variable'
+      response = client.post '/generators', { name: @generator_name, description: @generator_name, columns: columns }
       raise "Error creating custom step variable: #{response['error']}" if response['error']
       puts "\t[OK]"
 
       @columns = response['columns']
       @generator_id = response['id']
 
-      puts "Uploading data..."
+      puts 'Uploading data...'
       p = ProgressBar.create(title: 'Rows', total: rows.count, format: '%a %B %p%% %t')
 
       # Insert the data
-      Parallel.each(rows, in_threads: 16, finish: lambda { |item, i, result| p.increment }) do |row|
+      Parallel.each(rows, in_threads: 16, finish: lambda { |_item, _i, _result| p.increment }) do |row|
         response = client.post("/generators/#{@generator_id}/rows", {data: row_data(@columns, row)})
         raise response['error'] if response['error']
       end

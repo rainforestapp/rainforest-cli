@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module RainforestCli::TestParser
   class EmbeddedTest < Struct.new(:rfml_id)
     def type
@@ -38,7 +39,7 @@ module RainforestCli::TestParser
       @text = text.to_s
 
       @test = Test.new
-      @test.description = ""
+      @test.description = ''
       @test.steps = []
       @test.errors = {}
       @test.tags = []
@@ -54,7 +55,7 @@ module RainforestCli::TestParser
       text.lines.map(&:chomp).each_with_index do |line, line_no|
         if line[0..1] == '#!'
           # special comment, don't ignore!
-          @test.rfml_id = line[2..-1].strip.split(" ")[0]
+          @test.rfml_id = line[2..-1].strip.split(' ')[0]
           @test.description += line[1..-1] + "\n"
 
         elsif line[0] == '#'
@@ -65,7 +66,7 @@ module RainforestCli::TestParser
             next unless line[1..-1].strip[0..(field.length)] == "#{field}:"
 
             # extract just the text of the field
-            @test[field] = line[1..-1].split(" ")[1..-1].join(" ").strip
+            @test[field] = line[1..-1].split(' ')[1..-1].join(' ').strip
 
             # if it's supposed to be a CSV field, split and trim it
             if CSV_FIELDS.include?(field)
@@ -82,9 +83,9 @@ module RainforestCli::TestParser
 
         elsif scratch.count == 1
           if line.strip == ''
-            @test.errors[line_no] = Error.new(line_no, "Missing question")
+            @test.errors[line_no] = Error.new(line_no, 'Missing question')
           elsif !line.include?('?')
-            @test.errors[line_no] = Error.new(line_no, "Missing ?")
+            @test.errors[line_no] = Error.new(line_no, 'Missing ?')
           else
             scratch << line.strip
           end
@@ -102,7 +103,7 @@ module RainforestCli::TestParser
       end
 
       if @test.rfml_id == nil
-        @test.errors[0] = Error.new(0, "Missing RFML ID. Please start a line #! followed by a unique id.")
+        @test.errors[0] = Error.new(0, 'Missing RFML ID. Please start a line #! followed by a unique id.')
       end
 
       return @test

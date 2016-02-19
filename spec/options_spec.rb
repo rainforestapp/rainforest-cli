@@ -39,14 +39,6 @@ describe RainforestCli::OptionParser do
       its(:browsers) { should == ["ie8"]}
     end
 
-    context "raises errors with invalid browsers" do
-      let(:args) { ["run", "--browsers", "lulbrower"] }
-
-      it "raises an exception" do
-        expect{subject}.to raise_error(RainforestCli::BrowserException)
-      end
-    end
-
     context "accepts multiple browsers" do
       let(:args) { ["run", "--browsers", "ie8,chrome"] }
       its(:browsers) { should == ["ie8", "chrome"]}
@@ -149,6 +141,14 @@ describe RainforestCli::OptionParser do
       context "for a non existing file" do
         let(:args) { %W(--token foo --import-variable-csv-file does_not_exist --import-variable-name my-var) }
         it { raises_a_validation_exception }
+      end
+    end
+
+    context 'with invalid browsers' do
+      let(:args) { %w{run --browsers lulbrowser --token foo} }
+
+      it 'raises an exception' do
+        expect{ subject.validate! }.to raise_error(RainforestCli::OptionParser::BrowserException)
       end
     end
   end

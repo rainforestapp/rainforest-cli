@@ -1,15 +1,14 @@
+# frozen_string_literal: true
 class RainforestCli::TestFiles
   DEFAULT_TEST_FOLDER = './spec/rainforest'.freeze
-  EXT = ".rfml".freeze
+  EXT = '.rfml'.freeze
 
   attr_reader :test_folder, :test_paths, :test_data
 
   def initialize(test_folder = nil)
     @test_folder = test_folder || DEFAULT_TEST_FOLDER
+    FileUtils.mkdir_p(@test_folder) unless Dir.exist?(@test_folder)
 
-    unless Dir.exists?(@test_folder)
-      Dir.mkdir(@test_folder)
-    end
     @test_paths = "#{@test_folder}/**/*#{EXT}"
     @test_data = [].tap do |all_tests|
       Dir.glob(@test_paths) do |file_name|

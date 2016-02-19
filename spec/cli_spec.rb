@@ -78,7 +78,8 @@ describe RainforestCli do
 
       describe 'with no @rainforest in the commit message' do
         it "exit 0's and logs the reason" do
-          expect_any_instance_of(Logger).to receive(:info).with('Not triggering as @rainforest was not mentioned in last commit message.')
+          expect_any_instance_of(Logger).to receive(:info)
+            .with('Not triggering as @rainforest was not mentioned in last commit message.')
           start_with_params(params, 0)
         end
       end
@@ -87,8 +88,10 @@ describe RainforestCli do
         let(:commit_message) { 'a test commit message @rainforest' }
 
         it "exit 2's and logs the reason" do
-          expect_any_instance_of(Logger).to receive(:error).with('Triggered via git, but no hashtags detected. Please use commit message format:')
-          expect_any_instance_of(Logger).to receive(:error).with("\t'some message. @rainforest #tag1 #tag2")
+          expect_any_instance_of(Logger).to receive(:error)
+            .with('Triggered via git, but no hashtags detected. Please use commit message format:')
+          expect_any_instance_of(Logger).to receive(:error)
+            .with("\t'some message. @rainforest #tag1 #tag2")
 
           start_with_params(params, 2)
         end
@@ -113,15 +116,15 @@ describe RainforestCli do
       let(:params) { %w(run --token x --site 3 --custom-url http://ad-hoc.example.com) }
       it 'creates a new environment' do
         http_client.should_receive(:post).with('/environments',
-            {
-              :name => 'temporary-env-for-custom-url-via-CLI',
-              :url=>'http://ad-hoc.example.com'
-            }
-          ).and_return(
+                                               {
+                                                 name: 'temporary-env-for-custom-url-via-CLI',
+                                                 url: 'http://ad-hoc.example.com'
+                                               }
+                                              ).and_return(
             { 'id' => 333 }
-          )
+                                              )
 
-        http_client.should_receive(:post).with('/runs', anything).and_return( { 'id' => 1 } )
+        http_client.should_receive(:post).with('/runs', anything).and_return({ 'id' => 1 })
 
         # This is a hack because when expecting a function to be called with
         # parameters, the last call is compared but I want to compare the first
@@ -144,8 +147,8 @@ describe RainforestCli do
 
         http_client.should_receive(:post).with(
           '/runs',
-          { :tests=>[], :site_id=>3, :environment_id=>333 }
-        ).and_return( {} )
+          { tests: [], site_id: 3, environment_id: 333 }
+        ).and_return({})
         described_class.start(params)
       end
     end
@@ -158,8 +161,8 @@ describe RainforestCli do
 
         http_client.should_receive(:post).with(
           '/runs',
-          { :tests=>[], :environment_id=>123 }
-        ).and_return( {} )
+          { tests: [], environment_id: 123 }
+        ).and_return({})
         described_class.start(params)
       end
     end
@@ -170,8 +173,8 @@ describe RainforestCli do
       it 'starts the run with smart folder' do
         http_client.should_receive(:post).with(
           '/runs',
-          { :smart_folder_id=>123 }
-        ).and_return( {} )
+          { smart_folder_id: 123 }
+        ).and_return({})
         described_class.start(params)
       end
     end

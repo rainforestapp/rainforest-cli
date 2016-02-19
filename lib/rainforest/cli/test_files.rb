@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 class RainforestCli::TestFiles
-  DEFAULT_TEST_FOLDER = './spec/rainforest'.freeze
-  EXT = '.rfml'.freeze
+  DEFAULT_TEST_FOLDER = './spec/rainforest'
+  EXT = '.rfml'
 
   attr_reader :test_folder, :test_paths, :test_data
 

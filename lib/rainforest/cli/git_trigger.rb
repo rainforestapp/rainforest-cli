@@ -8,7 +8,7 @@ module RainforestCli
     end
 
     def self.extract_hashtags(commit_message)
-      commit_message.partition('@rainforest').last.scan(/#([\w_-]+)/).flatten.map {|s| s.gsub('#','') }
+      commit_message.partition('@rainforest').last.scan(/#([\w_-]+)/).flatten.map {|s| s.gsub('#', '') }
     end
 
     def self.last_commit_message

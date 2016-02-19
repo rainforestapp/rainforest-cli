@@ -10,7 +10,36 @@ module RainforestCli
 
     # Note, not all of these may be available to your account
     # also, we may remove this in the future.
-    VALID_BROWSERS = %w{android_phone_landscape android_phone_portrait android_tablet_landscape android_tablet_portrait chrome chrome_1440_900 chrome_adblock chrome_ghostery chrome_guru chrome_ublock firefox firefox_1440_900 ie10 ie10_1440_900 ie11 ie11_1440_900 ie8 ie8_1440_900 ie9 ie9_1440_900 ios_iphone4s office2010 office2013 osx_chrome osx_firefox safari ubuntu_chrome ubuntu_firefox}.freeze
+    VALID_BROWSERS = %w{
+      android_phone_landscape
+      android_phone_portrait
+      android_tablet_landscape
+      android_tablet_portrait
+      chrome
+      chrome_1440_900
+      chrome_adblock
+      chrome_ghostery
+      chrome_guru
+      chrome_ublock
+      firefox
+      firefox_1440_900
+      ie10
+      ie10_1440_900
+      ie11
+      ie11_1440_900
+      ie8
+      ie8_1440_900
+      ie9
+      ie9_1440_900
+      ios_iphone4s
+      office2010
+      office2013
+      osx_chrome
+      osx_firefox
+      safari
+      ubuntu_chrome
+      ubuntu_firefox
+    }.freeze
     TOKEN_NOT_REQUIRED = %w{new validate}.freeze
 
     def initialize(args)
@@ -19,6 +48,8 @@ module RainforestCli
       @browsers = nil
       @debug = false
 
+      # NOTE: Disabling line length cop to allow for consistency of syntax
+      # rubocop:disable Metrics/LineLength
       @parsed = ::OptionParser.new do |opts|
         opts.on('--debug') do
           @debug = true
@@ -65,7 +96,7 @@ module RainforestCli
         end
 
         opts.on('--browsers LIST', 'Run against the specified browsers') do |value|
-          @browsers = value.split(',').map{|x| x.strip.downcase }.uniq
+          @browsers = value.split(',').map {|x| x.strip.downcase }.uniq
         end
 
         opts.on('--conflict MODE', String, 'How should Rainforest handle existing in progress runs?') do |value|
@@ -94,6 +125,8 @@ module RainforestCli
         end
 
       end.parse!(@args)
+      # rubocop:enable Metrics/LineLength
+      # NOTE: end Rubocop exception
 
       @command = @args.shift
 

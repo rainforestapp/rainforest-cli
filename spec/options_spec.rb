@@ -58,13 +58,13 @@ describe RainforestCli::OptionParser do
     end
 
     context 'it parses the api token' do
-      let(:args) { ['run', '--token', 'abc',  'all'] }
+      let(:args) { ['run', '--token', 'abc', 'all'] }
       its(:token) { should == 'abc'}
     end
 
     context 'it parses the conflict flag' do
       context 'when abort' do
-        let(:args) { ['run', '--conflict', 'abort',  'all'] }
+        let(:args) { ['run', '--conflict', 'abort', 'all'] }
         its(:conflict) { should == 'abort'}
       end
 
@@ -149,7 +149,7 @@ describe RainforestCli::OptionParser do
       let(:args) { %w{run --browsers lulbrowser --token foo} }
 
       it 'raises an exception' do
-        expect{ subject.validate! }.to raise_error(RainforestCli::OptionParser::BrowserException)
+        expect { subject.validate! }.to raise_error(RainforestCli::OptionParser::BrowserException)
       end
     end
   end

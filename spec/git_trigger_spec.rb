@@ -38,7 +38,8 @@ describe RainforestCli::GitTrigger do
       expect(described_class.extract_hashtags('@rainforest #hello, #world')).to eq ['hello', 'world']
       expect(described_class.extract_hashtags('#notForRainforest @rainforest #hello, #world')).to eq ['hello', 'world']
       expect(described_class.extract_hashtags('@rainforest #hello,#world')).to eq ['hello', 'world']
-      expect(described_class.extract_hashtags('@rainforest #dashes-work, #underscores_work #007')).to eq ['dashes-work', 'underscores_work', '007']
+      expect(described_class.extract_hashtags('@rainforest #dashes-work, #underscores_work #007'))
+        .to eq ['dashes-work', 'underscores_work', '007']
     end
   end
 

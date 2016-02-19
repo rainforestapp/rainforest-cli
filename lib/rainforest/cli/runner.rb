@@ -42,7 +42,8 @@ module RainforestCli
         if response
           state_details = response.fetch('state_details')
           unless state_details.fetch('is_final_state')
-            logger.info "Run #{run_id} is #{response['state']} and is #{response['current_progress']['percent']}% complete"
+            state, current_progress = response.values_at('state', 'current_progress')
+            logger.info "Run #{run_id} is #{state} and is #{current_progress['percent']}% complete"
             running = false if response['result'] == 'failed' && options.failfast?
           else
             logger.info "Run #{run_id} is now #{response["state"]} and has #{response["result"]}"

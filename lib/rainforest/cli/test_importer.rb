@@ -6,7 +6,7 @@ require 'ruby-progressbar'
 
 class RainforestCli::TestImporter
   attr_reader :options, :client, :test_files
-  THREADS = 32.freeze
+  THREADS = 32
 
   SAMPLE_FILE = <<EOF
 #! %s (Test ID - only edit if this test has not yet been uploaded)
@@ -93,7 +93,15 @@ EOF
 
     unless has_id
       browsers = test.browsers.map {|b| b[:name] if b[:state] == 'enabled' }.compact
-      out = ["#! #{SecureRandom.uuid}", "# title: #{test.title}", "# start_uri: #{test.start_uri}", "# tags: #{test.tags.join(", ")}", "# browsers: #{browsers.join(", ")}", '#', ' '] + out
+      out = [
+        "#! #{SecureRandom.uuid}",
+        "# title: #{test.title}",
+        "# start_uri: #{test.start_uri}",
+        "# tags: #{test.tags.join(", ")}",
+        "# browsers: #{browsers.join(", ")}",
+        '#',
+        ' ',
+      ] + out
     end
 
     out.compact.join("\n")
@@ -169,7 +177,7 @@ EOF
     end
 
     if @options.debug
-      tests.each do |file_name,test|
+      tests.each do |file_name, test|
         logger.debug test.inspect
         logger.debug "#{file_name}"
         logger.debug test.description
@@ -216,7 +224,11 @@ EOF
 
   def upload_group_in_parallel(rfml_tests, progress_bar = nil)
     progress_bar ||= ProgressBar.create(title: 'Rows', total: rfml_tests.count, format: '%a %B %p%% %t')
-    Parallel.each(rfml_tests, in_threads: THREADS, finish: lambda { |_item, _i, _result| progress_bar.increment }) do |rfml_test|
+    Parallel.each(
+      rfml_tests,
+      in_threads: THREADS,
+      finish: lambda { |_item, _i, _result| progress_bar.increment }
+    ) do |rfml_test|
       upload_test(rfml_test)
     end
   end

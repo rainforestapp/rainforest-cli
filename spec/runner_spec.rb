@@ -17,7 +17,7 @@ describe RainforestCli::Runner do
 
     context 'on API error' do
       before do
-        allow(subject.client).to receive(:post).and_return( {'error'=>'Some API error'} )
+        allow(subject.client).to receive(:post).and_return({'error'=>'Some API error'})
       end
 
       it 'errors out and exits' do

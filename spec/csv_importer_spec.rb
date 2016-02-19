@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 describe RainforestCli::CSVImporter do
   let(:csv_file) { "#{File.dirname(__FILE__)}/fixtures/variables.txt" }
 

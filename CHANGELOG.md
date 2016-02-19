@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 1.2.1 - 19th February 2016
+- Fixed a bug that occurred when specifying a nested test folder without creating parent folders first
+
 ## 1.2.0 - 8th February 2016
 - Add support for embedded tests.
 - Add support for customizable RFML ids.

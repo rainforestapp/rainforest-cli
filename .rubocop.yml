@@ -1,2 +1,6 @@
 inherit_gem:
   rf-stylez: ruby/rubocop.yml
+
+AllCops:
+  Exclude:
+    - rainforest-cli.gemspec

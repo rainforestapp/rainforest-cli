@@ -14,7 +14,6 @@ describe RainforestCli::CSVImporter do
       allow(progressbar_mock).to receive(:increment)
     end
 
-    let(:http_client) { double }
     let(:columns) { %w(email pass) }
 
     let(:success_response) do
@@ -24,12 +23,8 @@ describe RainforestCli::CSVImporter do
       }
     end
 
-    before do
-      RainforestCli::HttpClient.stub(:new).and_return(http_client)
-    end
-
     it 'should post the schema to the generators API' do
-      expect(http_client).to receive(:post)
+      expect_any_instance_of(RainforestCli::HttpClient).to receive(:post)
                               .with('/generators', {
                                       name: 'variables',
                                       description: 'variables',
@@ -37,7 +32,7 @@ describe RainforestCli::CSVImporter do
                                     })
                               .and_return success_response
 
-      expect(http_client).to receive(:post)
+      expect_any_instance_of(RainforestCli::HttpClient).to receive(:post)
                               .with('/generators/12345/rows', {
                                       data: {
                                         0 => 'russ@rainforestqa.com',
@@ -45,7 +40,7 @@ describe RainforestCli::CSVImporter do
                                       }
                                     }).and_return({})
 
-      expect(http_client).to receive(:post)
+      expect_any_instance_of(RainforestCli::HttpClient).to receive(:post)
                               .with('/generators/12345/rows', {
                                       data: {
                                         0 => 'bob@example.com',

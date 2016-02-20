@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 describe RainforestCli do
-  let(:http_client) { RainforestCli::HttpClient.any_instance }
+  let(:http_client) { RainforestCli::HttpClient }
 
   before do
     allow(Kernel).to receive(:sleep)
@@ -101,7 +101,7 @@ describe RainforestCli do
         let(:commit_message) { 'a test commit message @rainforest #run-me' }
 
         it 'starts the run with the specified tags' do
-          expect_any_instance_of(RainforestCli::HttpClient).to receive(:post)
+          expect_any_instance_of(http_client).to receive(:post)
             .with('/runs', tags: ['run-me']).and_return({})
 
           start_with_params(params, 0)
@@ -112,11 +112,11 @@ describe RainforestCli do
     context 'with site-id and custom-url' do
       let(:params) { %w(run --token x --site 3 --custom-url http://ad-hoc.example.com) }
       it 'creates a new environment' do
-        expect_any_instance_of(RainforestCli::HttpClient).to receive(:post)
+        expect_any_instance_of(http_client).to receive(:post)
           .with('/environments', name: 'temporary-env-for-custom-url-via-CLI', url: 'http://ad-hoc.example.com')
           .and_return({ 'id' => 333 })
 
-        expect_any_instance_of(RainforestCli::HttpClient).to receive(:post).with('/runs', anything)
+        expect_any_instance_of(http_client).to receive(:post).with('/runs', anything)
           .and_return({ 'id' => 1 })
 
         # This is a hack because when expecting a function to be called with
@@ -136,9 +136,9 @@ describe RainforestCli do
       end
 
       it 'starts the run with site_id and environment_id' do
-        RainforestCli::Runner.any_instance.stub(get_environment_id: 333)
+        allow_any_instance_of(RainforestCli::Runner).to receive(:get_environment_id).and_return(333)
 
-        expect_any_instance_of(RainforestCli::HttpClient).to receive(:post).with(
+        expect_any_instance_of(http_client).to receive(:post).with(
           '/runs',
           { tests: [], site_id: 3, environment_id: 333 }
         ).and_return({})
@@ -153,7 +153,7 @@ describe RainforestCli do
         allow_any_instance_of(RainforestCli::Runner).to receive(:get_environment_id)
           .and_return(333)
 
-        expect_any_instance_of(RainforestCli::HttpClient).to receive(:post).with(
+        expect_any_instance_of(http_client).to receive(:post).with(
           '/runs',
           { tests: [], environment_id: 123 }
         ).and_return({})
@@ -165,7 +165,7 @@ describe RainforestCli do
       let(:params) { %w(run --token x --folder 123) }
 
       it 'starts the run with smart folder' do
-        expect_any_instance_of(RainforestCli::HttpClient).to receive(:post).with(
+        expect_any_instance_of(http_client).to receive(:post).with(
           '/runs',
           { smart_folder_id: 123 }
         ).and_return({})
@@ -175,11 +175,9 @@ describe RainforestCli do
 
     context 'a simple run' do
       before do
-        http_client.stub(:post) { {'id' => 1} }
-        3.times do
-          http_client.should_receive(:get) { ok_progress }
-        end
-        http_client.should_receive(:get) { complete_response }
+        allow_any_instance_of(http_client).to receive(:post).and_return('id' => 1)
+        expect_any_instance_of(http_client).to receive(:get).exactly(3).times.and_return(ok_progress)
+        expect_any_instance_of(http_client).to receive(:get).and_return(complete_response)
       end
 
       it 'should return true' do
@@ -189,18 +187,11 @@ describe RainforestCli do
 
     context 'a run where the server 500s after a while' do
       before do
-        http_client.stub(:post) { {'id' => 1} }
-        2.times do
-          http_client.should_receive(:get) { ok_progress }
-        end
-
-        http_client.should_receive(:get) { nil }
-
-        2.times do
-          http_client.should_receive(:get) { ok_progress }
-        end
-
-        http_client.should_receive(:get) { complete_response }
+        allow_any_instance_of(http_client).to receive(:post).and_return('id' => 1)
+        expect_any_instance_of(http_client).to receive(:get).twice.and_return(ok_progress)
+        expect_any_instance_of(http_client).to receive(:get)
+        expect_any_instance_of(http_client).to receive(:get).twice.and_return(ok_progress)
+        expect_any_instance_of(http_client).to receive(:get).and_return(complete_response)
       end
 
       it 'should return true' do

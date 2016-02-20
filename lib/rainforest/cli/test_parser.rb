@@ -20,15 +20,15 @@ module RainforestCli::TestParser
     end
   end
 
-  class Error < Struct.new(:line, :reason)
-    def to_s
-      "Line #{line}: #{reason}"
-    end
-  end
-
   class Test < Struct.new(:rfml_id, :description, :title, :start_uri, :steps, :errors, :tags, :browsers)
     def embedded_ids
       steps.inject([]) { |embeds, step| step.type == :test ? embeds + [step.rfml_id] : embeds }
+    end
+  end
+
+  class Error < Struct.new(:line, :reason)
+    def to_s
+      "Line #{line}: #{reason}"
     end
   end
 
@@ -52,7 +52,8 @@ module RainforestCli::TestParser
     def process
       scratch = []
 
-      text.lines.map(&:chomp).each_with_index do |line, line_no|
+      text.lines.each_with_index do |line, line_no|
+        line = line.chomp
         if line[0..1] == '#!'
           # special comment, don't ignore!
           @test.rfml_id = line[2..-1].strip.split(' ')[0]

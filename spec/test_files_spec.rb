@@ -8,11 +8,11 @@ describe RainforestCli::TestFiles do
         # removed at the end. Do not delete any folders actually in the project!
         expect(test_folder).to eq('./spec/rainforest')
 
-        expect(Dir.exist?(test_folder)).to be_false
+        expect(Dir.exist?(test_folder)).to eq(false)
         described_class.new
-        expect(Dir.exist?(test_folder)).to be_true
+        expect(Dir.exist?(test_folder)).to eq(true)
         FileUtils.remove_dir('./spec/rainforest')
-        expect(Dir.exist?(test_folder)).to be_false
+        expect(Dir.exist?(test_folder)).to eq(false)
       end
     end
 
@@ -20,11 +20,11 @@ describe RainforestCli::TestFiles do
       let(:test_folder) { './foo' }
 
       it 'creates the expected folder' do
-        expect(Dir.exist?(test_folder)).to be_false
+        expect(Dir.exist?(test_folder)).to eq(false)
         described_class.new(test_folder)
-        expect(Dir.exist?(test_folder)).to be_true
+        expect(Dir.exist?(test_folder)).to eq(true)
         FileUtils.remove_dir(test_folder)
-        expect(Dir.exist?(test_folder)).to be_false
+        expect(Dir.exist?(test_folder)).to eq(false)
       end
     end
 
@@ -32,11 +32,11 @@ describe RainforestCli::TestFiles do
       let(:test_folder) { './foo/bar/baz' }
 
       it 'creates all folders' do
-        expect(Dir.exist?(test_folder)).to be_false
+        expect(Dir.exist?(test_folder)).to eq(false)
         described_class.new(test_folder)
-        expect(Dir.exist?(test_folder)).to be_true
+        expect(Dir.exist?(test_folder)).to eq(true)
         FileUtils.remove_dir('./foo')
-        expect(Dir.exist?(test_folder)).to be_false
+        expect(Dir.exist?(test_folder)).to eq(false)
       end
     end
   end

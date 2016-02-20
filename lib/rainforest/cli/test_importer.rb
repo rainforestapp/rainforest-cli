@@ -120,27 +120,7 @@ EOF
   end
 
   def upload
-    # Prioritize embedded tests before other tests
-    upload_groups = []
-    unordered_tests = []
-    queued_tests = test_files.test_data.dup
-
-    until queued_tests.empty?
-      new_ordered_group = []
-      ordered_ids = upload_groups.flatten.map(&:rfml_id)
-
-      queued_tests.each do |rfml_test|
-        if (rfml_test.embedded_ids - ordered_ids).empty?
-          new_ordered_group << rfml_test
-        else
-          unordered_tests << rfml_test
-        end
-      end
-
-      upload_groups << new_ordered_group
-      queued_tests = unordered_tests
-      unordered_tests = []
-    end
+    upload_groups = make_test_priority_groups
 
     logger.info 'Uploading tests...'
 
@@ -311,5 +291,43 @@ EOF
     end
 
     test_obj
+  end
+
+  def make_test_priority_groups
+    # Prioritize embedded tests before other tests
+    upload_groups = []
+    unordered_tests = []
+    queued_tests = test_files.test_data.dup
+
+    until queued_tests.empty?
+      new_ordered_group = []
+      ordered_ids = upload_groups.flatten.map(&:rfml_id)
+
+      queued_tests.each do |rfml_test|
+        if (rfml_test.embedded_ids - ordered_ids).empty?
+          new_ordered_group << rfml_test
+        else
+          unordered_tests << rfml_test
+        end
+      end
+
+      # If all the queued tests make it to the unordered tests group, then
+      # they contain non-existent RFML ids.
+      if queued_tests.length == unordered_tests.length
+        raise TestNotFound.new(queued_tests.map(&:title))
+      end
+
+      upload_groups << new_ordered_group
+      queued_tests = unordered_tests
+      unordered_tests = []
+    end
+
+    upload_groups
+  end
+
+  class TestNotFound < RuntimeError
+    def initialize(test_titles)
+      super("Cannot find embedded tests for the following tests: #{test_titles.join(', ')}")
+    end
   end
 end

@@ -16,6 +16,7 @@ test/tmp
 test/version_tmp
 tmp
 tags
+.byebug_history
 
 *.csv
 spec/rainforest

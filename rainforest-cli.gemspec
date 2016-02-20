@@ -7,8 +7,8 @@ require 'rainforest/cli/version'
 Gem::Specification.new do |spec|
   spec.name          = 'rainforest-cli'
   spec.version       = RainforestCli::VERSION
-  spec.authors       = ['Simon Mathieu', 'Russell Smith', 'Edward Paulet']
-  spec.email         = ['simon@rainforestqa.com', 'russ@rainforestqa.com', 'edward@rainforestqa.com']
+  spec.authors       = ['Russell Smith', 'Edward Paulet']
+  spec.email         = ['russ@rainforestqa.com', 'edward@rainforestqa.com']
   spec.description   = %q{Command line utility for Rainforest QA}
   spec.summary       = %q{Command line utility for Rainforest QA}
   spec.homepage      = 'https://www.rainforestqa.com/'

@@ -17,7 +17,7 @@ describe RainforestCli::TestImporter do
         end
       end
 
-      it 'does not raise the error for tests embedding bad bad tests' do
+      it 'does not raise the error for tests embedding the offending tests' do
         expect { subject.upload }.to raise_error do |error|
           expect(error).to be_a(described_class::TestNotFound)
           expect(error.message).to_not include('correct_test.rfml')

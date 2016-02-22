@@ -21,10 +21,10 @@ describe RainforestCli::TestImporter do
 
       it 'prioritizes the embedded tests before the parent tests' do
         expect_any_instance_of(described_class).to receive(:upload_groups_sequentially) do |_, test_groups|
-          first_test = test_groups.dig(0, 0)
+          first_test = test_groups[0][0]
           expect(first_test.rfml_id).to eq(embedded_id)
 
-          second_test = test_groups.dig(1, 0)
+          second_test = test_groups[1][0]
           expect(second_test.rfml_id).to eq(parent_id)
         end
 

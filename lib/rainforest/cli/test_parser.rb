@@ -20,7 +20,7 @@ module RainforestCli::TestParser
     end
   end
 
-  class Test < Struct.new(:rfml_id, :description, :title, :start_uri, :steps, :errors, :tags, :browsers)
+  class Test < Struct.new(:file_name, :rfml_id, :description, :title, :start_uri, :steps, :errors, :tags, :browsers)
     def embedded_ids
       steps.inject([]) { |embeds, step| step.type == :test ? embeds + [step.rfml_id] : embeds }
     end
@@ -33,12 +33,13 @@ module RainforestCli::TestParser
   end
 
   class Parser
-    attr_reader :steps, :errors, :text
+    attr_reader :steps, :errors, :text, :file_name
 
-    def initialize(text)
-      @text = text.to_s
+    def initialize(file_name)
+      @text = File.read(file_name).to_s
 
       @test = Test.new
+      @test.file_name = file_name
       @test.description = ''
       @test.steps = []
       @test.errors = {}

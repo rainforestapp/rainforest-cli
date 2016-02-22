@@ -9,8 +9,19 @@ describe RainforestCli::TestImporter do
     context 'with a incorrect embedded RFML ID' do
       let(:test_directory) { File.join(File.dirname(__FILE__), 'embedded-examples/missing_embeds') }
 
-      it 'raises a TestNotFound error' do
-        expect { subject.upload }.to raise_error(described_class::TestNotFound)
+      it 'raises a TestNotFound error for tests embedding a missing test' do
+        expect { subject.upload }.to raise_error do |error|
+          expect(error).to be_a(described_class::TestNotFound)
+          expect(error.message).to include('parent_test.rfml')
+          expect(error.message).to include('other_parent_test.rfml')
+        end
+      end
+
+      it 'does not raise the error for tests embedding bad bad tests' do
+        expect { subject.upload }.to raise_error do |error|
+          expect(error).to be_a(described_class::TestNotFound)
+          expect(error.message).to_not include('correct_test.rfml')
+        end
       end
     end
 

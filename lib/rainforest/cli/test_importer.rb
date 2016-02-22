@@ -137,7 +137,7 @@ EOF
     has_errors = []
 
     Dir.glob(test_files.test_paths).each do |file_name|
-      out = RainforestCli::TestParser::Parser.new(File.read(file_name)).process
+      out = RainforestCli::TestParser::Parser.new(file_name).process
 
       tests[file_name] = out
       has_errors << file_name if out.errors != {}
@@ -314,7 +314,8 @@ EOF
       # If all the queued tests make it to the unordered tests group, then
       # they contain non-existent RFML ids.
       if queued_tests.length == unordered_tests.length
-        raise TestNotFound.new(queued_tests.map(&:title))
+        misconfigured_tests = filter_misconfigured_tests(queued_tests)
+        raise TestNotFound.new(misconfigured_tests.map(&:file_name))
       end
 
       upload_groups << new_ordered_group
@@ -325,9 +326,15 @@ EOF
     upload_groups
   end
 
+  # Filter out tests that depend on the actual misconfigured tests
+  def filter_misconfigured_tests(unfiltered_tests)
+    all_ids = unfiltered_tests.map(&:rfml_id)
+    unfiltered_tests.reject { |test| (test.embedded_ids - all_ids).empty? }
+  end
+
   class TestNotFound < RuntimeError
-    def initialize(test_titles)
-      super("Cannot find embedded tests for the following tests: #{test_titles.join(', ')}")
+    def initialize(file_names)
+      super("The following tests contain embedded tests not found in test directory:\n\t#{file_names.join("\n\t")}\n\n")
     end
   end
 end

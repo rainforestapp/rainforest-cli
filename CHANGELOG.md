@@ -1,9 +1,7 @@
 # Rainforest CLI Changelog
 
-## 1.2.2 - WIP
-- Fixed a bug where uploading was stuck in an infinite loop if an embedded id did not exist (7b02b2f66dbd47098a7c1d5f79bc60a0cbe8984f, @epaulet)
-
 ## 1.2.1 - 19th February 2016
+- Fixed a bug where uploading was stuck in an infinite loop if an embedded id did not exist (7b02b2f66dbd47098a7c1d5f79bc60a0cbe8984f, @epaulet)
 - Fixed a bug that occurred when specifying a nested test folder without creating parent folders first (6c1b0e02c858f9d9c264e771f964b3e1a4ea8c7e, @epaulet)
 
 ## 1.2.0 - 8th February 2016

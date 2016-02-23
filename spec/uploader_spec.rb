@@ -11,7 +11,7 @@ describe RainforestCli::Uploader do
 
       it 'raises a TestNotFound error for tests embedding a missing test' do
         expect { subject.upload }.to raise_error do |error|
-          expect(error).to be_a(described_class::TestNotFound)
+          expect(error).to be_a(described_class::TestsNotFound)
           expect(error.message).to include('parent_test.rfml')
           expect(error.message).to include('other_parent_test.rfml')
         end
@@ -19,7 +19,7 @@ describe RainforestCli::Uploader do
 
       it 'does not raise the error for tests embedding the offending tests' do
         expect { subject.upload }.to raise_error do |error|
-          expect(error).to be_a(described_class::TestNotFound)
+          expect(error).to be_a(described_class::TestsNotFound)
           expect(error.message).to_not include('correct_test.rfml')
         end
       end

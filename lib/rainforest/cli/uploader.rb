@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class RainforestCli::Uploader
   attr_reader :test_files
 
@@ -6,20 +7,67 @@ class RainforestCli::Uploader
     @test_files = RainforestCli::TestFiles.new(options.test_folder)
   end
 
+  def rfml_tests
+    @rfml_tests ||= @test_files.test_data
+  end
+
+  def all_rfml_ids
+    @rfml_ids ||= @test_files.rfml_ids
+  end
+
+  # NOTE: Embedded tests must be successfully uploaded before parent tests.
   def upload
-    upload_groups = make_test_priority_groups
+    validate_embedded_tests!
+
+    # Prioritize tests so that no parent tests are not uploaded before their
+    # children exist.
+    upload_groups = make_upload_groups
 
     RainforestCli.logger.info 'Uploading tests...'
 
-    # Upload in parallel if order doesn't matter
-    if upload_groups.count > 1
-      upload_groups_sequentially(upload_groups)
-    else
+    # Upload tests in parallel if there is only one upload group (no priority).
+    if upload_groups.count == 1
       upload_group_in_parallel(upload_groups.first)
+    else
+      upload_groups_sequentially(upload_groups)
     end
   end
 
   private
+
+  def validate_embedded_tests!
+    contains_nonexistent_ids = rfml_tests.select { |t| (t.embedded_ids - all_rfml_ids).any? }
+
+    if contains_nonexistent_ids.any?
+      raise TestsNotFound.new(contains_nonexistent_ids.map(&:file_name))
+    end
+  end
+
+  # Prioritize embedded tests before other tests
+  def make_upload_groups
+    upload_groups = []
+    ungroupable_tests = []
+    remaining_tests = rfml_tests.dup
+
+    until remaining_tests.empty?
+      current_upload_group = []
+      grouped_ids = upload_groups.flatten.map(&:rfml_id)
+
+      remaining_tests.each do |rfml_test|
+        if (rfml_test.embedded_ids - grouped_ids).empty?
+          current_upload_group << rfml_test
+        else
+          ungroupable_tests << rfml_test
+        end
+      end
+
+      upload_groups << current_upload_group
+      remaining_tests = ungroupable_tests
+      ungroupable_tests = []
+    end
+
+    upload_groups
+  end
 
   def upload_groups_sequentially(upload_groups)
     progress_bar = ProgressBar.create(title: 'Rows', total: test_files.count, format: '%a %B %p%% %t')
@@ -51,7 +99,7 @@ class RainforestCli::Uploader
     # Upload the test
     begin
       if rfml_id_mappings[rfml_test.rfml_id]
-        t = Rainforest::Test.update(rfml_id_mappings[rfml_test.rfml_id], test_obj)
+        Rainforest::Test.update(rfml_id_mappings[rfml_test.rfml_id], test_obj)
       else
         t = Rainforest::Test.create(test_obj)
         rfml_id_mappings[rfml_test.rfml_id] = t.id
@@ -60,45 +108,6 @@ class RainforestCli::Uploader
       logger.fatal "Error: #{rfml_test.rfml_id}: #{e}"
       exit 2
     end
-  end
-
-  def make_test_priority_groups
-    # Prioritize embedded tests before other tests
-    upload_groups = []
-    unordered_tests = []
-    queued_tests = test_files.test_data.dup
-
-    until queued_tests.empty?
-      new_ordered_group = []
-      ordered_ids = upload_groups.flatten.map(&:rfml_id)
-
-      queued_tests.each do |rfml_test|
-        if (rfml_test.embedded_ids - ordered_ids).empty?
-          new_ordered_group << rfml_test
-        else
-          unordered_tests << rfml_test
-        end
-      end
-
-      # If all the queued tests make it to the unordered tests group, then
-      # they contain non-existent RFML ids.
-      if queued_tests.length == unordered_tests.length
-        misconfigured_tests = filter_misconfigured_tests(queued_tests)
-        raise TestNotFound.new(misconfigured_tests.map(&:file_name))
-      end
-
-      upload_groups << new_ordered_group
-      queued_tests = unordered_tests
-      unordered_tests = []
-    end
-
-    upload_groups
-  end
-
-  # Filter out tests that depend on the actual misconfigured tests
-  def filter_misconfigured_tests(unfiltered_tests)
-    all_ids = unfiltered_tests.map(&:rfml_id)
-    unfiltered_tests.reject { |test| (test.embedded_ids - all_ids).empty? }
   end
 
   def rfml_id_mappings
@@ -115,7 +124,7 @@ class RainforestCli::Uploader
     @id_mappings
   end
 
-  class TestNotFound < RuntimeError
+  class TestsNotFound < RuntimeError
     def initialize(file_names)
       super("The following tests contain embedded tests not found in test directory:\n\t#{file_names.join("\n\t")}\n\n")
     end

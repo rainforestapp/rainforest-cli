@@ -8,7 +8,7 @@ class RainforestCli::TestFiles
   def initialize(test_folder = nil)
     test_folder ||= DEFAULT_TEST_FOLDER
     # remove trailing slash
-    @test_folder = test_folder.gsub(/#{File::SEPARATOR}$/, '')
+    @test_folder = File.expand_path(test_folder)
 
     FileUtils.mkdir_p(@test_folder) unless Dir.exist?(@test_folder)
 

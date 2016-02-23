@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-describe RainforestCli::TestImporter do
+describe RainforestCli::Uploader do
   let(:rfml_id_regex) { /^#! (.+?)($| .+?$)/ }
 
   describe '#upload' do

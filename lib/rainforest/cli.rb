@@ -8,6 +8,7 @@ require 'rainforest/cli/csv_importer'
 require 'rainforest/cli/test_parser'
 require 'rainforest/cli/test_files'
 require 'rainforest/cli/test_importer'
+require 'rainforest/cli/uploader'
 require 'erb'
 require 'httparty'
 require 'json'
@@ -36,7 +37,7 @@ module RainforestCli
       t = TestImporter.new(options)
       t.validate
     when 'upload'
-      t = TestImporter.new(options)
+      t = Uploader.new(options)
       t.upload
     when 'export'
       t = TestImporter.new(options)

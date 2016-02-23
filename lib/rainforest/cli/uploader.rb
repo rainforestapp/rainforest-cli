@@ -57,14 +57,15 @@ class RainforestCli::Uploader
     unprioritizable = []
 
     rfml_tests.each do |rfml_test|
-      if (rfml_test.embedded_ids - prioritized_ids).empty?
-        prioritizable << rfml_test
-      else
-        unprioritizable << rfml_test
-      end
+      group = priotizable?(rfml_test, prioritized_ids) ? prioritizable : unprioritizable
+      group << rfml_test
     end
 
     [prioritizable, unprioritizable]
+  end
+
+  def prioritizable?(rfml_test, prioritized_ids)
+    (rfml_test.embedded_ids - prioritized_ids).empty?
   end
 
   def upload_groups_sequentially(upload_groups)

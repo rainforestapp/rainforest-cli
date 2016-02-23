@@ -13,15 +13,15 @@ class RainforestCli::Uploader
 
     # Prioritize tests so that no parent tests are not uploaded before their
     # children exist.
-    upload_groups = make_upload_groups
+    priority_groups = prioritize_tests
 
     RainforestCli.logger.info 'Uploading tests...'
 
     # Upload tests in parallel if there is only one upload group (no priority).
-    if upload_groups.count == 1
-      upload_group_in_parallel(upload_groups.first)
+    if priority_groups.count == 1
+      upload_group_in_parallel(priority_groups.first)
     else
-      upload_groups_sequentially(upload_groups)
+      upload_groups_sequentially(priority_groups)
     end
   end
 
@@ -36,29 +36,35 @@ class RainforestCli::Uploader
   end
 
   # Prioritize embedded tests before other tests
-  def make_upload_groups
-    upload_groups = []
-    ungroupable_tests = []
+  def prioritize_tests
+    priority_groups = []
     remaining_tests = rfml_tests.dup
 
     until remaining_tests.empty?
-      current_upload_group = []
-      grouped_ids = upload_groups.flatten.map(&:rfml_id)
+      prioritized_ids = priority_groups.flatten.map(&:rfml_id)
+      priority_group, remaining_tests = make_priority_group(remaining_tests, prioritized_ids)
 
-      remaining_tests.each do |rfml_test|
-        if (rfml_test.embedded_ids - grouped_ids).empty?
-          current_upload_group << rfml_test
-        else
-          ungroupable_tests << rfml_test
-        end
-      end
-
-      upload_groups << current_upload_group
-      remaining_tests = ungroupable_tests
-      ungroupable_tests = []
+      priority_groups << priority_group
     end
 
-    upload_groups
+    priority_groups
+  end
+
+  def make_priority_group(rfml_tests, prioritized_ids)
+    # priotizable == tests whose embedded tests have already been prioritized, if any
+    prioritizable = []
+    # unprioritizable == tests whose embedded tests have not been prioritized yet
+    unprioritizable = []
+
+    rfml_tests.each do |rfml_test|
+      if (rfml_test.embedded_ids - prioritized_ids).empty?
+        prioritizable << rfml_test
+      else
+        unprioritizable << rfml_test
+      end
+    end
+
+    [prioritizable, unprioritizable]
   end
 
   def upload_groups_sequentially(upload_groups)

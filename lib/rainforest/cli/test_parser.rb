@@ -8,6 +8,16 @@ module RainforestCli::TestParser
     def to_s
       "--> embed: #{rfml_id}"
     end
+
+    def to_element(primary_key_id)
+      {
+        type: 'test',
+        redirection: true,
+        element: {
+          id: primary_key_id
+        }
+      }
+    end
   end
 
   class Step < Struct.new(:action, :response)
@@ -17,6 +27,17 @@ module RainforestCli::TestParser
 
     def to_s
       "#{action} --> #{response}"
+    end
+
+    def to_element
+      {
+        type: 'step',
+        redirection: true,
+        element: {
+          action: action,
+          response: response
+        }
+      }
     end
   end
 
@@ -33,7 +54,7 @@ module RainforestCli::TestParser
   end
 
   class Parser
-    attr_reader :steps, :errors, :text, :file_name
+    attr_reader :steps, :errors, :text
 
     def initialize(file_name)
       @text = File.read(file_name).to_s

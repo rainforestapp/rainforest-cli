@@ -90,11 +90,11 @@ class RainforestCli::Uploader
     test_obj = create_test_obj(rfml_test)
     # Upload the test
     begin
-      if rfml_id_mappings[rfml_test.rfml_id]
-        Rainforest::Test.update(rfml_id_mappings[rfml_test.rfml_id], test_obj)
+      if primary_key_ids[rfml_test.rfml_id]
+        Rainforest::Test.update(primary_key_ids[rfml_test.rfml_id], test_obj)
       else
         t = Rainforest::Test.create(test_obj)
-        rfml_id_mappings[rfml_test.rfml_id] = t.id
+        primary_key_ids[rfml_test.rfml_id] = t.id
       end
     rescue => e
       logger.fatal "Error: #{rfml_test.rfml_id}: #{e}"
@@ -102,18 +102,18 @@ class RainforestCli::Uploader
     end
   end
 
-  def rfml_id_mappings
-    if @id_mappings.nil?
-      @id_mappings = {}.tap do |id_mappings|
+  def primary_key_ids
+    if @primary_key_ids.nil?
+      @primary_key_ids = {}.tap do |primary_key_ids|
         Rainforest::Test.all(page_size: 1000, rfml_ids: test_files.rfml_ids).each do |rf_test|
           rfml_id = rf_test.rfml_id
           next if rfml_id.nil?
 
-          id_mappings[rfml_id] = rf_test.id
+          primary_key_ids[rfml_id] = rf_test.id
         end
       end
     end
-    @id_mappings
+    @primary_key_ids
   end
 
   def create_test_obj(rfml_test)
@@ -122,29 +122,16 @@ class RainforestCli::Uploader
       title: rfml_test.title,
       description: rfml_test.description,
       tags: (['ro'] + rfml_test.tags).uniq,
-      rfml_id: rfml_test.rfml_id,
-      elements: rfml_test.steps.map do |step|
-        case step.type
-        when :step
-          {
-            type: 'step',
-            redirection: true,
-            element: {
-              action: step.action,
-              response: step.response
-            }
-          }
-        when :test
-          {
-            type: 'test',
-            redirection: true,
-            element: {
-              id: rfml_id_mappings[step.rfml_id]
-            }
-          }
-        end
-      end
+      rfml_id: rfml_test.rfml_id
     }
+
+    test_obj[:elements] = rfml_test.steps.map do |step|
+      if step.respond_to?(:rfml_id)
+        step.to_element(primary_key_ids[step.rfml_id])
+      else
+        step.to_element
+      end
+    end
 
     unless rfml_test.browsers.empty?
       test_obj[:browsers] = rfml_test.browsers.map do|b|

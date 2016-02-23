@@ -7,14 +7,6 @@ class RainforestCli::Uploader
     @test_files = RainforestCli::TestFiles.new(options.test_folder)
   end
 
-  def rfml_tests
-    @rfml_tests ||= @test_files.test_data
-  end
-
-  def all_rfml_ids
-    @rfml_ids ||= @test_files.rfml_ids
-  end
-
   # NOTE: Embedded tests must be successfully uploaded before parent tests.
   def upload
     validate_embedded_tests!
@@ -85,7 +77,7 @@ class RainforestCli::Uploader
     progress_bar ||= ProgressBar.create(title: 'Rows', total: rfml_tests.count, format: '%a %B %p%% %t')
     Parallel.each(
       rfml_tests,
-      in_threads: THREADS,
+      in_threads: threads,
       finish: lambda { |_item, _i, _result| progress_bar.increment }
     ) do |rfml_test|
       upload_test(rfml_test)
@@ -122,6 +114,57 @@ class RainforestCli::Uploader
       end
     end
     @id_mappings
+  end
+
+  def create_test_obj(rfml_test)
+    test_obj = {
+      start_uri: rfml_test.start_uri || '/',
+      title: rfml_test.title,
+      description: rfml_test.description,
+      tags: (['ro'] + rfml_test.tags).uniq,
+      rfml_id: rfml_test.rfml_id,
+      elements: rfml_test.steps.map do |step|
+        case step.type
+        when :step
+          {
+            type: 'step',
+            redirection: true,
+            element: {
+              action: step.action,
+              response: step.response
+            }
+          }
+        when :test
+          {
+            type: 'test',
+            redirection: true,
+            element: {
+              id: rfml_id_mappings[step.rfml_id]
+            }
+          }
+        end
+      end
+    }
+
+    unless rfml_test.browsers.empty?
+      test_obj[:browsers] = rfml_test.browsers.map do|b|
+        {'state' => 'enabled', 'name' => b}
+      end
+    end
+
+    test_obj
+  end
+
+  def rfml_tests
+    @rfml_tests ||= test_files.test_data
+  end
+
+  def all_rfml_ids
+    @rfml_ids ||= test_files.rfml_ids
+  end
+
+  def threads
+    RainforestCli::THREADS
   end
 
   class TestsNotFound < RuntimeError

@@ -6,7 +6,6 @@ require 'ruby-progressbar'
 
 class RainforestCli::TestImporter
   attr_reader :options, :client, :test_files
-  THREADS = 32
 
   SAMPLE_FILE = <<EOF
 #! %s (Test ID - only edit if this test has not yet been uploaded)
@@ -34,10 +33,14 @@ EOF
     RainforestCli.logger
   end
 
+  def threads
+    RainforestCli::THREADS
+  end
+
   def export
     tests = Rainforest::Test.all(page_size: 1000)
     p = ProgressBar.create(title: 'Rows', total: tests.count, format: '%a %B %p%% %t')
-    Parallel.each(tests, in_threads: THREADS, finish: lambda { |_item, _i, _result| p.increment }) do |test|
+    Parallel.each(tests, in_threads: threads, finish: lambda { |_item, _i, _result| p.increment }) do |test|
 
       # File name
       file_name = sprintf('%010d', test.id) + '_' + test.title.strip.gsub(/[^a-z0-9 ]+/i, '').gsub(/ +/, '_').downcase

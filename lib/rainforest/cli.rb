@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'rainforest/cli/version'
+require 'rainforest/cli/constants'
 require 'rainforest/cli/options'
 require 'rainforest/cli/runner'
 require 'rainforest/cli/http_client'

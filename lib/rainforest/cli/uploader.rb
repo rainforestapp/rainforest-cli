@@ -51,13 +51,13 @@ class RainforestCli::Uploader
   end
 
   def make_priority_group(rfml_tests, prioritized_ids)
-    # priotizable == tests whose embedded tests have already been prioritized, if any
+    # prioritizable == tests whose embedded tests have already been prioritized, if any
     prioritizable = []
     # unprioritizable == tests whose embedded tests have not been prioritized yet
     unprioritizable = []
 
     rfml_tests.each do |rfml_test|
-      group = priotizable?(rfml_test, prioritized_ids) ? prioritizable : unprioritizable
+      group = prioritizable?(rfml_test, prioritized_ids) ? prioritizable : unprioritizable
       group << rfml_test
     end
 

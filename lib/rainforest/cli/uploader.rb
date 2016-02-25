@@ -2,8 +2,11 @@
 require 'rainforest'
 require 'parallel'
 require 'ruby-progressbar'
+require 'rainforest/cli/notifications'
 
 class RainforestCli::Uploader
+  include RainforestCli::Notifications
+
   attr_reader :test_files
 
   def initialize(options)
@@ -12,6 +15,7 @@ class RainforestCli::Uploader
   end
 
   def upload
+    report_parsing_errors!
     validate_embedded_tests!
 
     # Create new tests first to ensure that they can be embedded
@@ -25,6 +29,12 @@ class RainforestCli::Uploader
     each_in_parallel(rfml_tests) { |rfml_test| upload_test(rfml_test) }
   end
 
+  def report_parsing_errors!
+    logger.info 'Detecting parsing errors...'
+    has_parsing_errors = rfml_tests.select { |t| t.errors.any? }
+    parsing_error_notification!(has_parsing_errors) if has_parsing_errors.any?
+  end
+
   def validate_embedded_tests!
     logger.info 'Validating embedded test IDs...'
     validate_embedded_test_existence!
@@ -33,10 +43,7 @@ class RainforestCli::Uploader
 
   def validate_embedded_test_existence!
     contains_nonexistent_ids = rfml_tests.select { |t| (t.embedded_ids - all_rfml_ids).any? }
-
-    if contains_nonexistent_ids.any?
-      raise TestsNotFound.new(contains_nonexistent_ids.map(&:file_name))
-    end
+    nonexisting_embedded_id_notification!(contains_nonexistent_ids) if contains_nonexistent_ids.any?
   end
 
   def validate_circular_dependencies!
@@ -51,7 +58,7 @@ class RainforestCli::Uploader
   def check_for_nested_embed(rfml_test, root_id, root_file)
     rfml_test.embedded_ids.each do |embed_id|
       descendant = rfml_id_to_test_map[embed_id]
-      raise CircularEmbeds.new(root_file) if descendant.embedded_ids.include?(root_id)
+      circular_dependencies_notification!(root_file, descendant.file_name) if descendant.embedded_ids.include?(root_id)
       check_for_nested_embed(descendant, root_id, root_file)
     end
   end
@@ -166,17 +173,5 @@ class RainforestCli::Uploader
     end
 
     test_obj
-  end
-
-  class TestsNotFound < RuntimeError
-    def initialize(file_names)
-      super("The following tests contain embedded tests not found in test directory:\n\t#{file_names.join("\n\t")}\n\n")
-    end
-  end
-
-  class CircularEmbeds < RuntimeError
-    def initialize(file_name)
-      super("The following file has a circular dependency in its embedded tests: #{file_name}\n\n")
-    end
   end
 end

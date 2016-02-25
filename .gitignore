@@ -20,3 +20,4 @@ tags
 
 *.csv
 spec/rainforest
+spec/rainforest-testing

@@ -1,4 +1,8 @@
 # frozen_string_literal: true
+require 'rainforest'
+require 'parallel'
+require 'ruby-progressbar'
+
 class RainforestCli::Uploader
   attr_reader :test_files
 
@@ -7,27 +11,27 @@ class RainforestCli::Uploader
     @test_files = RainforestCli::TestFiles.new(options.test_folder)
   end
 
-  # NOTE: Embedded tests must be successfully uploaded before parent tests.
   def upload
     validate_embedded_tests!
 
-    # Prioritize tests so that no parent tests are not uploaded before their
-    # children exist.
-    priority_groups = prioritize_tests
-
-    RainforestCli.logger.info 'Uploading tests...'
-
-    # Upload tests in parallel if there is only one upload group (no priority).
-    if priority_groups.count == 1
-      upload_group_in_parallel(priority_groups.first)
-    else
-      upload_groups_sequentially(priority_groups)
+    # Create new tests first to ensure that they can be embedded
+    if new_tests.any?
+      logger.info 'Syncing new tests...'
+      each_in_parallel(new_tests) { |rfml_test| create_test(rfml_test) }
     end
+
+    # Update all tests
+    logger.info 'Uploading tests...'
+    each_in_parallel(rfml_tests) { |rfml_test| upload_test(rfml_test) }
   end
 
-  private
-
   def validate_embedded_tests!
+    logger.info 'Validating embedded test IDs...'
+    validate_embedded_test_existence!
+    validate_circular_dependencies!
+  end
+
+  def validate_embedded_test_existence!
     contains_nonexistent_ids = rfml_tests.select { |t| (t.embedded_ids - all_rfml_ids).any? }
 
     if contains_nonexistent_ids.any?
@@ -35,60 +39,81 @@ class RainforestCli::Uploader
     end
   end
 
-  # Prioritize embedded tests before other tests
-  def prioritize_tests
-    priority_groups = []
-    remaining_tests = rfml_tests.dup
-
-    until remaining_tests.empty?
-      prioritized_ids = priority_groups.flatten.map(&:rfml_id)
-      priority_group, remaining_tests = make_priority_group(remaining_tests, prioritized_ids)
-
-      priority_groups << priority_group
-    end
-
-    priority_groups
-  end
-
-  def make_priority_group(rfml_tests, prioritized_ids)
-    # prioritizable == tests whose embedded tests have already been prioritized, if any
-    prioritizable = []
-    # unprioritizable == tests whose embedded tests have not been prioritized yet
-    unprioritizable = []
-
+  def validate_circular_dependencies!
+    # TODO: Add validation for circular dependencies in server tests as well
     rfml_tests.each do |rfml_test|
-      group = prioritizable?(rfml_test, prioritized_ids) ? prioritizable : unprioritizable
-      group << rfml_test
+      check_for_nested_embed(rfml_test, rfml_test.rfml_id, rfml_test.file_name)
     end
-
-    [prioritizable, unprioritizable]
   end
 
-  def prioritizable?(rfml_test, prioritized_ids)
-    (rfml_test.embedded_ids - prioritized_ids).empty?
+  private
+
+  def check_for_nested_embed(rfml_test, root_id, root_file)
+    rfml_test.embedded_ids.each do |embed_id|
+      descendant = rfml_id_to_test_map[embed_id]
+      raise CircularEmbeds.new(root_file) if descendant.embedded_ids.include?(root_id)
+      check_for_nested_embed(descendant, root_id, root_file)
+    end
   end
 
-  def upload_groups_sequentially(upload_groups)
-    progress_bar = ProgressBar.create(title: 'Rows', total: test_files.count, format: '%a %B %p%% %t')
-    upload_groups.each_with_index do |rfml_tests, idx|
-      if idx == (rfml_tests.length - 1)
-        upload_group_in_parallel(rfml_tests, progress_bar)
-      else
-        rfml_tests.each { |rfml_test| upload_test(rfml_test) }
-        progress_bar.increment
+  def each_in_parallel(tests, &blk)
+    progress_bar = ProgressBar.create(title: 'Rows', total: new_tests.count, format: '%a %B %p%% %t')
+    Parallel.each(tests, in_threads: threads, finish: lambda { |_item, _i, _result| progress_bar.increment }) do |rfml_test|
+      blk.call(rfml_test)
+    end
+  end
+
+  def rfml_tests
+    @rfml_tests ||= test_files.test_data
+  end
+
+  def all_rfml_ids
+    local_rfml_ids + remote_rfml_ids
+  end
+
+  def local_rfml_ids
+    @rfml_ids ||= test_files.rfml_ids
+  end
+
+  def remote_rfml_ids
+    @remote_rfml_ids ||= rfml_id_to_primary_key_map.keys
+  end
+
+  def rfml_id_to_primary_key_map
+    if @rfml_id_to_primary_key_map.nil?
+      logger.info 'Syncing with server...'
+
+      @rfml_id_to_primary_key_map = {}.tap do |rfml_id_to_primary_key_map|
+        Rainforest::Test.all(page_size: 1000, rfml_ids: test_files.rfml_ids).each do |rf_test|
+          rfml_id = rf_test.rfml_id
+          next if rfml_id.nil?
+
+          rfml_id_to_primary_key_map[rfml_id] = rf_test.id
+        end
       end
     end
+    @rfml_id_to_primary_key_map
   end
 
-  def upload_group_in_parallel(rfml_tests, progress_bar = nil)
-    progress_bar ||= ProgressBar.create(title: 'Rows', total: rfml_tests.count, format: '%a %B %p%% %t')
-    Parallel.each(
-      rfml_tests,
-      in_threads: threads,
-      finish: lambda { |_item, _i, _result| progress_bar.increment }
-    ) do |rfml_test|
-      upload_test(rfml_test)
+  def rfml_id_to_test_map
+    @rfml_id_to_test_map ||= {}.tap do |rfml_id_to_test_map|
+      rfml_tests.each { |rfml_test| rfml_id_to_test_map[rfml_test.rfml_id] = rfml_test }
     end
+  end
+
+  def new_tests
+    @new_tests ||= rfml_tests.select { |t| rfml_id_to_primary_key_map[t.rfml_id].nil? }
+  end
+
+  def create_test(rfml_test)
+    test_obj = {
+      title: rfml_test.title,
+      start_uri: rfml_test.start_uri,
+      rfml_id: rfml_test.rfml_id
+    }
+    rf_test = Rainforest::Test.create(test_obj)
+
+    rfml_id_to_primary_key_map[rf_test.rfml_id] = rf_test.id
   end
 
   def upload_test(rfml_test)
@@ -97,11 +122,11 @@ class RainforestCli::Uploader
     test_obj = create_test_obj(rfml_test)
     # Upload the test
     begin
-      if primary_key_ids[rfml_test.rfml_id]
-        Rainforest::Test.update(primary_key_ids[rfml_test.rfml_id], test_obj)
+      if rfml_id_to_primary_key_map[rfml_test.rfml_id]
+        Rainforest::Test.update(rfml_id_to_primary_key_map[rfml_test.rfml_id], test_obj)
       else
         t = Rainforest::Test.create(test_obj)
-        primary_key_ids[rfml_test.rfml_id] = t.id
+        rfml_id_to_primary_key_map[rfml_test.rfml_id] = t.id
       end
     rescue => e
       logger.fatal "Error: #{rfml_test.rfml_id}: #{e}"
@@ -109,18 +134,12 @@ class RainforestCli::Uploader
     end
   end
 
-  def primary_key_ids
-    if @primary_key_ids.nil?
-      @primary_key_ids = {}.tap do |primary_key_ids|
-        Rainforest::Test.all(page_size: 1000, rfml_ids: test_files.rfml_ids).each do |rf_test|
-          rfml_id = rf_test.rfml_id
-          next if rfml_id.nil?
+  def threads
+    RainforestCli::THREADS
+  end
 
-          primary_key_ids[rfml_id] = rf_test.id
-        end
-      end
-    end
-    @primary_key_ids
+  def logger
+    RainforestCli.logger
   end
 
   def create_test_obj(rfml_test)
@@ -134,7 +153,7 @@ class RainforestCli::Uploader
 
     test_obj[:elements] = rfml_test.steps.map do |step|
       if step.respond_to?(:rfml_id)
-        step.to_element(primary_key_ids[step.rfml_id])
+        step.to_element(rfml_id_to_primary_key_map[step.rfml_id])
       else
         step.to_element
       end
@@ -149,21 +168,15 @@ class RainforestCli::Uploader
     test_obj
   end
 
-  def rfml_tests
-    @rfml_tests ||= test_files.test_data
-  end
-
-  def all_rfml_ids
-    @rfml_ids ||= test_files.rfml_ids
-  end
-
-  def threads
-    RainforestCli::THREADS
-  end
-
   class TestsNotFound < RuntimeError
     def initialize(file_names)
       super("The following tests contain embedded tests not found in test directory:\n\t#{file_names.join("\n\t")}\n\n")
+    end
+  end
+
+  class CircularEmbeds < RuntimeError
+    def initialize(file_name)
+      super("The following file has a circular dependency in its embedded tests: #{file_name}\n\n")
     end
   end
 end

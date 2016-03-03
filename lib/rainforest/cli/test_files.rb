@@ -25,10 +25,16 @@ class RainforestCli::TestFiles
   end
 
   def rfml_ids
-    @test_data.map(&:rfml_id)
+    test_data.map(&:rfml_id)
   end
 
   def count
-    @test_data.count
+    test_data.count
+  end
+
+  def test_dictionary
+    {}.tap do |dictionary|
+      test_data.each { |rfml_test| dictionary[rfml_test.rfml_id] = rfml_test }
+    end
   end
 end

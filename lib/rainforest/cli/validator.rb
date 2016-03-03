@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 class RainforestCli::Validator
-  attr_reader :test_files
+  attr_reader :local_tests, :remote_tests
 
   def initialize(local_tests, remote_tests)
     @local_tests = local_tests
@@ -47,7 +47,7 @@ class RainforestCli::Validator
   end
 
   def rfml_tests
-    @rfml_tests ||= test_files.test_data
+    @rfml_tests ||= local_tests.test_data
   end
 
   def all_rfml_ids
@@ -55,7 +55,7 @@ class RainforestCli::Validator
   end
 
   def local_rfml_ids
-    @local_rfml_ids ||= test_files.rfml_ids
+    @local_rfml_ids ||= local_tests.rfml_ids
   end
 
   def remote_rfml_ids
@@ -63,7 +63,7 @@ class RainforestCli::Validator
   end
 
   def test_dictionary
-    @test_dictionary ||= test_files.test_dictionary
+    @test_dictionary ||= local_tests.test_dictionary
   end
 
   def parsing_error_notification!(rfml_tests)

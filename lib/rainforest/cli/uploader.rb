@@ -55,7 +55,7 @@ class RainforestCli::Uploader
     }
     rf_test = Rainforest::Test.create(test_obj)
 
-    rfml_id_to_primary_key_map[rf_test.rfml_id] = rf_test.id
+    primary_key_dictionary[rfml_test.rfml_id] = rf_test.id
   end
 
   def upload_test(rfml_test)

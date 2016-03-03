@@ -9,11 +9,7 @@ class RainforestCli::RemoteTests
   end
 
   def tests
-    if @tests.nil?
-      logger.info 'Syncing with server...'
-      @tests = Rainforest::Test.all(page_size: 1000)
-    end
-    @tests
+    @tests ||= Rainforest::Test.all(page_size: 1000)
   end
 
   def primary_key_dictionary

@@ -18,8 +18,7 @@ describe RainforestCli::GitTrigger do
       end
     end
 
-    # Commented because it kills CI
-    xit 'returns a string' do
+    it 'returns a string' do
       expect(described_class.last_commit_message).to eq 'Initial commit'
     end
   end

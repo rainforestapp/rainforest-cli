@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 class RainforestCli::TestFiles
   DEFAULT_TEST_FOLDER = './spec/rainforest'
-  EXT = '.rfml'
+  FILE_EXTENSION = '.rfml'
 
-  attr_reader :test_folder, :test_paths, :test_data
+  attr_reader :test_folder, :test_data
 
   def initialize(test_folder = nil)
     test_folder ||= DEFAULT_TEST_FOLDER
@@ -11,17 +11,25 @@ class RainforestCli::TestFiles
     @test_folder = File.expand_path(test_folder)
 
     FileUtils.mkdir_p(@test_folder) unless Dir.exist?(@test_folder)
+  end
 
-    @test_paths = "#{@test_folder}/**/*#{EXT}"
-    @test_data = [].tap do |all_tests|
-      Dir.glob(@test_paths) do |file_name|
-        all_tests << RainforestCli::TestParser::Parser.new(file_name).process
+  def test_paths
+    "#{@test_folder}/**/*#{FILE_EXTENSION}"
+  end
+
+  def test_data
+    if @test_data.nil?
+      @test_data = [].tap do |all_tests|
+        Dir.glob(test_paths) do |file_name|
+          all_tests << RainforestCli::TestParser::Parser.new(file_name).process
+        end
       end
     end
+    @test_data
   end
 
   def file_extension
-    EXT
+    FILE_EXTENSION
   end
 
   def rfml_ids

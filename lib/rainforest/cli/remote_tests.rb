@@ -15,7 +15,7 @@ class RainforestCli::RemoteTests
   def primary_key_dictionary
     @primary_key_dictionary ||= {}.tap do |primary_key_dictionary|
       tests.each do |rf_test|
-        primary_key_dictionary[test.rfml_id] = rf_test.id
+        primary_key_dictionary[rf_test.rfml_id] = rf_test.id
       end
     end
   end

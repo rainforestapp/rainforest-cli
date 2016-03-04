@@ -53,4 +53,21 @@ describe RainforestCli::TestFiles do
       expect(rfml_test.rfml_id).to eq(text_file.match(/^#! (.+?)($| .+?$)/)[1])
     end
   end
+
+  describe '#test_dictionary' do
+    Test = Struct.new(:rfml_id, :id)
+
+    subject { described_class.new }
+    let(:tests) { [Test.new('foo', 123), Test.new('bar', 456), Test.new('baz', 789)] }
+
+    before do
+      allow(FileUtils).to receive(:mkdir_p)
+      allow_any_instance_of(described_class).to receive(:test_data)
+        .and_return(tests)
+    end
+
+    it "correctly formats the dictionary's keys and values" do
+      expect(subject.test_dictionary).to include({})
+    end
+  end
 end

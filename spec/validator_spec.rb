@@ -23,9 +23,10 @@ describe RainforestCli::Validator do
       expect { subject.validate_all! }.to raise_error(SystemExit)
     end
 
+    let(:options) { double('RainforestCli::Options') }
     let(:test_files) { RainforestCli::TestFiles.new(test_directory) }
     let(:remote_tests) { RainforestCli::RemoteTests.new('api_token') }
-    subject { described_class.new(test_files, remote_tests) }
+    subject { described_class.new(options, test_files, remote_tests) }
 
     let(:file_path) { File.join(test_directory, correct_file_name) }
 

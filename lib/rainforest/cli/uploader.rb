@@ -9,7 +9,7 @@ class RainforestCli::Uploader
   def initialize(options)
     @test_files = RainforestCli::TestFiles.new(options.test_folder)
     @remote_tests = RainforestCli::RemoteTests.new(options.token)
-    @validator = RainforestCli::Validator.new(test_files, remote_tests)
+    @validator = RainforestCli::Validator.new(options, test_files, remote_tests)
   end
 
   def upload

@@ -37,7 +37,7 @@ module RainforestCli
       t = TestImporter.new(options)
       t.create_new
     when 'validate'
-      t = TestImporter.new(options)
+      t = Validator.new(options)
       t.validate
     when 'upload'
       t = Uploader.new(options)

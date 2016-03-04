@@ -2,9 +2,9 @@
 class RainforestCli::Validator
   attr_reader :local_tests, :remote_tests
 
-  def initialize(local_tests, remote_tests)
-    @local_tests = local_tests
-    @remote_tests = remote_tests
+  def initialize(options, local_tests = nil, remote_tests = nil)
+    @local_tests = local_tests || RainforestCli::TestFiles.new(options.test_folder)
+    @remote_tests = remote_tests || RainforestCli::RemoteTests.new(options.token)
   end
 
   def validate_all!

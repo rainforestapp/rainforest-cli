@@ -15,3 +15,15 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = 'random'
 end
+
+RSpec::Matchers.define :test_with_file_name do |expected_name|
+  match do |actual|
+    actual.file_name == expected_name
+  end
+end
+
+RSpec::Matchers.define :array_excluding do |expected_exclusion|
+  match do |actual|
+    !actual.include?(expected_exclusion)
+  end
+end

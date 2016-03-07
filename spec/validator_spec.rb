@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 describe RainforestCli::Validator do
   let(:rfml_id_regex) { /^#! (.+?)($| .+?$)/ }
   let(:file_path) { File.join(test_directory, correct_file_name) }
@@ -65,12 +66,6 @@ describe RainforestCli::Validator do
   end
 
   describe '#validate_with_errors!' do
-    RSpec::Matchers.define :test_with_file_name do |expected_name|
-      match do |actual|
-        actual.file_name == expected_name
-      end
-    end
-
     let(:tested_method) { :validate_with_errors! }
     let(:raises_error) { true }
 
@@ -78,12 +73,6 @@ describe RainforestCli::Validator do
     subject { described_class.new(options) }
 
     context 'with parsing errors' do
-      RSpec::Matchers.define :array_excluding do |expected_exclusion|
-        match do |actual|
-          !actual.include?(expected_exclusion)
-        end
-      end
-
       let(:notification_method) { :parsing_error_notification }
       let(:test_directory) { File.expand_path(File.join(__FILE__, '../embedded-examples/parse_errors')) }
 

@@ -13,7 +13,7 @@ class RainforestCli::Uploader
   end
 
   def upload
-    validator.validate_all!
+    validator.validate_with_errors!
 
     # Create new tests first to ensure that they can be embedded
     if new_tests.any?

@@ -2,7 +2,7 @@
 describe RainforestCli::Validator do
   let(:rfml_id_regex) { /^#! (.+?)($| .+?$)/ }
 
-  describe '#validate_all!' do
+  describe '#validate_with_errors!' do
     RSpec::Matchers.define :test_with_file_name do |expected_name|
       match do |actual|
         actual.file_name == expected_name
@@ -13,14 +13,14 @@ describe RainforestCli::Validator do
       expect(subject).to receive(notification_method)
         .with(array_including(test_with_file_name(file_path)))
         .and_call_original
-      expect { subject.validate_all! }.to raise_error(SystemExit)
+      expect { subject.validate_with_errors! }.to raise_error(SystemExit)
     end
 
     def does_not_notify_for_wrong_file_names
       expect(subject).to receive(notification_method)
         .with(array_excluding(test_with_file_name(file_path)))
         .and_call_original
-      expect { subject.validate_all! }.to raise_error(SystemExit)
+      expect { subject.validate_with_errors! }.to raise_error(SystemExit)
     end
 
     let(:options) { double('RainforestCli::Options') }
@@ -90,7 +90,7 @@ describe RainforestCli::Validator do
           expect([a, b] - [file_name_a, file_name_b]).to be_empty
         end.and_call_original
 
-        expect { subject.validate_all! }.to raise_error(SystemExit)
+        expect { subject.validate_with_errors! }.to raise_error(SystemExit)
       end
     end
   end

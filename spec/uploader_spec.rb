@@ -5,7 +5,7 @@ describe RainforestCli::Uploader do
   subject { described_class.new(options) }
 
   before do
-    allow_any_instance_of(RainforestCli::Validator).to receive(:validate_all!)
+    allow_any_instance_of(RainforestCli::Validator).to receive(:validate_with_errors!)
     allow_any_instance_of(RainforestCli::RemoteTests).to receive(:primary_key_dictionary)
       .and_return({})
   end

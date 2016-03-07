@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 describe RainforestCli::Uploader do
-  let(:test_directory) { File.expand_path(File.join(__FILE__, '../embedded-examples/correct_embeds')) }
+  let(:test_directory) { File.expand_path(File.join(__FILE__, '../validation-examples/correct_embeds')) }
   let(:options) { instance_double('RainforestCli::Options', token: 'foo', test_folder: test_directory) }
   subject { described_class.new(options) }
 

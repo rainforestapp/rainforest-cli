@@ -18,9 +18,17 @@ class RainforestCli::RemoteTests
 
   def fetch_tests
     if api_token_set?
-      Rainforest::Test.all(page_size: 1000)
+      begin
+        logger.info 'Syncing tests...'
+        Rainforest::Test.all(page_size: 1000)
+      rescue Rainforest::ApiError => e
+        logger.error "Encountered API Error: #{e.message}"
+        exit 4
+      end
     else
-      RainforestCli.logger.warn 'Please supply an API Token in order to sync with tests on the Rainforest server'
+      logger.info ''
+      logger.info 'No API Token set. Using local tests only...'
+      logger.info ''
       []
     end
   end
@@ -31,5 +39,9 @@ class RainforestCli::RemoteTests
         primary_key_dictionary[rf_test.rfml_id] = rf_test.id
       end
     end
+  end
+
+  def logger
+    RainforestCli.logger
   end
 end

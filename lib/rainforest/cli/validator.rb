@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 class RainforestCli::Validator
   API_TOKEN_ERROR = 'Please supply API token and try again'
+  VALIDATIONS_PASSED = '[VALID]'
+  VALIDATIONS_FAILED = '[INVALID] - Please see log to correct errors.'
 
   attr_reader :local_tests, :remote_tests
 
@@ -10,11 +12,20 @@ class RainforestCli::Validator
   end
 
   def validate
-    has_parsing_errors?
-    has_test_dependency_errors?
+    check_test_directory_for_tests!
+
+    # Avoid using || in order to make sure both methods are called
+    parsing_validation = has_parsing_errors?
+    dependency_validation = has_test_dependency_errors?
+    is_invalid = parsing_validation || dependency_validation
+
+    logger.info ''
+    logger.info(is_invalid ? VALIDATIONS_FAILED : VALIDATIONS_PASSED)
   end
 
   def validate_with_errors!
+    check_test_directory_for_tests!
+
     unless remote_tests.api_token_set?
       logger.error API_TOKEN_ERROR
       exit 2
@@ -25,8 +36,15 @@ class RainforestCli::Validator
 
   private
 
+  def check_test_directory_for_tests!
+    unless local_tests.count > 0
+      logger.error "No tests found in directory: #{local_tests.test_folder}"
+      exit 3
+    end
+  end
+
   def has_parsing_errors?
-    logger.info 'Detecting parsing errors...'
+    logger.info 'Validating parsing errors...'
     has_parsing_errors = rfml_tests.select { |t| t.errors.any? }
 
     return false unless has_parsing_errors.any?
@@ -101,6 +119,7 @@ class RainforestCli::Validator
         logger.error "\t#{error}"
       end
     end
+    logger.error ''
   end
 
   def nonexisting_embedded_id_notification(rfml_tests)
@@ -109,6 +128,7 @@ class RainforestCli::Validator
     rfml_tests.each do |rfml_test|
       logger.error "\t#{rfml_test.file_name}"
     end
+    logger.error ''
   end
 
   def circular_dependencies_notification(file_a, file_b)
@@ -116,6 +136,7 @@ class RainforestCli::Validator
     logger.error ''
     logger.error "\t#{file_a}"
     logger.error "\t#{file_b}"
+    logger.error ''
   end
 
   def logger

@@ -38,7 +38,7 @@ describe RainforestCli::Validator do
 
     context 'with parsing errors' do
       let(:notification_method) { :parsing_error_notification }
-      let(:test_directory) { File.expand_path(File.join(__FILE__, '../embedded-examples/parse_errors')) }
+      let(:test_directory) { File.expand_path(File.join(__FILE__, '../validation-examples/parse_errors')) }
 
       context 'no rfml id' do
         let(:correct_file_name) { 'no_rfml_id.rfml' }
@@ -63,7 +63,7 @@ describe RainforestCli::Validator do
 
     context 'with a incorrect embedded RFML ID' do
       let(:notification_method) { :nonexisting_embedded_id_notification }
-      let(:test_directory) { File.expand_path(File.join(__FILE__, '../embedded-examples/missing_embeds')) }
+      let(:test_directory) { File.expand_path(File.join(__FILE__, '../validation-examples/missing_embeds')) }
 
       context 'the file containing in the incorrect id' do
         let(:correct_file_name) { 'incorrect_test.rfml' }
@@ -77,7 +77,7 @@ describe RainforestCli::Validator do
     end
 
     context 'with circular embeds' do
-      let(:test_directory) { File.expand_path(File.join(__FILE__, '../embedded-examples/circular_embeds')) }
+      let(:test_directory) { File.expand_path(File.join(__FILE__, '../validation-examples/circular_embeds')) }
       let(:file_name_a) { File.join(test_directory, 'test1.rfml') }
       let(:file_name_b) { File.join(test_directory, 'test2.rfml') }
 
@@ -105,7 +105,7 @@ describe RainforestCli::Validator do
     it_behaves_like 'it detects all the correct errors'
 
     context 'without a token option' do
-      let(:test_directory) { File.expand_path(File.join(__FILE__, '../embedded-examples')) }
+      let(:test_directory) { File.expand_path(File.join(__FILE__, '../validation-examples')) }
       let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: nil) }
       subject { described_class.new(options) }
 

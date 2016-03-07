@@ -33,6 +33,9 @@ describe RainforestCli::Validator do
   end
 
   shared_examples 'it detects all the correct errors' do
+    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token') }
+    subject { described_class.new(options) }
+
     context 'with parsing errors' do
       let(:notification_method) { :parsing_error_notification }
       let(:test_directory) { File.expand_path(File.join(__FILE__, '../embedded-examples/parse_errors')) }
@@ -92,18 +95,12 @@ describe RainforestCli::Validator do
     let(:tested_method) { :validate }
     let(:raises_error) { false }
 
-    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token') }
-    subject { described_class.new(options) }
-
     it_behaves_like 'it detects all the correct errors'
   end
 
   describe '#validate_with_errors!' do
     let(:tested_method) { :validate_with_errors! }
     let(:raises_error) { true }
-
-    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token') }
-    subject { described_class.new(options) }
 
     it_behaves_like 'it detects all the correct errors'
   end

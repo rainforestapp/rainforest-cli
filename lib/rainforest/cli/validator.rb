@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 class RainforestCli::Validator
+  API_TOKEN_ERROR = 'Please supply API token and try again'
+
   attr_reader :local_tests, :remote_tests
 
   def initialize(options, local_tests = nil, remote_tests = nil)
@@ -13,6 +15,11 @@ class RainforestCli::Validator
   end
 
   def validate_with_errors!
+    unless remote_tests.api_token_set?
+      logger.error API_TOKEN_ERROR
+      exit 2
+    end
+
     exit 1 if has_parsing_errors? || has_test_dependency_errors?
   end
 

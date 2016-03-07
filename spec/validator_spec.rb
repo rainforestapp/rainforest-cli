@@ -4,10 +4,6 @@ describe RainforestCli::Validator do
   let(:rfml_id_regex) { /^#! (.+?)($| .+?$)/ }
   let(:file_path) { File.join(test_directory, correct_file_name) }
 
-  before do
-    allow(Rainforest::Test).to receive(:all).and_return([])
-  end
-
   def notifies_with_correct_file_name
     expect(subject).to receive(notification_method)
       .with(array_including(test_with_file_name(file_path)))
@@ -35,6 +31,10 @@ describe RainforestCli::Validator do
   shared_examples 'it detects all the correct errors' do
     let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token') }
     subject { described_class.new(options) }
+
+    before do
+      allow(Rainforest::Test).to receive(:all).and_return([])
+    end
 
     context 'with parsing errors' do
       let(:notification_method) { :parsing_error_notification }
@@ -103,5 +103,17 @@ describe RainforestCli::Validator do
     let(:raises_error) { true }
 
     it_behaves_like 'it detects all the correct errors'
+
+    context 'without a token option' do
+      let(:test_directory) { File.expand_path(File.join(__FILE__, '../embedded-examples')) }
+      let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: nil) }
+      subject { described_class.new(options) }
+
+      it 'validates locally and tells the user to include a token to valid with server tests as well' do
+        expect_any_instance_of(Logger).to receive(:error).with(described_class::API_TOKEN_ERROR)
+
+        expect { subject.validate_with_errors! }.to raise_error(SystemExit)
+      end
+    end
   end
 end

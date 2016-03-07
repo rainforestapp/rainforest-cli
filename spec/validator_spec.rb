@@ -32,46 +32,7 @@ describe RainforestCli::Validator do
     end
   end
 
-  describe '#validate' do
-    let(:tested_method) { :validate }
-    let(:raises_error) { false }
-
-    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token') }
-    subject { described_class.new(options) }
-
-    context 'with parsing errors' do
-      let(:notification_method) { :parsing_error_notification }
-      let(:test_directory) { File.expand_path(File.join(__FILE__, '../embedded-examples/parse_errors')) }
-
-      context 'no rfml id' do
-        let(:correct_file_name) { 'no_rfml_id.rfml' }
-        it { notifies_with_correct_file_name }
-      end
-
-      context 'no question' do
-        let(:correct_file_name) { 'no_rfml_id.rfml' }
-        it { notifies_with_correct_file_name }
-      end
-
-      context 'no question mark' do
-        let(:correct_file_name) { 'no_question_mark.rfml' }
-        it { notifies_with_correct_file_name }
-      end
-
-      context 'no parse errors' do
-        let(:correct_file_name) { 'no_question_mark.rfml' }
-        it { does_not_notify_for_wrong_file_names }
-      end
-    end
-  end
-
-  describe '#validate_with_errors!' do
-    let(:tested_method) { :validate_with_errors! }
-    let(:raises_error) { true }
-
-    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token') }
-    subject { described_class.new(options) }
-
+  shared_examples 'it detects all the correct errors' do
     context 'with parsing errors' do
       let(:notification_method) { :parsing_error_notification }
       let(:test_directory) { File.expand_path(File.join(__FILE__, '../embedded-examples/parse_errors')) }
@@ -125,5 +86,25 @@ describe RainforestCli::Validator do
         expect { subject.validate_with_errors! }.to raise_error(SystemExit)
       end
     end
+  end
+
+  describe '#validate' do
+    let(:tested_method) { :validate }
+    let(:raises_error) { false }
+
+    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token') }
+    subject { described_class.new(options) }
+
+    it_behaves_like 'it detects all the correct errors'
+  end
+
+  describe '#validate_with_errors!' do
+    let(:tested_method) { :validate_with_errors! }
+    let(:raises_error) { true }
+
+    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token') }
+    subject { described_class.new(options) }
+
+    it_behaves_like 'it detects all the correct errors'
   end
 end

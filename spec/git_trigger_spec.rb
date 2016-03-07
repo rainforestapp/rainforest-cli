@@ -45,6 +45,8 @@ describe RainforestCli::GitTrigger do
   def setup_test_repo
     FileUtils.rm_rf File.join(test_repo_dir, '*')
     [
+      "git config --global user.email 'test@rainforestqa.com'",
+      "git config --global user.name 'Rainforest QA'",
       'git init',
       "git commit --allow-empty -m 'Initial commit'",
     ].each do |cmd|

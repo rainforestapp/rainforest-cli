@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'rainforest/cli/version'
+require 'rainforest/cli/constants'
 require 'rainforest/cli/options'
 require 'rainforest/cli/runner'
 require 'rainforest/cli/http_client'
@@ -7,7 +8,10 @@ require 'rainforest/cli/git_trigger'
 require 'rainforest/cli/csv_importer'
 require 'rainforest/cli/test_parser'
 require 'rainforest/cli/test_files'
+require 'rainforest/cli/remote_tests'
+require 'rainforest/cli/validator'
 require 'rainforest/cli/test_importer'
+require 'rainforest/cli/uploader'
 require 'erb'
 require 'httparty'
 require 'json'
@@ -33,10 +37,10 @@ module RainforestCli
       t = TestImporter.new(options)
       t.create_new
     when 'validate'
-      t = TestImporter.new(options)
+      t = Validator.new(options)
       t.validate
     when 'upload'
-      t = TestImporter.new(options)
+      t = Uploader.new(options)
       t.upload
     when 'export'
       t = TestImporter.new(options)

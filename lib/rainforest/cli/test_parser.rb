@@ -8,6 +8,16 @@ module RainforestCli::TestParser
     def to_s
       "--> embed: #{rfml_id}"
     end
+
+    def to_element(primary_key_id)
+      {
+        type: 'test',
+        redirection: true,
+        element: {
+          id: primary_key_id
+        }
+      }
+    end
   end
 
   class Step < Struct.new(:action, :response)
@@ -18,6 +28,23 @@ module RainforestCli::TestParser
     def to_s
       "#{action} --> #{response}"
     end
+
+    def to_element
+      {
+        type: 'step',
+        redirection: true,
+        element: {
+          action: action,
+          response: response
+        }
+      }
+    end
+  end
+
+  class Test < Struct.new(:file_name, :rfml_id, :description, :title, :start_uri, :steps, :errors, :tags, :browsers)
+    def embedded_ids
+      steps.inject([]) { |embeds, step| step.type == :test ? embeds + [step.rfml_id] : embeds }
+    end
   end
 
   class Error < Struct.new(:line, :reason)
@@ -26,19 +53,14 @@ module RainforestCli::TestParser
     end
   end
 
-  class Test < Struct.new(:rfml_id, :description, :title, :start_uri, :steps, :errors, :tags, :browsers)
-    def embedded_ids
-      steps.inject([]) { |embeds, step| step.type == :test ? embeds + [step.rfml_id] : embeds }
-    end
-  end
-
   class Parser
     attr_reader :steps, :errors, :text
 
-    def initialize(text)
-      @text = text.to_s
+    def initialize(file_name)
+      @text = File.read(file_name).to_s
 
       @test = Test.new
+      @test.file_name = file_name
       @test.description = ''
       @test.steps = []
       @test.errors = {}
@@ -52,7 +74,8 @@ module RainforestCli::TestParser
     def process
       scratch = []
 
-      text.lines.map(&:chomp).each_with_index do |line, line_no|
+      text.lines.each_with_index do |line, line_no|
+        line = line.chomp
         if line[0..1] == '#!'
           # special comment, don't ignore!
           @test.rfml_id = line[2..-1].strip.split(' ')[0]

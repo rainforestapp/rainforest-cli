@@ -5,6 +5,7 @@ describe RainforestCli::OptionParser do
   describe '#initialize' do
     context 'importing csv file' do
       let(:args) { ['--import-variable-csv-file', 'some_file.csv'] }
+
       its(:import_file_name) { should == 'some_file.csv' }
     end
 
@@ -48,13 +49,13 @@ describe RainforestCli::OptionParser do
     context 'it parses the --git-trigger flag' do
       let(:args) { ['run', '--git-trigger', 'all'] }
       its(:tests) { should == ['all']}
-      its(:git_trigger?) { should be_true }
+      its(:git_trigger?) { is_expected.to eq(true) }
     end
 
     context 'it parses the --fg flag' do
       let(:args) { ['run', '--fg', 'all'] }
       its(:tests) { should == ['all']}
-      its(:foreground?) { should be_true }
+      its(:foreground?) { is_expected.to eq(true) }
     end
 
     context 'it parses the api token' do
@@ -76,7 +77,7 @@ describe RainforestCli::OptionParser do
 
     context 'it parses the fail-fast flag' do
       let(:args) { ['run', '--fail-fast'] }
-      its(:failfast?) { should be_true }
+      its(:failfast?) { is_expected.to eq(true) }
     end
 
     context 'it parses the site-id flag' do

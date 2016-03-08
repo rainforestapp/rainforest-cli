@@ -18,8 +18,7 @@ describe RainforestCli::GitTrigger do
       end
     end
 
-    # Commented because it kills CI
-    xit 'returns a string' do
+    it 'returns a string' do
       expect(described_class.last_commit_message).to eq 'Initial commit'
     end
   end
@@ -45,10 +44,22 @@ describe RainforestCli::GitTrigger do
 
   def setup_test_repo
     FileUtils.rm_rf File.join(test_repo_dir, '*')
-    [
+
+    commands = [
       'git init',
       "git commit --allow-empty -m 'Initial commit'",
-    ].each do |cmd|
+    ]
+
+    # Git must be set up each time on CircleCI
+    unless system 'git config --get user.email'
+      commands.unshift("git config --global user.email 'test@rainforestqa.com'")
+    end
+
+    unless system 'git config --get user.name'
+      commands.unshift("git config --global user.name 'Rainforest QA'")
+    end
+
+    commands.each do |cmd|
       system cmd
     end
   end

@@ -16,7 +16,7 @@ class RainforestCli::Validator
     invalid?
   end
 
-  def validate_with_errors!
+  def validate_with_exception!
     check_test_directory_for_tests!
 
     unless remote_tests.api_token_set?

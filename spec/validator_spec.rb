@@ -86,7 +86,7 @@ describe RainforestCli::Validator do
           expect([a, b] - [file_name_a, file_name_b]).to be_empty
         end.and_call_original
 
-        expect { subject.validate_with_errors! }.to raise_error(SystemExit)
+        expect { subject.validate_with_exception! }.to raise_error(SystemExit)
       end
     end
   end
@@ -98,8 +98,8 @@ describe RainforestCli::Validator do
     it_behaves_like 'it detects all the correct errors'
   end
 
-  describe '#validate_with_errors!' do
-    let(:tested_method) { :validate_with_errors! }
+  describe '#validate_with_exception!' do
+    let(:tested_method) { :validate_with_exception! }
     let(:raises_error) { true }
 
     it_behaves_like 'it detects all the correct errors'
@@ -112,7 +112,7 @@ describe RainforestCli::Validator do
       it 'validates locally and tells the user to include a token to valid with server tests as well' do
         expect_any_instance_of(Logger).to receive(:error).with(described_class::API_TOKEN_ERROR)
 
-        expect { subject.validate_with_errors! }.to raise_error(SystemExit)
+        expect { subject.validate_with_exception! }.to raise_error(SystemExit)
       end
     end
   end

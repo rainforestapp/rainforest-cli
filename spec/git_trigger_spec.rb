@@ -50,6 +50,7 @@ describe RainforestCli::GitTrigger do
       "git commit --allow-empty -m 'Initial commit'",
     ]
 
+    # Git must be set up each time on CircleCI
     unless system 'git config --get user.email'
       commands.unshift("git config --global user.email 'test@rainforestqa.com'")
     end

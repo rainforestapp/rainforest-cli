@@ -77,7 +77,8 @@ class RainforestCli::Validator
   end
 
   def has_circular_dependencies?
-    # TODO: Add validation for circular dependencies in server tests as well
+    # TODO: Check embedded tests for remote tests as well. The Rainforest Ruby client
+    # doesn't appear to support elements yet.
     has_circular_dependencies = false
     rfml_tests.each do |rfml_test|
       has_circular_dependencies ||= check_for_nested_embed(rfml_test, rfml_test.rfml_id, rfml_test.file_name)

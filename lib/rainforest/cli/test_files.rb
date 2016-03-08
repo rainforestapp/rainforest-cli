@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 class RainforestCli::TestFiles
-  DEFAULT_TEST_FOLDER = File.expand_path('./spec/rainforest').freeze
+  DEFAULT_TEST_FOLDER = './spec/rainforest'
   FILE_EXTENSION = '.rfml'
 
   attr_reader :test_folder, :test_data
@@ -8,7 +8,7 @@ class RainforestCli::TestFiles
   def initialize(test_folder = nil)
     if test_folder.nil?
       RainforestCli.logger.info "No test folder supplied. Using default folder: #{DEFAULT_TEST_FOLDER}"
-      @test_folder = DEFAULT_TEST_FOLDER
+      @test_folder = File.expand_path(DEFAULT_TEST_FOLDER)
     else
       @test_folder = File.expand_path(test_folder)
     end

@@ -170,7 +170,9 @@ EOF
     uuid = SecureRandom.uuid
     name = "#{uuid}#{ext}" unless name
     name += ext unless name[-ext.length..-1] == ext
-    name = File.join([@test_files.test_folder, name])
+
+    FileUtils.mkdir_p(test_files.test_folder) unless Dir.exist?(test_files.test_folder)
+    name = File.join([test_files.test_folder, name])
 
     File.open(name, 'w') { |file| file.write(sprintf(SAMPLE_FILE, uuid)) }
 

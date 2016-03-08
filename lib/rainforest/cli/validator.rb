@@ -13,14 +13,7 @@ class RainforestCli::Validator
 
   def validate
     check_test_directory_for_tests!
-
-    # Avoid using || in order to make sure both methods are called
-    parsing_validation = has_parsing_errors?
-    dependency_validation = has_test_dependency_errors?
-    is_invalid = parsing_validation || dependency_validation
-
-    logger.info ''
-    logger.info(is_invalid ? VALIDATIONS_FAILED : VALIDATIONS_PASSED)
+    invalid?
   end
 
   def validate_with_errors!
@@ -31,7 +24,19 @@ class RainforestCli::Validator
       exit 2
     end
 
-    exit 1 if has_parsing_errors? || has_test_dependency_errors?
+    exit 1 if invalid?
+  end
+
+  def invalid?
+    # Assign result to variables to ensure both methods are called
+    # (no short-circuiting with ||)
+    parsing_errors = has_parsing_errors?
+    dependency_errors = has_test_dependency_errors?
+    is_invalid = parsing_errors || dependency_errors
+
+    logger.info ''
+    logger.info(is_invalid ? VALIDATIONS_FAILED : VALIDATIONS_PASSED)
+    is_invalid
   end
 
   private
@@ -55,7 +60,11 @@ class RainforestCli::Validator
 
   def has_test_dependency_errors?
     logger.info 'Validating embedded test IDs...'
-    has_nonexisting_tests? || has_circular_dependencies?
+
+    # Assign result to variables to ensure both methods are called
+    nonexisting_tests = has_nonexisting_tests?
+    circular_dependencies = has_circular_dependencies?
+    nonexisting_tests || circular_dependencies
   end
 
   def has_nonexisting_tests?
@@ -79,6 +88,9 @@ class RainforestCli::Validator
   def check_for_nested_embed(rfml_test, root_id, root_file)
     rfml_test.embedded_ids.each do |embed_id|
       descendant = test_dictionary[embed_id]
+
+      # existence for embedded tests is covered in #has_nonexisting_tests?
+      next unless descendant
 
       if descendant.embedded_ids.include?(root_id)
         circular_dependencies_notification(root_file, descendant.file_name) if descendant.embedded_ids.include?(root_id)

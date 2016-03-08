@@ -6,9 +6,11 @@ class RainforestCli::TestFiles
   attr_reader :test_folder, :test_data
 
   def initialize(test_folder = nil)
-    @test_folder = File.expand_path(test_folder || DEFAULT_TEST_FOLDER)
     if test_folder.nil?
       RainforestCli.logger.info "No test folder supplied. Using default folder: #{DEFAULT_TEST_FOLDER}"
+      @test_folder = DEFAULT_TEST_FOLDER
+    else
+      @test_folder = File.expand_path(test_folder)
     end
   end
 

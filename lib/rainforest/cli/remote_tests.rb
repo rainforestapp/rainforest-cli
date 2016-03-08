@@ -20,7 +20,9 @@ class RainforestCli::RemoteTests
     if api_token_set?
       begin
         logger.info 'Syncing tests...'
-        Rainforest::Test.all(page_size: 1000)
+        tests = Rainforest::Test.all(page_size: 1000)
+        logger.info 'Syncing completed.'
+        tests
       rescue Rainforest::ApiError => e
         logger.error "Encountered API Error: #{e.message}"
         exit 4

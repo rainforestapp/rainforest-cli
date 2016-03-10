@@ -1,4 +1,6 @@
 # frozen_string_literal: true
+require 'http/exceptions'
+
 module RainforestCli
   class HttpClient
     API_URL = ENV.fetch('RAINFOREST_API_URL') do
@@ -29,21 +31,36 @@ module RainforestCli
       JSON.parse(response.body)
     end
 
-    def get(url, body = {})
-      response = HTTParty.get make_url(url), {
-        body: body,
-        headers: headers,
-        verify: false
-      }
+    def get(url, body = {}, max_exceptions: 0)
+      with_exception_tolerance(max_exceptions) do
+        response = HTTParty.get make_url(url), {
+          body: body,
+          headers: headers,
+          verify: false
+        }
 
-      if response.code == 200
-        JSON.parse(response.body)
-      else
-        nil
+        if response.code == 200
+          return JSON.parse(response.body)
+        else
+          return nil
+        end
       end
     end
 
     private
+    def with_exception_tolerance(allowed_exceptions = 0)
+      loop do
+        begin
+          Http::Exceptions.wrap_exception { yield }
+          break
+        rescue Http::Exceptions::HttpException, Timeout::Error => e
+          # Give up on final attempt
+          raise e if allowed_exceptions <= 0
+          allowed_exceptions -= 1
+        end
+      end
+    end
+
     def make_url(url)
       File.join(API_URL, url)
     end

@@ -1,4 +1,8 @@
 # frozen_string_literal: true
+require 'erb'
+require 'httparty'
+require 'json'
+require 'logger'
 require 'rainforest/cli/version'
 require 'rainforest/cli/constants'
 require 'rainforest/cli/options'
@@ -12,10 +16,6 @@ require 'rainforest/cli/remote_tests'
 require 'rainforest/cli/validator'
 require 'rainforest/cli/test_importer'
 require 'rainforest/cli/uploader'
-require 'erb'
-require 'httparty'
-require 'json'
-require 'logger'
 
 module RainforestCli
   def self.start(args)

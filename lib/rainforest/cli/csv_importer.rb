@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 require 'csv'
-require 'httparty'
 require 'parallel'
 require 'ruby-progressbar'
 

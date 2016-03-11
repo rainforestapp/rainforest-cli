@@ -24,7 +24,7 @@ describe RainforestCli::HttpClient do
         end
       end
 
-      context 'get a result before reaching max exceptions' do
+      context 'get a result before exceeding max exceptions' do
         let(:response) { instance_double('HTTParty::Response', code: 200, body: {foo: :bar}.to_json) }
 
         before do

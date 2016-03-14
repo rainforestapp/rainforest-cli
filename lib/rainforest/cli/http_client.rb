@@ -7,6 +7,7 @@ module RainforestCli
     API_URL = ENV.fetch('RAINFOREST_API_URL') do
       'https://app.rainforestqa.com/api/1'
     end.freeze
+    RETRY_INTERVAL = 10
 
     def initialize(options)
       @token = options.fetch(:token)
@@ -32,8 +33,8 @@ module RainforestCli
       JSON.parse(response.body)
     end
 
-    def get(url, body = {}, max_exceptions: 0)
-      with_exception_tolerance(max_exceptions) do
+    def get(url, body = {}, retries_on_failures: false)
+      wrap_exceptions(retries_on_failures) do
         response = HTTParty.get make_url(url), {
           body: body,
           headers: headers,
@@ -49,15 +50,32 @@ module RainforestCli
     end
 
     private
-    def with_exception_tolerance(allowed_exceptions = 0)
+    def wrap_exceptions(retries_on_failures)
+      @retry_delay = 0
+      @waiting_on_retries = false
       loop do
         begin
-          Http::Exceptions.wrap_exception { yield }
-          break
+          # Suspend tries until wait period is over
+          if @waiting_on_retries
+            Kernel.sleep 5
+          else
+            Http::Exceptions.wrap_exception { yield }
+            break
+          end
         rescue Http::Exceptions::HttpException, Timeout::Error => e
-          # Give up on final attempt
-          raise e if allowed_exceptions <= 0
-          allowed_exceptions -= 1
+          raise e unless retries_on_failures
+
+          unless @waiting_on_retries
+            @waiting_on_retries = true
+            @retry_delay += RETRY_INTERVAL
+
+            RainforestCli.logger.warn 'Exception Encountered while trying to contact Rainforest API:'
+            RainforestCli.logger.warn "\t\t#{e.message}"
+            RainforestCli.logger.warn "Retrying again in #{@retry_delay} seconds..."
+
+            Kernel.sleep @retry_delay
+            @waiting_on_retries = false
+          end
         end
       end
     end

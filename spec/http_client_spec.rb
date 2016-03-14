@@ -10,30 +10,46 @@ describe RainforestCli::HttpClient do
         allow(HTTParty).to receive(:get).and_raise(SocketError)
       end
 
-      context 'max exceptions == 0' do
+      context 'retries_on_failures omitted' do
         it 'raises the error on the first exception' do
           expect(HTTParty).to receive(:get).once
-          expect { subject.get(url, {}, max_exceptions: 0) }.to raise_error(Http::Exceptions::HttpException)
+          expect { subject.get(url, {}, retries_on_failures: false) }.to raise_error(Http::Exceptions::HttpException)
         end
       end
 
-      context 'max exceptions > 0' do
-        it 'raises an error after (max_exceptions + 1) tries' do
-          expect(HTTParty).to receive(:get).exactly(4).times
-          expect { subject.get(url, {}, max_exceptions: 3) }.to raise_error(Http::Exceptions::HttpException)
+      context 'retries_on_failures == false' do
+        it 'raises the error on the first exception' do
+          expect(HTTParty).to receive(:get).once
+          expect { subject.get(url, {}, retries_on_failures: false) }.to raise_error(Http::Exceptions::HttpException)
         end
       end
 
-      context 'get a result before exceeding max exceptions' do
+      context 'retries_on_failures == true' do
         let(:response) { instance_double('HTTParty::Response', code: 200, body: {foo: :bar}.to_json) }
+        let(:delay_interval) { described_class::RETRY_INTERVAL }
+        subject { described_class.new({ token: 'foo' }).get(url, {}, retries_on_failures: true) }
 
-        before do
-          expect(HTTParty).to receive(:get).exactly(3).times.and_raise(SocketError).ordered
-          expect(HTTParty).to receive(:get).once.and_return(response).ordered
+        it 'it sleeps after failures before a retry' do
+          expect(HTTParty).to receive(:get).and_raise(SocketError).once.ordered
+          expect(HTTParty).to receive(:get).and_return(response).ordered
+          expect(Kernel).to receive(:sleep).with(delay_interval).once
+          expect { subject }.to_not raise_error
         end
 
-        it 'does not raise an error but returns a value instead' do
-          expect(subject.get(url, {}, max_exceptions: 3)).to_not be_nil
+        it 'sleeps for longer periods with repeated exceptions' do
+          expect(HTTParty).to receive(:get).and_raise(SocketError).exactly(3).times.ordered
+          expect(HTTParty).to receive(:get).and_return(response).ordered
+          expect(Kernel).to receive(:sleep).with(delay_interval).once
+          expect(Kernel).to receive(:sleep).with(delay_interval * 2).once
+          expect(Kernel).to receive(:sleep).with(delay_interval * 3).once
+          expect { subject }.to_not raise_error
+        end
+
+        it 'returns the response upon success' do
+          expect(HTTParty).to receive(:get).and_raise(SocketError).once.ordered
+          expect(HTTParty).to receive(:get).and_return(response).ordered
+          expect(Kernel).to receive(:sleep).with(delay_interval).once
+          expect(subject).to eq(JSON.parse(response.body))
         end
       end
     end

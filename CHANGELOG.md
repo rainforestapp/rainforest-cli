@@ -3,6 +3,8 @@
 ## 1.2.1 - 19th February 2016
 - Fixed a bug where uploading was stuck in an infinite loop if an embedded id did not exist (7b02b2f66dbd47098a7c1d5f79bc60a0cbe8984f, @epaulet)
 - Fixed a bug that occurred when specifying a nested test folder without creating parent folders first (6c1b0e02c858f9d9c264e771f964b3e1a4ea8c7e, @epaulet)
+- Removed 'ro' tag and use 'rainforest-cli' as the test's source instead.
+(10864a7e054d4c869f6a345608b2d1c1c0925fe8, @epaulet)
 
 ## 1.2.0 - 8th February 2016
 - Add support for embedded tests.

@@ -5,6 +5,8 @@
 - Fixed a bug that occurred when specifying a nested test folder without creating parent folders first (6c1b0e02c858f9d9c264e771f964b3e1a4ea8c7e, @epaulet)
 - Removed 'ro' tag and use 'rainforest-cli' as the test's source instead.
 (10864a7e054d4c869f6a345608b2d1c1c0925fe8, @epaulet)
+- Add retries on API calls so that minor interruptions do not cancel Rainforest builds.
+(98021337a3fbbf16c7cd858bbec5d925fb86c939, @epaulet)
 
 ## 1.2.0 - 8th February 2016
 - Add support for embedded tests.

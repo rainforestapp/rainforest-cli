@@ -38,7 +38,7 @@ module RainforestCli
       running = true
       while running
         Kernel.sleep 5
-        response = client.get("/runs/#{run_id}")
+        response = client.get("/runs/#{run_id}", {}, retries_on_failures: true)
         if response
           state_details = response.fetch('state_details')
           unless state_details.fetch('is_final_state')

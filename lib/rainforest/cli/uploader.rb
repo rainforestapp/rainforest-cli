@@ -83,7 +83,8 @@ class RainforestCli::Uploader
       start_uri: rfml_test.start_uri || '/',
       title: rfml_test.title,
       description: rfml_test.description,
-      tags: (['ro'] + rfml_test.tags).uniq,
+      source: 'rainforest-cli',
+      tags: rfml_test.tags.uniq,
       rfml_id: rfml_test.rfml_id
     }
 

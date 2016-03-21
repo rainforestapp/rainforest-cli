@@ -10,5 +10,4 @@ gem 'circlemator', require: false
 group :test do
   gem 'rspec', '~> 3.4.0'
   gem 'rspec-its', '~> 1.2.0'
-  gem 'byebug'
 end

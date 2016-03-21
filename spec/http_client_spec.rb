@@ -13,7 +13,7 @@ describe RainforestCli::HttpClient do
       context 'retries_on_failures omitted' do
         it 'raises the error on the first exception' do
           expect(HTTParty).to receive(:get).once
-          expect { subject.get(url, {}, retries_on_failures: false) }.to raise_error(Http::Exceptions::HttpException)
+          expect { subject.get(url) }.to raise_error(Http::Exceptions::HttpException)
         end
       end
 

@@ -33,7 +33,7 @@ module RainforestCli
       JSON.parse(response.body)
     end
 
-    def get(url, body = {}, options = { retries_on_failures: false })
+    def get(url, body = {}, options = {})
       wrap_exceptions(options[:retries_on_failures]) do
         response = HTTParty.get make_url(url), {
           body: body,

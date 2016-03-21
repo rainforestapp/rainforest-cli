@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 require 'rspec/its'
-require 'byebug'
 require 'rainforest/cli'
 
 RainforestCli.logger = Logger.new(StringIO.new)

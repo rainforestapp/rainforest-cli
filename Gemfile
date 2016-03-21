@@ -5,6 +5,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'rf-stylez'
+gem 'circlemator', require: false
 
 group :test do
   gem 'rspec', '~> 3.4.0'

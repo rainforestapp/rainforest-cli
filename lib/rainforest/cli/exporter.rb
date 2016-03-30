@@ -45,11 +45,18 @@ class RainforestCli::Exporter
   end
 
   def _process_element file, element, index
-    file.puts '' unless index == 0
     case element[:type]
     when 'test'
-      file.puts "- #{element[:element][:rfml_id]}"
+      if @options.embed_tests
+        file.puts '' unless index == 0
+        file.puts "- #{element[:element][:rfml_id]}"
+      else
+        element[:element][:elements].each do |sub_element|
+          index = _process_element(file, sub_element, index)
+        end
+      end
     when 'step'
+      file.puts '' unless index == 0
       file.puts "# step #{index + 1}" if @options.debug
       file.puts element[:element][:action]
       file.puts element[:element][:response]

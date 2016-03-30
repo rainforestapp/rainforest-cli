@@ -99,44 +99,4 @@ class RainforestCli::Exporter
     end
     id
   end
-
-  def validate
-    tests = {}
-    has_errors = []
-
-    Dir.glob(test_files.test_paths).each do |file_name|
-      out = RainforestCli::TestParser::Parser.new(file_name).process
-
-      tests[file_name] = out
-      has_errors << file_name if out.errors != {}
-    end
-
-    if !has_errors.empty?
-      logger.error 'Parsing errors:'
-      logger.error ''
-      has_errors.each do |file_name|
-        logger.error ' ' + file_name
-        tests[file_name].errors.each do |_line, error|
-          logger.error "\t#{error}"
-        end
-      end
-
-      exit 2
-    end
-
-    if @options.debug
-      tests.each do |file_name, test|
-        logger.debug test.inspect
-        logger.debug "#{file_name}"
-        logger.debug test.description
-        test.steps.each do |step|
-          logger.debug "\t#{step}"
-        end
-      end
-    else
-      logger.info '[VALID]'
-    end
-
-    return tests
-  end
 end

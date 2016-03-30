@@ -4,7 +4,7 @@ require 'rainforest'
 require 'parallel'
 require 'ruby-progressbar'
 
-class RainforestCli::TestImporter
+class RainforestCli::Exporter
   attr_reader :options, :client, :test_files
 
   SAMPLE_FILE = <<EOF

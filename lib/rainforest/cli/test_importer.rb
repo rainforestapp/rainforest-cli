@@ -38,17 +38,22 @@ EOF
   end
 
   def export
-    tests = Rainforest::Test.all(page_size: 1000)
-    p = ProgressBar.create(title: 'Rows', total: tests.count, format: '%a %B %p%% %t')
-    Parallel.each(tests, in_threads: threads, finish: lambda { |_item, _i, _result| p.increment }) do |test|
+    test_ids = []
+    if @options.tests.length > 0
+      test_ids = @options.tests
+    else
+      test_ids = Rainforest::Test.all(page_size: 1000).map { |t| t.id }
+    end
+    p = ProgressBar.create(title: 'Rows', total: test_ids.count, format: '%a %B %p%% %t')
+    Parallel.each(test_ids, in_threads: threads, finish: lambda { |_item, _i, _result| p.increment }) do |test_id|
+      # Get the full test from the API
+      test = Rainforest::Test.retrieve(test_id)
 
       # File name
       file_name = sprintf('%010d', test.id) + '_' + test.title.strip.gsub(/[^a-z0-9 ]+/i, '').gsub(/ +/, '_').downcase
       file_name = create_new(file_name)
       File.truncate(file_name, 0)
 
-      # Get the full test from the API
-      test = Rainforest::Test.retrieve(test.id)
 
       File.open(file_name, 'a') do |file|
         file.puts _get_header(test)

@@ -33,8 +33,8 @@ module RainforestCli
       runner = Runner.new(options)
       runner.run
     when 'new'
-      t = TestImporter.new(options)
-      t.create_new
+      t = TestFiles.new(options)
+      t.create_file
     when 'validate'
       t = Validator.new(options)
       t.validate

@@ -26,7 +26,7 @@ EOF
   def initialize(options)
     @options = options
     ::Rainforest.api_key = @options.token
-    @test_files = RainforestCli::TestFiles.new(@options.test_folder)
+    @test_files = RainforestCli::TestFiles.new(@options)
   end
 
   def logger
@@ -44,7 +44,7 @@ EOF
 
       # File name
       file_name = sprintf('%010d', test.id) + '_' + test.title.strip.gsub(/[^a-z0-9 ]+/i, '').gsub(/ +/, '_').downcase
-      file_name = create_new(file_name)
+      file_name = test_folder.create_file(file_name)
       File.truncate(file_name, 0)
 
       # Get the full test from the API
@@ -62,13 +62,11 @@ EOF
   end
 
   def _process_element file, element, index
+    file.puts '' unless index == 0
     case element[:type]
     when 'test'
-      element[:element][:elements].each do |sub_element|
-        index = _process_element(file, sub_element, index)
-      end
+      file.puts "- #{element[:element][:rfml_id]}"
     when 'step'
-      file.puts '' unless index == 0
       file.puts "# step #{index + 1}" if @options.debug
       file.puts element[:element][:action]
       file.puts element[:element][:response]
@@ -160,23 +158,5 @@ EOF
     end
 
     return tests
-  end
-
-  def create_new file_name = nil
-    name = @options.file_name if @options.file_name
-    name = file_name if !file_name.nil?
-    ext = test_files.file_extension
-
-    uuid = SecureRandom.uuid
-    name = "#{uuid}#{ext}" unless name
-    name += ext unless name[-ext.length..-1] == ext
-
-    FileUtils.mkdir_p(test_files.test_folder) unless Dir.exist?(test_files.test_folder)
-    name = File.join([test_files.test_folder, name])
-
-    File.open(name, 'w') { |file| file.write(sprintf(SAMPLE_FILE, uuid)) }
-
-    logger.info "Created #{name}" if file_name.nil?
-    name
   end
 end

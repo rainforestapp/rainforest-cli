@@ -47,6 +47,7 @@ module RainforestCli
       @tags = []
       @browsers = nil
       @debug = false
+      @token = ENV['RAINFOREST_API_TOKEN']
 
       # NOTE: Disabling line length cop to allow for consistency of syntax
       # rubocop:disable Metrics/LineLength

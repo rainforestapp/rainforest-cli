@@ -25,22 +25,24 @@ gem "rainforest-cli", require: false
 ## Basic Usage
 To use the cli client, you'll need your API token from a test settings page from inside [Rainforest](https://app.rainforestqa.com/).
 
+You can either pass the token with `--token YOUR_TOKEN_HERE` CLI option, or put it in the `RAINFOREST_API_TOKEN` environment variable.
+
 Run all of your tests
 
 ```bash
-rainforest run all --token YOUR_TOKEN_HERE
+rainforest run all
 ```
 
 Run all in the foreground and report
 
 ```bash
-rainforest run all --fg --token YOUR_TOKEN_HERE
+rainforest run all --fg
 ```
 
 Run all tests with tag 'run-me' and abort previous in-progress runs.
 
 ```bash
-rainforest run --tag run-me --fg --conflict abort --token YOUR_TOKEN_HERE
+rainforest run --tag run-me --fg --conflict abort
 ```
 
 Create new Rainforest test in RFML format (Rainforest Markup Language).
@@ -52,7 +54,7 @@ rainforest new
 Upload tests to Rainforest
 
 ```bash
-rainforest upload --token YOUR_TOKEN_HERE
+rainforest upload
 ```
 
 Export tests from Rainforest
@@ -64,8 +66,7 @@ rainforest export --token YOUR_TOKEN_HERE
 
 ### General
 
-Required:
-- `--token <your-rainforest-token>` - you must supply your token (get it from any tests API tab)
+- `--token <your-rainforest-token>` - supply your token (get it from any tests API tab), if not set in `RAINFOREST_API_TOKEN` environment variable
 
 
 ### Running Tests

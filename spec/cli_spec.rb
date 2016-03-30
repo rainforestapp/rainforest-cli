@@ -173,6 +173,19 @@ describe RainforestCli do
       end
     end
 
+    context 'with token from env' do
+      let(:params) { %w(run) }
+
+      it 'starts the run without error' do
+        expect_any_instance_of(http_client).to receive(:post).with(
+          '/runs',
+          { tests: [] }
+        ).and_return({})
+        allow(ENV).to receive(:[]).with('RAINFOREST_API_TOKEN').and_return('x')
+        described_class.start(params)
+      end
+    end
+
     context 'a simple run' do
       before do
         allow_any_instance_of(http_client).to receive(:post).and_return('id' => 1)

@@ -87,16 +87,4 @@ class RainforestCli::Exporter
 
     out.compact.join("\n")
   end
-
-  def _get_id test
-    id = nil
-    test.description.to_s.strip.lines.map(&:chomp).each_with_index do |line, _line_no|
-      line = line.gsub(/\#+$/, '').strip
-      if line[0] == '!'
-        id = line[1..-1].split(' ').first
-        break
-      end
-    end
-    id
-  end
 end

@@ -11,7 +11,7 @@ class RainforestCli::TestFiles
       RainforestCli.logger.info "No test folder supplied. Using default folder: #{DEFAULT_TEST_FOLDER}"
       @test_folder = File.expand_path(DEFAULT_TEST_FOLDER)
     else
-      @test_folder = File.expand_path(test_folder)
+      @test_folder = File.expand_path(@options.test_folder)
     end
   end
 

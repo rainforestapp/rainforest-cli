@@ -4,14 +4,11 @@ describe RainforestCli::CSVImporter do
 
   describe '.import' do
     subject { described_class.new('variables', csv_file, 'abc123') }
-    let(:progressbar_mock) { double('ProgressBar') }
 
     before do
       # suppress output in terminal
       allow_any_instance_of(described_class).to receive(:print)
       allow_any_instance_of(described_class).to receive(:puts)
-      allow(ProgressBar).to receive(:create).and_return(progressbar_mock)
-      allow(progressbar_mock).to receive(:increment)
     end
 
     let(:columns) { %w(email pass) }

@@ -13,6 +13,12 @@ RSpec.configure do |config|
   # the seed, which is printed after each run.
   #     --seed 1234
   config.order = 'random'
+
+  config.before do
+    progressbar_mock = double('ProgressBar')
+    allow(ProgressBar).to receive(:create).and_return(progressbar_mock)
+    allow(progressbar_mock).to receive(:increment)
+  end
 end
 
 RSpec::Matchers.define :test_with_file_name do |expected_name|

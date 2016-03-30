@@ -44,7 +44,7 @@ EOF
 
       # File name
       file_name = sprintf('%010d', test.id) + '_' + test.title.strip.gsub(/[^a-z0-9 ]+/i, '').gsub(/ +/, '_').downcase
-      file_name = test_folder.create_file(file_name)
+      file_name = test_files.create_file(file_name)
       File.truncate(file_name, 0)
 
       # Get the full test from the API
@@ -53,9 +53,8 @@ EOF
       File.open(file_name, 'a') do |file|
         file.puts _get_header(test)
 
-        index = 0
-        test.elements.each do |element|
-          index = _process_element(file, element, index)
+        test.elements.each_with_index do |element, index|
+          _process_element(file, element, index)
         end
       end
     end
@@ -73,9 +72,6 @@ EOF
     else
       raise "Unknown element type: #{element[:type]}"
     end
-
-    index += 1
-    index
   end
 
   # add comments if not already present

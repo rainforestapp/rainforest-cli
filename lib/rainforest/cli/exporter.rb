@@ -7,22 +7,6 @@ require 'ruby-progressbar'
 class RainforestCli::Exporter
   attr_reader :options, :client, :test_files
 
-  SAMPLE_FILE = <<EOF
-#! %s (Test ID - only edit if this test has not yet been uploaded)
-# title: New test
-# start_uri: /
-#
-# Lines starting with # are test attributes or comments
-# Possible attributes: #{RainforestCli::TestParser::Parser::TEXT_FIELDS.join(', ')}
-#
-# Steps are composed of two lines: an action and a question. Example:
-#
-# This is the step action.
-# This is the step question?
-#
-
-EOF
-
   def initialize(options)
     @options = options
     ::Rainforest.api_key = @options.token

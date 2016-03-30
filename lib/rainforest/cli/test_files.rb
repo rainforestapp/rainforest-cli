@@ -2,13 +2,28 @@
 class RainforestCli::TestFiles
   DEFAULT_TEST_FOLDER = './spec/rainforest'
   FILE_EXTENSION = '.rfml'
+  SAMPLE_FILE = <<EOF
+#! %s (Test ID - only edit if this test has not yet been uploaded)
+# title: New test
+# start_uri: /
+#
+# Lines starting with # are test attributes or comments
+# Possible attributes: #{RainforestCli::TestParser::Parser::TEXT_FIELDS.join(', ')}
+#
+# Steps are composed of two lines: an action and a question. Example:
+#
+# This is the step action.
+# This is the step question?
+#
+
+EOF
 
   attr_reader :test_folder, :test_data
 
   def initialize(options)
     @options = options
     if @options.test_folder.nil?
-      RainforestCli.logger.info "No test folder supplied. Using default folder: #{DEFAULT_TEST_FOLDER}"
+      logger.info "No test folder supplied. Using default folder: #{DEFAULT_TEST_FOLDER}"
       @test_folder = File.expand_path(DEFAULT_TEST_FOLDER)
     else
       @test_folder = File.expand_path(@options.test_folder)
@@ -59,12 +74,18 @@ class RainforestCli::TestFiles
     uuid = SecureRandom.uuid
 
     name = file_name || uuid.to_s
-    name += ext unless name[-ext.length..-1] == ext
+    name += file_extension unless name[-file_extension.length..-1] == file_extension
     name = File.join(test_folder, name)
 
     File.open(name, 'w') { |file| file.write(sprintf(SAMPLE_FILE, uuid)) }
 
     logger.info "Created #{name}"
     name
+  end
+
+  private
+
+  def logger
+    RainforestCli.logger
   end
 end

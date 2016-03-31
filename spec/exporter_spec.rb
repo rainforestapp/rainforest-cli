@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 describe RainforestCli::Exporter do
-  let(:options) { instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil) }
+  let(:options) { instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil, embed_tests: nil) }
   subject { described_class.new(options) }
 
   describe '#export' do
@@ -11,13 +11,29 @@ describe RainforestCli::Exporter do
 
     let(:file) { FileDouble.new }
     let(:tests) { [Rainforest::Test.new(id: 123, title: 'Test title')] }
-    let(:rfml_id) { 'embedded_test_rfml_id' }
+    let(:embedded_rfml_id) { 'embedded_test_rfml_id' }
+    let(:embedded_test) do
+      {
+        rfml_id: embedded_rfml_id,
+        elements: [
+          {
+            type: 'step',
+            element: {
+              action: 'Embedded Action',
+              response: 'Embedded Response'
+            }
+          }
+        ]
+      }
+    end
     let(:single_test) do
       Rainforest::Test.new(
         {
           id: 123,
           title: 'Test title',
-          description: '! primary_rfml_id',
+          start_uri: '/uri',
+          tags: ['foo', 'bar'],
+          browsers: ['chrome', 'safari'],
           elements: [
             {
               type: 'step',
@@ -28,7 +44,7 @@ describe RainforestCli::Exporter do
             },
             {
               type: 'test',
-              element: { rfml_id: rfml_id }
+              element: embedded_test
             }
           ]
         }
@@ -45,17 +61,31 @@ describe RainforestCli::Exporter do
 
       allow(Rainforest::Test).to receive(:all).and_return(tests)
       allow(Rainforest::Test).to receive(:retrieve).and_return(single_test)
+
+      subject.export
     end
 
     it 'prints an action and response for a step' do
-      subject.export
       expect(file).to include('Step Action')
       expect(file).to include('Step Response')
     end
 
-    it 'prints an embedded test rfml id rather than the steps' do
-      subject.export
-      expect(file).to include("- #{rfml_id}")
+    it 'prints embedded steps' do
+      expect(file).to include('Embedded Action')
+      expect(file).to include('Embedded Response')
+      expect(file).to_not include("- #{embedded_rfml_id}")
+    end
+
+    context 'with embed-tests flag' do
+      let(:options) do
+        instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil, embed_tests: true)
+      end
+
+      it 'prints an embedded test rfml id rather than the steps' do
+        expect(file).to include("- #{embedded_rfml_id}")
+        expect(file).to_not include('Embedded Action')
+        expect(file).to_not include('Embedded Response')
+      end
     end
   end
 end

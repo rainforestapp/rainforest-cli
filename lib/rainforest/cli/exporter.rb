@@ -35,16 +35,18 @@ class RainforestCli::Exporter
       test = Rainforest::Test.retrieve(test.id)
 
       File.open(file_name, 'a') do |file|
-        file.puts _get_header(test)
+        file.puts(get_header(test))
 
         test.elements.each_with_index do |element, index|
-          _process_element(file, element, index)
+          process_element(file, element, index)
         end
       end
     end
   end
 
-  def _process_element file, element, index
+  private
+
+  def process_element file, element, index
     case element[:type]
     when 'test'
       if @options.embed_tests
@@ -52,7 +54,7 @@ class RainforestCli::Exporter
         file.puts "- #{element[:element][:rfml_id]}"
       else
         element[:element][:elements].each do |sub_element|
-          index = _process_element(file, sub_element, index)
+          index = process_element(file, sub_element, index)
         end
       end
     when 'step'
@@ -65,33 +67,15 @@ class RainforestCli::Exporter
     end
   end
 
-  # add comments if not already present
-  def _get_header test
-    out = []
+  def get_header(test)
+    <<-EOF
+#! #{test.rfml_id}
+# title: #{test.title}
+# start_uri: #{test.start_uri}
+# tags: #{test.tags.join(", ")}
+# browsers: #{test.browsers.join(", ")}
+#
 
-    has_id = false
-    test.description.to_s.strip.lines.map(&:chomp).each_with_index do |line, _line_no|
-      line = line.gsub(/\#+$/, '').strip
-
-      # make sure the test has an ID
-      has_id = true if line[0] == '!'
-
-      out << '#' + line
-    end
-
-    unless has_id
-      browsers = test.browsers.map {|b| b[:name] if b[:state] == 'enabled' }.compact
-      out = [
-        "#! #{SecureRandom.uuid}",
-        "# title: #{test.title}",
-        "# start_uri: #{test.start_uri}",
-        "# tags: #{test.tags.join(", ")}",
-        "# browsers: #{browsers.join(", ")}",
-        '#',
-        ' ',
-      ] + out
-    end
-
-    out.compact.join("\n")
+    EOF
   end
 end

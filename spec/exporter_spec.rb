@@ -33,7 +33,20 @@ describe RainforestCli::Exporter do
           title: 'Test title',
           start_uri: '/uri',
           tags: ['foo', 'bar'],
-          browsers: ['chrome', 'safari'],
+          browsers: [
+            {
+              name: 'chrome',
+              state: 'enabled'
+            },
+            {
+              name: 'safari',
+              state: 'enabled'
+            },
+            {
+              name: 'firefox',
+              state: 'disabled'
+            }
+          ],
           elements: [
             {
               type: 'step',
@@ -74,6 +87,13 @@ describe RainforestCli::Exporter do
       expect(file).to include('Embedded Action')
       expect(file).to include('Embedded Response')
       expect(file).to_not include("- #{embedded_rfml_id}")
+    end
+
+    it 'print enabled browsers only' do
+      comments = file[0]
+      expect(comments).to include('chrome')
+      expect(comments).to include('safari')
+      expect(comments).to_not include('firefox')
     end
 
     context 'with embed-tests flag' do

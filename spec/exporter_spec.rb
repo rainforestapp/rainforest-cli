@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 describe RainforestCli::Exporter do
-  let(:options) { instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil, embed_tests: nil) }
+  let(:options) do
+    instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil, embed_tests: nil)
+  end
   subject { described_class.new(options) }
 
   describe '#export' do

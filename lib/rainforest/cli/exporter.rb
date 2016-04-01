@@ -68,12 +68,13 @@ class RainforestCli::Exporter
   end
 
   def get_header(test)
+    browsers = test.browsers.map { |b| b[:name] if b[:state] == 'enabled' }.compact
     <<-EOF
 #! #{test.rfml_id}
 # title: #{test.title}
 # start_uri: #{test.start_uri}
 # tags: #{test.tags.join(", ")}
-# browsers: #{test.browsers.join(", ")}
+# browsers: #{browsers.join(", ")}
 #
 
     EOF

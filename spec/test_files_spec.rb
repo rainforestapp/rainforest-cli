@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 describe RainforestCli::TestFiles do
   describe '#test_data' do
-    let(:test_folder) { File.dirname(__FILE__) + '/rainforest-example' }
-    subject { described_class.new(test_folder) }
+    let(:test_directory) { File.dirname(__FILE__) + '/rainforest-example' }
+    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory) }
+    subject { described_class.new(options) }
 
     let(:rfml_test) { subject.test_data.first }
-    let(:text_file) { File.read(test_folder + '/example_test.rfml') }
+    let(:text_file) { File.read(test_directory + '/example_test.rfml') }
 
     it 'parses all available tests on initialization' do
       expect(rfml_test.title).to eq(text_file.match(/^# title: (.+)$/)[1])
@@ -16,7 +17,8 @@ describe RainforestCli::TestFiles do
   describe '#test_dictionary' do
     Test = Struct.new(:rfml_id, :id)
 
-    subject { described_class.new }
+    let(:options) { instance_double('RainforestCli::Options', test_folder: nil) }
+    subject { described_class.new(options) }
     let(:tests) { [Test.new('foo', 123), Test.new('bar', 456), Test.new('baz', 789)] }
 
     before do

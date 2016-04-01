@@ -1,12 +1,9 @@
 # frozen_string_literal: true
 describe RainforestCli::Uploader do
   let(:options) { instance_double('RainforestCli::Options', token: 'foo', test_folder: test_directory) }
-  let(:progress_bar_double) { double('ProgressBar') }
   subject { described_class.new(options) }
 
   before do
-    allow(ProgressBar).to receive(:create).and_return(progress_bar_double)
-    allow(progress_bar_double).to receive(:increment)
     allow_any_instance_of(RainforestCli::Validator).to receive(:validate_with_exception!)
     allow_any_instance_of(RainforestCli::RemoteTests).to receive(:primary_key_dictionary)
       .and_return({})

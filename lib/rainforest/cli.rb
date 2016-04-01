@@ -13,7 +13,7 @@ require 'rainforest/cli/test_parser'
 require 'rainforest/cli/test_files'
 require 'rainforest/cli/remote_tests'
 require 'rainforest/cli/validator'
-require 'rainforest/cli/test_importer'
+require 'rainforest/cli/exporter'
 require 'rainforest/cli/uploader'
 
 module RainforestCli
@@ -33,8 +33,8 @@ module RainforestCli
       runner = Runner.new(options)
       runner.run
     when 'new'
-      t = TestImporter.new(options)
-      t.create_new
+      t = TestFiles.new(options)
+      t.create_file
     when 'validate'
       t = Validator.new(options)
       t.validate
@@ -42,7 +42,7 @@ module RainforestCli
       t = Uploader.new(options)
       t.upload
     when 'export'
-      t = TestImporter.new(options)
+      t = Exporter.new(options)
       t.export
     else
       logger.fatal 'Unknown command'

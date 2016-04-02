@@ -1,3 +1,0 @@
-test:
-  pre:
-    - bundle exec circlemator style-check --base-branch=master

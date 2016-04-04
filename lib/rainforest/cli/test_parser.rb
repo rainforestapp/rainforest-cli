@@ -75,7 +75,7 @@ module RainforestCli::TestParser
       scratch = []
 
       # redirection is true by default
-      redirection = true
+      redirection = 'true'
 
       text.lines.each_with_index do |line, line_no|
         line = line.chomp
@@ -105,6 +105,10 @@ module RainforestCli::TestParser
             @test.steps << EmbeddedTest.new(line[1..-1].strip)
           elsif line.strip[0..10] == 'redirection'
             redirection = line.strip.match(/redirection: *([a-z]+)/)[1]
+
+            unless %w(true false).include?(redirection)
+              @test.errors[line_no] = Error.new(line_no, 'Redirection value must be true or false')
+            end
           else
             scratch << line.strip
           end

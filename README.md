@@ -68,6 +68,38 @@ rainforest export --token YOUR_TOKEN_HERE
 
 - `--token <your-rainforest-token>` - supply your token (get it from any tests API tab), if not set in `RAINFOREST_API_TOKEN` environment variable
 
+### Writing Tests
+Rainforest Tests written using RFML have the following format
+
+```
+#! [RFML_ID]
+# title: [TITLE]
+# start_uri: [START_URI]
+# tags: [TAGS]
+# [OTHER COMMENTS]
+
+redirection: [REDIRECTION FLAG]
+[ACTION]
+[QUESTION]
+```
+
+Legend:
+- `RFML_ID` - Unique identifier for your test. For newly generated tests, this will
+be a UUID, but you are free to change it for easier reference (for example, your
+login test might have the id `login_test`).
+- `TITLE` - The title of your test.
+- `START_URI` - The path used to direct the tester to the correct page to begin the test.
+- `TAGS` - Comma separated list of your desired tags for this test.
+- `OTHER COMMENTS` - Any comments you'd like to save to this test. All lines beginning with
+`#` will be ignored by Rainforest unless they begin with a supported test attribute,
+such as `tags` or `start_uri`.
+- `REDIRECTION FLAG` - An `true` or `false` flag to designate whether the tester should be
+redirected if the previous step is in an embedded test. This line is optional and
+can be omitted. The default value is `true`.
+- `ACTION` - The directions for your tester to follow in this step.
+- `QUESTION` - The question you would like your tester to answer.
+
+For more information on test writing, please visit our [documentation](http://support.rainforestqa.com/hc/en-us/sections/200585603-Writing-Tests).
 
 ### Running Tests
 The most popular options are:

@@ -72,7 +72,7 @@ rainforest export --token YOUR_TOKEN_HERE
 Rainforest Tests written using RFML have the following format
 
 ```
-#! [RFML_ID]
+#! [RFML ID]
 # title: [TITLE]
 # start_uri: [START_URI]
 # tags: [TAGS]
@@ -81,14 +81,25 @@ Rainforest Tests written using RFML have the following format
 redirection: [REDIRECTION FLAG]
 [ACTION]
 [QUESTION]
+
+- [EMBEDDED TEST RFML ID]
+.
+.
+.
 ```
 
-Legend:
-- `RFML_ID` - Unique identifier for your test. For newly generated tests, this will
+Required Fields:
+- `RFML ID` - Unique identifier for your test. For newly generated tests, this will
 be a UUID, but you are free to change it for easier reference (for example, your
 login test might have the id `login_test`).
 - `TITLE` - The title of your test.
 - `START_URI` - The path used to direct the tester to the correct page to begin the test.
+- `ACTION` - The directions for your tester to follow in this step. You must have at
+least one step in your test.
+- `QUESTION` - The question you would like your tester to answer in this step. You must
+have at least one step in your test.
+
+Optional Fields:
 - `TAGS` - Comma separated list of your desired tags for this test.
 - `OTHER COMMENTS` - Any comments you'd like to save to this test. All lines beginning with
 `#` will be ignored by Rainforest unless they begin with a supported test attribute,
@@ -96,8 +107,8 @@ such as `tags` or `start_uri`.
 - `REDIRECTION FLAG` - An `true` or `false` flag to designate whether the tester should be
 redirected if the previous step is in an embedded test. This line is optional and
 can be omitted. The default value is `true`.
-- `ACTION` - The directions for your tester to follow in this step.
-- `QUESTION` - The question you would like your tester to answer.
+- `EMBEDDED TEST RFML ID` - Embed the steps of another test within the current test
+using the embedded test's RFML ID.
 
 For more information on test writing, please visit our [documentation](http://support.rainforestqa.com/hc/en-us/sections/200585603-Writing-Tests).
 

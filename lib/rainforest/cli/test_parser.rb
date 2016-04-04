@@ -20,7 +20,7 @@ module RainforestCli::TestParser
     end
   end
 
-  class Step < Struct.new(:action, :response)
+  class Step < Struct.new(:action, :response, :redirection)
     def type
       :step
     end
@@ -32,7 +32,7 @@ module RainforestCli::TestParser
     def to_element
       {
         type: 'step',
-        redirection: true,
+        redirection: redirection,
         element: {
           action: action,
           response: response
@@ -74,6 +74,9 @@ module RainforestCli::TestParser
     def process
       scratch = []
 
+      # redirection is true by default
+      redirection = true
+
       text.lines.each_with_index do |line, line_no|
         line = line.chomp
         if line[0..1] == '#!'
@@ -100,6 +103,8 @@ module RainforestCli::TestParser
         elsif scratch.count == 0 && line.strip != ''
           if line[0] == '-'
             @test.steps << EmbeddedTest.new(line[1..-1].strip)
+          elsif line.strip[0..10] == 'redirection'
+            redirection = line.strip.match(/redirection: *([a-z]+)/)[1]
           else
             scratch << line.strip
           end
@@ -120,7 +125,7 @@ module RainforestCli::TestParser
         end
 
         if scratch.count == 2
-          @test.steps << Step.new(scratch[0], scratch[1])
+          @test.steps << Step.new(scratch[0], scratch[1], redirection)
           scratch = []
         end
       end

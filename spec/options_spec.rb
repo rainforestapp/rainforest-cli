@@ -121,6 +121,7 @@ describe RainforestCli::OptionParser do
 
     context 'with missing token' do
       let(:args) { %w() }
+      before { ENV['RAINFOREST_API_TOKEN'] = nil }
       it { raises_a_validation_exception }
     end
 

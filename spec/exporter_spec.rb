@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 describe RainforestCli::Exporter do
   let(:options) do
-    instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil, embed_tests: nil)
+    instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil, embed_tests: nil, tests: [])
   end
   subject { described_class.new(options) }
 
@@ -100,13 +100,32 @@ describe RainforestCli::Exporter do
 
     context 'with embed-tests flag' do
       let(:options) do
-        instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil, embed_tests: true)
+        instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil, embed_tests: true, tests: [])
       end
 
       it 'prints an embedded test rfml id rather than the steps' do
         expect(file).to include("- #{embedded_rfml_id}")
         expect(file).to_not include('Embedded Action')
         expect(file).to_not include('Embedded Response')
+      end
+    end
+
+    context 'with specific tests' do
+      let(:tests) { (123..127).to_a }
+      let(:options) do
+        instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil, embed_tests: nil, tests: tests)
+      end
+
+      it 'gets specific tests instead of all' do
+        expect(Rainforest::Test).to receive(:retrieve).exactly(tests.length).times
+        expect(Rainforest::Test).to receive(:all).exactly(0).times
+        subject.export
+      end
+
+      it 'opens correct number of files' do
+        expect(File).to receive(:open).exactly(tests.length).times
+        expect_any_instance_of(RainforestCli::TestFiles).to receive(:create_file).exactly(tests.length).times
+        subject.export
       end
     end
   end

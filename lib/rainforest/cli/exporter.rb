@@ -22,12 +22,12 @@ class RainforestCli::Exporter
   end
 
   def export
-    test_ids = []
-    if @options.tests.length > 0
-      test_ids = @options.tests
-    else
-      test_ids = Rainforest::Test.all(page_size: 1000).map { |t| t.id }
-    end
+    test_ids =
+      if @options.tests.length > 0
+        @options.tests
+      else
+        Rainforest::Test.all(page_size: 1000).map { |t| t.id }
+      end
     p = ProgressBar.create(title: 'Rows', total: test_ids.count, format: '%a %B %p%% %t')
     Parallel.each(test_ids, in_threads: threads, finish: lambda { |_item, _i, _result| p.increment }) do |test_id|
       # Get the full test from the API

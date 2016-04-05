@@ -100,7 +100,11 @@ describe RainforestCli::Exporter do
 
     context 'with embed-tests flag' do
       let(:options) do
-        instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil, embed_tests: true, tests: [])
+        instance_double(
+          'RainforestCli::Options',
+          token: nil, test_folder: nil,
+          debug: nil, embed_tests: true, tests: []
+        )
       end
 
       it 'prints an embedded test rfml id rather than the steps' do
@@ -113,7 +117,11 @@ describe RainforestCli::Exporter do
     context 'with specific tests' do
       let(:tests) { (123..127).to_a }
       let(:options) do
-        instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil, embed_tests: nil, tests: tests)
+        instance_double(
+          'RainforestCli::Options',
+          token: nil, test_folder: nil, debug: nil,
+          embed_tests: nil, tests: tests
+        )
       end
 
       it 'gets specific tests instead of all' do

@@ -6,7 +6,7 @@ module RainforestCli
     attr_writer :file_name, :tags
     attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
                 :import_file_name, :import_name, :custom_url, :description, :folder,
-                :debug, :file_name, :test_folder
+                :debug, :file_name, :test_folder, :embed_tests
 
     # Note, not all of these may be available to your account
     # also, we may remove this in the future.
@@ -117,6 +117,10 @@ module RainforestCli
 
         opts.on('--description DESCRIPTION', 'Add a description for the run.') do |value|
           @description = value
+        end
+
+        opts.on('--embed-tests', 'Export tests without expanding embedded test steps') do |_value|
+          @embed_tests = true
         end
 
         opts.on_tail('--help', 'Display help message and exit') do |_value|

@@ -78,14 +78,16 @@ Rainforest Tests written using RFML have the following format
 # tags: [TAGS]
 # [OTHER COMMENTS]
 
-redirection: [REDIRECTION FLAG]
-[ACTION]
-[QUESTION]
+[ACTION 1]
+[QUESTION 1]
 
+redirection: [REDIRECTION FLAG]
 - [EMBEDDED TEST RFML ID]
-.
-.
-.
+
+[ACTION 2]
+[QUESTION 2]
+
+... etc.
 ```
 
 Required Fields:
@@ -94,19 +96,19 @@ be a UUID, but you are free to change it for easier reference (for example, your
 login test might have the id `login_test`).
 - `TITLE` - The title of your test.
 - `START_URI` - The path used to direct the tester to the correct page to begin the test.
-- `ACTION` - The directions for your tester to follow in this step. You must have at
-least one step in your test.
-- `QUESTION` - The question you would like your tester to answer in this step. You must
-have at least one step in your test.
+- `ACTION 1`, `ACTION 2`, ... - The directions for your tester to follow in this
+step. You must have at least one step in your test.
+- `QUESTION 1`, `QUESTION 2`, ... - The question you would like your tester to
+answer in this step. You must have at least one step in your test.
 
 Optional Fields:
 - `TAGS` - Comma separated list of your desired tags for this test.
 - `OTHER COMMENTS` - Any comments you'd like to save to this test. All lines beginning with
 `#` will be ignored by Rainforest unless they begin with a supported test attribute,
 such as `tags` or `start_uri`.
-- `REDIRECTION FLAG` - An `true` or `false` flag to designate whether the tester should be
-redirected if the previous step is in an embedded test. This line is optional and
-can be omitted. The default value is `true`.
+- `REDIRECTION FLAG` - A `true` or `false` flag to designate whether the tester should be
+redirected. This line is optional and can be omitted. The default value is `true`.
+This flag is only applicable for embedded tests and the first step of a test.
 - `EMBEDDED TEST RFML ID` - Embed the steps of another test within the current test
 using the embedded test's RFML ID.
 

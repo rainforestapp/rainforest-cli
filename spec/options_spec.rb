@@ -19,6 +19,11 @@ describe RainforestCli::OptionParser do
       its(:import_name) { should == 'some_name' }
     end
 
+    context 'app_source_url' do
+      let(:args) { ['--app-source-url', 'some_app'] }
+      its(:app_source_url) { should == 'some_app' }
+    end
+
     context 'run all tests' do
       let(:args) { ['run', 'all'] }
       its(:tests) { should == ['all']}

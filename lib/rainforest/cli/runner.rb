@@ -99,6 +99,7 @@ module RainforestCli
         end
       end
 
+      post_opts[:app_source_url] = options.app_source_url if options.app_source_url
       post_opts[:conflict] = options.conflict if options.conflict
       post_opts[:browsers] = options.browsers if options.browsers
       post_opts[:site_id] = options.site_id if options.site_id

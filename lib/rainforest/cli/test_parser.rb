@@ -106,8 +106,8 @@ module RainforestCli::TestParser
 
             # reset redirection flag
             redirection = 'true'
-          elsif line.strip[0..10] == 'redirection'
-            redirection = line.strip.match(/redirection: *([a-z]+)/)[1]
+          elsif line.strip[0..7] == 'redirect'
+            redirection = line.strip.match(/redirect: *([a-z]+)/)[1]
 
             unless %w(true false).include?(redirection)
               @test.errors[line_no] = Error.new(line_no, 'Redirection value must be true or false')

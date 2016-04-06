@@ -5,6 +5,6 @@
 
 - another_test
 
-redirection: foo
+redirect: foo
 This is a step action.
 This is a question?

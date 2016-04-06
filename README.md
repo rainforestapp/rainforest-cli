@@ -81,7 +81,7 @@ Rainforest Tests written using RFML have the following format
 [ACTION 1]
 [QUESTION 1]
 
-redirection: [REDIRECTION FLAG]
+redirect: [REDIRECT FLAG]
 - [EMBEDDED TEST RFML ID]
 
 [ACTION 2]
@@ -106,9 +106,9 @@ Optional Fields:
 - `OTHER COMMENTS` - Any comments you'd like to save to this test. All lines beginning with
 `#` will be ignored by Rainforest unless they begin with a supported test attribute,
 such as `tags` or `start_uri`.
-- `REDIRECTION FLAG` - A `true` or `false` flag to designate whether the tester should be
-redirected. This line is optional and can be omitted. The default value is `true`.
-This flag is only applicable for embedded tests and the first step of a test.
+- `REDIRECT FLAG` - A `true` or `false` flag to designate whether the tester should be
+redirected. The default value is `true`. This flag is only applicable for embedded
+tests and the first step of a test.
 - `EMBEDDED TEST RFML ID` - Embed the steps of another test within the current test
 using the embedded test's RFML ID.
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 module RainforestCli::TestParser
-  class EmbeddedTest < Struct.new(:rfml_id)
+  class EmbeddedTest < Struct.new(:rfml_id, :redirection)
     def type
       :test
     end
@@ -12,7 +12,7 @@ module RainforestCli::TestParser
     def to_element(primary_key_id)
       {
         type: 'test',
-        redirection: true,
+        redirection: redirection,
         element: {
           id: primary_key_id
         }
@@ -102,7 +102,10 @@ module RainforestCli::TestParser
 
         elsif scratch.count == 0 && line.strip != ''
           if line[0] == '-'
-            @test.steps << EmbeddedTest.new(line[1..-1].strip)
+            @test.steps << EmbeddedTest.new(line[1..-1].strip, redirection)
+
+            # reset redirection flag
+            redirection = 'true'
           elsif line.strip[0..10] == 'redirection'
             redirection = line.strip.match(/redirection: *([a-z]+)/)[1]
 
@@ -131,6 +134,7 @@ module RainforestCli::TestParser
         if scratch.count == 2
           @test.steps << Step.new(scratch[0], scratch[1], redirection)
           scratch = []
+          redirection = 'true'
         end
       end
 

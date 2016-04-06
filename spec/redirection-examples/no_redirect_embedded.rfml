@@ -1,10 +1,10 @@
-#! example_test (Test ID - only edit if this test has not yet been uploaded)
+#! example_test
 # title: Example Test
 # tags: foo,bar,baz
 # start_uri: /start_uri
 
-- another_test
-
-redirection: foo
 This is a step action.
 This is a question?
+
+redirection: false
+- another_test

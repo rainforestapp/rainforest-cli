@@ -11,44 +11,87 @@ describe RainforestCli::TestParser do
   end
 
   describe RainforestCli::TestParser::Parser do
-    let(:file_name) { File.dirname(__FILE__) + '/rainforest-example/example_test.rfml' }
     subject { described_class.new(file_name) }
 
     describe '#process' do
       context 'redirection' do
-        it 'sets redirection to true by default' do
-          test = subject.process
-          step = test.steps.first
-          expect(step.redirection).to eq('true')
-        end
+        context 'step' do
+          let(:file_name) { File.dirname(__FILE__) + '/rainforest-example/example_test.rfml' }
 
-        context 'redirection specified as false' do
-          let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/no_redirect.rfml' }
-
-          it 'sets redirection to false' do
-            test = subject.process
-            step = test.steps.first
-            expect(step.redirection).to eq('false')
-          end
-        end
-
-        context 'redirection specified as true' do
-          let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/redirect.rfml' }
-
-          it 'sets redirection to false' do
+          it 'sets redirection to true by default' do
             test = subject.process
             step = test.steps.first
             expect(step.redirection).to eq('true')
           end
+
+          context 'redirection specified as false' do
+            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/no_redirect.rfml' }
+
+            it 'sets redirection to false' do
+              test = subject.process
+              step = test.steps.last
+              expect(step.redirection).to eq('false')
+            end
+          end
+
+          context 'redirection specified as true' do
+            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/redirect.rfml' }
+
+            it 'sets redirection to false' do
+              test = subject.process
+              step = test.steps.last
+              expect(step.redirection).to eq('true')
+            end
+          end
+
+          context 'redirection specified as not true or false' do
+            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/wrong_redirect.rfml' }
+            let(:redirect_line_no) { 7 }
+
+            it 'creates an error with the correct line number' do
+              test = subject.process
+              expect(test.errors[redirect_line_no]).to_not be_nil
+            end
+          end
         end
 
-        context 'redirection specified as not true or false' do
-          let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/wrong_redirect.rfml' }
-          let(:redirect_line_no) { 5 }
+        context 'embedded test' do
+          let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/embedded.rfml' }
 
-          it 'creates an error with the correct line number' do
+          it 'sets redirection to true by default' do
             test = subject.process
-            expect(test.errors[redirect_line_no]).to_not be_nil
+            step = test.steps.last
+            expect(step.redirection).to eq('true')
+          end
+
+          context 'redirection specified as false' do
+            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/no_redirect_embedded.rfml' }
+
+            it 'sets redirection to false' do
+              test = subject.process
+              step = test.steps.last
+              expect(step.redirection).to eq('false')
+            end
+          end
+
+          context 'redirection specified as true' do
+            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/redirect_embedded.rfml' }
+
+            it 'sets redirection to false' do
+              test = subject.process
+              step = test.steps.last
+              expect(step.redirection).to eq('true')
+            end
+          end
+
+          context 'redirection specified as not true or false' do
+            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/wrong_redirect_embedded.rfml' }
+            let(:redirect_line_no) { 8 }
+
+            it 'creates an error with the correct line number' do
+              test = subject.process
+              expect(test.errors[redirect_line_no]).to_not be_nil
+            end
           end
         end
       end

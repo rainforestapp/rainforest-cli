@@ -124,6 +124,7 @@ Popular command line options are:
 - `--browsers ie8` or `--browsers ie8,chrome` - specify the browsers you wish to run against. This overrides the test own settings. Valid browsers can be found in your account settings.
 - `--tag run-me` - only run tests which have this tag (recommended if you have lots of [test-steps](http://docs.rainforestqa.com/pages/example-test-suite.html#test_steps))!)
 - `--site-id` - only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
+- `--folder ID` - run tests in specified folder.
 - `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
 - `--conflict OPTION` - use the `abort` option to abort any runs in progress in the same environment as your new run. use the `abort-all` option to abort all runs in progress.
 - `--fg` - results in the foreground - rainforest-cli will not return until the run is complete. This is what you want to make the build pass / fail dependent on rainforest results

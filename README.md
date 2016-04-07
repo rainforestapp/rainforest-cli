@@ -104,7 +104,7 @@ answer in this step. You must have at least one step in your test.
 Optional Fields:
 - `TAGS` - Comma separated list of your desired tags for this test.
 - `OTHER COMMENTS` - Any comments you'd like to save to this test. All lines beginning with
-`#` will be ignored by Rainforest unless they begin with a supported test attribute,
+`#` will be ignored by Rainforest unless they begin with a supported data field,
 such as `tags` or `start_uri`.
 - `REDIRECT FLAG` - A `true` or `false` flag to designate whether the tester should be
 redirected. The default value is `true`. This flag is only applicable for embedded

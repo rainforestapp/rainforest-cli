@@ -1,5 +1,22 @@
 # Rainforest CLI Changelog
 
+# 1.3.0 - 7th April 2016
+- Export tests with embedded tests unflattened. (0ed4c62cac8a0d5fbd98f03190d3c18c48ac7119,
+@epaulet)
+- Add option to save API token in environment rather than specifying in commands.
+(eaa32e87dff2881074c920f6ffc278d1fcd25ae7, @valeriangalliat)
+- Fixed a bug where tests would upload without the correct source attribute if
+an upload command failed in the middle of executing. (92df14606304957c5c58719a8999471df5f4f8c0,
+@epaulet)
+- Specify app source url as a command line option. (d02f750e885824c1b6f141344af9a34fc99e7527,
+@ukd1)
+- Add support for redirect flag on steps and embedded test. (e54a3f78333d4b8398b8aece40ebfbaaf4113eb4,
+@epaulet)
+- Add support for site_id attribute in RFML test and add `sites` command for
+site ID reference. (7b628b12879f5c2230181d5e4badf785c26c8035, @epaulet)
+- Add support for exporting specified tests using test IDs found on dashboard.
+(69d104d7452dcb2ba7925d1de86532f250b72f41, @ziahamza)
+
 # 1.2.2 - 21st March 2016
 - Add support for Ruby 1.9.3 for easier usage on CircleCI. (16d74306a160c0fca8d34bc32493119051179c90, @epaulet)
 

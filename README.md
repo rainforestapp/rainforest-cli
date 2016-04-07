@@ -57,9 +57,14 @@ Upload tests to Rainforest
 rainforest upload
 ```
 
-Export tests from Rainforest
+Export all tests from Rainforest
 ```bash
 rainforest export --token YOUR_TOKEN_HERE
+```
+
+Export individual tests with id 1232 & 3212 from Rainforest
+```bash
+rainforest export --token YOUR_TOKEN_HERE 1232 3212
 ```
 
 ## Options

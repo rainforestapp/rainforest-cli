@@ -5,6 +5,6 @@
 
 - another_test
 
-redirect: false
+# redirect: false
 This is a step action.
 This is a question?

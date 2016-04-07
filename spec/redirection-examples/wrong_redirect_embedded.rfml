@@ -6,5 +6,5 @@
 This is a step action.
 This is a question?
 
-redirect: foo
+# redirect: foo
 - another_test

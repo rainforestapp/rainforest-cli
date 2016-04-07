@@ -68,14 +68,13 @@ module RainforestCli::TestParser
       @test.browsers = []
     end
 
-    TEXT_FIELDS = [:start_uri, :title, :tags].freeze
+    RFML_TEST_DATA_FIELDS = [:start_uri, :title, :tags].freeze
+    DEFAULT_STEP_SETTINGS = { redirect: 'true' }.freeze
     CSV_FIELDS = [:tags, :browsers].freeze
 
     def process
-      scratch = []
-
-      # redirection is true by default
-      redirection = 'true'
+      step_scratch = []
+      step_settings_scratch = DEFAULT_STEP_SETTINGS.dup
 
       text.lines.each_with_index do |line, line_no|
         line = line.chomp
@@ -88,7 +87,16 @@ module RainforestCli::TestParser
           # comment, store in description
           @test.description += line[1..-1] + "\n"
 
-          (CSV_FIELDS + TEXT_FIELDS).each do |field|
+          if line[1..-1].strip[0..8] == 'redirect:'
+            value = line[1..-1].split(' ')[1..-1].join(' ').strip
+            if %(true false).include?(value)
+              step_settings_scratch[:redirect] = value
+            else
+              @test.errors[line_no] = Error.new(line_no, 'Redirection value must be true or false')
+            end
+          end
+
+          (CSV_FIELDS + RFML_TEST_DATA_FIELDS).each do |field|
             next unless line[1..-1].strip[0..(field.length)] == "#{field}:"
 
             # extract just the text of the field
@@ -100,41 +108,33 @@ module RainforestCli::TestParser
             end
           end
 
-        elsif scratch.count == 0 && line.strip != ''
+        elsif step_scratch.count == 0 && line.strip != ''
           if line[0] == '-'
-            @test.steps << EmbeddedTest.new(line[1..-1].strip, redirection)
-
-            # reset redirection flag
-            redirection = 'true'
-          elsif line.strip[0..7] == 'redirect'
-            redirection = line.strip.match(/redirect: *([a-z]+)/)[1]
-
-            unless %w(true false).include?(redirection)
-              @test.errors[line_no] = Error.new(line_no, 'Redirection value must be true or false')
-            end
+            @test.steps << EmbeddedTest.new(line[1..-1].strip, step_settings_scratch[:redirect])
+            step_settings_scratch = DEFAULT_STEP_SETTINGS.dup
           else
-            scratch << line.strip
+            step_scratch << line.strip
           end
 
-        elsif scratch.count == 1
+        elsif step_scratch.count == 1
           if line.strip == ''
             @test.errors[line_no] = Error.new(line_no, 'Missing question')
           elsif !line.include?('?')
             @test.errors[line_no] = Error.new(line_no, 'Missing ?')
           else
-            scratch << line.strip
+            step_scratch << line.strip
           end
 
         end
 
         if @test.errors.has_key?(line_no)
-          scratch = []
+          step_scratch = []
         end
 
-        if scratch.count == 2
-          @test.steps << Step.new(scratch[0], scratch[1], redirection)
-          scratch = []
-          redirection = 'true'
+        if step_scratch.count == 2
+          @test.steps << Step.new(step_scratch[0], step_scratch[1], step_settings_scratch[:redirect])
+          step_scratch = []
+          step_settings_scratch = DEFAULT_STEP_SETTINGS.dup
         end
       end
 

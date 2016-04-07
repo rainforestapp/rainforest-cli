@@ -81,7 +81,7 @@ Rainforest Tests written using RFML have the following format
 [ACTION 1]
 [QUESTION 1]
 
-redirect: [REDIRECT FLAG]
+# redirect: [REDIRECT FLAG]
 - [EMBEDDED TEST RFML ID]
 
 [ACTION 2]

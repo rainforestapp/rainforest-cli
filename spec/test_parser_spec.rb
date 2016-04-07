@@ -37,7 +37,7 @@ describe RainforestCli::TestParser do
           context 'redirection specified as true' do
             let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/redirect.rfml' }
 
-            it 'sets redirection to false' do
+            it 'sets redirection to true' do
               test = subject.process
               step = test.steps.last
               expect(step.redirection).to eq('true')

@@ -6,5 +6,5 @@
 This is a step action.
 This is a question?
 
-redirect: false
+# redirect: false 
 - another_test

@@ -7,6 +7,13 @@ describe RainforestCli::TestParser do
       it 'includes redirection key/value pair' do
         expect(subject.to_element).to include(redirection: 'redirect')
       end
+
+      context 'with no redirect' do
+        subject { described_class.new('action', 'response', nil) }
+        it 'defaults redirection to true' do
+          expect(subject.to_element).to include(redirection: 'true')
+        end
+      end
     end
   end
 
@@ -22,16 +29,6 @@ describe RainforestCli::TestParser do
             test = subject.process
             step = test.steps.first
             expect(step.redirection).to eq('true')
-          end
-
-          context 'redirection specified as false' do
-            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/no_redirect.rfml' }
-
-            it 'sets redirection to false' do
-              test = subject.process
-              step = test.steps.last
-              expect(step.redirection).to eq('false')
-            end
           end
 
           context 'redirection specified as true' do
@@ -56,14 +53,6 @@ describe RainforestCli::TestParser do
         end
 
         context 'embedded test' do
-          let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/embedded.rfml' }
-
-          it 'sets redirection to true by default' do
-            test = subject.process
-            step = test.steps.last
-            expect(step.redirection).to eq('true')
-          end
-
           context 'redirection specified as false' do
             let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/no_redirect_embedded.rfml' }
 
@@ -86,6 +75,18 @@ describe RainforestCli::TestParser do
 
           context 'redirection specified as not true or false' do
             let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/wrong_redirect_embedded.rfml' }
+            let(:redirect_line_no) { 8 }
+
+            it 'creates an error with the correct line number' do
+              test = subject.process
+              expect(test.errors[redirect_line_no]).to_not be_nil
+            end
+          end
+        end
+
+        context 'poor syntax' do
+          context 'extra empty lines' do
+            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/wrong_redirect_spacing.rfml' }
             let(:redirect_line_no) { 8 }
 
             it 'creates an error with the correct line number' do

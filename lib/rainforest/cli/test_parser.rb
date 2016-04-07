@@ -1,12 +1,16 @@
 # frozen_string_literal: true
 module RainforestCli::TestParser
-  class EmbeddedTest < Struct.new(:rfml_id, :redirection)
+  class EmbeddedTest < Struct.new(:rfml_id, :redirect)
     def type
       :test
     end
 
     def to_s
       "--> embed: #{rfml_id}"
+    end
+
+    def redirection
+      redirect || 'true'
     end
 
     def to_element(primary_key_id)
@@ -20,9 +24,13 @@ module RainforestCli::TestParser
     end
   end
 
-  class Step < Struct.new(:action, :response, :redirection)
+  class Step < Struct.new(:action, :response, :redirect)
     def type
       :step
+    end
+
+    def redirection
+      redirect || 'true'
     end
 
     def to_s
@@ -68,13 +76,13 @@ module RainforestCli::TestParser
       @test.browsers = []
     end
 
-    RFML_TEST_DATA_FIELDS = [:start_uri, :title, :tags].freeze
-    DEFAULT_STEP_SETTINGS = { redirect: 'true' }.freeze
+    TEST_DATA_FIELDS = [:start_uri, :title, :tags].freeze
+    STEP_DATA_FIELDS = [:redirect].freeze
     CSV_FIELDS = [:tags, :browsers].freeze
 
     def process
       step_scratch = []
-      step_settings_scratch = DEFAULT_STEP_SETTINGS.dup
+      step_settings_scratch = {}
 
       text.lines.each_with_index do |line, line_no|
         line = line.chomp
@@ -96,7 +104,7 @@ module RainforestCli::TestParser
             end
           end
 
-          (CSV_FIELDS + RFML_TEST_DATA_FIELDS).each do |field|
+          (CSV_FIELDS + TEST_DATA_FIELDS).each do |field|
             next unless line[1..-1].strip[0..(field.length)] == "#{field}:"
 
             # extract just the text of the field
@@ -111,7 +119,7 @@ module RainforestCli::TestParser
         elsif step_scratch.count == 0 && line.strip != ''
           if line[0] == '-'
             @test.steps << EmbeddedTest.new(line[1..-1].strip, step_settings_scratch[:redirect])
-            step_settings_scratch = DEFAULT_STEP_SETTINGS.dup
+            step_settings_scratch = {}
           else
             step_scratch << line.strip
           end
@@ -125,6 +133,8 @@ module RainforestCli::TestParser
             step_scratch << line.strip
           end
 
+        elsif line.strip.empty? && step_settings_scratch.any?
+          @test.errors[line_no] = Error.new(line_no, 'Extra space between step attributes and step content.')
         end
 
         if @test.errors.has_key?(line_no)
@@ -134,7 +144,7 @@ module RainforestCli::TestParser
         if step_scratch.count == 2
           @test.steps << Step.new(step_scratch[0], step_scratch[1], step_settings_scratch[:redirect])
           step_scratch = []
-          step_settings_scratch = DEFAULT_STEP_SETTINGS.dup
+          step_settings_scratch = {}
         end
       end
 

@@ -76,6 +76,7 @@ Rainforest Tests written using RFML have the following format
 # title: [TITLE]
 # start_uri: [START_URI]
 # tags: [TAGS]
+# site_id: [SITE ID]
 # [OTHER COMMENTS]
 
 [ACTION 1]
@@ -102,6 +103,9 @@ step. You must have at least one step in your test.
 answer in this step. You must have at least one step in your test.
 
 Optional Fields:
+- `SITE ID` - Site ID for the site this test is for. You can find your available
+site IDs with the `sites` command. Sites can be configured at
+https://app.rainforestqa.com/settings/sites.
 - `TAGS` - Comma separated list of your desired tags for this test.
 - `OTHER COMMENTS` - Any comments you'd like to save to this test. All lines beginning with
 `#` will be ignored by Rainforest unless they begin with a supported data field,

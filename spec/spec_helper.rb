@@ -18,6 +18,7 @@ RSpec.configure do |config|
     progressbar_mock = double('ProgressBar')
     allow(ProgressBar).to receive(:create).and_return(progressbar_mock)
     allow(progressbar_mock).to receive(:increment)
+    ENV['RAINFOREST_API_TOKEN'] = nil
   end
 end
 

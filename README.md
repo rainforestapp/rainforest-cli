@@ -59,12 +59,7 @@ rainforest upload
 
 Export all tests from Rainforest
 ```bash
-rainforest export --token YOUR_TOKEN_HERE
-```
-
-Export individual tests with id 1232 & 3212 from Rainforest
-```bash
-rainforest export --token YOUR_TOKEN_HERE 1232 3212
+rainforest export
 ```
 
 ## Options
@@ -123,10 +118,10 @@ using the embedded test's RFML ID.
 
 For more information on test writing, please visit our [documentation](http://support.rainforestqa.com/hc/en-us/sections/200585603-Writing-Tests).
 
-### Running Tests
-The most popular options are:
+### Command Line Options
 
-- `--browsers ie8` or `--browsers ie8,chrome` - specficy the browsers you wish to run against. This overrides the test own settings. Valid browsers are ie8, ie9, chrome, firefox and safari.
+Popular command line options are:
+- `--browsers ie8` or `--browsers ie8,chrome` - specify the browsers you wish to run against. This overrides the test own settings. Valid browsers can be found in your account settings.
 - `--tag run-me` - only run tests which have this tag (recommended if you have lots of [test-steps](http://docs.rainforestqa.com/pages/example-test-suite.html#test_steps))!)
 - `--site-id` - only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
 - `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
@@ -138,6 +133,17 @@ The most popular options are:
 - `--description "CI automatic run"` - add an arbitrary description for the run.
 - `--embed-tests` - Use with `rainforest export` to export your tests without extracting the
 steps of an embedded test.
+
+
+#### Specifying Test IDs
+Any integers input as arguments in the command line arguments are treated as
+test IDs taken from the Rainforest dashboard. ie:
+
+`rainforest run --token $TOKEN 1232 3212` - will export only tests
+1232 and 3212. The `export` and `run` commands and are otherwise ignored.
+
+All other argument types should be specified as seen above.
+
 
 More detailed info on options can be [found here](https://github.com/rainforestapp/rainforest-cli/blob/master/lib/rainforest/cli/options.rb#L23-L74).
 

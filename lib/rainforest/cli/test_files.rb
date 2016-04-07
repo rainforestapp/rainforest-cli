@@ -3,18 +3,17 @@ class RainforestCli::TestFiles
   DEFAULT_TEST_FOLDER = './spec/rainforest'
   FILE_EXTENSION = '.rfml'
   SAMPLE_FILE = <<EOF
-#! %s (Test ID - only edit if this test has not yet been uploaded)
+#! %s
 # title: New test
 # start_uri: /
+# tags: rfml-test
 #
-# Lines starting with # are test attributes or comments
-# Possible attributes: #{RainforestCli::TestParser::Parser::TEXT_FIELDS.join(', ')}
-#
-# Steps are composed of two lines: an action and a question. Example:
-#
-# This is the step action.
-# This is the step question?
-#
+
+This is a step action.
+This is a step question?
+
+This is another step action.
+This is another step question?
 
 EOF
 

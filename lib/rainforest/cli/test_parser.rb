@@ -49,7 +49,18 @@ module RainforestCli::TestParser
     end
   end
 
-  class Test < Struct.new(:file_name, :rfml_id, :description, :title, :start_uri, :steps, :errors, :tags, :browsers)
+  class Test < Struct.new(
+    :file_name,
+    :rfml_id,
+    :description,
+    :title,
+    :start_uri,
+    :site_id,
+    :steps,
+    :errors,
+    :tags,
+    :browsers
+  )
     def embedded_ids
       steps.inject([]) { |embeds, step| step.type == :test ? embeds + [step.rfml_id] : embeds }
     end
@@ -76,7 +87,7 @@ module RainforestCli::TestParser
       @test.browsers = []
     end
 
-    TEST_DATA_FIELDS = [:start_uri, :title, :tags].freeze
+    TEST_DATA_FIELDS = [:start_uri, :title, :tags, :site_id].freeze
     STEP_DATA_FIELDS = [:redirect].freeze
     CSV_FIELDS = [:tags, :browsers].freeze
 

@@ -83,6 +83,7 @@ class RainforestCli::Uploader
     test_obj = {
       start_uri: rfml_test.start_uri || '/',
       title: rfml_test.title,
+      site_id: rfml_test.site_id,
       description: rfml_test.description,
       source: 'rainforest-cli',
       tags: rfml_test.tags.uniq,

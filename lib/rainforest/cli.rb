@@ -15,6 +15,7 @@ require 'rainforest/cli/remote_tests'
 require 'rainforest/cli/validator'
 require 'rainforest/cli/exporter'
 require 'rainforest/cli/uploader'
+require 'rainforest/cli/sites'
 
 module RainforestCli
   def self.start(args)
@@ -44,6 +45,9 @@ module RainforestCli
     when 'export'
       t = Exporter.new(options)
       t.export
+    when 'sites'
+      t = Sites.new(options)
+      t.list_sites
     else
       logger.fatal 'Unknown command'
       exit 2

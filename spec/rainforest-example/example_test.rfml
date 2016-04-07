@@ -1,6 +1,7 @@
 #! example_test (Test ID - only edit if this test has not yet been uploaded)
 # title: Example Test
 # tags: foo,bar,baz
+# site_id: 456
 # start_uri: /start_uri
 
 This is a step action.

@@ -19,7 +19,7 @@ describe RainforestCli::Uploader do
       end
 
       it 'creates uploads the new tests with no steps' do
-        expect(Rainforest::Test).to receive(:create).with(hash_including(:title, :start_uri, :rfml_id))
+        expect(Rainforest::Test).to receive(:create).with(hash_including(:title, :start_uri, :rfml_id, :source))
           .and_return(rf_test_double).twice
         subject.upload
       end
@@ -41,7 +41,8 @@ describe RainforestCli::Uploader do
                                         title: 'Example Test',
                                         source: 'rainforest-cli',
                                         tags: ['foo', 'bar', 'baz'],
-                                        rfml_id: 'example_test'
+                                        rfml_id: 'example_test',
+                                        site_id: '456'
                                       })
       end
 

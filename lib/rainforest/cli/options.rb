@@ -6,7 +6,7 @@ module RainforestCli
     attr_writer :file_name, :tags
     attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
                 :import_file_name, :import_name, :custom_url, :description, :folder,
-                :debug, :file_name, :test_folder, :embed_tests
+                :debug, :file_name, :test_folder, :embed_tests, :app_source_url
 
     # Note, not all of these may be available to your account
     # also, we may remove this in the future.
@@ -39,6 +39,7 @@ module RainforestCli
       safari
       ubuntu_chrome
       ubuntu_firefox
+      iphone_6s_v9_0
     }.freeze
     TOKEN_NOT_REQUIRED = %w{new validate}.freeze
 
@@ -58,6 +59,10 @@ module RainforestCli
 
         opts.on('--file') do |value|
           @file_name = value
+        end
+
+        opts.on('--app-source-url FILE', 'Import step variables; CSV data') do |value|
+          @app_source_url = value
         end
 
         opts.on('--test-folder FILE_PATH', 'Specify the test folder. Defaults to spec/rainforest if not set.') do |value|

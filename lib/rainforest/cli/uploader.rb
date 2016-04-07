@@ -51,7 +51,8 @@ class RainforestCli::Uploader
     test_obj = {
       title: rfml_test.title,
       start_uri: rfml_test.start_uri,
-      rfml_id: rfml_test.rfml_id
+      rfml_id: rfml_test.rfml_id,
+      source: 'rainforest-cli'
     }
     rf_test = Rainforest::Test.create(test_obj)
 

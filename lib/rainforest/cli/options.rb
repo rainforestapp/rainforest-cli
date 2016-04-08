@@ -61,10 +61,6 @@ module RainforestCli
           @file_name = value
         end
 
-        opts.on('--app-source-url FILE', 'Import step variables; CSV data') do |value|
-          @app_source_url = value
-        end
-
         opts.on('--test-folder FILE_PATH', 'Specify the test folder. Defaults to spec/rainforest if not set.') do |value|
           @test_folder = value
         end
@@ -127,6 +123,10 @@ module RainforestCli
 
         opts.on('--embed-tests', 'Export tests without expanding embedded test steps') do |_value|
           @embed_tests = true
+        end
+
+        opts.on('--app-source-url FILE', 'URL for mobile app download (in beta)') do |value|
+          @app_source_url = value
         end
 
         opts.on_tail('--help', 'Display help message and exit') do |_value|

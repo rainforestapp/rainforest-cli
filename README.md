@@ -134,6 +134,7 @@ Popular command line options are:
 - `--description "CI automatic run"` - add an arbitrary description for the run.
 - `--embed-tests` - Use with `rainforest export` to export your tests without extracting the
 steps of an embedded test.
+- `--test-folder /path/to/directory` - Use with `rainforest new`. If this option is not provided, rainforest-cli will create a directory with the default path `./spec/rainforest/`.
 
 
 #### Specifying Test IDs

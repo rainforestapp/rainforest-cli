@@ -62,6 +62,16 @@ Export all tests from Rainforest
 rainforest export
 ```
 
+See a list of all of your sites and their IDs
+```bash
+rainforest sites
+```
+
+See a list of all of your smart folders and their IDs
+```bash
+rainforest folders
+```
+
 ## Options
 
 ### General

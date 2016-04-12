@@ -15,7 +15,7 @@ require 'rainforest/cli/remote_tests'
 require 'rainforest/cli/validator'
 require 'rainforest/cli/exporter'
 require 'rainforest/cli/uploader'
-require 'rainforest/cli/sites'
+require 'rainforest/cli/resources'
 
 module RainforestCli
   def self.start(args)
@@ -30,24 +30,12 @@ module RainforestCli
     end
 
     case options.command
-    when 'run'
-      runner = Runner.new(options)
-      runner.run
-    when 'new'
-      t = TestFiles.new(options)
-      t.create_file
-    when 'validate'
-      t = Validator.new(options)
-      t.validate
-    when 'upload'
-      t = Uploader.new(options)
-      t.upload
-    when 'export'
-      t = Exporter.new(options)
-      t.export
-    when 'sites'
-      t = Sites.new(options)
-      t.list_sites
+    when 'run' then Runner.new(options).run
+    when 'new' then TestFiles.new(options).create_file
+    when 'validate' then Validator.new(options).validate
+    when 'upload' then Uploader.new(options).upload
+    when 'export' then Exporter.new(options).export
+    when 'sites', 'folders' then Resources.new(options).public_send(options.command)
     else
       logger.fatal 'Unknown command'
       exit 2

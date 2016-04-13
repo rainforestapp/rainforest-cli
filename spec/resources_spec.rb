@@ -127,11 +127,9 @@ describe RainforestCli::Resources do
       # Stub dashed the line dividing table header and body
       expect(subject).to receive(:puts)
 
-      resources.each do |resource|
-        expect(subject).to receive(:puts) do |message|
-          expect(message).to include(resource[:id].to_s)
-          expect(message).to include(resource[:name])
-        end
+      expect(subject).to receive(:puts) do |message|
+        expect(message).to include(resource_id.to_s)
+        expect(message).to include(resource_name)
       end
 
       subject.print_table('Resource', resources) do

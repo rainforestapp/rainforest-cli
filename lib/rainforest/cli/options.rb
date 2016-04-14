@@ -6,7 +6,7 @@ module RainforestCli
     attr_writer :file_name, :tags
     attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
                 :import_file_name, :import_name, :custom_url, :description, :folder,
-                :debug, :file_name, :test_folder, :embed_tests, :app_source_url
+                :debug, :file_name, :test_folder, :embed_tests, :app_source_url, :crowd
 
     # Note, not all of these may be available to your account
     # also, we may remove this in the future.
@@ -53,6 +53,9 @@ module RainforestCli
       # NOTE: Disabling line length cop to allow for consistency of syntax
       # rubocop:disable Metrics/LineLength
       @parsed = ::OptionParser.new do |opts|
+        opts.set_program_name 'Rainforest CLI'
+        opts.version = RainforestCli::VERSION
+
         opts.on('--debug') do
           @debug = true
         end
@@ -63,6 +66,10 @@ module RainforestCli
 
         opts.on('--test-folder FILE_PATH', 'Specify the test folder. Defaults to spec/rainforest if not set.') do |value|
           @test_folder = value
+        end
+
+        opts.on('--crowd TYPE', 'Specify the crowd type, defaults to "default". Options are default or on_premise_crowd if available for your account.') do |value|
+          @crowd = value
         end
 
         opts.on('--import-variable-csv-file FILE', 'Import step variables; CSV data') do |value|
@@ -131,6 +138,11 @@ module RainforestCli
 
         opts.on_tail('--help', 'Display help message and exit') do |_value|
           puts opts
+          exit 0
+        end
+
+        opts.on_tail('--version', 'Display gem version') do
+          puts opts.ver
           exit 0
         end
 

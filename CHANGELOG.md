@@ -1,6 +1,9 @@
 # Rainforest CLI Changelog
 
-# 1.3.0 - 7th April 2016
+## 1.3.1 - 11th April 2016
+- Support crowd selection
+
+## 1.3.0 - 7th April 2016
 - Export tests with embedded tests unflattened. (0ed4c62cac8a0d5fbd98f03190d3c18c48ac7119,
 @epaulet)
 - Add option to save API token in environment rather than specifying in commands.
@@ -17,7 +20,7 @@ site ID reference. (7b628b12879f5c2230181d5e4badf785c26c8035, @epaulet)
 - Add support for exporting specified tests using test IDs found on dashboard.
 (69d104d7452dcb2ba7925d1de86532f250b72f41, @ziahamza)
 
-# 1.2.2 - 21st March 2016
+## 1.2.2 - 21st March 2016
 - Add support for Ruby 1.9.3 for easier usage on CircleCI. (16d74306a160c0fca8d34bc32493119051179c90, @epaulet)
 
 ## 1.2.1 - 18th March 2016

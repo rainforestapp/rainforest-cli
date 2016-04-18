@@ -28,6 +28,8 @@ describe RainforestCli::Validator do
   end
 
   shared_examples 'it detects all the correct errors' do
+    let(:tested_method) { :validate }
+    let(:raises_error) { false }
     let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token') }
     subject { described_class.new(options) }
 
@@ -91,10 +93,24 @@ describe RainforestCli::Validator do
   end
 
   describe '#validate' do
-    let(:tested_method) { :validate }
-    let(:raises_error) { false }
-
     it_behaves_like 'it detects all the correct errors'
+
+    context 'when multiple tests have the same rfml_ids' do
+      let(:test_directory) { File.expand_path(File.join(__FILE__, '../validation-examples/duplicate_rfml_ids')) }
+      let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token') }
+
+      subject { described_class.new(options) }
+
+      before do
+        allow(subject).to receive(:remote_rfml_ids) { [] }
+      end
+
+      it 'logs the errors' do
+        expect(subject).to receive(:duplicate_rfml_ids_notification).with({'a-test' => 2}).and_call_original
+
+        subject.validate
+      end
+    end
   end
 
   describe '#validate_with_exception!' do

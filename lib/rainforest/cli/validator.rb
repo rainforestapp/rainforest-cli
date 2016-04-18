@@ -32,7 +32,9 @@ class RainforestCli::Validator
     # (no short-circuiting with ||)
     parsing_errors = has_parsing_errors?
     dependency_errors = has_test_dependency_errors?
-    is_invalid = parsing_errors || dependency_errors
+    duplicate_rfml_id_errors = has_duplicate_rfml_id_errors?
+
+    is_invalid = parsing_errors || dependency_errors || duplicate_rfml_id_errors
 
     logger.info ''
     logger.info(is_invalid ? VALIDATIONS_FAILED : VALIDATIONS_PASSED)
@@ -46,6 +48,21 @@ class RainforestCli::Validator
       logger.error "No tests found in directory: #{local_tests.test_folder}"
       exit 3
     end
+  end
+
+  def has_duplicate_rfml_id_errors?
+    duped_rfml_ids_and_counts = collect_duplicate_rfml_ids
+    return false unless duped_rfml_ids_and_counts.size > 0
+    duplicate_rfml_ids_notification(duped_rfml_ids_and_counts)
+    true
+  end
+
+  def collect_duplicate_rfml_ids
+    rfml_ids_and_counts = Hash.new(0)
+    local_tests.test_data.each do |test|
+      rfml_ids_and_counts[test.rfml_id] += 1
+    end
+    rfml_ids_and_counts.select {|_, count| count > 1}
   end
 
   def has_parsing_errors?
@@ -149,6 +166,16 @@ class RainforestCli::Validator
     logger.error ''
     logger.error "\t#{file_a}"
     logger.error "\t#{file_b}"
+    logger.error ''
+  end
+
+  def duplicate_rfml_ids_notification(duplicate_rfml_ids_and_counts)
+    logger.error "The test ids are not unique!"
+    logger.error ''
+    duplicate_rfml_ids_and_counts.each do |rfml_id, count|
+      count_str = count == 1 ? 'is 1 file' : "are #{count} files"
+      logger.error "\tThere #{count_str} with an id of #{rfml_id}"
+    end
     logger.error ''
   end
 

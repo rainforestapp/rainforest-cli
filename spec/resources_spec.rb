@@ -21,7 +21,7 @@ describe RainforestCli::Resources do
       end
     end
 
-    context 'with folders in account' do
+    context 'with sites in account' do
       let(:sites) do
         [
           {

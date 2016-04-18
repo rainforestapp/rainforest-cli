@@ -31,12 +31,13 @@ class RainforestCli::Resources
   end
 
   def print_table(resource_name, resources)
-    table_heading = "#{resource_name} ID | #{resource_name} Name"
+    id_col = "#{resource_name} ID"
+    table_heading = "#{id_col} | #{resource_name} Name"
     puts table_heading
     puts '-' * table_heading.length
     resources.each do |resource|
       resource_data = yield(resource)
-      puts "#{resource_data[:id].to_s.rjust(7)} | #{resource_data[:name]}"
+      puts "#{resource_data[:id].to_s.rjust(id_col.length)} | #{resource_data[:name]}"
     end
   end
 

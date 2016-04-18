@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 describe RainforestCli::Validator do
-  let(:rfml_id_regex) { /^#! (.+?)($| .+?$)/ }
   let(:file_path) { File.join(test_directory, correct_file_name) }
 
   def notifies_with_correct_file_name

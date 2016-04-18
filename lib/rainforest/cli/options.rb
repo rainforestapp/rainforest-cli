@@ -53,6 +53,9 @@ module RainforestCli
       # NOTE: Disabling line length cop to allow for consistency of syntax
       # rubocop:disable Metrics/LineLength
       @parsed = ::OptionParser.new do |opts|
+        opts.set_program_name 'Rainforest CLI'
+        opts.version = RainforestCli::VERSION
+
         opts.on('--debug') do
           @debug = true
         end
@@ -135,6 +138,11 @@ module RainforestCli
 
         opts.on_tail('--help', 'Display help message and exit') do |_value|
           puts opts
+          exit 0
+        end
+
+        opts.on_tail('--version', 'Display gem version') do
+          puts opts.ver
           exit 0
         end
 

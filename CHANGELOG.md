@@ -1,7 +1,12 @@
 # Rainforest CLI Changelog
 
+## 1.4.0
+- Support for new `--version` command. (4362c85fe599a02eaa1b772d184be31e692e934e, @epaulet)
+- Validate duplicate RFML IDs before uploading. (67f71d053c755eaf92c1bd205931e89e903b88c9, @curtis-rainforestqa)
+- Add `folders` commands for a folder ID reference. (4ab19fec0924b4764e140fb3c5aa85f1dbfe4006, @epaulet)
+
 ## 1.3.1 - 11th April 2016
-- Support crowd selection
+- Support crowd selection. (03fedacfb7a6e69a174fb3e0e1fd75218fdbbfa9, @ukd1)
 
 ## 1.3.0 - 7th April 2016
 - Export tests with embedded tests unflattened. (0ed4c62cac8a0d5fbd98f03190d3c18c48ac7119,

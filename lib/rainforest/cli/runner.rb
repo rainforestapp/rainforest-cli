@@ -19,7 +19,7 @@ module RainforestCli
       logger.debug "POST options: #{post_opts.inspect}"
       logger.info 'Issuing run'
 
-      response = client.post('/runs', post_opts)
+      response = client.post('/runs', post_opts, retries_on_failures: true)
 
       if response['error']
         logger.fatal "Error starting your run: #{response['error']}"

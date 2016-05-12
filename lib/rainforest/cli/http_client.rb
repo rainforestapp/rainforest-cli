@@ -23,14 +23,16 @@ module RainforestCli
       JSON.parse(response.body)
     end
 
-    def post(url, body = {})
-      response = HTTParty.post make_url(url), {
-        body: body,
-        headers: headers,
-        verify: false
-      }
+    def post(url, body = {}, options = {})
+      wrap_exceptions(options[:retries_on_failures]) do
+        response = HTTParty.post make_url(url), {
+          body: body,
+          headers: headers,
+          verify: false
+        }
 
-      JSON.parse(response.body)
+        return JSON.parse(response.body)
+      end
     end
 
     def get(url, body = {}, options = {})

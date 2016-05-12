@@ -102,7 +102,7 @@ describe RainforestCli do
 
         it 'starts the run with the specified tags' do
           expect_any_instance_of(http_client).to receive(:post)
-            .with('/runs', tags: ['run-me']).and_return({})
+            .with('/runs', { tags: ['run-me'] }, { retries_on_failures: true }).and_return({})
 
           start_with_params(params, 0)
         end
@@ -116,7 +116,7 @@ describe RainforestCli do
           .with('/environments', name: 'temporary-env-for-custom-url-via-CLI', url: 'http://ad-hoc.example.com')
           .and_return({ 'id' => 333 })
 
-        expect_any_instance_of(http_client).to receive(:post).with('/runs', anything)
+        expect_any_instance_of(http_client).to receive(:post).with('/runs', anything, { retries_on_failures: true })
           .and_return({ 'id' => 1 })
 
         # This is a hack because when expecting a function to be called with
@@ -140,7 +140,8 @@ describe RainforestCli do
 
         expect_any_instance_of(http_client).to receive(:post).with(
           '/runs',
-          { tests: [], site_id: 3, environment_id: 333 }
+          { tests: [], site_id: 3, environment_id: 333 },
+          { retries_on_failures: true }
         ).and_return({})
         described_class.start(params)
       end
@@ -155,7 +156,8 @@ describe RainforestCli do
 
         expect_any_instance_of(http_client).to receive(:post).with(
           '/runs',
-          { tests: [], environment_id: 123 }
+          { tests: [], environment_id: 123 },
+          { retries_on_failures: true }
         ).and_return({})
         described_class.start(params)
       end
@@ -167,7 +169,8 @@ describe RainforestCli do
       it 'starts the run with smart folder' do
         expect_any_instance_of(http_client).to receive(:post).with(
           '/runs',
-          { smart_folder_id: 123 }
+          { smart_folder_id: 123 },
+          { retries_on_failures: true }
         ).and_return({})
         described_class.start(params)
       end
@@ -179,7 +182,8 @@ describe RainforestCli do
       it 'starts the run without error' do
         expect_any_instance_of(http_client).to receive(:post).with(
           '/runs',
-          { tests: [] }
+          { tests: [] },
+          { retries_on_failures: true }
         ).and_return({})
         allow(ENV).to receive(:[]).with('RAINFOREST_API_TOKEN').and_return('x')
         described_class.start(params)

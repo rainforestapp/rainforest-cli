@@ -87,7 +87,7 @@ module RainforestCli::TestParser
       @test.browsers = []
     end
 
-    TEST_DATA_FIELDS = [:start_uri, :title, :tags, :site_id].freeze
+    TEST_DATA_FIELDS = [:start_uri, :title, :site_id, :browsers].freeze
     STEP_DATA_FIELDS = [:redirect].freeze
     CSV_FIELDS = [:tags, :browsers].freeze
 

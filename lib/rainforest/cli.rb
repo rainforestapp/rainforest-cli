@@ -35,7 +35,8 @@ module RainforestCli
     when 'validate' then Validator.new(options).validate
     when 'upload' then Uploader.new(options).upload
     when 'export' then Exporter.new(options).export
-    when 'sites', 'folders' then Resources.new(options).public_send(options.command)
+    when 'sites', 'folders', 'browsers'
+      Resources.new(options).public_send(options.command)
     else
       logger.fatal 'Unknown command'
       exit 2

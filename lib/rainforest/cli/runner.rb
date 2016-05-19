@@ -14,7 +14,9 @@ module RainforestCli
         CSVImporter.new(options.import_name, options.import_file_name, options.token).import
       end
 
-      post_opts = make_create_run_options
+      app_source_url = options.app_source_url ? upload_app(options.app_source_url) : options.app_source_url
+
+      post_opts = make_create_run_options(app_source_url)
 
       logger.debug "POST options: #{post_opts.inspect}"
       logger.info 'Issuing run'
@@ -61,7 +63,7 @@ module RainforestCli
       end
     end
 
-    def make_create_run_options
+    def make_create_run_options(app_source_url)
       post_opts = {}
       if options.git_trigger?
         logger.debug 'Checking last git commit message:'
@@ -99,7 +101,7 @@ module RainforestCli
         end
       end
 
-      post_opts[:app_source_url] = options.app_source_url if options.app_source_url
+      post_opts[:app_source_url] = app_source_url if app_source_url
       post_opts[:crowd] = options.crowd if options.crowd
       post_opts[:conflict] = options.conflict if options.conflict
       post_opts[:browsers] = options.browsers if options.browsers
@@ -152,6 +154,47 @@ module RainforestCli
       end
 
       return environment['id']
+    end
+
+    def upload_app(app_source_url)
+      return app_source_url if url_valid?(app_source_url)
+
+      unless File.exist?(app_source_url)
+        logger.fatal "App source file: #{app_source_url} not found"
+        exit 1
+      end
+
+      unless File.extname(app_source_url) == '.ipa'
+        logger.fatal "Invalid app source file: #{app_source_url}"
+        exit 1
+      end
+
+      url = client.get('/uploads')
+      data = File.read(app_source_url)
+      logger.info 'Uploading app source file, this operation may take few minutes...'
+      response_code = upload_file(url, data)
+
+      if response_code != '200'
+        logger.fatal "Failed to upload file #{app_source_url}"
+        exit 1
+      else
+        logger.info 'Upload completed.'
+        return url['path']
+      end
+    end
+
+    def upload_file(url, body)
+      # using Net::HTTP because HTTParty do not support large files
+      http = Net::HTTP.new(url['host'], url['port'])
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+      request = Net::HTTP::Put.new(url['uri'])
+      request['Content-Type'] = 'application/zip'
+      request.body = body
+
+      response = http.request(request)
+      return response.code
     end
   end
 end

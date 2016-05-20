@@ -134,11 +134,6 @@ describe RainforestCli::OptionParser do
       it { raises_a_validation_exception }
     end
 
-    context 'with a custom url but no site id' do
-      let(:args) { %w(--token foo --custom-url http://www.example.com) }
-      it { raises_a_validation_exception }
-    end
-
     context 'with a import_file_name but no import name' do
       let(:args) { %w(--token foo --import-variable-csv-file foo.csv) }
       it { raises_a_validation_exception }

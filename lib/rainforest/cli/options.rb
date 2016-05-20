@@ -186,10 +186,6 @@ module RainforestCli
         raise BrowserException, browsers unless (browsers - VALID_BROWSERS).empty?
       end
 
-      if custom_url && site_id.nil?
-        raise ValidationError, 'The site-id and custom-url options are both required.'
-      end
-
       if import_file_name && import_name
         unless File.exist?(import_file_name)
           raise ValidationError, "Input file: #{import_file_name} not found"

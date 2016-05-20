@@ -169,7 +169,11 @@ module RainforestCli
         exit 1
       end
 
-      url = client.get('/uploads')
+      url = client.get('/uploads', {}, retries_on_failures: true)
+      unless url
+        logger.fatal "Failed to upload file #{app_source_url}. Please, check your API token."
+        exit 1
+      end
       data = File.read(app_source_url)
       logger.info 'Uploading app source file, this operation may take few minutes...'
       response_code = upload_file(url, data)

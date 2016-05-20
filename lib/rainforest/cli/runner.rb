@@ -14,9 +14,7 @@ module RainforestCli
         CSVImporter.new(options.import_name, options.import_file_name, options.token).import
       end
 
-      app_source_url = options.app_source_url ? upload_app(options.app_source_url) : options.app_source_url
-
-      post_opts = make_create_run_options(app_source_url)
+      post_opts = make_create_run_options
 
       logger.debug "POST options: #{post_opts.inspect}"
       logger.info 'Issuing run'
@@ -63,7 +61,7 @@ module RainforestCli
       end
     end
 
-    def make_create_run_options(app_source_url)
+    def make_create_run_options
       post_opts = {}
       if options.git_trigger?
         logger.debug 'Checking last git commit message:'
@@ -100,6 +98,8 @@ module RainforestCli
           post_opts[:tests] = options.tests
         end
       end
+
+      app_source_url = options.app_source_url ? upload_app(options.app_source_url) : options.app_source_url
 
       post_opts[:app_source_url] = app_source_url if app_source_url
       post_opts[:crowd] = options.crowd if options.crowd

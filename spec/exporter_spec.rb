@@ -9,6 +9,11 @@ describe RainforestCli::Exporter do
     # Collect everything printed to file in an array-like file double object
     class FileDouble < Array
       alias_method :puts, :push
+
+      # join into a string like a file
+      def include?(str)
+        join("\n").include?(str)
+      end
     end
 
     let(:file) { FileDouble.new }
@@ -28,6 +33,21 @@ describe RainforestCli::Exporter do
         ]
       }
     end
+    let(:test_elements) do
+      [
+        {
+          type: 'step',
+          element: {
+            action: 'Step Action',
+            response: 'Step Response'
+          }
+        },
+        {
+          type: 'test',
+          element: embedded_test
+        }
+      ]
+    end
     let(:single_test) do
       Rainforest::Test.new(
         {
@@ -36,32 +56,11 @@ describe RainforestCli::Exporter do
           start_uri: '/uri',
           tags: ['foo', 'bar'],
           browsers: [
-            {
-              name: 'chrome',
-              state: 'enabled'
-            },
-            {
-              name: 'safari',
-              state: 'enabled'
-            },
-            {
-              name: 'firefox',
-              state: 'disabled'
-            }
+            { name: 'chrome', state: 'enabled' },
+            { name: 'safari', state: 'enabled' },
+            { name: 'firefox', state: 'disabled' }
           ],
-          elements: [
-            {
-              type: 'step',
-              element: {
-                action: 'Step Action',
-                response: 'Step Response'
-              }
-            },
-            {
-              type: 'test',
-              element: embedded_test
-            }
-          ]
+          elements: test_elements
         }
       )
     end
@@ -96,6 +95,29 @@ describe RainforestCli::Exporter do
       expect(comments).to include('chrome')
       expect(comments).to include('safari')
       expect(comments).to_not include('firefox')
+    end
+
+    context 'action and/or question contain newlines' do
+      let(:action) { "Step Action\nwith newlines\n" }
+      let(:expected_action) { 'Step Action with newlines' }
+      let(:response) { "Step Response\nwith\nnewlines\n" }
+      let(:expected_response) { 'Step Response with newlines' }
+      let(:test_elements) do
+        [
+          {
+            type: 'step',
+            element: {
+              action: action,
+              response: response
+            }
+          }
+        ]
+      end
+
+      it 'removes the newlines' do
+        expect(file).to include(expected_action)
+        expect(file).to include(expected_response)
+      end
     end
 
     context 'with embed-tests flag' do

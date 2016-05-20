@@ -57,4 +57,72 @@ describe RainforestCli::Runner do
     end
   end
 
+  describe '#upload_app' do
+
+    context 'with valid URL' do
+      it 'returns the given app_source_url' do
+        expect(subject.upload_app('http://my.app.url')).to eq 'http://my.app.url'
+      end
+    end
+
+    context 'with invalid URL' do
+
+      it 'errors out and exits if the file does not exists' do
+        expect_any_instance_of(Logger).to receive(:fatal).with('App source file: fobar not found')
+        expect do
+          subject.upload_app('fobar')
+        end.to raise_error(SystemExit) { |error|
+          expect(error.status).to eq 1
+        }
+      end
+
+      it 'errors out and exits if not an .ipa file' do
+        File.should_receive(:exist?).with('fobar.txt') { true }
+        expect_any_instance_of(Logger).to receive(:fatal).with('Invalid app source file: fobar.txt')
+        expect do
+          subject.upload_app('fobar.txt')
+        end.to raise_error(SystemExit) { |error|
+          expect(error.status).to eq 1
+        }
+      end
+
+      it 'errors out and exits if valid file but invalid token' do
+        File.should_receive(:exist?).with('fobar.ipa') { true }
+        subject.client.should_receive(:get).with('/uploads', {}, retries_on_failures: true) { nil }
+        expect_any_instance_of(Logger).to receive(:fatal).with(
+          'Failed to upload file fobar.ipa. Please, check your API token.')
+        expect do
+          subject.upload_app('fobar.ipa')
+        end.to raise_error(SystemExit) { |error|
+          expect(error.status).to eq 1
+        }
+      end
+
+      it 'errors out and exits if was not possible to upload the file' do
+        File.should_receive(:exist?).with('fobar.ipa') { true }
+        File.should_receive(:read).with('fobar.ipa') { 'File data' }
+        url = {'host' => 'host', 'port' => 'port', 'uri' => 'uri', 'path' => 'path'}
+        subject.client.should_receive(:get).with('/uploads', {}, retries_on_failures: true) { url }
+        subject.should_receive(:upload_file).with(url, 'File data') { '500' }
+        expect_any_instance_of(Logger).to receive(:fatal).with('Failed to upload file fobar.ipa')
+        expect do
+          subject.upload_app('fobar.ipa')
+        end.to raise_error(SystemExit) { |error|
+          expect(error.status).to eq 1
+        }
+      end
+
+      it 'returns the new app_source_url in case of success' do
+        File.should_receive(:exist?).with('fobar.ipa') { true }
+        File.should_receive(:read).with('fobar.ipa') { 'File data' }
+        url = {'host' => 'host', 'port' => 'port', 'uri' => 'uri', 'path' => 'path'}
+        subject.client.should_receive(:get).with('/uploads', {}, retries_on_failures: true) { url }
+        subject.should_receive(:upload_file).with(url, 'File data') { '200' }
+
+        expect(subject.upload_app('fobar.ipa')).to eq 'path'
+      end
+
+    end
+  end
+
 end

@@ -139,15 +139,15 @@ For more information on test writing, please visit our [documentation](http://su
 ### Command Line Options
 
 Popular command line options are:
-- `--browsers ie8` or `--browsers ie8,chrome` - specify the browsers you wish to run against. This overrides the test own settings. Valid browsers can be found in your account settings.
+- `--browsers ie8` or `--browsers ie8,chrome` - specify the browsers you wish to run against. This overrides the test own settings. You can view your browsers with the `browsers` command.
 - `--tag run-me` - only run tests which have this tag (recommended if you have lots of [test-steps](http://docs.rainforestqa.com/pages/example-test-suite.html#test_steps))!)
-- `--site-id` - only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
-- `--folder ID` - run tests in specified folder.
+- `--site-id` - only run tests for a specific site. To see your site IDs, use the `sites` command.
+- `--folder ID` - run tests in specified folder. You can view your folders with the `folders` command.
 - `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
 - `--conflict OPTION` - use the `abort` option to abort any runs in progress in the same environment as your new run. use the `abort-all` option to abort all runs in progress.
 - `--fg` - results in the foreground - rainforest-cli will not return until the run is complete. This is what you want to make the build pass / fail dependent on rainforest results
 - `--fail-fast` - fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Use with `--fg`.
-- `--custom-url` - use a custom url for this run (such as the URL for an ad-hoc testing environment). It is recommended that you specify a `site_id` for the tests to be run against your custom URL. Note that we will be creating a new environment for this particular run.
+- `--custom-url` - use a custom url for this run (such as the URL for an ad-hoc testing environment). It is recommended that you use the `--site-id` option to specify the site ID for the site your custom URL points to. Note that we will be creating a new environment for this particular run.
 - `--git-trigger` - only trigger a run when the last commit (for a git repo in the current working directory) has contains `@rainforest` and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged `checkout`. This over-rides `--tag` and any tests specified. If no `@rainforest` is detected it will exit 0.
 - `--description "CI automatic run"` - add an arbitrary description for the run.
 - `--embed-tests` - Use with `rainforest export` to export your tests without extracting the

@@ -184,17 +184,22 @@ module RainforestCli
     end
 
     def upload_file(url, body)
-      # using Net::HTTP because HTTParty do not support large files
-      http = Net::HTTP.new(url['host'], url['port'])
-      http.use_ssl = true
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      begin
+        # using Net::HTTP because HTTParty do not support large files
+        http = Net::HTTP.new(url['host'], url['port'])
+        http.use_ssl = true
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
-      request = Net::HTTP::Put.new(url['uri'])
-      request['Content-Type'] = 'application/zip'
-      request.body = body
+        request = Net::HTTP::Put.new(url['uri'])
+        request['Content-Type'] = 'application/zip'
+        request.body = body
 
-      response = http.request(request)
-      return response.code
+        response = http.request(request)
+        return response.code
+      rescue Http::Exceptions::HttpException => e
+        logger.fatal "Error uploading the app source file: #{e.message}"
+        exit 1
+      end
     end
   end
 end

@@ -72,6 +72,11 @@ See a list of all of your smart folders and their IDs
 rainforest folders
 ```
 
+See a list of all of your browsers and their IDs
+```bash
+rainforest browsers
+```
+
 ## Options
 
 ### General
@@ -87,6 +92,7 @@ Rainforest Tests written using RFML have the following format
 # start_uri: [START_URI]
 # tags: [TAGS]
 # site_id: [SITE ID]
+# browsers: [BROWSER IDS]
 # [OTHER COMMENTS]
 
 [ACTION 1]
@@ -116,6 +122,8 @@ Optional Fields:
 - `SITE ID` - Site ID for the site this test is for. You can find your available
 site IDs with the `sites` command. Sites can be configured at
 https://app.rainforestqa.com/settings/sites.
+- `BROWSER IDS` - Comma separated list of browsers for this test. You can reference
+your available browsers with the `browsers` command.
 - `TAGS` - Comma separated list of your desired tags for this test.
 - `OTHER COMMENTS` - Any comments you'd like to save to this test. All lines beginning with
 `#` will be ignored by Rainforest unless they begin with a supported data field,

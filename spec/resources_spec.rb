@@ -3,6 +3,22 @@ describe RainforestCli::Resources do
   let(:options) { instance_double('RainforestCli::Options', token: 'fake_token') }
   subject { described_class.new(options) }
 
+  shared_examples 'a properly formatted resource' do |tested_method|
+    before do
+      allow_any_instance_of(RainforestCli::HttpClient).to receive(:get).and_return(api_response)
+    end
+
+    it 'calls the print method with the correct information' do
+      expect(subject).to receive(:print_table) do |_name, resources|
+        resource = resources.first
+        expect(resource.identifier).to eq(expected_id)
+        expect(resource.name).to eq(expected_name)
+      end
+
+      subject.send(tested_method)
+    end
+  end
+
   describe '#sites' do
     context 'no sites configured' do
       before do
@@ -22,39 +38,17 @@ describe RainforestCli::Resources do
     end
 
     context 'with sites in account' do
-      let(:sites) do
+      let(:api_response) do
         [
-          {
-            'id' => 123,
-            'name' => 'The Foo Site'
-          },
-          {
-            'id' => 456,
-            'name'=> 'The Bar Site'
-          },
-          {
-            'id' => 789,
-            'name' => 'The Baz Site'
-          }
+          { 'id' => 123, 'name' => 'The Foo Site' },
+          { 'id' => 456, 'name'=> 'The Bar Site' },
+          { 'id' => 789, 'name' => 'The Baz Site' }
         ]
       end
+      let(:expected_id) { api_response.first['id'] }
+      let(:expected_name) { api_response.first['name'] }
 
-      before do
-        allow_any_instance_of(RainforestCli::HttpClient).to receive(:get).and_return(sites)
-      end
-
-      it 'calls the print method' do
-        expect(subject).to receive(:print_table).with('Site', sites).and_yield(sites.first)
-        subject.sites
-      end
-
-      it 'correctly formats the site information in the given block' do
-        expect(subject).to receive(:print_table) do |_resource_name, _resource, &blk|
-          site = sites.first
-          expect(blk.call(site)).to include(id: site['id'], name: site['name'])
-        end
-        subject.sites
-      end
+      it_should_behave_like 'a properly formatted resource', :sites
     end
   end
 
@@ -77,46 +71,39 @@ describe RainforestCli::Resources do
     end
 
     context 'with folders in account' do
-      let(:folders) do
+      let(:api_response) do
         [
-          {
-            'id' => 123,
-            'title' => 'The Foo Folder'
-          },
-          {
-            'id' => 456,
-            'title'=> 'The Bar Folder'
-          },
-          {
-            'id' => 789,
-            'title' => 'The Baz Folder'
-          }
+          { 'id' => 123, 'title' => 'The Foo Folder' },
+          { 'id' => 456, 'title'=> 'The Bar Folder' },
+          { 'id' => 789, 'title' => 'The Baz Folder' }
         ]
       end
+      let(:expected_id) { api_response.first['id'] }
+      let(:expected_name) { api_response.first['title'] }
 
-      before do
-        allow_any_instance_of(RainforestCli::HttpClient).to receive(:get).and_return(folders)
-      end
-
-      it 'calls the print method' do
-        expect(subject).to receive(:print_table).with('Folder', folders).and_yield(folders.first)
-        subject.folders
-      end
-
-      it 'correctly formats the site information in the given block' do
-        expect(subject).to receive(:print_table) do |_resource_name, _resource, &blk|
-          folder = folders.first
-          expect(blk.call(folder)).to include(id: folder['id'], name: folder['title'])
-        end
-        subject.folders
-      end
+      it_should_behave_like 'a properly formatted resource', :folders
     end
+  end
+
+  describe '#browsers' do
+    let(:api_resources) do
+      [
+        { 'name' => 'chrome', 'description' => 'Chrome' },
+        { 'name' => 'safari', 'description' => 'Safari' },
+        { 'name' => 'firefox', 'description' => 'Firefox' }
+      ]
+    end
+    let(:api_response) { { 'available_browsers' => api_resources } }
+    let(:expected_id) { api_resources.first['name'] }
+    let(:expected_name) { api_resources.first['description'] }
+
+    it_should_behave_like 'a properly formatted resource', :browsers
   end
 
   describe '#print_table' do
     let(:resource_id) { 123456 }
     let(:resource_name) { 'resource name' }
-    let(:resources) { [ { id: resource_id, name: resource_name } ] }
+    let(:resources) { [ RainforestCli::Resources::Resource.new(resource_id, resource_name) ] }
 
     it 'prints out the resources' do
       expect(subject).to receive(:puts) do |message|
@@ -132,9 +119,7 @@ describe RainforestCli::Resources do
         expect(message).to include(resource_name)
       end
 
-      subject.print_table('Resource', resources) do
-        { id: resource_id, name: resource_name }
-      end
+      subject.print_table('Resource', resources)
     end
   end
 end

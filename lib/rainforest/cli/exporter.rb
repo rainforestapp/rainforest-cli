@@ -64,8 +64,8 @@ class RainforestCli::Exporter
     when 'step'
       file.puts '' unless index == 0
       file.puts "# step #{index + 1}" if @options.debug
-      file.puts element[:element][:action]
-      file.puts element[:element][:response]
+      file.puts element[:element][:action].gsub("\n", ' ')
+      file.puts element[:element][:response].gsub("\n", ' ')
     else
       raise "Unknown element type: #{element[:type]}"
     end

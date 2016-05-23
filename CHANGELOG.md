@@ -1,5 +1,11 @@
 # Rainforest CLI Changelog
 
+## 1.5.0
+- Retry on API exceptions when creating a run. (85830adcef426e64bd72c9d6208881e955a5bb0c, @bbeck)
+- Add `browsers` command. (2a810ec27edfc66ef7bf27d8cb7da1129b05e32b, @epaulet)
+- Add support for files using `app-source-url`. (562e4772e71e8028209d128091ff644f4ae0a9f6, @marianafranco)
+- Remove newlines from test actions and questions when exporting. (e28583b553b5f30b33b232b2e377c109123b11ff, @epaulet)
+
 ## 1.4.0
 - Support for new `--version` command. (4362c85fe599a02eaa1b772d184be31e692e934e, @epaulet)
 - Validate duplicate RFML IDs before uploading. (67f71d053c755eaf92c1bd205931e89e903b88c9, @curtis-rainforestqa)

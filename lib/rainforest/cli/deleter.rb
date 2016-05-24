@@ -12,9 +12,8 @@ class RainforestCli::Deleter
 
   def delete
     validate_file_extension
-    test = rfml_tests.detect { |rfml_test| rfml_test.file_name.include?(@file_name) }
-    delete_remote_test(test)
-    delete_local_file(test.file_name)
+    delete_remote_test(test_file)
+    delete_local_file(test_file.file_name)
   end
 
   private
@@ -40,6 +39,12 @@ class RainforestCli::Deleter
   rescue Exception => e
     logger.fatal "Unable to delete remote rfml test"
     exit 2
+  end
+
+  def test_file
+    @test_file ||= rfml_tests.detect do |rfml_test|
+      rfml_test.file_name.include?(@file_name)
+    end
   end
 
   def rfml_tests

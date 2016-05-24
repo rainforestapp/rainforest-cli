@@ -2,13 +2,12 @@
 require 'rainforest'
 
 class RainforestCli::Deleter
-  attr_reader :test_files, :remote_tests, :validator
+  attr_reader :test_files, :remote_tests
 
   def initialize(options)
     @file_name = options.file_name
     @test_files = RainforestCli::TestFiles.new(options)
     @remote_tests = RainforestCli::RemoteTests.new(options.token)
-    @validator = RainforestCli::Validator.new(options, test_files, remote_tests)
   end
 
   def delete

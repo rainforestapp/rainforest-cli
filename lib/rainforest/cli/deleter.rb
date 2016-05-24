@@ -43,7 +43,7 @@ class RainforestCli::Deleter
 
   def test_file
     @test_file ||= rfml_tests.detect do |rfml_test|
-      rfml_test.file_name.include?(@file_name)
+      rfml_test.file_name == @file_name
     end
   end
 

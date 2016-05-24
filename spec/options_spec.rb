@@ -27,7 +27,7 @@ describe RainforestCli::OptionParser do
     context 'rm' do
       let(:args) { ['rm', 'foo.rfml']}
       its(:command) { should == 'rm' }
-      its(:file_name) { should == 'foo.rfml' }
+      its(:file_name) { should == File.expand_path('foo.rfml') }
     end
 
     context 'app_source_url' do

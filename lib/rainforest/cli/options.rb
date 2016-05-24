@@ -154,6 +154,7 @@ module RainforestCli
 
       if ['new', 'rm'].include?(@command)
         @file_name = @args.shift
+        @file_name = File.expand_path(@file_name) if @file_name
       end
 
       @tests = @args.dup

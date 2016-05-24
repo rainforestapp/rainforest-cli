@@ -79,7 +79,7 @@ module RainforestCli::TestParser
       @text = File.read(file_name).to_s
 
       @test = Test.new
-      @test.file_name = file_name
+      @test.file_name = File.expand_path(file_name)
       @test.description = ''
       @test.steps = []
       @test.errors = {}

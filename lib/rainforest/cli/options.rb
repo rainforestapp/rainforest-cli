@@ -152,7 +152,7 @@ module RainforestCli
 
       @command = @args.shift
 
-      if @command == 'new'
+      if ['new', 'rm'].include?(@command)
         @file_name = @args.shift
       end
 

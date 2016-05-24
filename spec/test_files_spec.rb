@@ -2,7 +2,7 @@
 describe RainforestCli::TestFiles do
   describe '#test_data' do
     let(:test_directory) { File.dirname(__FILE__) + '/rainforest-example' }
-    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory) }
+    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, command: nil) }
     subject { described_class.new(options) }
 
     let(:rfml_test) { subject.test_data.first }
@@ -17,7 +17,7 @@ describe RainforestCli::TestFiles do
   describe '#test_dictionary' do
     Test = Struct.new(:rfml_id, :id)
 
-    let(:options) { instance_double('RainforestCli::Options', test_folder: nil) }
+    let(:options) { instance_double('RainforestCli::Options', test_folder: nil, command: nil) }
     subject { described_class.new(options) }
     let(:tests) { [Test.new('foo', 123), Test.new('bar', 456), Test.new('baz', 789)] }
 

@@ -33,6 +33,7 @@ describe RainforestCli::Deleter do
           subject.delete
         rescue SystemExit => exception
           expect(exception.status).to eq(2)
+          exit 0
         end
       end
     end
@@ -77,6 +78,7 @@ describe RainforestCli::Deleter do
             subject.delete
           rescue SystemExit => exception
             expect(exception.status).to eq(2)
+            exit 0
           end
         end
       end

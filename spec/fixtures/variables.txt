@@ -1,3 +1,0 @@
-email,pass
-russ@rainforestqa.com,abc123
-bob@example.com,hunter2

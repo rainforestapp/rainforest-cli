@@ -1,3 +1,0 @@
-[submodule "spec/test-repo"]
-	path = spec/test-repo
-	url = https://github.com/rainforestapp/test-repo.git

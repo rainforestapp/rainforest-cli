@@ -1,0 +1,12 @@
+{
+	"ImportPath": "rainforest-cli",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v71",
+	"Deps": [
+		{
+			"ImportPath": "gopkg.in/urfave/cli.v2",
+			"Comment": "v1.17.0-94-g9d93484",
+			"Rev": "9d93484b372e388f4c23692da5912af65c0074ae"
+		}
+	]
+}

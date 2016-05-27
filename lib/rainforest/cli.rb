@@ -14,6 +14,7 @@ require 'rainforest/cli/test_files'
 require 'rainforest/cli/remote_tests'
 require 'rainforest/cli/validator'
 require 'rainforest/cli/exporter'
+require 'rainforest/cli/deleter'
 require 'rainforest/cli/uploader'
 require 'rainforest/cli/resources'
 
@@ -34,6 +35,7 @@ module RainforestCli
     when 'new' then TestFiles.new(options).create_file
     when 'validate' then Validator.new(options).validate
     when 'upload' then Uploader.new(options).upload
+    when 'rm' then Deleter.new(options).delete
     when 'export' then Exporter.new(options).export
     when 'sites', 'folders', 'browsers'
       Resources.new(options).public_send(options.command)

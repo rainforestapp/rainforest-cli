@@ -1,7 +1,15 @@
 # frozen_string_literal: true
 describe RainforestCli::Exporter do
   let(:options) do
-    instance_double('RainforestCli::Options', token: nil, test_folder: nil, debug: nil, embed_tests: nil, tests: [])
+    instance_double(
+      'RainforestCli::Options',
+      token: nil,
+      test_folder: nil,
+      command: nil,
+      debug: nil,
+      embed_tests: nil,
+      tests: []
+    )
   end
   subject { described_class.new(options) }
 
@@ -124,8 +132,8 @@ describe RainforestCli::Exporter do
       let(:options) do
         instance_double(
           'RainforestCli::Options',
-          token: nil, test_folder: nil,
-          debug: nil, embed_tests: true, tests: []
+          token: nil, test_folder: nil, command: nil,
+          debug: nil, embed_tests: true, tests: [],
         )
       end
 
@@ -141,8 +149,8 @@ describe RainforestCli::Exporter do
       let(:options) do
         instance_double(
           'RainforestCli::Options',
-          token: nil, test_folder: nil, debug: nil,
-          embed_tests: nil, tests: tests
+          token: nil, test_folder: nil, command: nil,
+          debug: nil, embed_tests: nil, tests: tests
         )
       end
 

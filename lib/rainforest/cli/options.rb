@@ -152,8 +152,9 @@ module RainforestCli
 
       @command = @args.shift
 
-      if @command == 'new'
+      if ['new', 'rm'].include?(@command)
         @file_name = @args.shift
+        @file_name = File.expand_path(@file_name) if @file_name
       end
 
       @tests = @args.dup
@@ -194,10 +195,14 @@ module RainforestCli
         unless File.exist?(import_file_name)
           raise ValidationError, "Input file: #{import_file_name} not found"
         end
-
       elsif import_file_name || import_name
         raise ValidationError, 'You must pass both --import-variable-csv-file and --import-variable-name'
       end
+
+      if command == 'rm' && file_name.nil?
+        raise ValidationError, 'You must include a file name'
+      end
+
       true
     end
 

@@ -24,6 +24,12 @@ describe RainforestCli::OptionParser do
       its(:crowd) { should == 'some_name' }
     end
 
+    context 'rm' do
+      let(:args) { ['rm', 'foo.rfml']}
+      its(:command) { should == 'rm' }
+      its(:file_name) { should == File.expand_path('foo.rfml') }
+    end
+
     context 'app_source_url' do
       let(:args) { ['--app-source-url', 'some_app'] }
       its(:app_source_url) { should == 'some_app' }
@@ -131,6 +137,11 @@ describe RainforestCli::OptionParser do
 
     context 'with missing token' do
       let(:args) { %w() }
+      it { raises_a_validation_exception }
+    end
+
+    context 'with missing filename' do
+      let(:args) { %w(--token foo rm) }
       it { raises_a_validation_exception }
     end
 

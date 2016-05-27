@@ -21,7 +21,10 @@ EOF
 
   def initialize(options)
     @options = options
-    if @options.test_folder.nil?
+
+    if @options.command == 'rm'
+      @test_folder = File.dirname(@options.file_name)
+    elsif @options.test_folder.nil?
       logger.info "No test folder supplied. Using default folder: #{DEFAULT_TEST_FOLDER}"
       @test_folder = File.expand_path(DEFAULT_TEST_FOLDER)
     else

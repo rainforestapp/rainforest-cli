@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 describe RainforestCli::TestFiles do
-  let(:options) { instance_double('RainforestCli::Options', test_folder: nil) }
+  let(:options) { instance_double('RainforestCli::Options', test_folder: nil, command: nil) }
   subject { described_class.new(options) }
 
   describe '#test_data' do
     let(:test_directory) { File.dirname(__FILE__) + '/rainforest-example' }
-    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory) }
+    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, command: nil) }
+
     let(:rfml_test) { subject.test_data.first }
     let(:text_file) { File.read(test_directory + '/example_test.rfml') }
 

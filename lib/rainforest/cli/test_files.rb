@@ -4,7 +4,7 @@ class RainforestCli::TestFiles
   FILE_EXTENSION = '.rfml'
   SAMPLE_FILE = <<EOF
 #! %s
-# title: New test
+# title: %s
 # start_uri: /
 # tags: rfml-test
 #
@@ -73,19 +73,37 @@ EOF
   def create_file(file_name = @options.file_name)
     ensure_directory_exists
 
-    uuid = SecureRandom.uuid
+    title = file_name || 'Unnamed Test'
+    file_path = title.dup
 
-    name = file_name || uuid.to_s
-    name += file_extension unless name[-file_extension.length..-1] == file_extension
-    name = File.join(test_folder, name)
+    if title[-file_extension.length..-1] == file_extension
+      title = title[0...-file_extension.length]
+    else
+      file_path += file_extension
+    end
 
-    File.open(name, 'w') { |file| file.write(sprintf(SAMPLE_FILE, uuid)) }
+    file_path = unique_path(File.join(test_folder, file_path))
 
-    logger.info "Created #{name}"
-    name
+    File.open(file_path, 'w') { |file| file.write(sprintf(SAMPLE_FILE, SecureRandom.uuid, title)) }
+
+    logger.info "Created #{file_path}"
+    file_path
   end
 
   private
+
+  def unique_path(file_path)
+    path = file_path[0...-file_extension.length]
+    identifier = 0
+
+    loop do
+      id_string = (identifier > 0) ? " (#{identifier})" : ''
+      test_path = path + id_string + file_extension
+
+      return test_path unless File.exist?(test_path)
+      identifier += 1
+    end
+  end
 
   def logger
     RainforestCli.logger

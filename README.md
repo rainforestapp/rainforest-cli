@@ -51,6 +51,12 @@ Create new Rainforest test in RFML format (Rainforest Markup Language).
 rainforest new
 ```
 
+You may also specify a custom test title or file name.
+
+```bash
+rainforest new "My Awesome Title"
+```
+
 Upload tests to Rainforest
 
 ```bash

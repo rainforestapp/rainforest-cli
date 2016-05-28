@@ -15,7 +15,7 @@ describe RainforestCli::Deleter do
   end
 
   before(:each) do
-    File.stub(:delete)
+    allow(File).to receive(:delete)
   end
 
   subject { described_class.new(options) }
@@ -33,31 +33,38 @@ describe RainforestCli::Deleter do
           subject.delete
         rescue SystemExit => exception
           expect(exception.status).to eq(2)
-          exit 0
         end
       end
     end
 
     context 'with correct file extension' do
       let(:file_name) { 'embedded_test.rfml' }
-      let(:remote_tests) { OpenStruct.new(primary_key_dictionary: {'embedded_test' => 25})}
+      let(:rfml_id) { 'embedded_test' }
+      let(:test_id) { 25 }
+      let(:primary_key_dictionary) { Hash[rfml_id, test_id] }
+      let(:test_data) do
+        [instance_double(RainforestCli::TestParser::Test, file_name: file_name, rfml_id: rfml_id)]
+      end
 
       context 'with remote rfml test' do
         before do
-          allow(
-            RainforestCli::RemoteTests
-          ).to receive(:new).and_return(remote_tests)
+          allow_any_instance_of(RainforestCli::RemoteTests)
+            .to receive(:primary_key_dictionary).and_return(primary_key_dictionary)
+          allow_any_instance_of(RainforestCli::TestFiles)
+            .to receive(:test_data).and_return(test_data)
         end
 
         it 'deletes the remote rfml test' do
-          expect(Rainforest::Test).to receive(:delete).with(25)
-          subject.delete
+          expect(Rainforest::Test).to receive(:delete).with(test_id)
+          # make sure that we don't reach SystemExit lines of file
+          expect { subject.delete }.to_not raise_error
         end
 
         it 'deletes the local file' do
-          allow(Rainforest::Test).to receive(:delete).with(25).and_return({})
-          expect(File).to receive(:delete).with('./spec/validation-examples/correct_embeds/embedded_test.rfml')
-          subject.delete
+          allow(Rainforest::Test).to receive(:delete).with(test_id).and_return({})
+          expect(File).to receive(:delete).with(file_name)
+          # make sure that we don't reach SystemExit lines of file
+          expect { subject.delete }.to_not raise_error
         end
       end
 
@@ -78,7 +85,6 @@ describe RainforestCli::Deleter do
             subject.delete
           rescue SystemExit => exception
             expect(exception.status).to eq(2)
-            exit 0
           end
         end
       end

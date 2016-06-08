@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 1.6.1 - 8th June 2016
+- Use snappier API endpoint for validating RFML ids (e37a4e789eed9b329176ffdb16866aa8902a6cc5, @epaulet).
+
 ## 1.6.0 - 8th June 2016
 - Add `rm` command to delete tests. (cf077bd440e83852d8d23f66eb72ba94fece0c07, @marktran)
 - New tests use title given when created using `rainforest new [TEST_NAME]`.

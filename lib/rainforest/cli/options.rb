@@ -8,39 +8,6 @@ module RainforestCli
                 :import_file_name, :import_name, :custom_url, :description, :folder,
                 :debug, :file_name, :test_folder, :embed_tests, :app_source_url, :crowd
 
-    # Note, not all of these may be available to your account
-    # also, we may remove this in the future.
-    VALID_BROWSERS = %w{
-      android_phone_landscape
-      android_phone_portrait
-      android_tablet_landscape
-      android_tablet_portrait
-      chrome
-      chrome_1440_900
-      chrome_adblock
-      chrome_ghostery
-      chrome_guru
-      chrome_ublock
-      firefox
-      firefox_1440_900
-      ie10
-      ie10_1440_900
-      ie11
-      ie11_1440_900
-      ie8
-      ie8_1440_900
-      ie9
-      ie9_1440_900
-      ios_iphone4s
-      office2010
-      office2013
-      osx_chrome
-      osx_firefox
-      safari
-      ubuntu_chrome
-      ubuntu_firefox
-      iphone_6s_v9_0
-    }.freeze
     TOKEN_NOT_REQUIRED = %w{new validate}.freeze
 
     def initialize(args)
@@ -183,10 +150,6 @@ module RainforestCli
         end
       end
 
-      if browsers
-        raise BrowserException, browsers unless (browsers - VALID_BROWSERS).empty?
-      end
-
       if custom_url && site_id.nil?
         raise ValidationError, 'The site-id and custom-url options are both required.'
       end
@@ -207,13 +170,6 @@ module RainforestCli
     end
 
     class ValidationError < RuntimeError
-    end
-
-    class BrowserException < ValidationError
-      def initialize browsers
-        invalid_browsers = browsers - OptionParser::VALID_BROWSERS
-        super "#{invalid_browsers.join(', ')} is not valid. Valid browsers: #{OptionParser::VALID_BROWSERS.join(', ')}"
-      end
     end
   end
 end

@@ -2,6 +2,7 @@
 class RainforestCli::RemoteTests
   def initialize(api_token = nil)
     Rainforest.api_key = api_token
+    @client = RainforestCli::HttpClient.new token: api_token
   end
 
   def api_token_set?
@@ -9,7 +10,7 @@ class RainforestCli::RemoteTests
   end
 
   def rfml_ids
-    @rfml_ids ||= tests.map(&:rfml_id)
+    @rfml_ids ||= primary_key_dictionary.keys
   end
 
   def tests
@@ -36,14 +37,19 @@ class RainforestCli::RemoteTests
   end
 
   def primary_key_dictionary
-    @primary_key_dictionary ||= {}.tap do |primary_key_dictionary|
-      tests.each do |rf_test|
-        primary_key_dictionary[rf_test.rfml_id] = rf_test.id
-      end
-    end
+    @primary_key_dictionary ||= make_test_dictionary
   end
 
   def logger
     RainforestCli.logger
+  end
+
+  def make_test_dictionary
+    primary_key_dictionary = {}
+    rf_tests = @client.get('/tests/rfml_ids')
+    rf_tests.each do |rf_test|
+      primary_key_dictionary[rf_test['rfml_id']] = rf_test['id']
+    end
+    primary_key_dictionary
   end
 end

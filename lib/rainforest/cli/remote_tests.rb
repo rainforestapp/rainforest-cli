@@ -10,7 +10,7 @@ class RainforestCli::RemoteTests
   end
 
   def rfml_ids
-    @rfml_ids ||= primary_key_dictionary.map { |t| t['rfml_id'] }
+    @rfml_ids ||= primary_key_dictionary.keys
   end
 
   def tests
@@ -50,5 +50,6 @@ class RainforestCli::RemoteTests
     rf_tests.each do |rf_test|
       primary_key_dictionary[rf_test['rfml_id']] = rf_test['id']
     end
+    primary_key_dictionary
   end
 end

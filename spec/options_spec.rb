@@ -24,6 +24,12 @@ describe RainforestCli::OptionParser do
       its(:crowd) { should == 'some_name' }
     end
 
+    context 'new' do
+      let(:args) { ['new', 'foo.rfml']}
+      its(:command) { should == 'new' }
+      its(:file_name) { should == 'foo.rfml' }
+    end
+
     context 'rm' do
       let(:args) { ['rm', 'foo.rfml']}
       its(:command) { should == 'rm' }

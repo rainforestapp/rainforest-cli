@@ -166,13 +166,5 @@ describe RainforestCli::OptionParser do
         it { raises_a_validation_exception }
       end
     end
-
-    context 'with invalid browsers' do
-      let(:args) { %w{run --browsers lulbrowser --token foo} }
-
-      it 'raises an exception' do
-        expect { subject.validate! }.to raise_error(RainforestCli::OptionParser::BrowserException)
-      end
-    end
   end
 end

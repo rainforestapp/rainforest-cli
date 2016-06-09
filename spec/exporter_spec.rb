@@ -138,6 +138,7 @@ describe RainforestCli::Exporter do
       end
 
       it 'prints an embedded test rfml id rather than the steps' do
+        expect(file).to include("# redirect:")
         expect(file).to include("- #{embedded_rfml_id}")
         expect(file).to_not include('Embedded Action')
         expect(file).to_not include('Embedded Response')

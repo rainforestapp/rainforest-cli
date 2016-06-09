@@ -55,6 +55,7 @@ class RainforestCli::Exporter
     when 'test'
       if @options.embed_tests
         file.puts '' unless index == 0
+        file.puts "# redirect: #{element[:redirection]}"
         file.puts "- #{element[:element][:rfml_id]}"
       else
         element[:element][:elements].each do |sub_element|

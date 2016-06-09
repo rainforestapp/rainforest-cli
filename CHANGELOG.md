@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 1.6.2 - 8th June 2016
+- Lower concurrent thread count to 16 and allow users to modify the amount of threads used.
+(4333fca172e4e109a517ff6ffc5e11f89839fe85, @epaulet)
+
 ## 1.6.1 - 8th June 2016
 - Use snappier API endpoint for validating RFML ids (e37a4e789eed9b329176ffdb16866aa8902a6cc5, @epaulet).
 

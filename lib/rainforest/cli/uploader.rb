@@ -29,7 +29,7 @@ class RainforestCli::Uploader
   private
 
   def each_in_parallel(tests, &blk)
-    progress_bar = ProgressBar.create(title: 'Rows', total: tests.count, format: '%a %B %p%% %t')
+    progress_bar = ProgressBar.create(title: 'Tests', total: tests.count, format: '%a %B %p%% %t')
     Parallel.each(tests, in_threads: threads, finish: lambda { |_item, _i, _result| progress_bar.increment }) do |rfml_test|
       blk.call(rfml_test)
     end

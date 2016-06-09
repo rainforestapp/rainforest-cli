@@ -28,7 +28,7 @@ class RainforestCli::Exporter
       else
         Rainforest::Test.all(page_size: 1000).map { |t| t.id }
       end
-    p = ProgressBar.create(title: 'Rows', total: test_ids.count, format: '%a %B %p%% %t')
+    p = ProgressBar.create(title: 'Tests', total: test_ids.count, format: '%a %B %p%% %t')
     Parallel.each(test_ids, in_threads: threads, finish: lambda { |_item, _i, _result| p.increment }) do |test_id|
       # Get the full test from the API
       test = Rainforest::Test.retrieve(test_id)

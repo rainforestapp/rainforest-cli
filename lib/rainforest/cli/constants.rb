@@ -1,4 +1,4 @@
 # frozen_string_literal: true
 module RainforestCli
-  THREADS = 32
+  THREADS = ENV.fetch('RAINFOREST_THREADS', 16).to_i
 end

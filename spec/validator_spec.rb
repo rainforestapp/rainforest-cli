@@ -34,7 +34,7 @@ describe RainforestCli::Validator do
     subject { described_class.new(options) }
 
     before do
-      allow(Rainforest::Test).to receive(:all).and_return([])
+      allow_any_instance_of(RainforestCli::HttpClient).to receive(:get).and_return([])
     end
 
     context 'with parsing errors' do

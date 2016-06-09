@@ -24,6 +24,12 @@ describe RainforestCli::OptionParser do
       its(:crowd) { should == 'some_name' }
     end
 
+    context 'new' do
+      let(:args) { ['new', 'foo.rfml']}
+      its(:command) { should == 'new' }
+      its(:file_name) { should == 'foo.rfml' }
+    end
+
     context 'rm' do
       let(:args) { ['rm', 'foo.rfml']}
       its(:command) { should == 'rm' }
@@ -164,14 +170,6 @@ describe RainforestCli::OptionParser do
       context 'for a non existing file' do
         let(:args) { %W(--token foo --import-variable-csv-file does_not_exist --import-variable-name my-var) }
         it { raises_a_validation_exception }
-      end
-    end
-
-    context 'with invalid browsers' do
-      let(:args) { %w{run --browsers lulbrowser --token foo} }
-
-      it 'raises an exception' do
-        expect { subject.validate! }.to raise_error(RainforestCli::OptionParser::BrowserException)
       end
     end
   end

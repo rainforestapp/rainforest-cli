@@ -7,7 +7,7 @@
 (b604a5607e707057375ecc14db836d4b3ec537b1, @epaulet)
 
 ## 1.6.3 - 9th June 2016
-- Add redirects to exported steps. (ccbdaec2a9fb52c775ffbee05e203e1026b256f7, @theonegri)
+- Add redirects to exported embedded tests. (ccbdaec2a9fb52c775ffbee05e203e1026b256f7, @theonegri)
 
 ## 1.6.2 - 8th June 2016
 - Lower concurrent thread count to 16 and allow users to modify the amount of threads used.

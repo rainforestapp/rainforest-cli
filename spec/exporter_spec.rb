@@ -3,7 +3,7 @@ describe RainforestCli::Exporter do
   let(:options) do
     instance_double(
       'RainforestCli::Options',
-      token: nil,
+      token: 'token',
       test_folder: nil,
       command: nil,
       debug: nil,
@@ -25,7 +25,7 @@ describe RainforestCli::Exporter do
     end
 
     let(:file) { FileDouble.new }
-    let(:tests) { [Rainforest::Test.new(id: 123, title: 'Test title')] }
+    let(:tests) { [{ 'id' => 123, 'rfml_id' => 'rfml_id_123' }] }
     let(:embedded_rfml_id) { 'embedded_test_rfml_id' }
     let(:embedded_test) do
       {
@@ -81,7 +81,8 @@ describe RainforestCli::Exporter do
       allow_any_instance_of(RainforestCli::TestFiles).to receive(:create_file).and_return('file_name')
       allow(File).to receive(:truncate)
 
-      allow(Rainforest::Test).to receive(:all).and_return(tests)
+      allow_any_instance_of(RainforestCli::HttpClient).to receive(:get).with('/tests/rfml_ids')
+        .and_return(tests)
       allow(Rainforest::Test).to receive(:retrieve).and_return(single_test)
 
       subject.export
@@ -132,7 +133,7 @@ describe RainforestCli::Exporter do
       let(:options) do
         instance_double(
           'RainforestCli::Options',
-          token: nil, test_folder: nil, command: nil,
+          token: 'token', test_folder: nil, command: nil,
           debug: nil, embed_tests: true, tests: [],
         )
       end
@@ -157,7 +158,7 @@ describe RainforestCli::Exporter do
 
       it 'gets specific tests instead of all' do
         expect(Rainforest::Test).to receive(:retrieve).exactly(tests.length).times
-        expect(Rainforest::Test).to receive(:all).exactly(0).times
+        expect_any_instance_of(RainforestCli::RemoteTests).to_not receive(:primary_ids)
         subject.export
       end
 

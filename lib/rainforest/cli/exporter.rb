@@ -11,6 +11,7 @@ class RainforestCli::Exporter
     @options = options
     ::Rainforest.api_key = @options.token
     @test_files = RainforestCli::TestFiles.new(@options)
+    @remote_tests = RainforestCli::RemoteTests.new(@options.token)
   end
 
   def logger
@@ -26,8 +27,9 @@ class RainforestCli::Exporter
       if @options.tests.length > 0
         @options.tests
       else
-        Rainforest::Test.all(page_size: 1000).map { |t| t.id }
+        @remote_tests.primary_ids
       end
+
     p = ProgressBar.create(title: 'Tests', total: test_ids.count, format: '%a %B %p%% %t')
     Parallel.each(test_ids, in_threads: threads, finish: lambda { |_item, _i, _result| p.increment }) do |test_id|
       # Get the full test from the API

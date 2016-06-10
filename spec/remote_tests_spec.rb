@@ -23,5 +23,16 @@ describe RainforestCli::RemoteTests do
                       test3['rfml_id'] => test3['id']
                     })
     end
+
+    context 'no api token set' do
+      subject { described_class.new }
+
+      it 'does not make an API call but returns an empty dictionary' do
+        expect_any_instance_of(RainforestCli::HttpClient).to_not receive(:get)
+        dictionary = subject.primary_key_dictionary
+        expect(dictionary).to be_a(Hash)
+        expect(dictionary).to eq({})
+      end
+    end
   end
 end

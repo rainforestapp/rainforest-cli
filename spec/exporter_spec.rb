@@ -18,13 +18,13 @@ describe RainforestCli::Exporter do
     class FileDouble < Array
       alias_method :puts, :push
 
-      # join into a string like a file
-      def include?(str)
-        join("\n").include?(str)
+      def to_s
+        join("\n")
       end
     end
 
     let(:file) { FileDouble.new }
+    let(:file_str) { file.to_s }
     let(:tests) { [Rainforest::Test.new(id: 123, title: 'Test title')] }
     let(:embedded_rfml_id) { 'embedded_test_rfml_id' }
     let(:embedded_test) do
@@ -44,7 +44,13 @@ describe RainforestCli::Exporter do
     let(:test_elements) do
       [
         {
+          type: 'test',
+          redirection: true,
+          element: embedded_test
+        },
+        {
           type: 'step',
+          redirection: false,
           element: {
             action: 'Step Action',
             response: 'Step Response'
@@ -52,7 +58,16 @@ describe RainforestCli::Exporter do
         },
         {
           type: 'test',
+          redirection: true,
           element: embedded_test
+        },
+        {
+          type: 'step',
+          redirection: false,
+          element: {
+            action: 'Last step',
+            response: 'Last step?'
+          }
         }
       ]
     end
@@ -137,11 +152,22 @@ describe RainforestCli::Exporter do
         )
       end
 
-      it 'prints an embedded test rfml id rather than the steps' do
-        expect(file).to include("# redirect:")
+      it 'prints an embedded test rfml id' do
         expect(file).to include("- #{embedded_rfml_id}")
-        expect(file).to_not include('Embedded Action')
-        expect(file).to_not include('Embedded Response')
+        expect(file_str).to_not include('Embedded Action')
+        expect(file_str).to_not include('Embedded Response')
+      end
+
+      it 'prints the redirects in the correct location' do
+        # the first embedded test should not have a redirect before it
+        expect(file_str.scan(/# redirect: true\n- #{embedded_rfml_id}/).count).to eq(1)
+
+        # First real step should have a redirect
+        expect(file_str).to include("# redirect: false\nStep Action")
+
+        # The last step exists but no redirect with it
+        expect(file_str).to include('Last step')
+        expect(file_str).to_not include("# redirect: false\nLast step")
       end
     end
 

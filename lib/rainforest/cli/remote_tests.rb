@@ -41,7 +41,7 @@ class RainforestCli::RemoteTests
 
   def fetch_tests
     if api_token_set?
-      logger.info 'Syncing test data from server...'
+      logger.info 'Fetching test data from server...'
       test_list = @client.get('/tests/rfml_ids')
       logger.info 'Fetch complete.'
       test_list

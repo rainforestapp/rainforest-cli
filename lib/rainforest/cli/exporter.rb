@@ -43,8 +43,9 @@ class RainforestCli::Exporter
       File.open(file_name, 'a') do |file|
         file.puts(get_header(test))
 
+        first_step_processed = false
         test.elements.each_with_index do |element, index|
-          process_element(file, element, index)
+          first_step_processed = process_element(file, element, index, first_step_processed)
         end
       end
     end
@@ -52,26 +53,34 @@ class RainforestCli::Exporter
 
   private
 
-  def process_element file, element, index
+  def process_element(file, element, index, first_step_processed)
     case element[:type]
     when 'test'
       if @options.embed_tests
         file.puts '' unless index == 0
-        file.puts "# redirect: #{element[:redirection]}"
+        # no redirect if an embedded test is the first step
+        file.puts "# redirect: #{element[:redirection]}" if index > 0
         file.puts "- #{element[:element][:rfml_id]}"
       else
-        element[:element][:elements].each do |sub_element|
-          index = process_element(file, sub_element, index)
+        element[:element][:elements].each_with_index do |sub_element, i|
+          # no redirect flags for flattened tests
+          process_element(file, sub_element, i + index, true)
         end
       end
     when 'step'
       file.puts '' unless index == 0
-      file.puts "# step #{index + 1}" if @options.debug
-      file.puts element[:element][:action].gsub("\n", ' ')
-      file.puts element[:element][:response].gsub("\n", ' ')
+
+      # add redirect for first step if preceded by an embedded test
+      if index > 0 && first_step_processed == false
+        file.puts "# redirect: #{element[:redirection]}"
+      end
+      file.puts element[:element][:action].gsub("\n", ' ').strip
+      file.puts element[:element][:response].gsub("\n", ' ').strip
+      first_step_processed = true
     else
       raise "Unknown element type: #{element[:type]}"
     end
+    first_step_processed
   end
 
   def get_header(test)

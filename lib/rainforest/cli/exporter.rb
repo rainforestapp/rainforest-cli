@@ -71,8 +71,8 @@ class RainforestCli::Exporter
       if index > 0 && @first_step_parsed == false
         file.puts "# redirect: #{element[:redirection]}"
       end
-      file.puts element[:element][:action].gsub("\n", ' ')
-      file.puts element[:element][:response].gsub("\n", ' ')
+      file.puts element[:element][:action].gsub("\n", ' ').strip
+      file.puts element[:element][:response].gsub("\n", ' ').strip
       @first_step_parsed = true
     else
       raise "Unknown element type: #{element[:type]}"

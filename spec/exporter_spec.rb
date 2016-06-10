@@ -18,13 +18,13 @@ describe RainforestCli::Exporter do
     class FileDouble < Array
       alias_method :puts, :push
 
-      # join into a string like a file
-      def include?(str)
-        join("\n").include?(str)
+      def to_s
+        join("\n")
       end
     end
 
     let(:file) { FileDouble.new }
+    let(:file_str) { file.to_s }
     let(:tests) { [Rainforest::Test.new(id: 123, title: 'Test title')] }
     let(:embedded_rfml_id) { 'embedded_test_rfml_id' }
     let(:embedded_test) do
@@ -44,7 +44,13 @@ describe RainforestCli::Exporter do
     let(:test_elements) do
       [
         {
+          type: 'test',
+          redirection: true,
+          element: embedded_test
+        },
+        {
           type: 'step',
+          redirection: false,
           element: {
             action: 'Step Action',
             response: 'Step Response'
@@ -52,7 +58,16 @@ describe RainforestCli::Exporter do
         },
         {
           type: 'test',
+          redirection: true,
           element: embedded_test
+        },
+        {
+          type: 'step',
+          redirection: false,
+          element: {
+            action: 'Last step',
+            response: 'Last step?'
+          }
         }
       ]
     end
@@ -138,10 +153,15 @@ describe RainforestCli::Exporter do
       end
 
       it 'prints an embedded test rfml id rather than the steps' do
-        expect(file).to include("# redirect:")
-        expect(file).to include("- #{embedded_rfml_id}")
-        expect(file).to_not include('Embedded Action')
-        expect(file).to_not include('Embedded Response')
+        expect(file_str.scan(/# redirect: true\n- #{embedded_rfml_id}/).count).to eq(2)
+        expect(file_str.scan(/# redirect: false\nStep Action/).count).to eq(1)
+
+        # The last step exists but no redirect with it
+        expect(file_str.match(/Last step/)).to_not be_nil
+        expect(file_str.match(/# redirect: false\nLast step/)).to be_nil
+
+        expect(file_str).to_not include('Embedded Action')
+        expect(file_str).to_not include('Embedded Response')
       end
     end
 

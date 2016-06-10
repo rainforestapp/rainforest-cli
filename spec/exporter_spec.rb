@@ -153,18 +153,21 @@ describe RainforestCli::Exporter do
       end
 
       it 'prints an embedded test rfml id' do
-        expect(file_str).to include(embedded_rfml_id)
+        expect(file).to include("- #{embedded_rfml_id}")
         expect(file_str).to_not include('Embedded Action')
         expect(file_str).to_not include('Embedded Response')
       end
 
       it 'prints the redirects in the correct location' do
-        expect(file_str.scan(/# redirect: true\n- #{embedded_rfml_id}/).count).to eq(2)
-        expect(file_str.scan(/# redirect: false\nStep Action/).count).to eq(1)
+        # the first embedded test should not have a redirect before it
+        expect(file_str.scan(/# redirect: true\n- #{embedded_rfml_id}/).count).to eq(1)
+
+        # First real step should have a redirect
+        expect(file_str).to include("# redirect: false\nStep Action")
 
         # The last step exists but no redirect with it
-        expect(file_str.match(/Last step/)).to_not be_nil
-        expect(file_str.match(/# redirect: false\nLast step/)).to be_nil
+        expect(file_str).to include('Last step')
+        expect(file_str).to_not include("# redirect: false\nLast step")
       end
     end
 

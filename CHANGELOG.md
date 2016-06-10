@@ -1,5 +1,11 @@
 # Rainforest CLI Changelog
 
+## 1.6.4 - 10th June 2016
+- Add redirects to non-embedded steps that need them as well. (2a5918d1a448f78016587c1711261e90a7be120f,
+@epaulet)
+- Fix a bug introduced in 1.6.1 where validating without an API token would result in an error.
+(b604a5607e707057375ecc14db836d4b3ec537b1, @epaulet)
+
 ## 1.6.3 - 9th June 2016
 - Add redirects to exported steps. (ccbdaec2a9fb52c775ffbee05e203e1026b256f7, @theonegri)
 

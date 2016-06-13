@@ -13,7 +13,7 @@ class RainforestCli::Validator
 
   def validate
     check_test_directory_for_tests!
-    invalid?
+    exit 1 if invalid?
   end
 
   def validate_with_exception!

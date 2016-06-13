@@ -110,6 +110,21 @@ describe RainforestCli::Validator do
 
         subject.validate
       end
+
+
+      context 'when invalid' do
+        before do
+          allow(subject).to receive(:invalid?).and_return(true)
+        end
+        it 'exits 1' do
+          begin
+            subject.validate
+            fail "validate did not exit with status 1"
+          rescue SystemExit => e
+            expect(e.status).to eq(1)
+          end
+        end
+      end
     end
   end
 

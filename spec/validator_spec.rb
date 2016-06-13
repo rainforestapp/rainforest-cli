@@ -8,11 +8,7 @@ describe RainforestCli::Validator do
       .with(array_including(test_with_file_name(file_path)))
       .and_call_original
 
-    if raises_error
-      expect { subject.public_send(tested_method) }.to raise_error(SystemExit)
-    else
-      expect { subject.public_send(tested_method) }.to_not raise_error
-    end
+    expect { subject.public_send(tested_method) }.to raise_error(SystemExit)
   end
 
   def does_not_notify_for_wrong_file_names
@@ -20,16 +16,11 @@ describe RainforestCli::Validator do
       .with(array_excluding(test_with_file_name(file_path)))
       .and_call_original
 
-    if raises_error
-      expect { subject.public_send(tested_method) }.to raise_error(SystemExit)
-    else
-      expect { subject.public_send(tested_method) }.to_not raise_error
-    end
+    expect { subject.public_send(tested_method) }.to raise_error(SystemExit)
   end
 
   shared_examples 'it detects all the correct errors' do
     let(:tested_method) { :validate }
-    let(:raises_error) { false }
     let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token', command: '') }
     subject { described_class.new(options) }
 
@@ -108,7 +99,7 @@ describe RainforestCli::Validator do
       it 'logs the errors' do
         expect(subject).to receive(:duplicate_rfml_ids_notification).with({'a-test' => 2}).and_call_original
 
-        subject.validate
+        expect { subject.validate }.to raise_error(SystemExit)
       end
 
 
@@ -130,7 +121,6 @@ describe RainforestCli::Validator do
 
   describe '#validate_with_exception!' do
     let(:tested_method) { :validate_with_exception! }
-    let(:raises_error) { true }
 
     it_behaves_like 'it detects all the correct errors'
 

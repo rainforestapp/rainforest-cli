@@ -1,5 +1,11 @@
 # Rainforest CLI Changelog
 
+## 1.6.5 - 13th June 2016
+- Exit with non-zero status code when `validate` fails. (8db1d38be39aa50d2afcdef817f78c654b3108b6,
+@DyerSituation)
+- Increase the amount of folders fetched from API to 100. (7fc7d426c029d35e73fe45712a79b35fda54ad60,
+@DyerSituation)
+
 ## 1.6.4 - 10th June 2016
 - Add redirects to non-embedded steps that need them as well. (2a5918d1a448f78016587c1711261e90a7be120f,
 @epaulet)

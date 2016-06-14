@@ -18,8 +18,7 @@ class RainforestCli::Resources
   end
 
   def folders
-    folders = @client.get('/folders').map { |f| Resource.new(f['id'], f['title']) }
-
+    folders = @client.get('/folders?page_size=100').map { |f| Resource.new(f['id'], f['title']) }
     if folders.empty?
       logger.info('No folders found on your account.')
       logger.info('Please visit https://app.rainforestqa.com/folders to create and edit your sites.')

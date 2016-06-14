@@ -82,7 +82,17 @@ describe RainforestCli::Resources do
       let(:expected_name) { api_response.first['title'] }
 
       it_should_behave_like 'a properly formatted resource', :folders
+
+
+      it 'should make a get request for 100 pages' do
+        expect_any_instance_of(RainforestCli::HttpClient).to receive(:get) do |_obj, message|
+          expect(message).to include('page_size=100')
+        end.and_return(api_response)
+        subject.folders
+      end
     end
+
+
   end
 
   describe '#browsers' do

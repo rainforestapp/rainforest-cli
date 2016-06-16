@@ -34,6 +34,16 @@ func main() {
 				return nil
 			},
 		},
+
+		{
+			Name:  "folders",
+			Usage: "Retreive folders on Rainforest",
+			Action: func(c *cli.Context) error {
+				apiToken = c.String("token")
+				getFolders(c)
+				return nil
+			},
+		},
 	}
 	app.Run(os.Args)
 }

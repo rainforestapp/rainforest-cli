@@ -26,8 +26,8 @@ func makeBody(c *cli.Context) *foldersParams {
 }
 
 func postFolders(params *foldersParams) (resBody *foldersResponse) {
-	js, _ := json.Marshal(params)
-	data := postRequest("https://app.rainforestqa.com/api/1/runs", js)
+	//js, _ := json.Marshal(params)
+	data := postRequest("https://app.rainforestqa.com/api/1/sites.json", nil)
 	json.Unmarshal(data, &resBody)
 	return
 }

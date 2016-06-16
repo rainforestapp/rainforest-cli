@@ -1,14 +1,12 @@
 package main
 
 import (
-	"net/http"
 	"os"
 
 	"gopkg.in/urfave/cli.v2"
 )
 
 var apiToken string
-var client = new(http.Client)
 
 func main() {
 	app := cli.NewApp()

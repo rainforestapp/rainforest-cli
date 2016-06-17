@@ -8,7 +8,7 @@ import (
 )
 
 type runParams struct {
-	Tags []string `json:"tags"`
+	Tags []string `json:"tags,omitempty"`
 }
 
 type runResponse map[string]interface{}

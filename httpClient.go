@@ -20,3 +20,11 @@ func postRequest(url string, body []byte) []byte {
 	data, _ := ioutil.ReadAll(res.Body)
 	return data
 }
+
+func getRequest(url string) []byte {
+	req, _ := http.NewRequest("GET", url, nil)
+	addAuthHeaders(req)
+	res, _ := client.Do(req)
+	data, _ := ioutil.ReadAll(res.Body)
+	return data
+}

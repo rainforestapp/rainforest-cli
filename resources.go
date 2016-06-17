@@ -15,18 +15,14 @@ type test interface{}
 
 func createResource(c *cli.Context, resourceType string) {
 	params := makeBody(c)
-	var resBody *resourceResponse
-	switch resourceType {
-	case "folders":
-		resBody = getFolders(params)
-	case "sites":
-		resBody = getSites(params)
-	// case "browsers":
-	// 	resBodi = getBrowsers(params)
-	default:
-		resBody = getFolders(params)
+	//var resBody *resourceResponse
+	if resourceType == "browsers" {
+		getBrowsers(params)
+		//printBrowsers(resBody)
+	} else {
+		resBody := getResource(params, resourceType)
+		printResource(resBody)
 	}
-	printTable(resBody)
 }
 
 func makeBody(c *cli.Context) *resourceParams {
@@ -35,32 +31,25 @@ func makeBody(c *cli.Context) *resourceParams {
 	}
 }
 
-func getFolders(params *resourceParams) (resBody *resourceResponse) {
+func getResource(params *resourceParams, resourceType string) (resBody *resourceResponse) {
 	//js, _ := json.Marshal(params)
-	data := getRequest("https://app.rainforestqa.com/api/1/folders.json")
+	url := "https://app.rainforestqa.com/api/1/" + resourceType + ".json"
+	data := getRequest(url)
 	json.Unmarshal(data, &resBody)
 	return
 }
 
-func getSites(params *resourceParams) (resBody *resourceResponse) {
-	//js, _ := json.Marshal(params)
-	data := getRequest("https://app.rainforestqa.com/api/1/sites.json")
-	json.Unmarshal(data, &resBody)
+func getBrowsers(params *resourceParams) (resBody *resourceResponse) {
+	data := getRequest("https://app.rainforestqa.com/api/1/clients.json")
+	type Client map[string]interface{}
+	var client Client
+	json.Unmarshal(data, &client)
+	//resBrowsers := (*resBody)
+	fmt.Printf("\n\n\n%T\n\n\n", client["available_browsers"])
 	return
 }
 
-// func getBrowsers(params *resourceParams) (resBody *resourceResponse) {
-// 	data := getRequest("https://app.rainforestqa.com/api/1/clients.json")
-// 	type Client map[string]interface{}
-// 	var client Client
-// 	json.Unmarshal(data, &client)
-// 	//resBrowsers := (*resBody)
-// 	fmt.Printf("\n\n\n\n\n%T\n\n\n\n\n\n\n", client["available_browsers"])
-// 	resBody = resourceResponse(client["available_browsers"])
-// 	return
-// }
-
-func printTable(resBody *resourceResponse) {
+func printResource(resBody *resourceResponse) {
 	// fmt.Printf("%v\n\n", *resBody)
 	for _, item := range *resBody {
 		fmt.Printf("\n%v\n\n", item)

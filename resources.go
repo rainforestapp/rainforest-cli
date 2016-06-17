@@ -16,12 +16,12 @@ type test interface{}
 func createResource(c *cli.Context, resourceType string) {
 	params := makeBody(c)
 	//var resBody *resourceResponse
-	if resourceType == "browsers" {
+	if resourceType == "Browsers" {
 		getBrowsers(params)
 		//printBrowsers(resBody)
 	} else {
 		resBody := getResource(params, resourceType)
-		printResource(resBody)
+		printResource(resBody, resourceType)
 	}
 }
 
@@ -49,9 +49,10 @@ func getBrowsers(params *resourceParams) (resBody *resourceResponse) {
 	return
 }
 
-func printResource(resBody *resourceResponse) {
-	// fmt.Printf("%v\n\n", *resBody)
+func printResource(resBody *resourceResponse, resourceType string) {
+	resource := resourceType[0 : len(resourceType)-1]
+	fmt.Printf("%v Id | %v Name", resource, resource)
 	for _, item := range *resBody {
-		fmt.Printf("\n%v\n\n", item)
+		fmt.Printf("%v\t%v\n", item["id"], item["title"])
 	}
 }

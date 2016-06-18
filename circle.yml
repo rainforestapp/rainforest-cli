@@ -1,16 +1,9 @@
-machine:
-  environment:
-    REPO: "$GOPATH/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
-
 dependencies:
   pre:
     - go get github.com/tools/godep
   override:
-    - mkdir -p $REPO
-    - mv $HOME/$CIRCLE_PROJECT_REPONAME $REPO
+    - godep go build
 
 test:
-  pre:
-    - cd $REPO
   override:
-    - godep go test
+    - godep go test -race

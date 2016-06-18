@@ -14,7 +14,7 @@ func main() {
 	app.Usage = "Command line utility for Rainforest QA"
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name:  "tags",
 			Usage: "Filter tests by tag",
 		},

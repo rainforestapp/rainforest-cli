@@ -3,9 +3,21 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"gopkg.in/urfave/cli.v2"
 )
+
+type clientResp struct {
+	AvailableBrowsers []struct {
+		Name           string `json:"name"`
+		Description    string `json:"description"`
+		Category       string `json:"category"`
+		BrowserVersion string `json:"browser_version"`
+		OsVersion      string `json:"os_version"`
+		Default        bool   `json:"default"`
+	} `json:"available_browsers"`
+}
 
 type resourceParams struct {
 	Tags []string `json:"tags"`
@@ -41,18 +53,28 @@ func getResource(params *resourceParams, resourceType string) (resBody *resource
 
 func getBrowsers(params *resourceParams) (resBody *resourceResponse) {
 	data := getRequest("https://app.rainforestqa.com/api/1/clients.json")
-	type Client map[string]interface{}
-	var client Client
+	var client clientResp
+	// type Browsers []interface{}
+	// var browsesrList = client["available_browsers"].(Browsers)
 	json.Unmarshal(data, &client)
 	//resBrowsers := (*resBody)
-	fmt.Printf("\n\n\n%T\n\n\n", client["available_browsers"])
+	// browser := client["avaliable_browsers"]
+	//	fmt.Println(reflect.TypeOf(client.AvailableBrowsers))
+	//fmt.Println(client.AvailableBrowsers)
+
+	for _, item := range client.AvailableBrowsers {
+		fmt.Printf("\t%v\t| %v\n", item.Name, item.Description)
+	}
+
 	return
 }
 
 func printResource(resBody *resourceResponse, resourceType string) {
 	resource := resourceType[0 : len(resourceType)-1]
-	fmt.Printf("%v Id | %v Name", resource, resource)
+	fmt.Printf("%v Id\t| %v Name\n", resource, resource)
+	bar := strings.Repeat("-", 40)
+	print("" + bar + "\n")
 	for _, item := range *resBody {
-		fmt.Printf("%v\t%v\n", item["id"], item["title"])
+		fmt.Printf("\t%v\t| %v\n", item["id"], item["title"])
 	}
 }

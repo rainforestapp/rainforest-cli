@@ -7,9 +7,10 @@ dependencies:
     - go get github.com/tools/godep
   override:
     - mkdir -p $REPO
-    - mv ./ $REPO
-    - cd $REPO
+    - mv $HOME/$CIRCLE_PROJECT_REPONAME $REPO
 
 test:
+  pre:
+    - cd $REPO
   override:
     - godep go test

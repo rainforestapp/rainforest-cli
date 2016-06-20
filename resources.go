@@ -54,14 +54,7 @@ func getResource(params *resourceParams, resourceType string) (resBody *resource
 func getBrowsers(params *resourceParams) (resBody *resourceResponse) {
 	data := getRequest("https://app.rainforestqa.com/api/1/clients.json")
 	var client clientResp
-	// type Browsers []interface{}
-	// var browsesrList = client["available_browsers"].(Browsers)
 	json.Unmarshal(data, &client)
-	//resBrowsers := (*resBody)
-	// browser := client["avaliable_browsers"]
-	//	fmt.Println(reflect.TypeOf(client.AvailableBrowsers))
-	//fmt.Println(client.AvailableBrowsers)
-
 	for _, item := range client.AvailableBrowsers {
 		fmt.Printf("\t%v\t| %v\n", item.Name, item.Description)
 	}

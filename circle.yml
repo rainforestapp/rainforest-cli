@@ -7,3 +7,5 @@ dependencies:
 test:
   override:
     - godep go test -race
+
+# testing the new image in circle ci with this fake commit

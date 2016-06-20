@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-
 	"gopkg.in/urfave/cli.v2"
 )
 

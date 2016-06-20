@@ -13,17 +13,19 @@ var get getResponse
 type resourceParams struct {
 	Tags []string `json:"tags"`
 }
-type resourceResponse []map[string]interface{}
-type test interface{}
 
 func createResource(c *cli.Context, resourceType string) {
 	params := makeBody(c)
-	if resourceType == "browsers" {
-		getBrowsers(params)
-	} else {
-		resBody := getResource(params, resourceType)
-		printResource(resBody, resourceType)
+	var IDs, Titles []string
+	switch resourceType {
+	case "Folders":
+		IDs, Titles = getFolders(params)
+	case "Sites":
+		IDs, Titles = getSites(params)
+	default:
+		IDs, Titles = getBrowsers(params)
 	}
+	printResource(resourceType, IDs, Titles)
 }
 
 func makeBody(c *cli.Context) *resourceParams {
@@ -32,31 +34,35 @@ func makeBody(c *cli.Context) *resourceParams {
 	}
 }
 
-func getResource(params *resourceParams, resourceType string) (resBody *resourceResponse) {
-	//js, _ := json.Marshal(params)
-	url := "https://app.rainforestqa.com/api/1/" + resourceType + ".json"
-	data := get.getRequest(url)
+func getFolders(params *resourceParams) (IDs []string, Titles []string) {
+	var resBody *foldersResp
+	data := get.getRequest("https://app.rainforestqa.com/api/1/folders.json")
 	json.Unmarshal(data, &resBody)
-	return
+	IDs, Titles = resBody.TableSlice()
+	return IDs, Titles
 }
 
-func getBrowsers(params *resourceParams) (resBody *resourceResponse) {
+func getSites(params *resourceParams) (IDs []string, Titles []string) {
+	var resBody *sitesResp
+	data := get.getRequest("https://app.rainforestqa.com/api/1/sites.json")
+	json.Unmarshal(data, &resBody)
+	IDs, Titles = resBody.TableSlice()
+	return IDs, Titles
+}
+
+func getBrowsers(params *resourceParams) (IDs []string, Titles []string) {
+	var resBody *browsersResp
 	data := get.getRequest("https://app.rainforestqa.com/api/1/clients.json")
-	var client browsersResp
-	json.Unmarshal(data, &client)
-	for _, item := range client.AvailableBrowsers {
-		fmt.Printf("\t%v\t| %v\n", item.Name, item.Description)
-	}
-
-	return
+	json.Unmarshal(data, &resBody)
+	IDs, Titles = resBody.TableSlice()
+	return IDs, Titles
 }
 
-func printResource(resBody *resourceResponse, resourceType string) {
-	resource := resourceType[0 : len(resourceType)-1]
-	fmt.Printf("%vwhy Id\t| %v Name\n", resource, resource)
+func printResource(resource string, IDs []string, Titles []string) {
+	fmt.Printf("%v Id\t| %v Name\n", resource, resource)
 	bar := strings.Repeat("-", 40)
 	print("" + bar + "\n")
-	for _, item := range *resBody {
-		fmt.Printf("\t%v\t| %v\n", item["id"], item["title"])
+	for i := range IDs {
+		fmt.Printf("\t%v\t| %v\n", IDs[i], Titles[i])
 	}
 }

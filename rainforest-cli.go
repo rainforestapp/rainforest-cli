@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+
 	"gopkg.in/urfave/cli.v2"
 )
 
@@ -39,7 +40,7 @@ func main() {
 			Usage: "Retreive folders on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				createResource(c, "folders")
+				createResource(c, "Folders")
 				return nil
 			},
 		},
@@ -49,7 +50,7 @@ func main() {
 			Usage: "Retreive sites on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				createResource(c, "sites")
+				createResource(c, "Sites")
 				return nil
 			},
 		},
@@ -59,7 +60,7 @@ func main() {
 			Usage: "Retreive sites on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				createResource(c, "browsers")
+				createResource(c, "Browsers")
 				return nil
 			},
 		},

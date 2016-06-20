@@ -1,6 +1,37 @@
 package main
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
+
+type returnTable interface {
+	TableSlice() ([]string, []string)
+}
+
+func (f foldersResp) TableSlice() (idArray []string, titleArray []string) {
+	for _, folderSlice := range f {
+		idArray = append(idArray, strconv.Itoa(folderSlice.ID))
+		titleArray = append(titleArray, folderSlice.Title)
+	}
+	return idArray, titleArray
+}
+
+func (s sitesResp) TableSlice() (idArray []string, titleArray []string) {
+	for _, sitesSlice := range s {
+		idArray = append(idArray, strconv.Itoa(sitesSlice.ID))
+		titleArray = append(titleArray, sitesSlice.Name)
+	}
+	return idArray, titleArray
+}
+
+func (b browsersResp) TableSlice() (idArray []string, titleArray []string) {
+	for _, browserSlice := range b.AvailableBrowsers {
+		idArray = append(idArray, browserSlice.Name)
+		titleArray = append(titleArray, browserSlice.Description)
+	}
+	return idArray, titleArray
+}
 
 type foldersResp []struct {
 	ID        int       `json:"id"`
@@ -24,7 +55,7 @@ type browsersResp struct {
 	} `json:"available_browsers"`
 }
 
-type clientsResp []struct {
+type sitesResp []struct {
 	ID        int       `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	Name      string    `json:"name"`

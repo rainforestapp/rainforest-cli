@@ -10,8 +10,8 @@ type returnTable interface {
 }
 
 func (f foldersResp) TableSlice() (idTitleTable [][]string) {
-	tableRow := make([]string, 2)
 	for _, folderSlice := range f {
+		tableRow := make([]string, 2)
 		tableRow[0] = strconv.Itoa(folderSlice.ID)
 		tableRow[1] = folderSlice.Title
 		idTitleTable = append(idTitleTable, tableRow)
@@ -20,8 +20,8 @@ func (f foldersResp) TableSlice() (idTitleTable [][]string) {
 }
 
 func (s sitesResp) TableSlice() (idTitleTable [][]string) {
-	tableRow := make([]string, 2)
 	for _, sitesSlice := range s {
+		tableRow := make([]string, 2)
 		tableRow[0] = strconv.Itoa(sitesSlice.ID)
 		tableRow[1] = sitesSlice.Name
 		idTitleTable = append(idTitleTable, tableRow)

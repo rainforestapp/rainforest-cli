@@ -37,7 +37,7 @@ func makeBody(c *cli.Context) *resourceParams {
 
 func getFolders(params *resourceParams) (tableData [][]string) {
 	var resBody *foldersResp
-	data := get.getRequest("https://app.rainforestqa.com/api/1/folders.json")
+	data := get.getRequest("https://app.rainforestqa.com/api/1/folders.json?page_size=100")
 	json.Unmarshal(data, &resBody)
 	tableData = resBody.TableSlice()
 	return tableData

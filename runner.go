@@ -20,7 +20,11 @@ func createRun(c *cli.Context) {
 	fmt.Println(resBody)
 }
 
-func makeParams(c *cli.Context) *runParams {
+type flagParser interface {
+	StringSlice(string) []string
+}
+
+func makeParams(c flagParser) *runParams {
 	return &runParams{
 		Tags: c.StringSlice("tags"),
 	}

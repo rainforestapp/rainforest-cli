@@ -15,27 +15,22 @@ type resourceParams struct {
 	Tags []string `json:"tags"`
 }
 
-func createResource(c *cli.Context, resourceType string) {
-	params := makeBody(c)
+func fetchResource(c *cli.Context, resourceType string) {
 	var table [][]string
 	switch resourceType {
 	case "Folders":
-		table = getFolders(params)
+		table = getFolders()
 	case "Sites":
-		table = getSites(params)
-	default: //"Browsers"
-		table = getBrowsers(params)
+		table = getSites()
+	case "Browsers":
+		table = getBrowsers()
+	default:
+		panic("Not valid resource to fetch")
 	}
 	printResource(resourceType, table)
 }
 
-func makeBody(c *cli.Context) *resourceParams {
-	return &resourceParams{
-		Tags: c.StringSlice("tags"),
-	}
-}
-
-func getFolders(params *resourceParams) (tableData [][]string) {
+func getFolders() (tableData [][]string) {
 	var resBody *foldersResp
 	data := get.getRequest("https://app.rainforestqa.com/api/1/folders.json?page_size=100")
 	json.Unmarshal(data, &resBody)
@@ -43,7 +38,7 @@ func getFolders(params *resourceParams) (tableData [][]string) {
 	return tableData
 }
 
-func getSites(params *resourceParams) (tableData [][]string) {
+func getSites() (tableData [][]string) {
 	var resBody *sitesResp
 	data := get.getRequest("https://app.rainforestqa.com/api/1/sites.json")
 	json.Unmarshal(data, &resBody)
@@ -51,7 +46,7 @@ func getSites(params *resourceParams) (tableData [][]string) {
 	return tableData
 }
 
-func getBrowsers(params *resourceParams) (tableData [][]string) {
+func getBrowsers() (tableData [][]string) {
 	var resBody *browsersResp
 	data := get.getRequest("https://app.rainforestqa.com/api/1/clients.json")
 	json.Unmarshal(data, &resBody)

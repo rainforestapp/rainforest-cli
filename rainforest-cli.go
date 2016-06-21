@@ -40,7 +40,7 @@ func main() {
 			Usage: "Retreive folders on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				createResource(c, "Folders")
+				fetchResource(c, "Folders")
 				return nil
 			},
 		},
@@ -50,7 +50,7 @@ func main() {
 			Usage: "Retreive sites on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				createResource(c, "Sites")
+				fetchResource(c, "Sites")
 				return nil
 			},
 		},
@@ -60,7 +60,7 @@ func main() {
 			Usage: "Retreive sites on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				createResource(c, "Browsers")
+				fetchResource(c, "Browsers")
 				return nil
 			},
 		},

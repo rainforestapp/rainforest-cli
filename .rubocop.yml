@@ -1,5 +1,0 @@
-inherit_gem:
-  rf-stylez: ruby/rubocop.yml
-
-Style/FileName:
-  Exclude: [rainforest-cli.gemspec]

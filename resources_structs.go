@@ -6,31 +6,37 @@ import (
 )
 
 type returnTable interface {
-	TableSlice() ([]string, []string)
+	TableSlice() [][]string
 }
 
-func (f foldersResp) TableSlice() (idArray []string, titleArray []string) {
+func (f foldersResp) TableSlice() (idTitleTable [][]string) {
+	tableRow := make([]string, 2)
 	for _, folderSlice := range f {
-		idArray = append(idArray, strconv.Itoa(folderSlice.ID))
-		titleArray = append(titleArray, folderSlice.Title)
+		tableRow[0] = strconv.Itoa(folderSlice.ID)
+		tableRow[1] = folderSlice.Title
+		idTitleTable = append(idTitleTable, tableRow)
 	}
-	return idArray, titleArray
+	return idTitleTable
 }
 
-func (s sitesResp) TableSlice() (idArray []string, titleArray []string) {
+func (s sitesResp) TableSlice() (idTitleTable [][]string) {
+	tableRow := make([]string, 2)
 	for _, sitesSlice := range s {
-		idArray = append(idArray, strconv.Itoa(sitesSlice.ID))
-		titleArray = append(titleArray, sitesSlice.Name)
+		tableRow[0] = strconv.Itoa(sitesSlice.ID)
+		tableRow[1] = sitesSlice.Name
+		idTitleTable = append(idTitleTable, tableRow)
 	}
-	return idArray, titleArray
+	return idTitleTable
 }
 
-func (b browsersResp) TableSlice() (idArray []string, titleArray []string) {
+func (b browsersResp) TableSlice() (idTitleTable [][]string) {
 	for _, browserSlice := range b.AvailableBrowsers {
-		idArray = append(idArray, browserSlice.Name)
-		titleArray = append(titleArray, browserSlice.Description)
+		tableRow := make([]string, 2)
+		tableRow[0] = browserSlice.Name
+		tableRow[1] = browserSlice.Description
+		idTitleTable = append(idTitleTable, tableRow)
 	}
-	return idArray, titleArray
+	return idTitleTable
 }
 
 type foldersResp []struct {

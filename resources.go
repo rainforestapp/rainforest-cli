@@ -2,8 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"strings"
+	"os"
+
+	"github.com/olekukonko/tablewriter"
 
 	"gopkg.in/urfave/cli.v2"
 )
@@ -16,16 +17,16 @@ type resourceParams struct {
 
 func createResource(c *cli.Context, resourceType string) {
 	params := makeBody(c)
-	var IDs, Titles []string
+	var table [][]string
 	switch resourceType {
 	case "Folders":
-		IDs, Titles = getFolders(params)
+		table = getFolders(params)
 	case "Sites":
-		IDs, Titles = getSites(params)
-	default:
-		IDs, Titles = getBrowsers(params)
+		table = getSites(params)
+	default: //"Browsers"
+		table = getBrowsers(params)
 	}
-	printResource(resourceType, IDs, Titles)
+	printResource(resourceType, table)
 }
 
 func makeBody(c *cli.Context) *resourceParams {
@@ -34,35 +35,35 @@ func makeBody(c *cli.Context) *resourceParams {
 	}
 }
 
-func getFolders(params *resourceParams) (IDs []string, Titles []string) {
+func getFolders(params *resourceParams) (tableData [][]string) {
 	var resBody *foldersResp
 	data := get.getRequest("https://app.rainforestqa.com/api/1/folders.json")
 	json.Unmarshal(data, &resBody)
-	IDs, Titles = resBody.TableSlice()
-	return IDs, Titles
+	tableData = resBody.TableSlice()
+	return tableData
 }
 
-func getSites(params *resourceParams) (IDs []string, Titles []string) {
+func getSites(params *resourceParams) (tableData [][]string) {
 	var resBody *sitesResp
 	data := get.getRequest("https://app.rainforestqa.com/api/1/sites.json")
 	json.Unmarshal(data, &resBody)
-	IDs, Titles = resBody.TableSlice()
-	return IDs, Titles
+	tableData = resBody.TableSlice()
+	return tableData
 }
 
-func getBrowsers(params *resourceParams) (IDs []string, Titles []string) {
+func getBrowsers(params *resourceParams) (tableData [][]string) {
 	var resBody *browsersResp
 	data := get.getRequest("https://app.rainforestqa.com/api/1/clients.json")
 	json.Unmarshal(data, &resBody)
-	IDs, Titles = resBody.TableSlice()
-	return IDs, Titles
+	tableData = resBody.TableSlice()
+	return tableData
 }
 
-func printResource(resource string, IDs []string, Titles []string) {
-	fmt.Printf("%v Id\t| %v Name\n", resource, resource)
-	bar := strings.Repeat("-", 40)
-	print("" + bar + "\n")
-	for i := range IDs {
-		fmt.Printf("\t%v\t| %v\n", IDs[i], Titles[i])
-	}
+func printResource(resource string, data [][]string) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{resource + " ID", resource + " Description"})
+	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+	table.SetCenterSeparator("|")
+	table.AppendBulk(data) // Add Bulk Data
+	table.Render()
 }

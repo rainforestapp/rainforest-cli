@@ -11,6 +11,11 @@ import (
 
 var get getResponse
 
+type printer interface{}
+type tablePrinter struct{}
+
+var resPrinter tablePrinter
+
 type resourceParams struct {
 	Tags []string `json:"tags"`
 }
@@ -27,7 +32,7 @@ func fetchResource(c *cli.Context, resourceType string) {
 	default:
 		panic("Not valid resource to fetch")
 	}
-	printResource(resourceType, table)
+	resPrinter.printResource(resourceType, table)
 }
 
 func getFolders() (tableData [][]string) {
@@ -54,7 +59,7 @@ func getBrowsers() (tableData [][]string) {
 	return tableData
 }
 
-func printResource(resource string, data [][]string) {
+func (t tablePrinter) printResource(resource string, data [][]string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{resource + " ID", resource + " Description"})
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})

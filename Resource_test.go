@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 )
 
@@ -13,17 +14,17 @@ func TestResourcesTableSlice(t *testing.T) {
 	}{
 		{
 			resource:      new(foldersResp),
-			json:          fakeFolderByte,
+			json:          fakeFolderResp,
 			expectedTable: [][]string{{"707", "The Foo Folder"}, {"708", "The Baz Folder"}},
 		},
 		{
 			resource:      new(sitesResp),
-			json:          fakeSitesByte,
+			json:          fakeSitesResp,
 			expectedTable: [][]string{{"1337", "Dyer"}, {"42", "Situation"}},
 		},
 		{
 			resource:      new(browsersResp),
-			json:          fakeClientsByte,
+			json:          fakeClientsResp,
 			expectedTable: [][]string{{"firefox", "Mozilla Firefox"}, {"ie11", "Microsoft Internet Explorer 11"}},
 		},
 	}
@@ -32,27 +33,27 @@ func TestResourcesTableSlice(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		matrixTestHelper(t, tcase.resource, tcase.expectedTable)
+		checkTablesEqual(t, tcase.resource, tcase.expectedTable)
 	}
 
 }
 
-func matrixTestHelper(t *testing.T, resBody returnTable, expectedTable [][]string) {
-	actualTable := resBody.TableSlice()
-	if expectedLen, actualLen := len(expectedTable), len(actualTable); expectedLen != actualLen {
+func checkTablesEqual(t *testing.T, resBody returnTable, want [][]string) {
+	got := resBody.TableSlice()
+	if expectedLen, actualLen := len(want), len(got); expectedLen != actualLen {
 		t.Errorf("Wrong number of matrix rows. Expected %d, got %d", expectedLen, actualLen)
 	}
-
-	for i, actualrow := range actualTable {
-		for j, actualColumn := range actualrow {
-			if expectedTable[i][j] != actualColumn {
-				t.Errorf("Unexpected matrix entry. Expected %s, got %s", expectedTable[i][j], actualColumn)
-			}
-		}
+	if !reflect.DeepEqual(want, got) {
+		wantB, _ := json.Marshal(want)
+		gotB, _ := json.Marshal(got)
+		t.Log("want:")
+		t.Logf("\t%+v", string(wantB))
+		t.Log("got =")
+		t.Errorf("\t%+v", string(gotB))
 	}
 }
 
-var fakeFolderByte = []byte(`[
+var fakeFolderResp = []byte(`[
   {
     "id": 707,
     "created_at": "2016-04-18T18:09:42Z",
@@ -79,7 +80,7 @@ var fakeFolderByte = []byte(`[
   }
 ]`)
 
-var fakeSitesByte = []byte(`[
+var fakeSitesResp = []byte(`[
     {
       "id": 1337,
       "created_at": "2016-02-23T06:12:38Z",
@@ -94,7 +95,7 @@ var fakeSitesByte = []byte(`[
     }
   ]`)
 
-var fakeClientsByte = []byte(`{
+var fakeClientsResp = []byte(`{
   "id": 4938,
   "name": "Edward CLI testing",
   "enabled_features": [

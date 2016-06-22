@@ -5,34 +5,36 @@ import (
 	"testing"
 )
 
-func TestFoldersTableSlice(t *testing.T) {
-	var foldersResBody *foldersResp
-	json.Unmarshal(fakeFolderByte, &foldersResBody)
-	slice1 := []string{"707", "The Foo Folder"}
-	slice2 := []string{"708", "The Baz Folder"}
-	expectedTable := [][]string{slice1, slice2}
-	matrixTestHelper(t, foldersResBody, expectedTable)
-}
-
-func TestSitesTableSlice(t *testing.T) {
-	var sitesResBody *sitesResp
-	json.Unmarshal(fakeSitesByte, &sitesResBody)
-	slice1 := []string{"1337", "Dyer"}
-	slice2 := []string{"42", "Situation"}
-	expectedTable := [][]string{slice1, slice2}
-	matrixTestHelper(t, sitesResBody, expectedTable)
-}
-
-func TestBrowsersTableSlice(t *testing.T) {
-	var browsersRespBody *browsersResp
-	err := json.Unmarshal(fakeClientsByte, &browsersRespBody)
-	if err != nil {
-		panic(err)
+func TestResourcesTableSlice(t *testing.T) {
+	var testCases = []struct {
+		resource      returnTable
+		json          []byte
+		expectedTable [][]string
+	}{
+		{
+			resource:      new(foldersResp),
+			json:          fakeFolderByte,
+			expectedTable: [][]string{{"707", "The Foo Folder"}, {"708", "The Baz Folder"}},
+		},
+		{
+			resource:      new(sitesResp),
+			json:          fakeSitesByte,
+			expectedTable: [][]string{{"1337", "Dyer"}, {"42", "Situation"}},
+		},
+		{
+			resource:      new(browsersResp),
+			json:          fakeClientsByte,
+			expectedTable: [][]string{{"firefox", "Mozilla Firefox"}, {"ie11", "Microsoft Internet Explorer 11"}},
+		},
 	}
-	slice1 := []string{"firefox", "Mozilla Firefox"}
-	slice2 := []string{"ie11", "Microsoft Internet Explorer 11"}
-	expectedTable := [][]string{slice1, slice2}
-	matrixTestHelper(t, browsersRespBody, expectedTable)
+	for _, tcase := range testCases {
+		err := json.Unmarshal(tcase.json, tcase.resource)
+		if err != nil {
+			panic(err)
+		}
+		matrixTestHelper(t, tcase.resource, tcase.expectedTable)
+	}
+
 }
 
 func matrixTestHelper(t *testing.T, resBody returnTable, expectedTable [][]string) {

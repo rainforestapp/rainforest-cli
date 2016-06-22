@@ -16,6 +16,15 @@ func (f fakeFlagParser) StringSlice(s string) []string {
 	}
 }
 
+func (f fakeFlagParser) Int(s string) int {
+	switch s {
+	case "smart-folder-id":
+		return 200
+	default:
+		panic(fmt.Sprintf("fakeFlagParser does expect argument: %s", s))
+	}
+}
+
 func TestMakeParams(t *testing.T) {
 	flagReturner := fakeFlagParser{}
 	params := makeParams(&flagReturner)

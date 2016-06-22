@@ -8,7 +8,8 @@ import (
 )
 
 type runParams struct {
-	Tags []string `json:"tags,omitempty"`
+	Tags          []string `json:"tags,omitempty"`
+	SmartFolderID int      `json:"smart_folder_id,omitempty"`
 }
 
 type runResponse map[string]interface{}
@@ -22,11 +23,13 @@ func createRun(c *cli.Context) {
 
 type flagParser interface {
 	StringSlice(string) []string
+	Int(string) int
 }
 
 func makeParams(c flagParser) *runParams {
 	return &runParams{
-		Tags: c.StringSlice("tags"),
+		Tags:          c.StringSlice("tags"),
+		SmartFolderID: c.Int("smart-folder-id"),
 	}
 }
 

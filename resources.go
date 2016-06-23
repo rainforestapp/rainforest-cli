@@ -5,37 +5,30 @@ import (
 	"os"
 
 	"github.com/olekukonko/tablewriter"
-
-	"gopkg.in/urfave/cli.v2"
 )
 
 var get getResponse
-
-type printer interface{}
-type tablePrinter struct{}
-
-var resPrinter tablePrinter
 
 type resourceParams struct {
 	Tags []string `json:"tags"`
 }
 
-func fetchResource(c *cli.Context, resourceType string) {
-	var table [][]string
+func fetchResource(resourceType string, web resourceGetter) (table [][]string) {
 	switch resourceType {
 	case "Folders":
-		table = getFolders()
+		table = web.getFolders()
 	case "Sites":
-		table = getSites()
+		table = web.getSites()
 	case "Browsers":
-		table = getBrowsers()
+		table = web.getBrowsers()
 	default:
 		panic("Not valid resource to fetch")
 	}
-	resPrinter.printResource(resourceType, table)
+	printResource(resourceType, table)
+	return table
 }
 
-func getFolders() (tableData [][]string) {
+func (g webResGetter) getFolders() (tableData [][]string) {
 	var resBody *foldersResp
 	data := get.getRequest("https://app.rainforestqa.com/api/1/folders.json?page_size=100")
 	json.Unmarshal(data, &resBody)
@@ -43,7 +36,7 @@ func getFolders() (tableData [][]string) {
 	return tableData
 }
 
-func getSites() (tableData [][]string) {
+func (g webResGetter) getSites() (tableData [][]string) {
 	var resBody *sitesResp
 	data := get.getRequest("https://app.rainforestqa.com/api/1/sites.json")
 	json.Unmarshal(data, &resBody)
@@ -51,7 +44,7 @@ func getSites() (tableData [][]string) {
 	return tableData
 }
 
-func getBrowsers() (tableData [][]string) {
+func (g webResGetter) getBrowsers() (tableData [][]string) {
 	var resBody *browsersResp
 	data := get.getRequest("https://app.rainforestqa.com/api/1/clients.json")
 	json.Unmarshal(data, &resBody)
@@ -59,7 +52,7 @@ func getBrowsers() (tableData [][]string) {
 	return tableData
 }
 
-func (t tablePrinter) printResource(resource string, data [][]string) {
+func printResource(resource string, data [][]string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{resource + " ID", resource + " Description"})
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})

@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-
-	"gopkg.in/urfave/cli.v2"
 )
 
 type runParams struct {
@@ -14,16 +12,16 @@ type runParams struct {
 
 type runResponse map[string]interface{}
 
-func createRun(c *cli.Context) {
-	params := makeParams(c)
-	resBody := postRun(params)
-
-	fmt.Println(resBody)
-}
-
 type flagParser interface {
 	StringSlice(string) []string
 	Int(string) int
+}
+
+func createRun(f flagParser) {
+	params := makeParams(f)
+	resBody := postRun(params)
+
+	fmt.Println(resBody)
 }
 
 func makeParams(c flagParser) *runParams {

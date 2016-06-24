@@ -12,7 +12,7 @@ func (f fakeFlagParser) StringSlice(s string) []string {
 	case "tags":
 		return []string{"foo", "bar"}
 	default:
-		panic(fmt.Sprintf("fakeFlagParser does expect argument: %s", s))
+		panic(fmt.Sprintf("fakeFlagParser does not expect argument: %s", s))
 	}
 }
 
@@ -21,7 +21,7 @@ func (f fakeFlagParser) Int(s string) int {
 	case "smart-folder-id":
 		return 123
 	default:
-		panic(fmt.Sprintf("fakeFlagParser does expect argument: %s", s))
+		panic(fmt.Sprintf("fakeFlagParser does not expect argument: %s", s))
 	}
 }
 

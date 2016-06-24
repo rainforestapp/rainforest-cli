@@ -4,6 +4,15 @@
 	"GodepVersion": "v71",
 	"Deps": [
 		{
+			"ImportPath": "github.com/mattn/go-runewidth",
+			"Comment": "v0.0.1",
+			"Rev": "d6bea18f789704b5f83375793155289da36a3c7f"
+		},
+		{
+			"ImportPath": "github.com/olekukonko/tablewriter",
+			"Rev": "daf2955e742cf123959884fdff4685aa79b63135"
+		},
+		{
 			"ImportPath": "gopkg.in/urfave/cli.v2",
 			"Comment": "v1.17.0-94-g9d93484",
 			"Rev": "9d93484b372e388f4c23692da5912af65c0074ae"

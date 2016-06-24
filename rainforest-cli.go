@@ -22,6 +22,10 @@ func main() {
 			Name:  "token",
 			Usage: "Rainforest API token",
 		},
+		cli.IntFlag{
+			Name:  "smart-folder-id",
+			Usage: "Specify a folder of tests in Rainforest",
+		},
 	}
 
 	app.Commands = []cli.Command{

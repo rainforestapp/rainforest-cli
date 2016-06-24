@@ -1,9 +1,7 @@
-*.gem
 *.rbc
 .bundle
 .config
 .yardoc
-Gemfile.lock
 InstalledFiles
 _yardoc
 coverage
@@ -20,3 +18,5 @@ tags
 *.csv
 spec/rainforest
 spec/rainforest-testing
+
+rainforest-cli

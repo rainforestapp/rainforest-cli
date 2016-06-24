@@ -19,7 +19,7 @@ func (f fakeFlagParser) StringSlice(s string) []string {
 func (f fakeFlagParser) Int(s string) int {
 	switch s {
 	case "smart-folder-id":
-		return 200
+		return 123
 	default:
 		panic(fmt.Sprintf("fakeFlagParser does expect argument: %s", s))
 	}
@@ -38,7 +38,11 @@ func TestMakeParams(t *testing.T) {
 
 	for i, actualTag := range actualTags {
 		if expectedTags[i] != actualTag {
-			t.Errorf("Unexpected tag. Expected %s, got %s", expectedTags[1], actualTag)
+			t.Errorf("Unexpected tags parameter. Expected %s, got %s", expectedTags[1], actualTag)
 		}
+	}
+
+	if params.SmartFolderID != 123 {
+		t.Errorf("Unexpected smart_folder_id parameter. Expected %d, got %d", 123, params.SmartFolderID)
 	}
 }

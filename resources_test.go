@@ -1,25 +1,27 @@
 package main
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
-type fakeResGetter struct{}
-
-func (g fakeResGetter) getFolders() (tableData [][]string) {
-	tableData = [][]string{{"Folders"}}
-	return
+var fakeResourceGetter = webResGetter{
+	getFolders: func() [][]string {
+		return [][]string{{"Folders"}}
+	},
+	getSites: func() [][]string {
+		return [][]string{{"Sites"}}
+	},
+	getBrowsers: func() [][]string {
+		return [][]string{{"Browsers"}}
+	},
 }
-func (g fakeResGetter) getSites() (tableData [][]string) {
-	tableData = [][]string{{"Sites"}}
-	return
-}
-func (g fakeResGetter) getBrowsers() (tableData [][]string) {
-	tableData = [][]string{{"Browsers"}}
-	return
-}
-
-var fakeRes fakeResGetter
 
 func TestFetchResource(t *testing.T) {
+	old := os.Stdout
+	_, w, _ := os.Pipe()
+	os.Stdout = w
+	web = fakeResourceGetter
 	var testCases = []struct {
 		expectedResource string
 	}{
@@ -28,9 +30,10 @@ func TestFetchResource(t *testing.T) {
 		{expectedResource: "Browsers"},
 	}
 	for _, tcase := range testCases {
-		chosenResource := fetchResource(tcase.expectedResource, fakeRes)
+		chosenResource := fetchResource(tcase.expectedResource)
 		if chosenResource[0][0] != tcase.expectedResource {
 			t.Error("fetchResource did not choose the correct resource")
 		}
 	}
+	os.Stdout = old
 }

@@ -8,15 +8,8 @@ import (
 
 var apiToken string
 
-type resourceGetter interface {
-	getFolders() [][]string
-	getSites() [][]string
-	getBrowsers() [][]string
-}
-type webResGetter struct{}
-
 func main() {
-	var web webResGetter
+
 	app := cli.NewApp()
 	app.Name = "Rainforest CLI"
 	app.Usage = "Command line utility for Rainforest QA"
@@ -48,7 +41,7 @@ func main() {
 			Usage: "Retreive folders on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				fetchResource("Folders", web)
+				fetchResource("Folders")
 				return nil
 			},
 		},
@@ -58,7 +51,7 @@ func main() {
 			Usage: "Retreive sites on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				fetchResource("Sites", web)
+				fetchResource("Sites")
 				return nil
 			},
 		},
@@ -68,7 +61,7 @@ func main() {
 			Usage: "Retreive sites on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				fetchResource("Browsers", web)
+				fetchResource("Browsers")
 				return nil
 			},
 		},

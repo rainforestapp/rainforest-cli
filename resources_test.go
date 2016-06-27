@@ -1,39 +1,41 @@
 package main
 
 import (
+	"bytes"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"regexp"
 	"testing"
 )
 
-var fakeResourceGetter = webResGetter{
-	getFolders: func() [][]string {
-		return [][]string{{"Folders"}}
-	},
-	getSites: func() [][]string {
-		return [][]string{{"Sites"}}
-	},
-	getBrowsers: func() [][]string {
-		return [][]string{{"Browsers"}}
-	},
-}
-
-func TestFetchResource(t *testing.T) {
-	old := os.Stdout
-	_, w, _ := os.Pipe()
-	os.Stdout = w
-	web = fakeResourceGetter
-	var testCases = []struct {
-		expectedResource string
-	}{
-		{expectedResource: "Folders"},
-		{expectedResource: "Sites"},
-		{expectedResource: "Browsers"},
-	}
-	for _, tcase := range testCases {
-		chosenResource := fetchResource(tcase.expectedResource)
-		if chosenResource[0][0] != tcase.expectedResource {
-			t.Error("fetchResource did not choose the correct resource")
+func TestPrintSites(t *testing.T) {
+	siteResp := `[{"id": 1337, "name": "Dyer"}]`
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/sites.json" {
+			t.Errorf("fetchRource hit wrong endpoint (wanted /sites.json but got %v)", r.URL.Path)
 		}
+		w.Write([]byte(siteResp))
+	}))
+	defer ts.Close()
+	baseURL = ts.URL
+
+	out = &bytes.Buffer{}
+	defer func() {
+		out = os.Stdout
+	}()
+
+	fetchResource("Sites")
+
+	pattern := `\| +1337 +\| +Dyer +\|`
+	matched, err := regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
+	if err != nil {
+		t.Error("Error with pattern match:", err)
 	}
-	os.Stdout = old
+
+	if !matched {
+		t.Logf("Table didn't match properly:")
+		t.Logf("%v\n", out)
+		t.Errorf("should have matched %v", pattern)
+	}
 }

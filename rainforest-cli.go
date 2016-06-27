@@ -1,12 +1,15 @@
 package main
 
 import (
+	"io"
 	"os"
 
 	"gopkg.in/urfave/cli.v2"
 )
 
 var apiToken string
+var baseURL = "https://app.rainforestqa.com/api/1"
+var out io.Writer = os.Stdout
 
 func main() {
 

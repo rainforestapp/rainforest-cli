@@ -66,30 +66,6 @@ func fetchResource(resourceType string) (table [][]string) {
 	return table
 }
 
-func getFolders() (tableData [][]string) {
-	var resBody *foldersResp
-	data := get.getRequest("https://app.rainforestqa.com/api/1/folders.json?page_size=100")
-	json.Unmarshal(data, &resBody)
-	tableData = resBody.TableSlice()
-	return tableData
-}
-
-func getSites() (tableData [][]string) {
-	var resBody *sitesResp
-	data := get.getRequest("https://app.rainforestqa.com/api/1/sites.json")
-	json.Unmarshal(data, &resBody)
-	tableData = resBody.TableSlice()
-	return tableData
-}
-
-func getBrowsers() (tableData [][]string) {
-	var resBody *browsersResp
-	data := get.getRequest("https://app.rainforestqa.com/api/1/clients.json")
-	json.Unmarshal(data, &resBody)
-	tableData = resBody.TableSlice()
-	return tableData
-}
-
 func printResource(resource string, data [][]string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{resource + " ID", resource + " Description"})

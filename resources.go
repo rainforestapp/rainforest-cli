@@ -26,7 +26,7 @@ var web = webResGetter{
 		var resBody *foldersResp
 		data := get.getRequest("https://app.rainforestqa.com/api/1/folders.json?page_size=100")
 		json.Unmarshal(data, &resBody)
-		tableData = resBody.TableSlice()
+		tableData = resBody.displayTable()
 		return tableData
 	},
 	getSites: func() [][]string {
@@ -34,7 +34,7 @@ var web = webResGetter{
 		var resBody *sitesResp
 		data := get.getRequest("https://app.rainforestqa.com/api/1/sites.json")
 		json.Unmarshal(data, &resBody)
-		tableData = resBody.TableSlice()
+		tableData = resBody.displayTable()
 		return tableData
 	},
 	getBrowsers: func() [][]string {
@@ -42,7 +42,7 @@ var web = webResGetter{
 		var resBody *browsersResp
 		data := get.getRequest("https://app.rainforestqa.com/api/1/clients.json")
 		json.Unmarshal(data, &resBody)
-		tableData = resBody.TableSlice()
+		tableData = resBody.displayTable()
 		return tableData
 	},
 }

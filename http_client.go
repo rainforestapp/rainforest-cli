@@ -55,3 +55,29 @@ func getFolders(url string, resBody *foldersResp) []byte {
 	checkAPIErr(err)
 	return data
 }
+
+func getSites(url string, resBody *sitesResp) []byte {
+	req, err := http.NewRequest("GET", baseURL+"/"+url, nil)
+	checkAPIErr(err)
+	addAuthHeaders(req)
+	res, err := client.Do(req)
+	checkAPIErr(err)
+	data, err := ioutil.ReadAll(res.Body)
+	checkAPIErr(err)
+	err = json.Unmarshal(data, &resBody)
+	checkAPIErr(err)
+	return data
+}
+
+func getBrowsers(url string, resBody *browsersResp) []byte {
+	req, err := http.NewRequest("GET", baseURL+"/"+url, nil)
+	checkAPIErr(err)
+	addAuthHeaders(req)
+	res, err := client.Do(req)
+	checkAPIErr(err)
+	data, err := ioutil.ReadAll(res.Body)
+	checkAPIErr(err)
+	err = json.Unmarshal(data, &resBody)
+	checkAPIErr(err)
+	return data
+}

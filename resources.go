@@ -15,40 +15,22 @@ func printFolders() {
 	printResource("Folders", table)
 }
 
-// func getSites() [][]string {
-// 	var tableData [][]string
-// 	var resBody sitesResp
-// 	getResource("sites.json", resBody)
-// 	tableData = resBody.displayTable()
-// 	return tableData
-// }
-// func getBrowsers() [][]string {
-// 	var tableData [][]string
-// 	var resBody *browsersResp
-// 	getResource("clients.json", resBody)
-// 	tableData = resBody.displayTable()
-// 	return tableData
-// }
-
-type resourceParams struct {
-	Tags []string `json:"tags"`
+func printSites() {
+	var table [][]string
+	var resBody sitesResp
+	getSites("sites.json", &resBody)
+	table = resBody.displayTable()
+	printResource("Folders", table)
 }
 
-// func fetchResource(resourceType string) error {
-// 	var table [][]string
-// 	switch resourceType {
-// 	case "Folders":
-// 		table = getFolders()
-// 	case "Sites":
-// 		table = getSites()
-// 	case "Browsers":
-// 		table = getBrowsers()
-// 	default:
-// 		return errors.New("Not valid resource to fetch")
-// 	}
-// 	printResource(resourceType, table)
-// 	return nil
-// }
+func printBrowsers() {
+	var table [][]string
+	var resBody browsersResp
+	getBrowsers("sites.json", &resBody)
+	fmt.Printf("\n%v\n", resBody)
+	table = resBody.displayTable()
+	printResource("Folders", table)
+}
 
 func printResource(resource string, data [][]string) {
 	table := tablewriter.NewWriter(out)

@@ -12,7 +12,6 @@ var baseURL = "https://app.rainforestqa.com/api/1"
 var out io.Writer = os.Stdout
 
 func main() {
-
 	app := cli.NewApp()
 	app.Name = "Rainforest CLI"
 	app.Usage = "Command line utility for Rainforest QA"

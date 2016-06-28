@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/olekukonko/tablewriter"
@@ -22,8 +21,6 @@ func getSites() [][]string {
 	var tableData [][]string
 	var resBody *sitesResp
 	data := getRequest("sites.json")
-	fmt.Println("DATA")
-	fmt.Println(string(data))
 	err := json.Unmarshal(data, &resBody)
 	if err != nil {
 		log.Fatalf("Invalid response from API: %v\n", err)

@@ -1,12 +1,15 @@
 package main
 
 import (
+	"io"
 	"os"
 
 	"gopkg.in/urfave/cli.v2"
 )
 
 var apiToken string
+var baseURL = "https://app.rainforestqa.com/api/1"
+var out io.Writer = os.Stdout
 
 func main() {
 	app := cli.NewApp()
@@ -44,17 +47,16 @@ func main() {
 			Usage: "Retreive folders on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				fetchResource(c, "Folders")
+				printFolders()
 				return nil
 			},
 		},
-
 		{
 			Name:  "sites",
 			Usage: "Retreive sites on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				fetchResource(c, "Sites")
+				printSites()
 				return nil
 			},
 		},
@@ -64,7 +66,7 @@ func main() {
 			Usage: "Retreive sites on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				fetchResource(c, "Browsers")
+				printBrowsers()
 				return nil
 			},
 		},

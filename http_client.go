@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -14,7 +15,10 @@ func addAuthHeaders(req *http.Request) {
 }
 
 func postRequest(url string, body []byte) []byte {
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		log.Fatalf("Error when making POST request: %v\n", err)
+	}
 	addAuthHeaders(req)
 	res, _ := client.Do(req)
 	data, _ := ioutil.ReadAll(res.Body)
@@ -22,7 +26,10 @@ func postRequest(url string, body []byte) []byte {
 }
 
 func getRequest(url string) []byte {
-	req, _ := http.NewRequest("GET", baseURL+"/"+url, nil)
+	req, err := http.NewRequest("GET", baseURL+"/"+url, nil)
+	if err != nil {
+		log.Fatalf("Error when making GET request: %v\n", err)
+	}
 	addAuthHeaders(req)
 	res, _ := client.Do(req)
 	data, _ := ioutil.ReadAll(res.Body)

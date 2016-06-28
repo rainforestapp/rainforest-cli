@@ -26,7 +26,7 @@ func TestPrintSites(t *testing.T) {
 	}()
 
 	printSites()
-	pattern := `\| +Site ID +\| +SITE DESCRIPTION +\|`
+	pattern := `\| +SITE ID +\| +SITE DESCRIPTION +\|`
 	matched, err := regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
 	if err != nil {
 		t.Error("Error with pattern match:", err)
@@ -63,8 +63,14 @@ func TestPrintFolders(t *testing.T) {
 
 	printFolders()
 
-	pattern := `\| +707 +\| +Foo +\|`
+	pattern := `\| +FOLDER ID +\| +FOLDER DESCRIPTION +\|`
 	matched, err := regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
+	if err != nil {
+		t.Error("Error with pattern match:", err)
+	}
+
+	pattern = `\| +707 +\| +Foo +\|`
+	matched, err = regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
 	if err != nil {
 		t.Error("Error with pattern match:", err)
 	}
@@ -94,8 +100,14 @@ func TestBrowsersFolders(t *testing.T) {
 
 	printBrowsers()
 
-	pattern := `\| +firefox +\| +Mozilla Firefox +\|`
+	pattern := `\| +BROWSER ID +\| +BROWSER DESCRIPTION +\|`
 	matched, err := regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
+	if err != nil {
+		t.Error("Error with pattern match:", err)
+	}
+
+	pattern = `\| +firefox +\| +Mozilla Firefox +\|`
+	matched, err = regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
 	if err != nil {
 		t.Error("Error with pattern match:", err)
 	}

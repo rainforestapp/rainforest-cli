@@ -1,16 +1,11 @@
 package main
 
-import (
-	"fmt"
-
-	"github.com/olekukonko/tablewriter"
-)
+import "github.com/olekukonko/tablewriter"
 
 func printFolders() {
 	var table [][]string
 	var resBody foldersResp
 	getFolders("folders.json?page_size=100", &resBody)
-	fmt.Printf("\n%v\n", resBody)
 	table = resBody.displayTable()
 	printResource("Folders", table)
 }
@@ -26,8 +21,7 @@ func printSites() {
 func printBrowsers() {
 	var table [][]string
 	var resBody browsersResp
-	getBrowsers("sites.json", &resBody)
-	fmt.Printf("\n%v\n", resBody)
+	getBrowsers("clients.json", &resBody)
 	table = resBody.displayTable()
 	printResource("Folders", table)
 }

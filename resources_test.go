@@ -56,7 +56,7 @@ func TestPrintFolders(t *testing.T) {
 		out = os.Stdout
 	}()
 
-	printSites()
+	printFolders()
 
 	pattern := `\| +707 +\| +Foo +\|`
 	matched, err := regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
@@ -87,7 +87,7 @@ func TestBrowsersFolders(t *testing.T) {
 		out = os.Stdout
 	}()
 
-	printSites()
+	printBrowsers()
 
 	pattern := `\| +firefox +\| +Mozilla Firefox +\|`
 	matched, err := regexp.Match(pattern, out.(*bytes.Buffer).Bytes())

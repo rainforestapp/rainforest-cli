@@ -7,7 +7,7 @@ func printFolders() {
 	var resBody foldersResp
 	getFolders("folders.json?page_size=100", &resBody)
 	table = resBody.displayTable()
-	printResource("Folders", table)
+	printResource("Folder", table)
 }
 
 func printSites() {
@@ -15,7 +15,7 @@ func printSites() {
 	var resBody sitesResp
 	getSites("sites.json", &resBody)
 	table = resBody.displayTable()
-	printResource("Folders", table)
+	printResource("Site", table)
 }
 
 func printBrowsers() {
@@ -23,7 +23,7 @@ func printBrowsers() {
 	var resBody browsersResp
 	getBrowsers("clients.json", &resBody)
 	table = resBody.displayTable()
-	printResource("Folders", table)
+	printResource("Browser", table)
 }
 
 func printResource(resource string, data [][]string) {

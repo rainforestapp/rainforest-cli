@@ -26,9 +26,14 @@ func TestPrintSites(t *testing.T) {
 	}()
 
 	printSites()
-
-	pattern := `\| +1337 +\| +Dyer +\|`
+	pattern := `\| +Site ID +\| +SITE DESCRIPTION +\|`
 	matched, err := regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
+	if err != nil {
+		t.Error("Error with pattern match:", err)
+	}
+
+	pattern = `\| +1337 +\| +Dyer +\|`
+	matched, err = regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
 	if err != nil {
 		t.Error("Error with pattern match:", err)
 	}

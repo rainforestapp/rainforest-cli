@@ -15,6 +15,11 @@ func checkAPIErr(err error) {
 		log.Fatalf("API error: %v. Please contact Rainforest support.", err)
 	}
 }
+func checkPanicError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
 
 func addAuthHeaders(req *http.Request) {
 	req.Header.Add("CLIENT_TOKEN", apiToken)
@@ -23,7 +28,7 @@ func addAuthHeaders(req *http.Request) {
 
 func postRequest(url string, body []byte) []byte {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
-	checkAPIErr(err)
+	checkPanicError(err)
 	addAuthHeaders(req)
 	res, err := client.Do(req)
 	checkAPIErr(err)
@@ -34,7 +39,7 @@ func postRequest(url string, body []byte) []byte {
 
 func getRequest(url string) []byte {
 	req, err := http.NewRequest("GET", baseURL+"/"+url, nil)
-	checkAPIErr(err)
+	checkPanicError(err)
 	addAuthHeaders(req)
 	res, err := client.Do(req)
 	checkAPIErr(err)
@@ -45,7 +50,7 @@ func getRequest(url string) []byte {
 
 func getFolders(url string, resBody *foldersResp) []byte {
 	req, err := http.NewRequest("GET", baseURL+"/"+url, nil)
-	checkAPIErr(err)
+	checkPanicError(err)
 	addAuthHeaders(req)
 	res, err := client.Do(req)
 	checkAPIErr(err)
@@ -58,7 +63,7 @@ func getFolders(url string, resBody *foldersResp) []byte {
 
 func getSites(url string, resBody *sitesResp) []byte {
 	req, err := http.NewRequest("GET", baseURL+"/"+url, nil)
-	checkAPIErr(err)
+	checkPanicError(err)
 	addAuthHeaders(req)
 	res, err := client.Do(req)
 	checkAPIErr(err)
@@ -71,7 +76,7 @@ func getSites(url string, resBody *sitesResp) []byte {
 
 func getBrowsers(url string, resBody *browsersResp) []byte {
 	req, err := http.NewRequest("GET", baseURL+"/"+url, nil)
-	checkAPIErr(err)
+	checkPanicError(err)
 	addAuthHeaders(req)
 	res, err := client.Do(req)
 	checkAPIErr(err)

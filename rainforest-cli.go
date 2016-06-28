@@ -43,30 +43,30 @@ func main() {
 			Usage: "Retreive folders on Rainforest",
 			Action: func(c *cli.Context) error {
 				apiToken = c.String("token")
-				fetchResource("Folders")
+				printFolders()
 				return nil
 			},
 		},
-
-		{
-			Name:  "sites",
-			Usage: "Retreive sites on Rainforest",
-			Action: func(c *cli.Context) error {
-				apiToken = c.String("token")
-				fetchResource("Sites")
-				return nil
-			},
-		},
-
-		{
-			Name:  "browsers",
-			Usage: "Retreive sites on Rainforest",
-			Action: func(c *cli.Context) error {
-				apiToken = c.String("token")
-				fetchResource("Browsers")
-				return nil
-			},
-		},
+		//
+		// {
+		// 	Name:  "sites",
+		// 	Usage: "Retreive sites on Rainforest",
+		// 	Action: func(c *cli.Context) error {
+		// 		apiToken = c.String("token")
+		// 		printSites()
+		// 		return nil
+		// 	},
+		// },
+		//
+		// {
+		// 	Name:  "browsers",
+		// 	Usage: "Retreive sites on Rainforest",
+		// 	Action: func(c *cli.Context) error {
+		// 		apiToken = c.String("token")
+		// 		printBrowsers()
+		// 		return nil
+		// 	},
+		// },
 	}
 	app.Run(os.Args)
 }

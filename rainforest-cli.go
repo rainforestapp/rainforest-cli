@@ -22,11 +22,22 @@ func parseCommands() []string {
 	}
 	return commands
 }
+
 func main() {
 	commands := parseCommands()
 	command := commands[0]
-	flag.StringVar(&apiToken, "token", "no token", "THIS IS THE USAGE")
+
+	flag.StringVar(&apiToken, "token", "", "API token. You can find your account token at https://app.rainforestqa.com/settings/integrations")
 	flag.Parse()
+
+	if len(apiToken) == 0 {
+		envToken, present := os.LookupEnv("RAINFOREST_API_TOKEN")
+
+		if present {
+			apiToken = envToken
+		}
+	}
+
 	switch command {
 	case "sites":
 		printSites()

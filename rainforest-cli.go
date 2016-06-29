@@ -1,82 +1,40 @@
 package main
 
 import (
+	"flag"
 	"io"
 	"log"
 	"os"
 )
 
 var apiToken string
+
 var baseURL = "https://app.rainforestqa.com/api/1"
 var out io.Writer = os.Stdout
 
+func parseCommands() []string {
+	commands := make([]string, 0, 5)
+	for i := len(os.Args) - 1; i > 0; i-- {
+		if os.Args[i][0] != '-' {
+			commands = append(commands, os.Args[i])
+			os.Args = append(os.Args[:i], os.Args[i+1:]...)
+		}
+	}
+	return commands
+}
 func main() {
-	command := os.Args[1]
-
+	commands := parseCommands()
+	command := commands[0]
+	flag.StringVar(&apiToken, "token", "no token", "THIS IS THE USAGE")
+	flag.Parse()
 	switch command {
 	case "sites":
 		printSites()
+	case "folders":
+		printFolders()
+	case "browsers":
+		printBrowsers()
 	default:
 		log.Fatalf("Unknown command: %s\n", command)
 	}
-	// app := cli.NewApp()
-	// app.Name = "Rainforest CLI"
-	// app.Usage = "Command line utility for Rainforest QA"
-	//
-	// app.Flags = []cli.Flag{
-	// 	cli.StringSliceFlag{
-	// 		Name:  "tags",
-	// 		Usage: "Filter tests by tag",
-	// 	},
-	// 	cli.StringFlag{
-	// 		Name:  "token",
-	// 		Usage: "Rainforest API token",
-	// 	},
-	// 	cli.IntFlag{
-	// 		Name:  "smart-folder-id",
-	// 		Usage: "Specify a folder of tests in Rainforest",
-	// 	},
-	// }
-	//
-	// app.Commands = []cli.Command{
-	// 	{
-	// 		Name:  "run",
-	// 		Usage: "Run your tests on Rainforest",
-	// 		Action: func(c *cli.Context) error {
-	// 			apiToken = c.String("token")
-	// 			createRun(c)
-	// 			return nil
-	// 		},
-	// 	},
-	//
-	// 	{
-	// 		Name:  "folders",
-	// 		Usage: "Retreive folders on Rainforest",
-	// 		Action: func(c *cli.Context) error {
-	// 			apiToken = c.String("token")
-	// 			printFolders()
-	// 			return nil
-	// 		},
-	// 	},
-	// 	{
-	// 		Name:  "sites",
-	// 		Usage: "Retreive sites on Rainforest",
-	// 		Action: func(c *cli.Context) error {
-	// 			apiToken = c.String("token")
-	// 			printSites()
-	// 			return nil
-	// 		},
-	// 	},
-	//
-	// 	{
-	// 		Name:  "browsers",
-	// 		Usage: "Retreive sites on Rainforest",
-	// 		Action: func(c *cli.Context) error {
-	// 			apiToken = c.String("token")
-	// 			printBrowsers()
-	// 			return nil
-	// 		},
-	// 	},
-	// }
-	// app.Run(os.Args)
 }

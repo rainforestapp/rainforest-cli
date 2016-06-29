@@ -16,6 +16,22 @@ func TestParseCommands(t *testing.T) {
 			want:  []string{"bar"},
 		},
 		{
+			input: []string{"foo", "-words=baz", "bar"},
+			want:  []string{"bar"},
+		},
+		{
+			input: []string{"foo", "-numbers=321", "bar", "-words=baz"},
+			want:  []string{"bar"},
+		},
+		{
+			input: []string{"foo", "-numbers=321", "-words=baz"},
+			want:  []string{},
+		},
+		{
+			input: []string{"foo"},
+			want:  []string{},
+		},
+		{
 			input: []string{"-words=baz"},
 			want:  []string{},
 		},

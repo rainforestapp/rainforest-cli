@@ -21,7 +21,6 @@ func newTestServer(path, resp string, statusCode int, t *testing.T) *httptest.Se
 	return ts
 }
 
-//Doesnt seem to work
 func runErrorTest(resource string, t *testing.T) {
 	if os.Getenv("BE_CRASHER") == "1" {
 		printSites()
@@ -37,6 +36,18 @@ func runErrorTest(resource string, t *testing.T) {
 	t.Fatalf("process ran with err %v, want status 1", err)
 }
 
+func checkTableCorrect(pattern string, t *testing.T) {
+	matched, err := regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
+	if err != nil {
+		t.Error("Error with pattern match:", err)
+	}
+	if !matched {
+		t.Logf("Table didn't match properly:")
+		t.Logf("%v\n", out)
+		t.Errorf("should have matched %v", pattern)
+	}
+}
+
 func TestPrintSites(t *testing.T) {
 	sitesResp := `[{"id": 1337, "name": "Dyer"}]`
 	ts := newTestServer("/sites.json", sitesResp, 200, t)
@@ -49,23 +60,8 @@ func TestPrintSites(t *testing.T) {
 	}()
 
 	printSites()
-	pattern := `\| +SITE ID +\| +SITE DESCRIPTION +\|`
-	matched, err := regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
-	if err != nil {
-		t.Error("Error with pattern match:", err)
-	}
-
-	pattern = `\| +1337 +\| +Dyer +\|`
-	matched, err = regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
-	if err != nil {
-		t.Error("Error with pattern match:", err)
-	}
-
-	if !matched {
-		t.Logf("Table didn't match properly:")
-		t.Logf("%v\n", out)
-		t.Errorf("should have matched %v", pattern)
-	}
+	checkTableCorrect(`\| +SITE ID +\| +SITE DESCRIPTION +\|`, t)
+	checkTableCorrect(`\| +1337 +\| +Dyer +\|`, t)
 }
 
 func TestPrintSitesApiError(t *testing.T) {
@@ -74,17 +70,11 @@ func TestPrintSitesApiError(t *testing.T) {
 	defer ts.Close()
 	baseURL = ts.URL
 	runErrorTest("Sites", t)
-	//printSites()
 }
 
 func TestPrintFolders(t *testing.T) {
-	siteResp := `[{"id": 707, "title": "Foo"}]`
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/folders.json" {
-			t.Errorf("fetchRource hit wrong endpoint (wanted /Folders.json but got %v)", r.URL.Path)
-		}
-		w.Write([]byte(siteResp))
-	}))
+	sitesResp := `[{"id": 707, "title": "Foo"}]`
+	ts := newTestServer("/folders.json", sitesResp, 200, t)
 	defer ts.Close()
 	baseURL = ts.URL
 
@@ -94,24 +84,8 @@ func TestPrintFolders(t *testing.T) {
 	}()
 
 	printFolders()
-
-	pattern := `\| +FOLDER ID +\| +FOLDER DESCRIPTION +\|`
-	matched, err := regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
-	if err != nil {
-		t.Error("Error with pattern match:", err)
-	}
-
-	pattern = `\| +707 +\| +Foo +\|`
-	matched, err = regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
-	if err != nil {
-		t.Error("Error with pattern match:", err)
-	}
-
-	if !matched {
-		t.Logf("Table didn't match properly:")
-		t.Logf("%v\n", out)
-		t.Errorf("should have matched %v", pattern)
-	}
+	checkTableCorrect(`\| +FOLDER ID +\| +FOLDER DESCRIPTION +\|`, t)
+	checkTableCorrect(`\| +707 +\| +Foo +\|`, t)
 }
 
 func TestPrintFoldersApiError(t *testing.T) {
@@ -119,21 +93,12 @@ func TestPrintFoldersApiError(t *testing.T) {
 	ts := newTestServer("/folders.json", sitesResp, 600, t)
 	defer ts.Close()
 	baseURL = ts.URL
+
 	out = &bytes.Buffer{}
 	defer func() {
 		out = os.Stdout
 	}()
-	if os.Getenv("BE_CRASHER") == "1" {
-		printFolders()
-		return
-	}
-	cmd := exec.Command(os.Args[0], "-test.run=TestPrintFoldersApiError")
-	cmd.Env = append(os.Environ(), "BE_CRASHER=1")
-	err := cmd.Run()
-	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
-		return
-	}
-	t.Fatalf("process ran with err %v, want status 1", err)
+	runErrorTest("Folders", t)
 }
 
 func TestPrintBrowsers(t *testing.T) {
@@ -153,24 +118,8 @@ func TestPrintBrowsers(t *testing.T) {
 	}()
 
 	printBrowsers()
-
-	pattern := `\| +BROWSER ID +\| +BROWSER DESCRIPTION +\|`
-	matched, err := regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
-	if err != nil {
-		t.Error("Error with pattern match:", err)
-	}
-
-	pattern = `\| +firefox +\| +Mozilla Firefox +\|`
-	matched, err = regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
-	if err != nil {
-		t.Error("Error with pattern match:", err)
-	}
-
-	if !matched {
-		t.Logf("Table didn't match properly:")
-		t.Logf("%v\n", out)
-		t.Errorf("should have matched %v", pattern)
-	}
+	checkTableCorrect(`\| +BROWSER ID +\| +BROWSER DESCRIPTION +\|`, t)
+	checkTableCorrect(`\| +firefox +\| +Mozilla Firefox +\|`, t)
 }
 
 func TestPrintBrowsersApiError(t *testing.T) {
@@ -182,16 +131,5 @@ func TestPrintBrowsersApiError(t *testing.T) {
 	defer func() {
 		out = os.Stdout
 	}()
-	if os.Getenv("BE_CRASHER") == "1" {
-		printBrowsers()
-		return
-	}
-	cmd := exec.Command(os.Args[0], "-test.run=TestPrintBrowsersApiError")
-	cmd.Env = append(os.Environ(), "BE_CRASHER=1")
-	err := cmd.Run()
-	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
-		return
-	}
-	t.Fatalf("process ran with err %v, want status 1", err)
-	printBrowsers()
+	runErrorTest("Browsrs", t)
 }

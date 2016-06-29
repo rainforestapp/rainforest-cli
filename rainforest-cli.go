@@ -22,6 +22,7 @@ func parseCommands() []string {
 	}
 	return commands
 }
+
 func main() {
 	commands := parseCommands()
 	command := commands[0]

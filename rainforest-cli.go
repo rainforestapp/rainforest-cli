@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"io"
-	"log"
 	"os"
 )
 
@@ -46,6 +45,6 @@ func main() {
 	case "browsers":
 		printBrowsers()
 	default:
-		log.Fatalf("Unknown command: %s\n", command)
+		// TODO: Print out usage
 	}
 }

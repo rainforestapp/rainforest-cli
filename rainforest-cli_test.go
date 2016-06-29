@@ -24,12 +24,13 @@ func TestParseCommands(t *testing.T) {
 			want:  []string{"wow", "bar"},
 		},
 	}
-
+	tempOsArgs := os.Args
 	for _, test := range testCases {
 		os.Args = test.input
 		got := parseCommands()
 		if !reflect.DeepEqual(test.want, got) {
-			t.Fatalf("Expected %v, got %v", test.want, got)
+			t.Errorf("Expected %v, got %v", test.want, got)
 		}
 	}
+	os.Args = tempOsArgs
 }

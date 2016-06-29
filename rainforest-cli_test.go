@@ -53,7 +53,8 @@ func TestParseCommands(t *testing.T) {
 }
 
 func TestApiToken(t *testing.T) {
-	realOsArgs := os.Args
+	realAPIToken := apiToken
+	realOSArgs := os.Args
 	realCommandLine := flag.CommandLine
 	realEnvToken := os.Getenv("RAINFOREST_API_TOKEN")
 
@@ -100,7 +101,8 @@ func TestApiToken(t *testing.T) {
 		}
 	}
 
-	os.Args = realOsArgs
+	apiToken = realAPIToken
+	os.Args = realOSArgs
 	flag.CommandLine = realCommandLine
 	os.Setenv("RAINFOREST_API_TOKEN", realEnvToken)
 }

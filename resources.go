@@ -16,7 +16,7 @@ func printSites() {
 	getSites("sites.json", &resBody)
 	table = resBody.displayTable()
 	printResource("Site", table)
-}
+} 
 
 func printBrowsers() {
 	var table [][]string

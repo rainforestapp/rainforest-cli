@@ -20,7 +20,6 @@ func checkResponse(res *http.Response) {
 	if res.StatusCode >= 300 {
 		data, err := ioutil.ReadAll(res.Body)
 		checkAPIErr(err)
-
 		log.Fatalf("API error: %v", string(data))
 	}
 }

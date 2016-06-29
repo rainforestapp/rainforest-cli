@@ -11,14 +11,13 @@ import (
 )
 
 func newTestServer(path, resp string, statusCode int, t *testing.T) *httptest.Server {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != path {
 			t.Errorf("fetchRource hit wrong endpoint (wanted %v but got %v)", path, r.URL.Path)
 		}
 		w.WriteHeader(statusCode)
 		w.Write([]byte(resp))
 	}))
-	return ts
 }
 
 func runErrorTest(resource string, t *testing.T) {
@@ -26,7 +25,7 @@ func runErrorTest(resource string, t *testing.T) {
 		printSites()
 		return
 	}
-	cmd := exec.Command(os.Args[0], "-test.run=TestPrintSitesApiError")
+	cmd := exec.Command(os.Args[0], "-test.run=TestPrint"+resource+"ApiError")
 	cmd.Env = append(os.Environ(), "BE_CRASHER=1")
 
 	err := cmd.Run()
@@ -131,5 +130,5 @@ func TestPrintBrowsersApiError(t *testing.T) {
 	defer func() {
 		out = os.Stdout
 	}()
-	runErrorTest("Browsrs", t)
+	runErrorTest("Browsers", t)
 }

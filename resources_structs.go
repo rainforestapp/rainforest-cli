@@ -1,9 +1,6 @@
 package main
 
-import (
-	"strconv"
-	"time"
-)
+import "strconv"
 
 func (f foldersResp) displayTable() [][]string {
 	table := make([][]string, 0, len(f))
@@ -41,32 +38,22 @@ func (b browsersResp) displayTable() [][]string {
 type foldersResp []folder
 
 type folder struct {
-	ID        int          `json:"id"`
-	CreatedAt time.Time    `json:"created_at"`
-	Title     string       `json:"title"`
-	Logic     []logicSlice `json:"logic"`
-	TestCount int          `json:"test_count"`
-}
-type logicSlice struct {
-	Tag       string `json:"tag"`
-	Inclusive bool   `json:"inclusive"`
+	ID    int    `json:"id"`
+	Title string `json:"title"`
 }
 
 type browsersResp struct {
 	AvailableBrowsers []browser `json:"available_browsers"`
 }
+
 type browser struct {
-	Name           string `json:"name"`
-	Description    string `json:"description"`
-	Category       string `json:"category"`
-	BrowserVersion string `json:"browser_version"`
-	OsVersion      string `json:"os_version"`
-	Default        bool   `json:"default"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
+
 type sitesResp []sites
+
 type sites struct {
-	ID        int       `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	Name      string    `json:"name"`
-	Default   bool      `json:"default"`
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }

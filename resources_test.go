@@ -5,18 +5,25 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"regexp"
 	"testing"
 )
 
-func TestPrintSites(t *testing.T) {
-	siteResp := `[{"id": 1337, "name": "Dyer"}]`
+func newTestServer(path, resp string, statusCode int, t *testing.T) *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/sites.json" {
-			t.Errorf("fetchRource hit wrong endpoint (wanted /sites.json but got %v)", r.URL.Path)
+		if r.URL.Path != path {
+			t.Errorf("fetchRource hit wrong endpoint (wanted %v but got %v)", path, r.URL.Path)
 		}
-		w.Write([]byte(siteResp))
+		w.WriteHeader(statusCode)
+		w.Write([]byte(resp))
 	}))
+	return ts
+}
+
+func TestPrintSites(t *testing.T) {
+	sitesResp := `[{"id": 1337, "name": "Dyer"}]`
+	ts := newTestServer("/sites.json", sitesResp, 200, t)
 	defer ts.Close()
 	baseURL = ts.URL
 
@@ -43,6 +50,30 @@ func TestPrintSites(t *testing.T) {
 		t.Logf("%v\n", out)
 		t.Errorf("should have matched %v", pattern)
 	}
+}
+
+func TestPrintSitesApiError(t *testing.T) {
+	sitesResp := `{"error": "This is a bad thing"}`
+	ts := newTestServer("/sites.json", sitesResp, 200, t)
+	defer ts.Close()
+	baseURL = ts.URL
+	out = &bytes.Buffer{}
+	defer func() {
+		out = os.Stdout
+	}()
+	if os.Getenv("BE_CRASHER") == "1" {
+		printSites()
+		return
+	}
+	cmd := exec.Command(os.Args[0], "-test.run=TestPrintSitesApiError")
+	cmd.Env = append(os.Environ(), "BE_CRASHER=1")
+	err := cmd.Run()
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		return
+	}
+	t.Fatalf("process ran with err %v, want status 1", err)
+
+	printSites()
 }
 
 func TestPrintFolders(t *testing.T) {

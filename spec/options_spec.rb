@@ -80,6 +80,12 @@ describe RainforestCli::OptionParser do
       its(:foreground?) { is_expected.to eq(true) }
     end
 
+    context 'it parses the --wait flag' do
+      let(:args) { ['run', '--wait', '12345'] }
+      its(:wait?) { is_expected.to be true }
+      its(:run_id) { is_expected.to eq 12345 }
+    end
+
     context 'it parses the api token' do
       let(:args) { ['run', '--token', 'abc', 'all'] }
       its(:token) { should == 'abc'}

@@ -6,7 +6,7 @@ module RainforestCli
     attr_writer :file_name, :tags
     attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
                 :import_file_name, :import_name, :custom_url, :description, :folder,
-                :debug, :file_name, :test_folder, :embed_tests, :app_source_url, :crowd
+                :debug, :file_name, :test_folder, :embed_tests, :app_source_url, :crowd, :run_id
 
     TOKEN_NOT_REQUIRED = %w{new validate}.freeze
 
@@ -53,6 +53,11 @@ module RainforestCli
 
         opts.on('--fg', 'Run the tests in foreground.') do |value|
           @foreground = value
+        end
+
+        opts.on('--wait ID', Integer, 'Wait for run #ID to complete') do |value|
+          @wait = true
+          @run_id = value
         end
 
         opts.on('--fail-fast', String, "Fail as soon as there is a failure (don't wait for completion)") do |_value|
@@ -140,6 +145,10 @@ module RainforestCli
 
     def failfast?
       @failfast
+    end
+
+    def wait?
+      !!@wait
     end
 
     def foreground?

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 type runParams struct {
@@ -21,8 +22,9 @@ func createRun() {
 }
 
 func makeParams() *runParams {
+	slicedTags := strings.Split(tags, ",")
 	return &runParams{
-		Tags:          tags,
+		Tags:          slicedTags,
 		SmartFolderID: smartFolderID,
 		SiteID:        siteID,
 	}

@@ -44,7 +44,7 @@ func TestParseCommands(t *testing.T) {
 	tempOsArgs := os.Args
 	for _, test := range testCases {
 		os.Args = test.input
-		got := parseCommands()
+		got := parseCommands(os.Args)
 		if !reflect.DeepEqual(test.want, got) {
 			t.Errorf("Expected %v, got %v", test.want, got)
 		}

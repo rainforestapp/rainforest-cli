@@ -8,26 +8,23 @@ import (
 type runParams struct {
 	Tags          []string `json:"tags,omitempty"`
 	SmartFolderID int      `json:"smart_folder_id,omitempty"`
+	SiteID        int      `json:"site_id,omitempty"`
 }
 
 type runResponse map[string]interface{}
 
-type flagParser interface {
-	StringSlice(string) []string
-	Int(string) int
-}
-
-func createRun(f flagParser) {
-	params := makeParams(f)
+func createRun() {
+	params := makeParams()
 	resBody := postRun(params)
 
 	fmt.Println(resBody)
 }
 
-func makeParams(c flagParser) *runParams {
+func makeParams() *runParams {
 	return &runParams{
-		Tags:          c.StringSlice("tags"),
-		SmartFolderID: c.Int("smart-folder-id"),
+		Tags:          tags,
+		SmartFolderID: smartFolderID,
+		SiteID:        siteID,
 	}
 }
 

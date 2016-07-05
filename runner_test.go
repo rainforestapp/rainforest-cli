@@ -32,13 +32,26 @@ func TestRunByTags(t *testing.T) {
 	os.Args = tempOsArgs
 }
 
-// func TestRunBySmartID(t *testing.T) {
-// 	sitesResp := "Post Request Successful"
-// 	ts := newTestServer("/runs.json?tags=foo%2Cbar", sitesResp, 200, t)
-// 	defer ts.Close()
-// 	baseURL = ts.URL
-// 	tempOsArgs := os.Args
-// 	os.Args = []string{"rainforest-cli", "-tags=foo,bar", "run"}
-// 	main()
-// 	os.Args = tempOsArgs
-// }
+func TestRunBySmartFolder(t *testing.T) {
+	expectedBody := `{"tags":[""],"smart_folder_id":700}`
+	sitesResp := "Post Request Successful"
+	ts := newTestPostServer(expectedBody, sitesResp, 200, t)
+	defer ts.Close()
+	baseURL = ts.URL
+	tempOsArgs := os.Args
+	os.Args = []string{"rainforest-cli", "-smart_folder_id=700", "run"}
+	main()
+	os.Args = tempOsArgs
+}
+
+func TestRunBySiteId(t *testing.T) {
+	expectedBody := `{"tags":[""],"site_id":800}`
+	sitesResp := "Post Request Successful"
+	ts := newTestPostServer(expectedBody, sitesResp, 200, t)
+	defer ts.Close()
+	baseURL = ts.URL
+	tempOsArgs := os.Args
+	os.Args = []string{"rainforest-cli", "-site_id=800", "run"}
+	main()
+	os.Args = tempOsArgs
+}

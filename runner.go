@@ -37,7 +37,7 @@ func postRun(params *runParams) (resBody *runResponse) {
 		panic(fmt.Sprintf("Unable to format JSON for run. Params: %v", params))
 	}
 
-	data := postRequest("https://app.rainforestqa.com/api/1/runs", js)
+	data := postRequest(baseURL+"/runs", js)
 	json.Unmarshal(data, &resBody)
 	return
 }

@@ -101,13 +101,8 @@ func TestPrintFoldersApiError(t *testing.T) {
 }
 
 func TestPrintBrowsers(t *testing.T) {
-	siteResp := `{"available_browsers": [{"name": "firefox", "description": "Mozilla Firefox"}]}`
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/clients.json" {
-			t.Errorf("fetchRource hit wrong endpoint (wanted /clients.json but got %v)", r.URL.Path)
-		}
-		w.Write([]byte(siteResp))
-	}))
+	sitesResp := `{"available_browsers": [{"name": "firefox", "description": "Mozilla Firefox"}]}`
+	ts := newTestServer("/clients.json", sitesResp, 200, t)
 	defer ts.Close()
 	baseURL = ts.URL
 

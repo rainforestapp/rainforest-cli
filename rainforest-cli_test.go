@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestParseCommands(t *testing.T) {
+func TestParseArguments(t *testing.T) {
 	var testCases = []struct {
 		input []string
 		want  []string

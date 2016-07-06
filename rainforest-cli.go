@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io"
 	"os"
 )
@@ -36,7 +35,6 @@ func parseArgs(arguments []string) ([]string, []string) {
 func main() {
 	commands, flags := parseArgs(os.Args)
 	command := commands[0]
-	fmt.Printf("\n\nflags: %v\n\n", flags)
 
 	flag.StringVar(&apiToken, "token", "", "API token. You can find your account token at https://app.rainforestqa.com/settings/integrations")
 	flag.IntVar(&smartFolderID, "smart_folder_id", 0, "Smart Folder Id. use the `folders` command to find the ID's of your smart folders")

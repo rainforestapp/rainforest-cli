@@ -25,10 +25,8 @@ func parseArgs(arguments []string) ([]string, []string) {
 	var flags []string
 	for i := 1; i < len(arguments); i++ {
 		if arguments[i][0] != '-' {
-			fmt.Printf("\ncommand: %v", arguments[i])
 			commands = append(commands, arguments[i])
 		} else {
-			fmt.Printf("\nflag: %v", arguments[i])
 			flags = append(flags, arguments[i])
 		}
 	}

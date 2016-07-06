@@ -2,40 +2,50 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"os"
 )
 
-var apiToken string
+var (
+	apiToken      string
+	smartFolderID int
+	siteID        int
+	tags          string
+	baseURL                 = "https://app.rainforestqa.com/api/1"
+	out           io.Writer = os.Stdout
+)
 
-var smartFolderID int
-var siteID int
-var tags string
-
-var baseURL = "https://app.rainforestqa.com/api/1"
-var out io.Writer = os.Stdout
-
-func parseCommands(arguments []string) []string {
-	commands := make([]string, 0, 5)
-	for i := len(arguments) - 1; i > 0; i-- {
+/*
+	parseCommands reverse iterates through slice of arguments to pick out all of the commands.
+	Done this way so that commands can be placed in any order.
+*/
+func parseArgs(arguments []string) ([]string, []string) {
+	var commands []string
+	var flags []string
+	for i := 1; i < len(arguments); i++ {
 		if arguments[i][0] != '-' {
+			fmt.Printf("\ncommand: %v", arguments[i])
 			commands = append(commands, arguments[i])
-			os.Args = append(arguments[:i], arguments[i+1:]...)
+		} else {
+			fmt.Printf("\nflag: %v", arguments[i])
+			flags = append(flags, arguments[i])
 		}
 	}
-	return commands
+	return commands, flags
 }
 
 func main() {
-	commands := parseCommands(os.Args)
+	commands, flags := parseArgs(os.Args)
 	command := commands[0]
+	fmt.Printf("\n\nflags: %v\n\n", flags)
 
-	flag.StringVar(&apiToken, "token", apiToken, "API token. You can find your account token at https://app.rainforestqa.com/settings/integrations")
+	flag.StringVar(&apiToken, "token", "", "API token. You can find your account token at https://app.rainforestqa.com/settings/integrations")
+	flag.IntVar(&smartFolderID, "smart_folder_id", 0, "Smart Folder Id. use the `folders` command to find the ID's of your smart folders")
+	flag.IntVar(&siteID, "site_id", 0, "Site ID. use the `sites` command to find the ID's of your sites")
+	flag.StringVar(&tags, "tags", "", "Test tags. enter in a comma separated list")
 
-	flag.StringVar(&tags, "tags", tags, "Test tags. enter in a comma seperated list")
-	flag.IntVar(&smartFolderID, "smart_folder_id", smartFolderID, "Smart Folder Id. use the `folders` command to find the ID's of your smart folders")
-	flag.IntVar(&siteID, "site_id", siteID, "Site ID. use the `sites` command to find the ID's of your sites")
-	flag.Parse()
+	flag.CommandLine.Parse(flags)
 
 	if len(apiToken) == 0 {
 		envToken, present := os.LookupEnv("RAINFOREST_API_TOKEN")

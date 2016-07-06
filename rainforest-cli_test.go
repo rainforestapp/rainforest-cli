@@ -9,44 +9,50 @@ import (
 
 func TestParseArguments(t *testing.T) {
 	var testCases = []struct {
-		input []string
-		want  []string
+		input        []string
+		wantCommands []string
+		wantFlags    []string
 	}{
 		{
-			input: []string{"foo", "bar", "-words=baz"},
-			want:  []string{"bar"},
+			input:        []string{"foo", "bar", "-words=baz"},
+			wantCommands: []string{"bar"},
+			wantFlags:    []string{"-words=baz"},
 		},
 		{
-			input: []string{"foo", "-words=baz", "bar"},
-			want:  []string{"bar"},
+			input:        []string{"foo", "-words=baz", "bar"},
+			wantCommands: []string{"bar"},
+			wantFlags:    []string{"-words=baz"},
 		},
 		{
-			input: []string{"foo", "-numbers=321", "bar", "-words=baz"},
-			want:  []string{"bar"},
+			input:        []string{"foo", "-numbers=321", "bar", "-words=baz"},
+			wantCommands: []string{"bar"},
+			wantFlags:    []string{"-numbers=321", "-words=baz"},
 		},
 		{
-			input: []string{"foo", "-numbers=321", "-words=baz"},
-			want:  nil,
+			input:        []string{"foo", "-numbers=321", "-words=baz"},
+			wantCommands: nil,
+			wantFlags:    []string{"-numbers=321", "-words=baz"},
 		},
 		{
-			input: []string{"foo"},
-			want:  nil,
+			input:        []string{"foo"},
+			wantCommands: nil,
+			wantFlags:    nil,
 		},
 		{
-			input: []string{"-words=baz"},
-			want:  nil,
-		},
-		{
-			input: []string{"foo", "bar", "wow"},
-			want:  []string{"bar", "wow"},
+			input:        []string{"foo", "bar", "wow"},
+			wantCommands: []string{"bar", "wow"},
+			wantFlags:    nil,
 		},
 	}
 	tempOsArgs := os.Args
 	for _, test := range testCases {
 		os.Args = test.input
-		gotCommands, _ := parseArgs(os.Args)
-		if !reflect.DeepEqual(test.want, gotCommands) {
-			t.Errorf("Expected %T, got %T", test.want, gotCommands)
+		gotCommands, gotFlags := parseArgs(os.Args)
+		if !reflect.DeepEqual(test.wantCommands, gotCommands) {
+			t.Errorf("Command incorrect. Expected %v, got %v", test.wantCommands, gotCommands)
+		}
+		if !reflect.DeepEqual(test.wantFlags, gotFlags) {
+			t.Errorf("Flag incorrect. Expected %v, got %v", test.wantFlags, gotFlags)
 		}
 	}
 	os.Args = tempOsArgs

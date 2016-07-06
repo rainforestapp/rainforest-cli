@@ -102,7 +102,7 @@ describe RainforestCli do
 
         it 'starts the run with the specified tags' do
           expect_any_instance_of(http_client).to receive(:post)
-            .with('/runs', { tags: ['run-me'] }, { retries_on_failures: true }).and_return({})
+            .with('/runs', { tags: ['run-me'] }, { retries_on_failures: true }).and_return({ 'id' => 123 })
 
           start_with_params(params, 0)
         end
@@ -142,7 +142,7 @@ describe RainforestCli do
           '/runs',
           { tests: [], site_id: 3, environment_id: 333 },
           { retries_on_failures: true }
-        ).and_return({})
+        ).and_return({ 'id' => 123 })
         described_class.start(params)
       end
     end
@@ -158,7 +158,7 @@ describe RainforestCli do
           '/runs',
           { tests: [], environment_id: 123 },
           { retries_on_failures: true }
-        ).and_return({})
+        ).and_return({ 'id' => 123 })
         described_class.start(params)
       end
     end
@@ -171,7 +171,7 @@ describe RainforestCli do
           '/runs',
           { smart_folder_id: 123 },
           { retries_on_failures: true }
-        ).and_return({})
+        ).and_return({ 'id' => 123 })
         described_class.start(params)
       end
     end
@@ -184,7 +184,7 @@ describe RainforestCli do
           '/runs',
           { tests: [] },
           { retries_on_failures: true }
-        ).and_return({})
+        ).and_return({ 'id' => 123 })
         allow(ENV).to receive(:[]).with('RAINFOREST_API_TOKEN').and_return('x')
         described_class.start(params)
       end

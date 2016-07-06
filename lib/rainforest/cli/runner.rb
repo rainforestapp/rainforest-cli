@@ -55,9 +55,6 @@ module RainforestCli
             logger.info "Run #{run_id} is now #{response["state"]} and has #{response["result"]}"
             running = false
           end
-        else
-          logger.error "Could not find run #{run_id}."
-          exit 1
         end
         Kernel.sleep 5 if running
       end

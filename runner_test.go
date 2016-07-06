@@ -25,7 +25,6 @@ func TestRunByTags(t *testing.T) {
 			t.Errorf(`expected {"tags":["foo","bar"]}, got %v`, string(body))
 		}
 	}
-	//sitesResp := "Post Request Successful"
 	ts := newTestPostServer(checkBody)
 	defer ts.Close()
 	baseURL = ts.URL
@@ -62,5 +61,20 @@ func TestRunBySiteId(t *testing.T) {
 	smartFolderID = 0
 	siteID = 800
 	tags = ""
+	createRun()
+}
+
+func TestRunByTestID(t *testing.T) {
+	checkBody := func(body []byte) {
+		if string(body) != `{"tests":["1","3","4","7"]}` {
+			t.Errorf(`expected {"tests":["1","3","4","7"]}, got %v`, string(body))
+		}
+	}
+	ts := newTestPostServer(checkBody)
+	defer ts.Close()
+	baseURL = ts.URL
+	smartFolderID = 0
+	siteID = 0
+	testIDs = "1,3,4,7"
 	createRun()
 }

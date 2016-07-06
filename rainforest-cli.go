@@ -11,6 +11,7 @@ var (
 	smartFolderID int
 	siteID        int
 	tags          string
+	testIDs       string
 	baseURL                 = "https://app.rainforestqa.com/api/1"
 	out           io.Writer = os.Stdout
 )
@@ -36,6 +37,7 @@ func main() {
 	flag.IntVar(&smartFolderID, "smart_folder_id", 0, "Smart Folder Id. use the `folders` command to find the ID's of your smart folders")
 	flag.IntVar(&siteID, "site_id", 0, "Site ID. use the `sites` command to find the ID's of your sites")
 	flag.StringVar(&tags, "tags", "", "Test tags. enter in a comma separated list")
+	flag.StringVar(&testIDs, "tests", "", "Run test by id. Enter in a comma separated list")
 
 	flag.CommandLine.Parse(flags)
 

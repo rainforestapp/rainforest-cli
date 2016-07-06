@@ -7,6 +7,7 @@ import (
 )
 
 type runParams struct {
+	Tests         string   `json:"tests,omitempty"`
 	Tags          []string `json:"tags,omitempty"`
 	SmartFolderID int      `json:"smart_folder_id,omitempty"`
 	SiteID        int      `json:"site_id,omitempty"`
@@ -22,6 +23,9 @@ func createRun() {
 }
 
 func makeParams() *runParams {
+	if testIDs != "" {
+		return &runParams{Tests: testIDs}
+	}
 	slicedTags := strings.Split(tags, ",")
 	return &runParams{
 		Tags:          slicedTags,

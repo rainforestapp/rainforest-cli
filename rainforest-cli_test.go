@@ -26,27 +26,27 @@ func TestParseArguments(t *testing.T) {
 		},
 		{
 			input: []string{"foo", "-numbers=321", "-words=baz"},
-			want:  []string{},
+			want:  nil,
 		},
 		{
 			input: []string{"foo"},
-			want:  []string{},
+			want:  nil,
 		},
 		{
 			input: []string{"-words=baz"},
-			want:  []string{},
+			want:  nil,
 		},
 		{
 			input: []string{"foo", "bar", "wow"},
-			want:  []string{"wow", "bar"},
+			want:  []string{"bar", "wow"},
 		},
 	}
 	tempOsArgs := os.Args
 	for _, test := range testCases {
 		os.Args = test.input
-		got := parseCommands(os.Args)
-		if !reflect.DeepEqual(test.want, got) {
-			t.Errorf("Expected %v, got %v", test.want, got)
+		gotCommands, _ := parseArgs(os.Args)
+		if !reflect.DeepEqual(test.want, gotCommands) {
+			t.Errorf("Expected %T, got %T", test.want, gotCommands)
 		}
 	}
 	os.Args = tempOsArgs
@@ -70,7 +70,7 @@ func TestApiToken(t *testing.T) {
 			expectedToken: "",
 		},
 		{
-			osArgs:        []string{"rainforest-cli", "run", "--token=flag_token"},
+			osArgs:        []string{"rainforest-cli", "run", "-token=flag_token"},
 			envToken:      "",
 			expectedToken: "flag_token",
 		},
@@ -80,7 +80,7 @@ func TestApiToken(t *testing.T) {
 			expectedToken: "env_token",
 		},
 		{
-			osArgs:        []string{"rainforest-cli", "run", "--token=flag_token"},
+			osArgs:        []string{"rainforest-cli", "run", "-token=flag_token"},
 			envToken:      "env_token",
 			expectedToken: "flag_token",
 		},

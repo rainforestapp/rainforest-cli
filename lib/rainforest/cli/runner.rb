@@ -9,6 +9,11 @@ module RainforestCli
     end
 
     def run
+      if options.wait?
+        wait_for_run_completion(options.run_id)
+        return true
+      end
+
       if options.import_file_name && options.import_name
         delete_generator(options.import_name)
         CSVImporter.new(options.import_name, options.import_file_name, options.token).import
@@ -26,8 +31,10 @@ module RainforestCli
         exit 1
       end
 
+      run_id = response.fetch('id')
+      logger.info "Issued run #{run_id}"
+
       if options.foreground?
-        run_id = response.fetch('id')
         wait_for_run_completion(run_id)
       else
         true
@@ -37,7 +44,6 @@ module RainforestCli
     def wait_for_run_completion(run_id)
       running = true
       while running
-        Kernel.sleep 5
         response = client.get("/runs/#{run_id}", {}, retries_on_failures: true)
         if response
           state_details = response.fetch('state_details')
@@ -50,6 +56,7 @@ module RainforestCli
             running = false
           end
         end
+        Kernel.sleep 5 if running
       end
 
       if response['frontend_url']

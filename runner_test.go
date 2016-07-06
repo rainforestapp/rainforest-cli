@@ -27,8 +27,11 @@ func TestRunByTags(t *testing.T) {
 	defer ts.Close()
 	baseURL = ts.URL
 	tempOsArgs := os.Args
-	os.Args = []string{"rainforest-cli", "-tags=foo,bar", "run"}
-	main()
+	//os.Args = []string{"rainforest-cli", "-tags=foo,bar", "run"}
+	smartFolderID = 0
+	siteID = 0
+	tags = "foo,bar"
+	createRun()
 	os.Args = tempOsArgs
 }
 
@@ -39,8 +42,11 @@ func TestRunBySmartFolder(t *testing.T) {
 	defer ts.Close()
 	baseURL = ts.URL
 	tempOsArgs := os.Args
-	os.Args = []string{"rainforest-cli", "-smart_folder_id=700", "run"}
-	main()
+	//os.Args = []string{"rainforest-cli", "-smart_folder_id=700", "run"}
+	smartFolderID = 700
+	siteID = 0
+	tags = ""
+	createRun()
 	os.Args = tempOsArgs
 }
 
@@ -51,7 +57,10 @@ func TestRunBySiteId(t *testing.T) {
 	defer ts.Close()
 	baseURL = ts.URL
 	tempOsArgs := os.Args
-	os.Args = []string{"rainforest-cli", "-site_id=800", "run"}
-	main()
+	//os.Args = []string{"rainforest-cli", "-site_id=800", "run"}
+	smartFolderID = 0
+	siteID = 800
+	tags = ""
+	createRun()
 	os.Args = tempOsArgs
 }

@@ -15,10 +15,6 @@ var (
 	out           io.Writer = os.Stdout
 )
 
-/*
-	parseCommands reverse iterates through slice of arguments to pick out all of the commands.
-	Done this way so that commands can be placed in any order.
-*/
 func parseArgs(arguments []string) ([]string, []string) {
 	var commands []string
 	var flags []string

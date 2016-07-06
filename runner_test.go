@@ -7,22 +7,26 @@ import (
 	"testing"
 )
 
-func newTestPostServer(expectedBody string, resp string, statusCode int, t *testing.T) *httptest.Server {
+func newTestPostServer(check func([]byte)) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := ioutil.ReadAll(r.Body)
-		flagParams := string(body)
-		if flagParams != expectedBody {
-			t.Errorf("fetchRource hit wrong endpoint (wanted %v but got %v)", expectedBody, flagParams)
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			panic(err)
 		}
-		w.WriteHeader(statusCode)
-		w.Write([]byte(flagParams))
+		check(body)
+		w.WriteHeader(200)
+		w.Write([]byte("Success"))
 	}))
 }
 
 func TestRunByTags(t *testing.T) {
-	expectedBody := `{"tags":["foo","bar"]}`
-	sitesResp := "Post Request Successful"
-	ts := newTestPostServer(expectedBody, sitesResp, 200, t)
+	checkBody := func(body []byte) {
+		if string(body) != `{"tags":["foo","bar"]}` {
+			t.Errorf(`expected {"tags":["foo","bar"]}, got %v`, string(body))
+		}
+	}
+	//sitesResp := "Post Request Successful"
+	ts := newTestPostServer(checkBody)
 	defer ts.Close()
 	baseURL = ts.URL
 	smartFolderID = 0
@@ -32,9 +36,12 @@ func TestRunByTags(t *testing.T) {
 }
 
 func TestRunBySmartFolder(t *testing.T) {
-	expectedBody := `{"tags":[""],"smart_folder_id":700}`
-	sitesResp := "Post Request Successful"
-	ts := newTestPostServer(expectedBody, sitesResp, 200, t)
+	checkBody := func(body []byte) {
+		if string(body) != `{"tags":[""],"smart_folder_id":700}` {
+			t.Errorf(`expected {"tags":[""],"smart_folder_id":700}, got %v`, string(body))
+		}
+	}
+	ts := newTestPostServer(checkBody)
 	defer ts.Close()
 	baseURL = ts.URL
 	smartFolderID = 700
@@ -44,9 +51,12 @@ func TestRunBySmartFolder(t *testing.T) {
 }
 
 func TestRunBySiteId(t *testing.T) {
-	expectedBody := `{"tags":[""],"site_id":800}`
-	sitesResp := "Post Request Successful"
-	ts := newTestPostServer(expectedBody, sitesResp, 200, t)
+	checkBody := func(body []byte) {
+		if string(body) != `{"tags":[""],"site_id":800}` {
+			t.Errorf(`expected {"tags":[""],"site_id":800}, got %v`, string(body))
+		}
+	}
+	ts := newTestPostServer(checkBody)
 	defer ts.Close()
 	baseURL = ts.URL
 	smartFolderID = 0

@@ -7,6 +7,15 @@ import (
 	"testing"
 )
 
+type testRequest struct {
+	smartFolderID int
+	siteID        int
+	tags          string
+	testIDs       string
+	want          string
+	got           string
+}
+
 func newTestPostServer(check func([]byte)) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := ioutil.ReadAll(r.Body)
@@ -20,48 +29,92 @@ func newTestPostServer(check func([]byte)) *httptest.Server {
 }
 
 func TestRunByTags(t *testing.T) {
-	checkBody := func(body []byte) {
-		if string(body) != `{"tags":["foo","bar"]}` {
-			t.Errorf(`expected {"tags":["foo","bar"]}, got %v`, string(body))
-		}
+	testCases := []testRequest{
+		{
+			tags: "foo,bar",
+			want: `{"tags":["foo","bar"]}`,
+		},
+		{
+			tags: "foo",
+			want: `{"tags":["foo"]}`,
+		},
+		{
+			tags: "foo,bar     ",
+			want: `{"tags":["foo","bar"]}`,
+		},
+		{
+			tags: "    foo,bar",
+			want: `{"tags":["foo","bar"]}`,
+		},
 	}
-	ts := newTestPostServer(checkBody)
-	defer ts.Close()
-	baseURL = ts.URL
-	smartFolderID = 0
-	siteID = 0
-	tags = "foo,bar"
-	createRun()
+	for _, test := range testCases {
+		checkBody := func(body []byte) {
+			if string(body) != test.want {
+				t.Errorf(`expected %v got %v`, test.want, string(body))
+			}
+		}
+		ts := newTestPostServer(checkBody)
+		baseURL = ts.URL
+		smartFolderID = 0
+		siteID = 0
+		tags = test.tags
+		createRun()
+		ts.Close()
+	}
 }
 
 func TestRunBySmartFolder(t *testing.T) {
-	checkBody := func(body []byte) {
-		if string(body) != `{"tags":[""],"smart_folder_id":700}` {
-			t.Errorf(`expected {"tags":[""],"smart_folder_id":700}, got %v`, string(body))
-		}
+	testCases := []testRequest{
+		{
+			smartFolderID: 0,
+			want:          `{}`,
+		},
+		{
+			smartFolderID: 200,
+			want:          `{"smart_folder_id":200}`,
+		},
 	}
-	ts := newTestPostServer(checkBody)
-	defer ts.Close()
-	baseURL = ts.URL
-	smartFolderID = 700
-	siteID = 0
-	tags = ""
-	createRun()
+	for _, test := range testCases {
+		checkBody := func(body []byte) {
+			if string(body) != test.want {
+				t.Errorf(`expected %v, got %v`, test.want, string(body))
+			}
+		}
+		ts := newTestPostServer(checkBody)
+		defer ts.Close()
+		baseURL = ts.URL
+		smartFolderID = test.smartFolderID
+		siteID = 0
+		tags = ""
+		createRun()
+	}
 }
 
 func TestRunBySiteId(t *testing.T) {
-	checkBody := func(body []byte) {
-		if string(body) != `{"tags":[""],"site_id":800}` {
-			t.Errorf(`expected {"tags":[""],"site_id":800}, got %v`, string(body))
-		}
+	testCases := []testRequest{
+		{
+			siteID: 0,
+			want:   `{}`,
+		},
+		{
+			siteID: 200,
+			want:   `{"site_id":200}`,
+		},
 	}
-	ts := newTestPostServer(checkBody)
-	defer ts.Close()
-	baseURL = ts.URL
-	smartFolderID = 0
-	siteID = 800
-	tags = ""
-	createRun()
+	for _, test := range testCases {
+		checkBody := func(body []byte) {
+			if string(body) != test.want {
+				t.Errorf(`expected %v, got %v`, test.want, string(body))
+			}
+		}
+		ts := newTestPostServer(checkBody)
+		defer ts.Close()
+		baseURL = ts.URL
+		smartFolderID = 0
+		siteID = test.siteID
+		tags = ""
+		createRun()
+	}
 }
 
 func TestRunByTestID(t *testing.T) {

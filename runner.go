@@ -28,7 +28,10 @@ func makeParams() *runParams {
 		return &runParams{Tests: testIDs}
 	}
 	tags = strings.TrimSpace(tags)
-	slicedTags := strings.Split(tags, ",")
+	var slicedTags []string
+	if tags != "" {
+		slicedTags = strings.Split(tags, ",")
+	}
 	return &runParams{
 		Tags:          slicedTags,
 		SmartFolderID: smartFolderID,

@@ -13,7 +13,6 @@ type testRequest struct {
 	tags          string
 	testIDs       string
 	want          string
-	got           string
 }
 
 func newTestPostServer(check func([]byte)) *httptest.Server {
@@ -46,6 +45,11 @@ func TestRunByTags(t *testing.T) {
 			tags: "    foo,bar",
 			want: `{"tags":["foo","bar"]}`,
 		},
+		{
+			testIDs: "200,300",
+			tags:    "foo,bar",
+			want:    `{"tests":"200,300"}`,
+		},
 	}
 	for _, test := range testCases {
 		checkBody := func(body []byte) {
@@ -55,9 +59,10 @@ func TestRunByTags(t *testing.T) {
 		}
 		ts := newTestPostServer(checkBody)
 		baseURL = ts.URL
-		smartFolderID = 0
-		siteID = 0
+		smartFolderID = test.smartFolderID
+		siteID = test.siteID
 		tags = test.tags
+		testIDs = test.testIDs
 		createRun()
 		ts.Close()
 	}
@@ -73,6 +78,11 @@ func TestRunBySmartFolder(t *testing.T) {
 			smartFolderID: 200,
 			want:          `{"smart_folder_id":200}`,
 		},
+		{
+			testIDs:       "200,300",
+			smartFolderID: 200,
+			want:          `{"tests":"200,300"}`,
+		},
 	}
 	for _, test := range testCases {
 		checkBody := func(body []byte) {
@@ -84,8 +94,9 @@ func TestRunBySmartFolder(t *testing.T) {
 		defer ts.Close()
 		baseURL = ts.URL
 		smartFolderID = test.smartFolderID
-		siteID = 0
-		tags = ""
+		siteID = test.siteID
+		tags = test.tags
+		testIDs = test.testIDs
 		createRun()
 	}
 }
@@ -100,6 +111,11 @@ func TestRunBySiteId(t *testing.T) {
 			siteID: 200,
 			want:   `{"site_id":200}`,
 		},
+		{
+			testIDs: "200,300",
+			siteID:  200,
+			want:    `{"tests":"200,300"}`,
+		},
 	}
 	for _, test := range testCases {
 		checkBody := func(body []byte) {
@@ -110,24 +126,61 @@ func TestRunBySiteId(t *testing.T) {
 		ts := newTestPostServer(checkBody)
 		defer ts.Close()
 		baseURL = ts.URL
-		smartFolderID = 0
+		smartFolderID = test.smartFolderID
 		siteID = test.siteID
-		tags = ""
+		tags = test.tags
+		testIDs = test.testIDs
 		createRun()
 	}
 }
 
 func TestRunByTestID(t *testing.T) {
-	checkBody := func(body []byte) {
-		if string(body) != `{"tests":"1,3,4,7"}` {
-			t.Errorf(`expected {"tests":"1,3,4,7"}, got %v`, string(body))
-		}
+	testCases := []testRequest{
+		{
+			testIDs: "200",
+			want:    `{"tests":"200"}`,
+		},
+		{
+			testIDs: "",
+			want:    `{}`,
+		},
+		{
+			testIDs: "200,300",
+			siteID:  200,
+			want:    `{"tests":"200,300"}`,
+		},
+		{
+			testIDs: "	200,300,400	",
+			siteID: 200,
+			want:   `{"tests":"200,300,400"}`,
+		},
+		{
+			testIDs: " 200,300,400 ",
+			siteID:  200,
+			want:    `{"tests":"200,300,400"}`,
+		},
+		{
+			smartFolderID: 200,
+			siteID:        300,
+			tags:          "foo, bar",
+			testIDs:       "300,500,800",
+			want:          `{"tests":"300,500,800"}`,
+		},
 	}
-	ts := newTestPostServer(checkBody)
-	defer ts.Close()
-	baseURL = ts.URL
-	smartFolderID = 0
-	siteID = 0
-	testIDs = "1,3,4,7"
-	createRun()
+
+	for _, test := range testCases {
+		checkBody := func(body []byte) {
+			if string(body) != test.want {
+				t.Errorf(`expected %v, got %v`, test.want, string(body))
+			}
+		}
+		ts := newTestPostServer(checkBody)
+		defer ts.Close()
+		baseURL = ts.URL
+		smartFolderID = test.smartFolderID
+		siteID = test.siteID
+		tags = test.tags
+		testIDs = test.testIDs
+		createRun()
+	}
 }

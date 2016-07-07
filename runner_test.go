@@ -66,8 +66,8 @@ func TestRunBySiteId(t *testing.T) {
 
 func TestRunByTestID(t *testing.T) {
 	checkBody := func(body []byte) {
-		if string(body) != `{"tests":["1","3","4","7"]}` {
-			t.Errorf(`expected {"tests":["1","3","4","7"]}, got %v`, string(body))
+		if string(body) != `{"tests":"1,3,4,7"}` {
+			t.Errorf(`expected {"tests":"1,3,4,7"}, got %v`, string(body))
 		}
 	}
 	ts := newTestPostServer(checkBody)

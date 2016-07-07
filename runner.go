@@ -24,8 +24,10 @@ func createRun() {
 
 func makeParams() *runParams {
 	if testIDs != "" {
+		testIDs = strings.TrimSpace(testIDs)
 		return &runParams{Tests: testIDs}
 	}
+	tags = strings.TrimSpace(tags)
 	slicedTags := strings.Split(tags, ",")
 	return &runParams{
 		Tags:          slicedTags,

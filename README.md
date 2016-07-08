@@ -166,12 +166,13 @@ For more information on test writing, please visit our [documentation](http://su
 ### Command Line Options
 
 Popular command line options are:
-- `--browsers ie8` or `--browsers ie8,chrome` - specify the browsers you wish to run against. This overrides the test own settings. Valid browsers can be found in your account settings.
-- `--tag run-me` - only run tests which have this tag (recommended if you have lots of [test-steps](http://docs.rainforestqa.com/pages/example-test-suite.html#test_steps))!)
-- `--site-id` - only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
-- `--folder ID` - run tests in specified folder.
-- `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
-- `--conflict OPTION` - use the `abort` option to abort any runs in progress in the same environment as your new run. use the `abort-all` option to abort all runs in progress.
+- `--browsers **browser_name**[**,browser_name**]`- specify the browsers you wish to run against. This overrides the test own settings. Valid browsers can be found in your account settings.
+- `--tags **tag**[**,tag,...]` - only run tests which have these tags (recommended if you have lots of [test-steps](http://docs.rainforestqa.com/pages/example-test-suite.html#test_steps))!)
+- `--site-id **ID**` - only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
+- `--folder ID **ID**` - run tests in specified folder.
+- `--environment-id **ID**` - run your tests using this environment. Otherwise it will use your default environment
+- `--environment-id **default**|**on_premise_crowd**]`
+- `--conflict **option**` - use the `abort` option to abort any runs in progress in the same environment as your new run. use the `abort-all` option to abort all runs in progress.
 - `--fg` - results in the foreground - rainforest-cli will not return until the run is complete. This is what you want to make the build pass / fail dependent on rainforest results
 - `--wait RUN_ID` - wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.
 - `--fail-fast` - fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Use with `--fg`.

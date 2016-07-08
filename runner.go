@@ -34,7 +34,6 @@ func makeParams() *runParams {
 		slicedTags = strings.Split(tags, ",")
 		for i, slice := range slicedTags {
 			slicedTags[i] = strings.TrimSpace(slice)
-
 		}
 	}
 	return &runParams{
@@ -48,8 +47,7 @@ func stringToIntSlice(s string) []int {
 	slicedString := strings.Split(s, ",")
 	var slicedInt []int
 	for _, slice := range slicedString {
-		slice = strings.TrimSpace(slice)
-		newInt, err := strconv.Atoi(slice)
+		newInt, err := strconv.Atoi(strings.TrimSpace(slice))
 		if err != nil {
 			panic(err)
 		}

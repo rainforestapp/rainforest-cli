@@ -95,13 +95,13 @@ func TestRunBySmartFolder(t *testing.T) {
 			}
 		}
 		ts := newTestPostServer(checkBody)
-		defer ts.Close()
 		baseURL = ts.URL
 		smartFolderID = test.smartFolderID
 		siteID = test.siteID
 		tags = test.tags
 		testIDs = test.testIDs
 		createRun()
+		ts.Close()
 	}
 }
 
@@ -128,13 +128,14 @@ func TestRunBySiteId(t *testing.T) {
 			}
 		}
 		ts := newTestPostServer(checkBody)
-		defer ts.Close()
 		baseURL = ts.URL
 		smartFolderID = test.smartFolderID
 		siteID = test.siteID
 		tags = test.tags
 		testIDs = test.testIDs
 		createRun()
+		ts.Close()
+
 	}
 }
 
@@ -179,12 +180,12 @@ func TestRunByTestID(t *testing.T) {
 			}
 		}
 		ts := newTestPostServer(checkBody)
-		defer ts.Close()
 		baseURL = ts.URL
 		smartFolderID = test.smartFolderID
 		siteID = test.siteID
 		tags = test.tags
 		testIDs = test.testIDs
 		createRun()
+		ts.Close()
 	}
 }

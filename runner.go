@@ -32,6 +32,10 @@ func makeParams() *runParams {
 	var slicedTags []string
 	if tags != "" {
 		slicedTags = strings.Split(tags, ",")
+		for i, slice := range slicedTags {
+			slicedTags[i] = strings.TrimSpace(slice)
+
+		}
 	}
 	return &runParams{
 		Tags:          slicedTags,

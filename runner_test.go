@@ -42,7 +42,7 @@ func TestRunByTags(t *testing.T) {
 			want: `{"tags":["foo bar","bar foo"]}`,
 		},
 		{
-			tags: "foo,bar     ",
+			tags: "foo, bar     ",
 			want: `{"tags":["foo","bar"]}`,
 		},
 		{

@@ -1,0 +1,130 @@
+[
+  {
+    "id": 1,
+    "created_at": "2016-06-21T09:40:07Z",
+    "test_id": 1,
+    "site_id": 123,
+    "title": "A passing test case",
+    "state": "complete",
+    "result": "passed",
+    "start_uri": "/",
+    "description": "This description \"contains\" escaped\ncharacters",
+    "run_mode": "default",
+    "updated_at": "2016-06-21T10:32:31.987Z",
+    "editable": false,
+    "browsers": [
+      {
+        "id": 1790934,
+        "created_at": "2016-06-21T09:40:47Z",
+        "name": "osx_firefox_1440_900",
+        "description": "Firefox on OS X Mavericks (1440x900)",
+        "category": "browser",
+        "result": "passed",
+        "state": "complete"
+      }
+    ],
+    "step_count": 9,
+    "frontend_url": "https://app.rainforestqa.com/runs/12345/tests/1",
+    "current_progress": {
+      "percent": 100,
+      "total": 1,
+      "complete": 1
+    }
+  },
+  {
+    "id": 2,
+    "created_at": "2016-06-21T09:40:07Z",
+    "test_id": 2,
+    "site_id": 123,
+    "title": "Another passing test case",
+    "state": "complete",
+    "result": "passed",
+    "start_uri": "/",
+    "description": "This description \"contains\" escaped\ncharacters",
+    "run_mode": "default",
+    "updated_at": "2016-06-21T10:12:53.143Z",
+    "editable": false,
+    "browsers": [
+      {
+        "id": 1790912,
+        "created_at": "2016-06-21T09:40:36Z",
+        "name": "osx_firefox_1440_900",
+        "description": "Firefox on OS X Mavericks (1440x900)",
+        "category": "browser",
+        "result": "passed",
+        "state": "complete"
+      }
+    ],
+    "step_count": 10,
+    "frontend_url": "https://app.rainforestqa.com/runs/12345/tests/2",
+    "current_progress": {
+      "percent": 100,
+      "total": 1,
+      "complete": 1
+    }
+  },
+  {
+    "id": 3,
+    "created_at": "2016-06-21T09:40:07Z",
+    "test_id": 3,
+    "site_id": 123,
+    "title": "A failing test case",
+    "state": "complete",
+    "result": "failed",
+    "start_uri": "/",
+    "description": "This description \"contains\" escaped\ncharacters",
+    "run_mode": "default",
+    "updated_at": "2016-06-21T10:30:51.848Z",
+    "editable": false,
+    "browsers": [
+      {
+        "id": 1790911,
+        "created_at": "2016-06-21T09:40:35Z",
+        "name": "osx_firefox_1440_900",
+        "description": "Firefox on OS X Mavericks (1440x900)",
+        "category": "browser",
+        "result": "failed",
+        "state": "complete"
+      }
+    ],
+    "step_count": 10,
+    "frontend_url": "https://app.rainforestqa.com/runs/12345/tests/3",
+    "current_progress": {
+      "percent": 100,
+      "total": 1,
+      "complete": 1
+    }
+  },
+  {
+    "id": 4,
+    "created_at": "2016-06-21T09:40:07Z",
+    "test_id": 4,
+    "site_id": 123,
+    "title": "This title \"has\" escaped quotes",
+    "state": "complete",
+    "result": "failed",
+    "start_uri": "/",
+    "description": "This description \"contains\" escaped\ncharacters",
+    "run_mode": "default",
+    "updated_at": "2016-06-21T10:54:51.771Z",
+    "editable": false,
+    "browsers": [
+      {
+        "id": 1790916,
+        "created_at": "2016-06-21T09:40:40Z",
+        "name": "osx_firefox_1440_900",
+        "description": "Firefox on OS X Mavericks (1440x900)",
+        "category": "browser",
+        "result": "failed",
+        "state": "complete"
+      }
+    ],
+    "step_count": 9,
+    "frontend_url": "https://app.rainforestqa.com/runs/12345/tests/4",
+    "current_progress": {
+      "percent": 100,
+      "total": 1,
+      "complete": 1
+    }
+  }
+]

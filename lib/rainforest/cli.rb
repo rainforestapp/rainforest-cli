@@ -17,6 +17,8 @@ require 'rainforest/cli/exporter'
 require 'rainforest/cli/deleter'
 require 'rainforest/cli/uploader'
 require 'rainforest/cli/resources'
+require 'rainforest/cli/junit_outputter'
+require 'rainforest/cli/reporter'
 
 module RainforestCli
   def self.start(args)
@@ -37,6 +39,7 @@ module RainforestCli
     when 'upload' then Uploader.new(options).upload
     when 'rm' then Deleter.new(options).delete
     when 'export' then Exporter.new(options).export
+    when 'report' then Reporter.new(options).report
     when 'sites', 'folders', 'browsers'
       Resources.new(options).public_send(options.command)
     else

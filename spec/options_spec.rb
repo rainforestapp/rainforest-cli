@@ -178,5 +178,32 @@ describe RainforestCli::OptionParser do
         it { raises_a_validation_exception }
       end
     end
+
+    context 'with junit output but not in foreground mode' do
+      let(:args) { %w(run --token foo --junit some_file.xml) }
+      it { raises_a_validation_exception }
+    end
+
+    context 'with junit output and in foreground mode' do
+      let(:args) { %w(--token foo --junit some_file.xml --fg) }
+      it { does_not_raise_a_validation_exception }
+    end
+
+    context 'valdiating the report command' do
+      context 'with a valid junit and run_id' do
+        let(:args) { ['report', '--junit', 'somefile.xml', '--run_id', '12345', '--token', 'foo'] }
+        it {does_not_raise_a_validation_exception }
+      end
+
+      context 'with a junit but no run_id' do
+        let(:args) { ['report', '--junit', 'somefile.xml', '--token', 'foo'] }
+        it { raises_a_validation_exception }
+      end
+
+      context 'with a run_id but no junit' do
+        let(:args) { ['report', '--run_id', '12345', '--token', 'foo'] }
+      end
+    end
+
   end
 end

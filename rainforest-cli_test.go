@@ -7,46 +7,52 @@ import (
 	"testing"
 )
 
-func TestParseCommands(t *testing.T) {
+func TestParseArguments(t *testing.T) {
 	var testCases = []struct {
-		input []string
-		want  []string
+		input        []string
+		wantCommands []string
+		wantFlags    []string
 	}{
 		{
-			input: []string{"foo", "bar", "-words=baz"},
-			want:  []string{"bar"},
+			input:        []string{"foo", "bar", "-words=baz"},
+			wantCommands: []string{"bar"},
+			wantFlags:    []string{"-words=baz"},
 		},
 		{
-			input: []string{"foo", "-words=baz", "bar"},
-			want:  []string{"bar"},
+			input:        []string{"foo", "-words=baz", "bar"},
+			wantCommands: []string{"bar"},
+			wantFlags:    []string{"-words=baz"},
 		},
 		{
-			input: []string{"foo", "-numbers=321", "bar", "-words=baz"},
-			want:  []string{"bar"},
+			input:        []string{"foo", "-numbers=321", "bar", "-words=baz"},
+			wantCommands: []string{"bar"},
+			wantFlags:    []string{"-numbers=321", "-words=baz"},
 		},
 		{
-			input: []string{"foo", "-numbers=321", "-words=baz"},
-			want:  []string{},
+			input:        []string{"foo", "-numbers=321", "-words=baz"},
+			wantCommands: nil,
+			wantFlags:    []string{"-numbers=321", "-words=baz"},
 		},
 		{
-			input: []string{"foo"},
-			want:  []string{},
+			input:        []string{"foo"},
+			wantCommands: nil,
+			wantFlags:    nil,
 		},
 		{
-			input: []string{"-words=baz"},
-			want:  []string{},
-		},
-		{
-			input: []string{"foo", "bar", "wow"},
-			want:  []string{"wow", "bar"},
+			input:        []string{"foo", "bar", "wow"},
+			wantCommands: []string{"bar", "wow"},
+			wantFlags:    nil,
 		},
 	}
 	tempOsArgs := os.Args
 	for _, test := range testCases {
 		os.Args = test.input
-		got := parseCommands()
-		if !reflect.DeepEqual(test.want, got) {
-			t.Errorf("Expected %v, got %v", test.want, got)
+		gotCommands, gotFlags := parseArgs(os.Args)
+		if !reflect.DeepEqual(test.wantCommands, gotCommands) {
+			t.Errorf("Command incorrect. Expected %v, got %v", test.wantCommands, gotCommands)
+		}
+		if !reflect.DeepEqual(test.wantFlags, gotFlags) {
+			t.Errorf("Flag incorrect. Expected %v, got %v", test.wantFlags, gotFlags)
 		}
 	}
 	os.Args = tempOsArgs
@@ -70,7 +76,7 @@ func TestApiToken(t *testing.T) {
 			expectedToken: "",
 		},
 		{
-			osArgs:        []string{"rainforest-cli", "run", "--token=flag_token"},
+			osArgs:        []string{"rainforest-cli", "run", "-token=flag_token"},
 			envToken:      "",
 			expectedToken: "flag_token",
 		},
@@ -80,7 +86,7 @@ func TestApiToken(t *testing.T) {
 			expectedToken: "env_token",
 		},
 		{
-			osArgs:        []string{"rainforest-cli", "run", "--token=flag_token"},
+			osArgs:        []string{"rainforest-cli", "run", "-token=flag_token"},
 			envToken:      "env_token",
 			expectedToken: "flag_token",
 		},

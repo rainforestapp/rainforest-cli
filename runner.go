@@ -41,10 +41,10 @@ func makeParams() *runParams {
 }
 
 func stringToIntSlice(s string) []int {
-	s = strings.TrimSpace(s)
 	slicedString := strings.Split(s, ",")
 	var slicedInt []int
 	for _, slice := range slicedString {
+		slice = strings.TrimSpace(slice)
 		newInt, err := strconv.Atoi(slice)
 		if err != nil {
 			panic(err)

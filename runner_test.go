@@ -160,7 +160,7 @@ func TestRunByTestID(t *testing.T) {
 			want:   `{"tests":[200,300,400]}`,
 		},
 		{
-			testIDs: " 200,300,400 ",
+			testIDs: " 200, 300, 400",
 			siteID:  200,
 			want:    `{"tests":[200,300,400]}`,
 		},

@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
 type runParams struct {
-	Tests         string   `json:"tests,omitempty"`
+	Tests         []int    `json:"tests,omitempty"`
 	Tags          []string `json:"tags,omitempty"`
 	SmartFolderID int      `json:"smart_folder_id,omitempty"`
 	SiteID        int      `json:"site_id,omitempty"`
@@ -24,8 +25,8 @@ func createRun() {
 
 func makeParams() *runParams {
 	if testIDs != "" {
-		testIDs = strings.TrimSpace(testIDs)
-		return &runParams{Tests: testIDs}
+		testIDsSlice := stringToIntSlice(testIDs)
+		return &runParams{Tests: testIDsSlice}
 	}
 	tags = strings.TrimSpace(tags)
 	var slicedTags []string
@@ -37,6 +38,20 @@ func makeParams() *runParams {
 		SmartFolderID: smartFolderID,
 		SiteID:        siteID,
 	}
+}
+
+func stringToIntSlice(s string) []int {
+	s = strings.TrimSpace(s)
+	slicedString := strings.Split(s, ",")
+	var slicedInt []int
+	for _, slice := range slicedString {
+		newInt, err := strconv.Atoi(slice)
+		if err != nil {
+			panic(err)
+		}
+		slicedInt = append(slicedInt, newInt)
+	}
+	return slicedInt
 }
 
 func postRun(params *runParams) (resBody *runResponse) {

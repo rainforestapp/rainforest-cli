@@ -52,7 +52,7 @@ func TestRunByTags(t *testing.T) {
 		{
 			testIDs: "200,300",
 			tags:    "foo,bar",
-			want:    `{"tests":"200,300"}`,
+			want:    `{"tests":[200,300]}`,
 		},
 	}
 	for _, test := range testCases {
@@ -85,7 +85,7 @@ func TestRunBySmartFolder(t *testing.T) {
 		{
 			testIDs:       "200,300",
 			smartFolderID: 200,
-			want:          `{"tests":"200,300"}`,
+			want:          `{"tests":[200,300]}`,
 		},
 	}
 	for _, test := range testCases {
@@ -118,7 +118,7 @@ func TestRunBySiteId(t *testing.T) {
 		{
 			testIDs: "200,300",
 			siteID:  200,
-			want:    `{"tests":"200,300"}`,
+			want:    `{"tests":[200,300]}`,
 		},
 	}
 	for _, test := range testCases {
@@ -143,7 +143,7 @@ func TestRunByTestID(t *testing.T) {
 	testCases := []testRequest{
 		{
 			testIDs: "200",
-			want:    `{"tests":"200"}`,
+			want:    `{"tests":[200]}`,
 		},
 		{
 			testIDs: "",
@@ -152,24 +152,24 @@ func TestRunByTestID(t *testing.T) {
 		{
 			testIDs: "200,300",
 			siteID:  200,
-			want:    `{"tests":"200,300"}`,
+			want:    `{"tests":[200,300]}`,
 		},
 		{
 			testIDs: "	200,300,400	",
 			siteID: 200,
-			want:   `{"tests":"200,300,400"}`,
+			want:   `{"tests":[200,300,400]}`,
 		},
 		{
 			testIDs: " 200,300,400 ",
 			siteID:  200,
-			want:    `{"tests":"200,300,400"}`,
+			want:    `{"tests":[200,300,400]}`,
 		},
 		{
 			smartFolderID: 200,
 			siteID:        300,
 			tags:          "foo, bar",
 			testIDs:       "300,500,800",
-			want:          `{"tests":"300,500,800"}`,
+			want:          `{"tests":[300,500,800]}`,
 		},
 	}
 

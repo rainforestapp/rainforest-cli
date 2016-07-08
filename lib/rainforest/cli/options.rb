@@ -15,6 +15,7 @@ module RainforestCli
       @tags = []
       @browsers = nil
       @debug = false
+      @junit = nil
       @token = ENV['RAINFOREST_API_TOKEN']
 
       # NOTE: Disabling line length cop to allow for consistency of syntax
@@ -108,6 +109,10 @@ module RainforestCli
           @app_source_url = value
         end
 
+        opts.on('--junit FILE', 'Gather the results of a run and create junit output in FILE.xml, must be run with --fg') do |value|
+          @junit = value
+        end
+
         opts.on_tail('--help', 'Display help message and exit') do |_value|
           puts opts
           exit 0
@@ -155,6 +160,10 @@ module RainforestCli
       @foreground
     end
 
+    def junit?
+      @junit
+    end
+
     def validate!
       if !TOKEN_NOT_REQUIRED.include?(command)
         unless token
@@ -176,6 +185,12 @@ module RainforestCli
 
       if command == 'rm' && file_name.nil?
         raise ValidationError, 'You must include a file name'
+      end
+
+      if junit?
+        unless foreground?
+          raise ValidationError, 'You can only generate junit test output in foreground mode'
+        end
       end
 
       true

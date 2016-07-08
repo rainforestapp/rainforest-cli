@@ -36,6 +36,9 @@ module RainforestCli
 
       if options.foreground?
         wait_for_run_completion(run_id)
+        if options.junit?
+          generate_junit_output(run_id, options.junit)
+        end
       else
         true
       end
@@ -66,6 +69,28 @@ module RainforestCli
       if response['result'] != 'passed'
         exit 1
       end
+    end
+
+    def generate_junit_output(run_id, output_filename)
+      run = client.get("/runs/#{run_id}.json")
+
+      if run['error']
+        logger.fatal "Error retrieving results for your run: #{run['error']}"
+        exit 1
+      end
+
+      if run.has_key?('total_tests') and run['total_tests'] != 0
+        tests = client.get("/runs/#{run_id}/tests.json?page_size=#{run['total_tests']}")
+
+        if tests['error']
+          logger.fatal "Error retrieving test details for your run: #{tests['error']}"
+          exit 1
+        end
+
+        outputter = JunitOutputter.new(options.token, run, tests).parse
+      end
+
+      File.open(options.output_filename, 'w') { |file| outputter.output(file) }
     end
 
     def make_create_run_options

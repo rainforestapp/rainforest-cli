@@ -17,6 +17,7 @@ require 'rainforest/cli/exporter'
 require 'rainforest/cli/deleter'
 require 'rainforest/cli/uploader'
 require 'rainforest/cli/resources'
+require 'rainforest/cli/junit_outputter'
 
 module RainforestCli
   def self.start(args)

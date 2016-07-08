@@ -178,5 +178,16 @@ describe RainforestCli::OptionParser do
         it { raises_a_validation_exception }
       end
     end
+
+    context 'with junit output but not in foreground mode' do
+      let(:args) { %w(--token foo --junit some_file.xml) }
+      it { raises_a_validation_exception }
+    end
+
+    context 'with junit output and in foreground mode' do
+      let(:args) { %w(--token foo --junit some_file.xml --fg) }
+      it { does_not_raise_a_validation_exception }
+    end
+
   end
 end

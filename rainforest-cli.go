@@ -14,6 +14,12 @@ var (
 	testIDs       string
 	baseURL                 = "https://app.rainforestqa.com/api/1"
 	out           io.Writer = os.Stdout
+
+	crowd         string
+	conflict      string
+	browsers      string //[]string
+	description   string
+	environmentID int
 )
 
 func parseArgs(arguments []string) ([]string, []string) {
@@ -39,6 +45,11 @@ func main() {
 	flag.StringVar(&tags, "tags", "", "Test tags. enter in a comma separated list")
 	flag.StringVar(&testIDs, "tests", "", "Run test by id. Enter in a comma separated list")
 
+	flag.StringVar(&crowd, "crowd", "", "Crowd to run test with. Enter `default` or `on_premise_crowd`")
+	flag.StringVar(&conflict, "conflict", "", "Handling of runs in progress. (A) Abort: only abort runs in the same environment as your new run. (B) Abort All.")
+	flag.StringVar(&browsers, "browsers", "", "Browsers to test against. enter in a comma separated list")
+	flag.StringVar(&description, "description", "", "An arbitrary string to associate with the run")
+	flag.IntVar(&environmentID, "environment_id", 0, "Use a specific environment for this run")
 	flag.CommandLine.Parse(flags)
 
 	if len(apiToken) == 0 {

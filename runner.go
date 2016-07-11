@@ -12,9 +12,28 @@ type runParams struct {
 	Tags          []string `json:"tags,omitempty"`
 	SmartFolderID int      `json:"smart_folder_id,omitempty"`
 	SiteID        int      `json:"site_id,omitempty"`
+	Crowd         string   `json:"crowd,omitempty"`
+	Conflict      string   `json:"conflict,omitempty"`
+	Browsers      string   `json:"browsers,omitempty"`
+	Description   string   `json:"description,omitempty"`
+	EnvironmentID int      `json:"environment_id,omitempty"`
 }
 
-type runResponse map[string]interface{}
+type runResponse struct {
+	ID           int    `json:"id"`
+	State        string `json:"state"`
+	StateDetails struct {
+		Name         string `json:"name"`
+		IsFinalState bool   `json:"is_final_state"`
+	} `json:"state_details"`
+	Result          string `json:"result"`
+	CurrentProgress struct {
+		Percent  int `json:"percent"`
+		Total    int `json:"total"`
+		Complete int `json:"complete"`
+		NoResult int `json:"no_result"`
+	} `json:"current_progress"`
+}
 
 func createRun() {
 	params := makeParams()
@@ -40,6 +59,7 @@ func makeParams() *runParams {
 		Tags:          slicedTags,
 		SmartFolderID: smartFolderID,
 		SiteID:        siteID,
+		Crowd:         crowd,
 	}
 }
 
@@ -65,5 +85,24 @@ func postRun(params *runParams) (resBody *runResponse) {
 
 	data := postRequest(baseURL+"/runs", js)
 	json.Unmarshal(data, &resBody)
+	// runID := string(resBody.ID)
+	// if fg == "" {
+	// 	checkRunProgress(runID)
+	// }
 	return
 }
+
+// func checkRunProgress(runID string) {
+// 	running := true
+// 	for running {
+// 		var response runResponse
+// 		data := getRun(runID, response)
+//
+//
+// 		if !response.StateDetails.IsFinalState {
+//
+// 		}
+//
+// 	}
+//
+// }

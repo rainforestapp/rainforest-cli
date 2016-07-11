@@ -7,19 +7,21 @@ import (
 )
 
 var (
-	apiToken      string
-	smartFolderID int
-	siteID        int
-	tags          string
-	testIDs       string
-	baseURL                 = "https://app.rainforestqa.com/api/1"
-	out           io.Writer = os.Stdout
+	apiToken        string
+	smartFolderID   int
+	siteID          int
+	tags            string
+	testIDs         string
+	baseURL                   = "https://app.rainforestqa.com/api/1"
+	out             io.Writer = os.Stdout
+	allowForeGround           = true
 
-	crowd         string
-	conflict      string
-	browsers      string //[]string
-	description   string
-	environmentID int
+	crowd               string
+	conflict            string
+	browsers            string //[]string
+	description         string
+	environmentID       int
+	testingNoForeGround bool
 )
 
 func parseArgs(arguments []string) ([]string, []string) {

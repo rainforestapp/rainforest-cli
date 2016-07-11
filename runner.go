@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type runParams struct {
@@ -33,6 +34,7 @@ type runResponse struct {
 		Complete int `json:"complete"`
 		NoResult int `json:"no_result"`
 	} `json:"current_progress"`
+	FrontendURL string `json:"frontend_url,omitempty"`
 }
 
 func createRun() {
@@ -85,24 +87,35 @@ func postRun(params *runParams) (resBody *runResponse) {
 
 	data := postRequest(baseURL+"/runs", js)
 	json.Unmarshal(data, &resBody)
-	// runID := string(resBody.ID)
-	// if fg == "" {
-	// 	checkRunProgress(runID)
-	// }
+	if allowForeGround && resBody.ID != 0 {
+		runID := resBody.ID
+		checkRunProgress(runID)
+	}
 	return
 }
 
-// func checkRunProgress(runID string) {
-// 	running := true
-// 	for running {
-// 		var response runResponse
-// 		data := getRun(runID, response)
-//
-//
-// 		if !response.StateDetails.IsFinalState {
-//
-// 		}
-//
-// 	}
-//
-// }
+func checkRunProgress(runID int) {
+	running := true
+	var response runResponse
+	for running {
+
+		getRun(strconv.Itoa(runID), &response)
+
+		isFinalState := response.StateDetails.IsFinalState
+		state := response.State
+		currentPercent := response.CurrentProgress.Percent
+
+		if !isFinalState {
+			fmt.Printf("Run %v is %v and is %v%% complete\n", runID, state, currentPercent)
+			//TODO implement failfast
+		} else {
+			fmt.Printf("Run %v is now %v and has %v\n", runID, state, response.Result)
+			running = false
+		}
+		second := time.Second
+		time.Sleep(5 * second)
+	}
+	if response.FrontendURL != "" {
+		fmt.Printf("The detailed results are available at %v\n", response.FrontendURL)
+	}
+}

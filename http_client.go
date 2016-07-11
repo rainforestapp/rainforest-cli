@@ -87,3 +87,16 @@ func getBrowsers(url string, resBody *browsersResp) []byte {
 	checkAPIErr(err)
 	return data
 }
+
+func getRun(runID string, resBody *runResponse) {
+	req, err := http.NewRequest("GET", baseURL+"/runs/"+runID, nil)
+	checkPanicError(err)
+	addAuthHeaders(req)
+	res, err := client.Do(req)
+	checkAPIErr(err)
+	checkResponse(res)
+	data, err := ioutil.ReadAll(res.Body)
+	checkAPIErr(err)
+	err = json.Unmarshal(data, &resBody)
+	checkAPIErr(err)
+}

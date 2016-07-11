@@ -181,7 +181,7 @@ specify the browsers you wish to run against. This overrides the test own settin
 
 ###Folder-ID
  run tests in specified folder.
-<pre>--folder ID <b>ID</b></pre>
+<pre>--folder <b>ID</b></pre>
 
 ###Environment-ID
 run your tests using this environment. Otherwise it will use your default environment

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -150,6 +151,7 @@ func TestRunBySiteId(t *testing.T) {
 
 func TestRunByTestID(t *testing.T) {
 	tempTestInBackground := runTestInBackground
+	runTestInBackground = true
 	testCases := []testRequest{
 		{
 			testIDs: "200",
@@ -209,15 +211,19 @@ func TestRunInForeground(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		// fmt.Printf("\n%v\n", r)
-		// fmt.Printf("\n%T: %v\n", r.Method, r.Method)
-		// fmt.Printf("\n%v\n", r)
 		w.WriteHeader(200)
+		fmt.Printf("\n%v\n", r.URL)
 		if r.Method == "POST" {
-			w.Write([]byte(`{"id": 78904}`))
+			if r.URL.String() != "/runs" {
+				t.Errorf("Expected /runs, got %v", r.URL)
+			}
+			w.Write([]byte(`{"id": 7000}`))
 		}
 
 		if r.Method == "GET" {
+			if r.URL.String() != "/runs/7000" {
+				t.Errorf("Expected /runs/7000, got %v", r.URL)
+			}
 			percent += 40
 			if percent < 100 {
 				response := `{

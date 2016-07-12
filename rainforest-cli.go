@@ -7,14 +7,14 @@ import (
 )
 
 var (
-	apiToken        string
-	smartFolderID   int
-	siteID          int
-	tags            string
-	testIDs         string
-	baseURL                   = "https://app.rainforestqa.com/api/1"
-	out             io.Writer = os.Stdout
-	allowForeGround           = true
+	apiToken            string
+	smartFolderID       int
+	siteID              int
+	tags                string
+	testIDs             string
+	baseURL                       = "https://app.rainforestqa.com/api/1"
+	out                 io.Writer = os.Stdout
+	runTestInBackground bool
 
 	crowd               string
 	conflict            string
@@ -52,6 +52,7 @@ func main() {
 	flag.StringVar(&browsers, "browsers", "", "Browsers to test against. enter in a comma separated list")
 	flag.StringVar(&description, "description", "", "An arbitrary string to associate with the run")
 	flag.IntVar(&environmentID, "environment_id", 0, "Use a specific environment for this run")
+	flag.BoolVar(&runTestInBackground, "fg", false, "run test in background")
 	flag.CommandLine.Parse(flags)
 
 	if len(apiToken) == 0 {

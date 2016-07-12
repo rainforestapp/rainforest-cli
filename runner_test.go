@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
@@ -28,6 +29,8 @@ func newTestPostServer(check func([]byte)) *httptest.Server {
 }
 
 func TestRunByTags(t *testing.T) {
+	tempTestInBackground := runTestInBackground
+	runTestInBackground = true
 	testCases := []testRequest{
 		{
 			tags: "foo,bar",
@@ -70,9 +73,12 @@ func TestRunByTags(t *testing.T) {
 		createRun()
 		ts.Close()
 	}
+	runTestInBackground = tempTestInBackground
 }
 
 func TestRunBySmartFolder(t *testing.T) {
+	tempTestInBackground := runTestInBackground
+	runTestInBackground = true
 	testCases := []testRequest{
 		{
 			smartFolderID: 0,
@@ -103,9 +109,12 @@ func TestRunBySmartFolder(t *testing.T) {
 		createRun()
 		ts.Close()
 	}
+	runTestInBackground = tempTestInBackground
 }
 
 func TestRunBySiteId(t *testing.T) {
+	tempTestInBackground := runTestInBackground
+	runTestInBackground = true
 	testCases := []testRequest{
 		{
 			siteID: 0,
@@ -135,11 +144,12 @@ func TestRunBySiteId(t *testing.T) {
 		testIDs = test.testIDs
 		createRun()
 		ts.Close()
-
 	}
+	runTestInBackground = tempTestInBackground
 }
 
 func TestRunByTestID(t *testing.T) {
+	tempTestInBackground := runTestInBackground
 	testCases := []testRequest{
 		{
 			testIDs: "200",
@@ -188,4 +198,54 @@ func TestRunByTestID(t *testing.T) {
 		createRun()
 		ts.Close()
 	}
+	runTestInBackground = tempTestInBackground
+}
+func TestRunInForeground(t *testing.T) {
+	var percent int
+	tempTestInBackground := runTestInBackground
+	runTestInBackground = false
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			panic(err)
+		}
+		// fmt.Printf("\n%v\n", r)
+		// fmt.Printf("\n%T: %v\n", r.Method, r.Method)
+		// fmt.Printf("\n%v\n", r)
+		w.WriteHeader(200)
+		if r.Method == "POST" {
+			w.Write([]byte(`{"id": 78904}`))
+		}
+
+		if r.Method == "GET" {
+			percent += 40
+			if percent < 100 {
+				response := `{
+						"id": 78902,
+						"state": "in_progress",
+						"state_details": {
+							"is_final_state": false
+						},
+						"result": "did not get to end",
+						"current_progress": {"percent": ` + strconv.Itoa(percent) + `}}`
+				w.Write([]byte(response))
+			} else {
+				response := `{
+			"id": 78902,
+			"state": "done",
+			"state_details": {
+				"is_final_state": true
+			},
+			"result": "passed",
+			"current_progress": {
+				"percent": 100
+			}
+		}`
+				w.Write([]byte(response))
+			}
+		}
+	}))
+	baseURL = ts.URL
+	createRun()
+	runTestInBackground = tempTestInBackground
 }

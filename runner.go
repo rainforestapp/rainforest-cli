@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -87,7 +88,7 @@ func postRun(params *runParams) (resBody *runResponse) {
 
 	data := postRequest(baseURL+"/runs", js)
 	json.Unmarshal(data, &resBody)
-	if allowForeGround && resBody.ID != 0 {
+	if !runTestInBackground && resBody.ID != 0 {
 		runID := resBody.ID
 		checkRunProgress(runID)
 	}
@@ -118,4 +119,9 @@ func checkRunProgress(runID int) {
 	if response.FrontendURL != "" {
 		fmt.Printf("The detailed results are available at %v\n", response.FrontendURL)
 	}
+
+	if response.Result != "passed" {
+		os.Exit(1)
+	}
+
 }

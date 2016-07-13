@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -202,51 +201,46 @@ func TestRunByTestID(t *testing.T) {
 	}
 	runTestInBackground = tempTestInBackground
 }
+
+func checkRequest(want string, r *http.Request, t *testing.T) {
+	if r.URL.String() != want {
+		t.Errorf("Expected %v, got %v", want, r.URL)
+	}
+}
+
 func TestRunInForeground(t *testing.T) {
 	var percent int
 	tempTestInBackground := runTestInBackground
 	runTestInBackground = false
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			panic(err)
 		}
 		w.WriteHeader(200)
-		fmt.Printf("\n%v\n", r.URL)
 		if r.Method == "POST" {
-			if r.URL.String() != "/runs" {
-				t.Errorf("Expected /runs, got %v", r.URL)
-			}
+			checkRequest("/runs", r, t)
 			w.Write([]byte(`{"id": 7000}`))
 		}
 
 		if r.Method == "GET" {
-			if r.URL.String() != "/runs/7000" {
-				t.Errorf("Expected /runs/7000, got %v", r.URL)
-			}
-			percent += 40
+			checkRequest("/runs/7000", r, t)
+			percent += 100
 			if percent < 100 {
-				response := `{
-						"id": 78902,
-						"state": "in_progress",
-						"state_details": {
-							"is_final_state": false
-						},
-						"result": "did not get to end",
-						"current_progress": {"percent": ` + strconv.Itoa(percent) + `}}`
+				// response := `{
+				// 		"id": 78902,
+				// 		"state": "in_progress",
+				// 		"state_details": {
+				// 			"is_final_state": ` + "false" + `
+				// 		},
+				// 		"result": ` + "in_progress" + `,
+				// 		"current_progress": {"percent": ` + strconv.Itoa(percent) + `}}`
+
+				response := runStatusResponse(`"in_progress"`, "false", percent)
 				w.Write([]byte(response))
 			} else {
-				response := `{
-			"id": 78902,
-			"state": "done",
-			"state_details": {
-				"is_final_state": true
-			},
-			"result": "passed",
-			"current_progress": {
-				"percent": 100
-			}
-		}`
+				response := runStatusResponse(`"passed"`, "true", 100)
 				w.Write([]byte(response))
 			}
 		}
@@ -254,4 +248,25 @@ func TestRunInForeground(t *testing.T) {
 	baseURL = ts.URL
 	createRun()
 	runTestInBackground = tempTestInBackground
+}
+
+func runStatusResponse(result string, finalState string, percent int) string {
+	// response := `{
+	// 		"id": 78902,
+	// 		"state": "in_progress",
+	// 		"state_details": {
+	// 			"is_final_state": ` + finalState + `
+	// 		},
+	// 		"result": ` + result + `,
+	// 		"current_progress": {"percent": ` + strconv.Itoa(percent) + `}}`
+
+	response := `{
+		"id": 78902,
+		"state": "testing",
+		"state_details": {
+			"is_final_state": ` + finalState + `
+		},
+		"result": ` + result + `,
+		"current_progress": {"percent": ` + strconv.Itoa(percent) + `}}`
+	return response
 }

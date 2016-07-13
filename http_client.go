@@ -10,6 +10,8 @@ import (
 
 var client = new(http.Client)
 
+type resourceResponse interface{}
+
 func checkAPIErr(err error) {
 	if err != nil {
 		log.Fatalf("API error: %v. Please contact Rainforest support.", err)
@@ -47,35 +49,30 @@ func postRequest(url string, body []byte) []byte {
 }
 
 func getFolders(url string, resBody *foldersResp) []byte {
-	req, err := http.NewRequest("GET", baseURL+"/"+url, nil)
-	checkPanicError(err)
-	addAuthHeaders(req)
-	res, err := client.Do(req)
-	checkAPIErr(err)
-	checkResponse(res)
-	data, err := ioutil.ReadAll(res.Body)
-	checkAPIErr(err)
-	err = json.Unmarshal(data, &resBody)
-	checkAPIErr(err)
+	fullURL := baseURL + "/" + url
+	data := requestHandler("GET", fullURL, resBody)
 	return data
 }
 
 func getSites(url string, resBody *sitesResp) []byte {
-	req, err := http.NewRequest("GET", baseURL+"/"+url, nil)
-	checkPanicError(err)
-	addAuthHeaders(req)
-	res, err := client.Do(req)
-	checkAPIErr(err)
-	checkResponse(res)
-	data, err := ioutil.ReadAll(res.Body)
-	checkAPIErr(err)
-	err = json.Unmarshal(data, &resBody)
-	checkAPIErr(err)
+	fullURL := baseURL + "/" + url
+	data := requestHandler("GET", fullURL, resBody)
 	return data
 }
 
 func getBrowsers(url string, resBody *browsersResp) []byte {
-	req, err := http.NewRequest("GET", baseURL+"/"+url, nil)
+	fullURL := baseURL + "/" + url
+	data := requestHandler("GET", fullURL, resBody)
+	return data
+}
+
+func getRun(runID string, resBody *runResponse) {
+	fullURL := baseURL + "/runs/" + runID
+	requestHandler("GET", fullURL, resBody)
+}
+
+func requestHandler(method string, fullURL string, resBody resourceResponse) []byte {
+	req, err := http.NewRequest(method, fullURL, nil)
 	checkPanicError(err)
 	addAuthHeaders(req)
 	res, err := client.Do(req)
@@ -86,17 +83,4 @@ func getBrowsers(url string, resBody *browsersResp) []byte {
 	err = json.Unmarshal(data, &resBody)
 	checkAPIErr(err)
 	return data
-}
-
-func getRun(runID string, resBody *runResponse) {
-	req, err := http.NewRequest("GET", baseURL+"/runs/"+runID, nil)
-	checkPanicError(err)
-	addAuthHeaders(req)
-	res, err := client.Do(req)
-	checkAPIErr(err)
-	checkResponse(res)
-	data, err := ioutil.ReadAll(res.Body)
-	checkAPIErr(err)
-	err = json.Unmarshal(data, &resBody)
-	checkAPIErr(err)
 }

@@ -15,10 +15,11 @@ var (
 	baseURL                       = "https://app.rainforestqa.com/api/1"
 	out                 io.Writer = os.Stdout
 	runTestInBackground bool
+	failfast            bool
 
 	crowd               string
 	conflict            string
-	browsers            string //[]string
+	browsers            string
 	description         string
 	environmentID       int
 	testingNoForeGround bool
@@ -52,7 +53,8 @@ func main() {
 	flag.StringVar(&browsers, "browsers", "", "Browsers to test against. enter in a comma separated list")
 	flag.StringVar(&description, "description", "", "An arbitrary string to associate with the run")
 	flag.IntVar(&environmentID, "environment_id", 0, "Use a specific environment for this run")
-	flag.BoolVar(&runTestInBackground, "fg", false, "run test in background")
+	flag.BoolVar(&runTestInBackground, "bg", false, "run test in background")
+	flag.BoolVar(&runTestInBackground, "fail-fast", true, "run test in background")
 	flag.CommandLine.Parse(flags)
 
 	if len(apiToken) == 0 {

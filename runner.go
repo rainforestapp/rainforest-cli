@@ -108,7 +108,9 @@ func checkRunProgress(runID int) {
 
 		if !isFinalState {
 			fmt.Printf("Run %v is %v and is %v%% complete\n", runID, state, currentPercent)
-			//TODO implement failfast
+			if response.Result == "failed" && failFast {
+				running = false
+			}
 		} else {
 			fmt.Printf("Run %v is now %v and has %v\n", runID, state, response.Result)
 			running = false

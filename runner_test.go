@@ -209,6 +209,7 @@ func checkRequest(want string, r *http.Request, t *testing.T) {
 }
 
 func TestRunInForeground(t *testing.T) {
+	waitTime = 0
 	var percent int
 	tempTestInBackground := runTestInBackground
 	runTestInBackground = false
@@ -226,17 +227,8 @@ func TestRunInForeground(t *testing.T) {
 
 		if r.Method == "GET" {
 			checkRequest("/runs/7000", r, t)
-			percent += 100
+			percent += 25
 			if percent < 100 {
-				// response := `{
-				// 		"id": 78902,
-				// 		"state": "in_progress",
-				// 		"state_details": {
-				// 			"is_final_state": ` + "false" + `
-				// 		},
-				// 		"result": ` + "in_progress" + `,
-				// 		"current_progress": {"percent": ` + strconv.Itoa(percent) + `}}`
-
 				response := runStatusResponse(`"in_progress"`, "false", percent)
 				w.Write([]byte(response))
 			} else {
@@ -251,15 +243,6 @@ func TestRunInForeground(t *testing.T) {
 }
 
 func runStatusResponse(result string, finalState string, percent int) string {
-	// response := `{
-	// 		"id": 78902,
-	// 		"state": "in_progress",
-	// 		"state_details": {
-	// 			"is_final_state": ` + finalState + `
-	// 		},
-	// 		"result": ` + result + `,
-	// 		"current_progress": {"percent": ` + strconv.Itoa(percent) + `}}`
-
 	response := `{
 		"id": 78902,
 		"state": "testing",

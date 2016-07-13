@@ -115,8 +115,7 @@ func checkRunProgress(runID int) {
 			fmt.Printf("Run %v is now %v and has %v\n", runID, state, response.Result)
 			running = false
 		}
-		second := time.Second
-		time.Sleep(5 * second)
+		time.Sleep(waitTime)
 	}
 	if response.FrontendURL != "" {
 		fmt.Printf("The detailed results are available at %v\n", response.FrontendURL)

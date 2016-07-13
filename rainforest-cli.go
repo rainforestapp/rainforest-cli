@@ -4,12 +4,14 @@ import (
 	"flag"
 	"io"
 	"os"
+	"time"
 )
 
 var (
 	apiToken string
 	baseURL            = "https://app.rainforestqa.com/api/1"
 	out      io.Writer = os.Stdout
+	waitTime           = time.Second * 5
 	//Options for which tests to run
 	smartFolderID int
 	siteID        int

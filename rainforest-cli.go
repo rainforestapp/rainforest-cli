@@ -15,7 +15,7 @@ var (
 	baseURL                       = "https://app.rainforestqa.com/api/1"
 	out                 io.Writer = os.Stdout
 	runTestInBackground bool
-	failfast            bool
+	failFast            bool
 
 	crowd               string
 	conflict            string

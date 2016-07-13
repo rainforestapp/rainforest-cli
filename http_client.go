@@ -10,8 +10,6 @@ import (
 
 var client = new(http.Client)
 
-type resourceResponse interface{}
-
 func checkAPIErr(err error) {
 	if err != nil {
 		log.Fatalf("API error: %v. Please contact Rainforest support.", err)
@@ -71,7 +69,7 @@ func getRun(runID string, resBody *runResponse) {
 	requestHandler("GET", fullURL, resBody)
 }
 
-func requestHandler(method string, fullURL string, resBody resourceResponse) []byte {
+func requestHandler(method string, fullURL string, resBody interface{}) []byte {
 	req, err := http.NewRequest(method, fullURL, nil)
 	checkPanicError(err)
 	addAuthHeaders(req)

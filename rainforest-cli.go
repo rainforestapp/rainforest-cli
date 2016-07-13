@@ -7,22 +7,23 @@ import (
 )
 
 var (
-	apiToken            string
-	smartFolderID       int
-	siteID              int
-	tags                string
-	testIDs             string
-	baseURL                       = "https://app.rainforestqa.com/api/1"
-	out                 io.Writer = os.Stdout
+	apiToken string
+	baseURL            = "https://app.rainforestqa.com/api/1"
+	out      io.Writer = os.Stdout
+	//Options for which tests to run
+	smartFolderID int
+	siteID        int
+	tags          string
+	testIDs       string
+	//test options
+	crowd         string
+	conflict      string
+	browsers      string
+	description   string
+	environmentID int
+	//test configuration
 	runTestInBackground bool
 	failFast            bool
-
-	crowd               string
-	conflict            string
-	browsers            string
-	description         string
-	environmentID       int
-	testingNoForeGround bool
 )
 
 func parseArgs(arguments []string) ([]string, []string) {

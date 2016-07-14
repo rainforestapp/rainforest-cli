@@ -47,6 +47,10 @@ module RainforestCli::TestParser
         }
       }
     end
+
+    def has_uploadable?
+      !!(action =~ /{{ ?file\.(download|screenshot)\((.+)\)+ ?}}/)
+    end
   end
 
   class Test < Struct.new(
@@ -63,6 +67,11 @@ module RainforestCli::TestParser
   )
     def embedded_ids
       steps.inject([]) { |embeds, step| step.type == :test ? embeds + [step.rfml_id] : embeds }
+    end
+
+    def has_uploadable?
+      actual_steps = steps.select { |s| s.type == :step }
+      actual_steps.any?(&:has_uploadable?)
     end
   end
 

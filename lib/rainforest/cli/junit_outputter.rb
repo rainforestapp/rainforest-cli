@@ -38,7 +38,6 @@ module RainforestCli
 
     def build_failed_test(test)
       response = client.get("/runs/#{@json_run['id']}/tests/#{test['id']}.json")
-      # Get the number of testers, their distribution of opinions, and a representitive note for failure
       response['steps'].each do | step |
         step['browsers'].each do | browser |
           browser_name = browser['name']

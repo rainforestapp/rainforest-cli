@@ -18,8 +18,23 @@ class RainforestCli::FileUploader
       logger.info "Starting file uploads for #{tests_with_uploadables.count} tests:"
       tests_with_uploadables.each do |test|
         logger.info "\t#{test.title}"
+        steps_with_uploadables = test.steps.select(&:has_uploadable?)
+        steps_with_uploadables.each do |step|
+          upload_from_step(step, test.rfml_id)
+        end
       end
     end
+  end
+
+  def upload_from_step(step, test_rfml_id)
+    upload_from_match_data(step.uploadable_in_action, test_rfml_id) if step.uploadable_in_action
+    upload_from_match_data(step.uploadable_in_response, test_rfml_id) if step.uploadable_in_response
+    # recursive for cases with multiple uploads
+    # upload_from_step(step, test_rfml_id) if step.has_uploadable?
+  end
+
+  def upload_from_match_data(match_data, test_rfml_id)
+    puts "At the upload step for #{test_rfml_id}"
   end
 
   private

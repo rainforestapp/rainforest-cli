@@ -22,9 +22,15 @@ module RainforestCli::TestParser
         }
       }
     end
+
+    def has_uploadable?
+      false
+    end
   end
 
   class Step < Struct.new(:action, :response, :redirect)
+    UPLOADABLE_REGEX = /{{ ?file\.(download|screenshot)\((.+)\)+ ?}}/
+
     def type
       :step
     end
@@ -49,7 +55,15 @@ module RainforestCli::TestParser
     end
 
     def has_uploadable?
-      !!(action =~ /{{ ?file\.(download|screenshot)\((.+)\)+ ?}}/)
+      !!uploadable_in_action || !!uploadable_in_response
+    end
+
+    def uploadable_in_action
+      action.match(UPLOADABLE_REGEX)
+    end
+
+    def uploadable_in_response
+      response.match(UPLOADABLE_REGEX)
     end
   end
 
@@ -70,8 +84,7 @@ module RainforestCli::TestParser
     end
 
     def has_uploadable?
-      actual_steps = steps.select { |s| s.type == :step }
-      actual_steps.any?(&:has_uploadable?)
+      steps.any?(&:has_uploadable?)
     end
   end
 

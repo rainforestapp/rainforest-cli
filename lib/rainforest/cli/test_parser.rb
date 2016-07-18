@@ -1,92 +1,9 @@
 # frozen_string_literal: true
+
 module RainforestCli::TestParser
-  class EmbeddedTest < Struct.new(:rfml_id, :redirect)
-    def type
-      :test
-    end
-
-    def to_s
-      "--> embed: #{rfml_id}"
-    end
-
-    def redirection
-      redirect || 'true'
-    end
-
-    def to_element(primary_key_id)
-      {
-        type: 'test',
-        redirection: redirection,
-        element: {
-          id: primary_key_id
-        }
-      }
-    end
-
-    def has_uploadable?
-      false
-    end
-  end
-
-  class Step < Struct.new(:action, :response, :redirect)
-    UPLOADABLE_REGEX = /{{ ?file\.(download|screenshot)\((.+)\)+ ?}}/
-
-    def type
-      :step
-    end
-
-    def redirection
-      redirect || 'true'
-    end
-
-    def to_s
-      "#{action} --> #{response}"
-    end
-
-    def to_element
-      {
-        type: 'step',
-        redirection: redirection,
-        element: {
-          action: action,
-          response: response
-        }
-      }
-    end
-
-    def has_uploadable?
-      !!uploadable_in_action || !!uploadable_in_response
-    end
-
-    def uploadable_in_action
-      action.match(UPLOADABLE_REGEX)
-    end
-
-    def uploadable_in_response
-      response.match(UPLOADABLE_REGEX)
-    end
-  end
-
-  class Test < Struct.new(
-    :file_name,
-    :rfml_id,
-    :description,
-    :title,
-    :start_uri,
-    :site_id,
-    :steps,
-    :errors,
-    :tags,
-    :browsers
-  )
-    def embedded_ids
-      steps.inject([]) { |embeds, step| step.type == :test ? embeds + [step.rfml_id] : embeds }
-    end
-
-    def has_uploadable?
-      steps.any?(&:has_uploadable?)
-    end
-  end
+  require 'rainforest/cli/test_parser/test'
+  require 'rainforest/cli/test_parser/step'
+  require 'rainforest/cli/test_parser/embedded_test'
 
   class Error < Struct.new(:line, :reason)
     def to_s

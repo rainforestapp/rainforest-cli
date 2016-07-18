@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 class RainforestCli::TestParser::Step < Struct.new(:action, :response, :redirect)
-  UPLOADABLE_REGEX = /{{ ?file\.(download|screenshot)\((.+)\)+ ?}}/
+  UPLOADABLE_REGEX = /{{ ?file\.(download|screenshot)\(([^\)]+)\) ?}}/
 
   def type
     :step
@@ -26,14 +26,14 @@ class RainforestCli::TestParser::Step < Struct.new(:action, :response, :redirect
   end
 
   def has_uploadable?
-    !!uploadable_in_action || !!uploadable_in_response
+    uploadable_in_action.any? || uploadable_in_response.any?
   end
 
   def uploadable_in_action
-    action.match(UPLOADABLE_REGEX)
+    action.scan(UPLOADABLE_REGEX)
   end
 
   def uploadable_in_response
-    response.match(UPLOADABLE_REGEX)
+    response.scan(UPLOADABLE_REGEX)
   end
 end

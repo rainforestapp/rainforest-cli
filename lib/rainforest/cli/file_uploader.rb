@@ -1,6 +1,10 @@
 # frozen_string_literal: true
+
+require 'mimemagic'
+
 class RainforestCli::FileUploader
   def initialize(options)
+    @http_client = RainforestCli::HttpClient.new(token: options.token)
     @test_files = RainforestCli::TestFiles.new(options)
     @remote_tests = RainforestCli::RemoteTests.new(options.token)
   end
@@ -34,15 +38,27 @@ class RainforestCli::FileUploader
     # upload_from_step(step, rfml_test) if step.has_uploadable?
   end
 
-  def upload_from_match_data(match_data, rfml_test)
+  def upload_from_match_data(matches, rfml_test)
     test_id = @remote_tests.primary_key_dictionary[rfml_test.rfml_id]
     file_dir = File.dirname(rfml_test.file_name)
-    file_name = File.expand_path(File.join(file_dir, match_data[2]))
 
-    if File.exist?(file_name)
-      puts "/tests/#{test_id}/files"
-    else
-      logger.warn "\t\tNo such file exists: #{file_name}"
+    matches.each do |match|
+      file_name = File.expand_path(File.join(file_dir, match[1]))
+
+      if File.exist?(file_name)
+        puts "test id is #{test_id}"
+        resp = @http_client.post(
+          "/tests/#{test_id}/files",
+          {
+            mime_type: MimeMagic.by_path(file_name),
+            size: File.new(file_name).size,
+            name: file_name.gsub(/[^\w\d,\.\+\/=]/, ''),
+          }
+        )
+        puts resp
+      else
+        logger.warn "\t\tNo such file exists: #{file_name}"
+      end
     end
   end
 

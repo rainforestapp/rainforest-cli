@@ -32,9 +32,9 @@ You can customize the amount of threads to use when making HTTP requests by sett
 API errors when fetching or updating multiple tests, lowering this value can help.
 The default value is `16`.
 
-#### Commands
+## Options
 
-###### Running Tests
+#### Running Tests
 
 Run all tests.
 
@@ -54,7 +54,7 @@ Run all tests with tag 'run-me' and abort previous in-progress runs.
 rainforest run --tag run-me --fg --conflict abort
 ```
 
-###### Creating and Managing Tests
+#### Creating and Managing Tests
 
 Create new Rainforest test in RFML format (Rainforest Markup Language).
 
@@ -94,7 +94,7 @@ Export all tests from Rainforest
 rainforest export
 ```
 
-###### Viewing Account Specific Information
+#### Viewing Account Specific Information
 
 See a list of all of your sites and their IDs
 ```bash

@@ -82,7 +82,14 @@ Upload tests to Rainforest
 rainforest upload
 ```
 
+Remove RFML file and remove test from Rainforest test suite.
+
+```bash
+rainforest rm /path/to/test/file.rfml
+```
+
 Export all tests from Rainforest
+
 ```bash
 rainforest export
 ```
@@ -181,6 +188,9 @@ Popular command line options are:
 - `--embed-tests` - Use with `rainforest export` to export your tests without extracting the
 steps of an embedded test.
 - `--test-folder /path/to/directory` - Use with `rainforest [new, upload, export]`. If this option is not provided, rainforest-cli will, in the case of 'new' create a directory, or in the case of 'upload' and 'export' use the directory, at the default path `./spec/rainforest/`.
+- `--import-variable-csv-file /path/to/csv/file.csv` - Use with `run` and `--import-variable-name` to upload new tabular variable values before your run to specify the path to your CSV file.
+- `--import-variable-name NAME` - Use with `run` and `import-variable-csv-file` to upload
+new tabular variable values before your run to specify the name of your tabular variable.
 
 
 #### Specifying Test IDs

@@ -1,7 +1,7 @@
 
 
 describe RainforestCli::Reporter do
-  let(:args) { %w(report --token abc123 --run_id 12345 --junit somefile.xml) }
+  let(:args) { %w(report --token abc123 --run-id 12345 --junit-file somefile.xml) }
   let(:options) { RainforestCli::OptionParser.new(args) }
 
   subject { described_class.new(options) }

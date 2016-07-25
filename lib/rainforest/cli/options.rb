@@ -7,7 +7,7 @@ module RainforestCli
     attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
                 :import_file_name, :import_name, :custom_url, :description, :folder,
                 :debug, :file_name, :test_folder, :embed_tests, :app_source_url, :crowd, :run_id,
-                :junit
+                :junit_file
 
     TOKEN_NOT_REQUIRED = %w{new validate}.freeze
 
@@ -16,7 +16,7 @@ module RainforestCli
       @tags = []
       @browsers = nil
       @debug = false
-      @junit = nil
+      @junit_file = nil
       @run_id = nil
       @token = ENV['RAINFOREST_API_TOKEN']
 
@@ -111,11 +111,11 @@ module RainforestCli
           @app_source_url = value
         end
 
-        opts.on('--junit FILE', 'Gather the results of a run and create junit output in FILE.xml, must be run with --fg') do |value|
-          @junit = value
+        opts.on('--junit-file FILE', 'Gather the results of a run and create junit output in FILE.xml, must be run with --fg') do |value|
+          @junit_file = value
         end
 
-        opts.on('--run_id ID', 'Gather the results of a completed run, must be run with export and --junit') do |value|
+        opts.on('--run-id ID', 'Gather the results of a completed run, must be run with export and --junit') do |value|
           @run_id = value
         end
 
@@ -166,8 +166,8 @@ module RainforestCli
       @foreground
     end
 
-    def junit?
-      @junit
+    def junit_file?
+      @junit_file
     end
 
     def validate!
@@ -193,18 +193,18 @@ module RainforestCli
         raise ValidationError, 'You must include a file name'
       end
 
-      if command == 'run' && junit?
+      if command == 'run' && junit_file?
         unless foreground?
           raise ValidationError, 'You can only generate junit test output in foreground mode'
         end
       end
 
       if command == 'report'
-        if junit.nil?
+        if junit_file.nil?
           raise ValidationError, 'You must specify a junit ouptut filename'
         end
         if run_id.nil?
-          raise ValidationError, 'You must specify a run_id to generate a report for'
+          raise ValidationError, 'You must specify a run-id to generate a report for'
         end
       end
 

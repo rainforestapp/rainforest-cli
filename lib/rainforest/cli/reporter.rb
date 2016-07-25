@@ -1,3 +1,5 @@
+require 'fileutils'
+
 #frozen_string_literal: true
 module RainforestCli
   class Reporter
@@ -8,7 +10,7 @@ module RainforestCli
       @options = options
       @client = HttpClient.new token: options.token
       @run_id = options.run_id
-      @output_filename = options.junit
+      @output_filename = options.junit_file
     end
 
     def report
@@ -45,6 +47,10 @@ module RainforestCli
 
         outputter = JunitOutputter.new(@options.token, run, tests)
         outputter.parse
+      end
+
+      unless File.directory?(File.dirname(@output_filename))
+        FileUtils.mkdir_p(File.dirname(@output_filename))
       end
 
       File.open(@output_filename, 'w') { |file| outputter.output(file) }

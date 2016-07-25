@@ -112,7 +112,7 @@ rainforest browsers
 
 To generate a junit xml report for a test run which has already completed
 ```bash
-rainforest report --run_id <run_id> --junit rainforest.xml
+rainforest report --run-id <run-id> --junit rainforest.xml
 ```
 
 ## Options
@@ -194,7 +194,7 @@ steps of an embedded test.
 - `--test-folder /path/to/directory` - Use with `rainforest [new, upload, export]`. If this option is not provided, rainforest-cli will, in the case of 'new' create a directory, or in the case of 'upload' and 'export' use the directory, at the default path `./spec/rainforest/`.
 - `--junit` - Create a junit xml report file with the specified name.  Must be run in foreground mode, or with the report command. Uses the rainforest
 api to construct a junit report.  This is useful to track tests in CI such as Jenkins or Bamboo.
-- `--run_id` - Only used with the report command.  Specify a past rainforest run by ID number to generate a report for.
+- `--run-id` - Only used with the report command.  Specify a past rainforest run by ID number to generate a report for.
 
 
 #### Specifying Test IDs

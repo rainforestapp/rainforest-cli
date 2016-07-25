@@ -36,7 +36,7 @@ module RainforestCli
 
       if options.foreground?
         response = wait_for_run_completion(run_id)
-        if options.junit?
+        if options.junit_file?
           reporter = Reporter.new(options)
           reporter.run_id = run_id
           reporter.report

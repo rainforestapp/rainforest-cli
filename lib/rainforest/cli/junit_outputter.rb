@@ -14,10 +14,6 @@ module RainforestCli
       @builder = Builder::XmlMarkup.new( :indent => 2)
     end # end initialize
 
-    def dump_summary
-      puts @builder.target!
-    end # end dump_summary
-
     def build_test_suite
       @json_tests.each do | test |
         build_test test

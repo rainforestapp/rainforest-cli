@@ -35,7 +35,16 @@ module RainforestCli
       logger.info "Issued run #{run_id}"
 
       if options.foreground?
-        wait_for_run_completion(run_id)
+        response = wait_for_run_completion(run_id)
+        if options.junit_file?
+          reporter = Reporter.new(options)
+          reporter.run_id = run_id
+          reporter.report
+        end
+
+        if response['result'] != 'passed'
+          exit 1
+        end
       else
         true
       end
@@ -63,9 +72,7 @@ module RainforestCli
         logger.info "The detailed results are available at #{response['frontend_url']}"
       end
 
-      if response['result'] != 'passed'
-        exit 1
-      end
+      return response
     end
 
     def make_create_run_options

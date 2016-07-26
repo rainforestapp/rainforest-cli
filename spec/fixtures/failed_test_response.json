@@ -1,0 +1,29 @@
+{
+  "steps": [
+    {
+      "browsers": [
+        {
+          "name": "this_is_a_browser",
+          "result": "failed",
+          "feedback": [
+            {
+              "job_state": "approved",
+              "answer_given": "no",
+              "note": "This feedback should appear"
+            },
+            {
+              "job_state": "approved",
+              "answer_given": "no",
+              "note": "This \"feedback\" has escaped\n characters"
+            },
+            {
+              "job_state": "unapproved",
+              "answer_given": "no",
+              "note": "This feedback shouldn't \"appear"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

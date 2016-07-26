@@ -53,5 +53,28 @@ describe RainforestCli::HttpClient do
         end
       end
     end
+
+    describe 'non 200 codes' do
+      context '404 not found'do
+        let(:url) { 'http://some.url.com' }
+        let(:response) { instance_double('HTTParty::Response', code: 404, body: {'error'=>'some error', 'type'=>'some type'}.to_json) }
+        subject { described_class.new({ token: 'foo' }).get(url, {}) }
+
+        before do
+          allow(HTTParty).to receive(:get).and_raise(SocketError)
+        end
+
+        it 'gets an error 404 and prints the error' do
+          expect(HTTParty).to receive(:get).and_return(response)
+          expect_any_instance_of(Logger).to receive(:warn).with('Status Code: 404, {"error":"some error","type":"some type"}')
+          expect(subject)
+        end
+
+        it 'returns nil' do
+          expect(HTTParty).to receive(:get).and_return(response)
+          expect(subject).to eq(nil)
+        end
+      end
+    end
   end
 end

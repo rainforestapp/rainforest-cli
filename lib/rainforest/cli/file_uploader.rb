@@ -61,7 +61,7 @@ class RainforestCli::FileUploader
           exit 1
         end
 
-        sig = resp['file_signature'][0..6]
+        sig = resp['file_signature'][0...6]
 
         if step_var == 'screenshot'
           content = File.read(test_path).gsub(relative_file_path, "#{resp['file_id']}, #{sig}")

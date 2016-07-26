@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'httmultiparty'
-require 'mimemagic'
 require 'json'
 
 class RainforestCli::FileUploader

@@ -32,9 +32,9 @@ You can customize the amount of threads to use when making HTTP requests by sett
 API errors when fetching or updating multiple tests, lowering this value can help.
 The default value is `16`.
 
-#### Commands
+## Options
 
-###### Running Tests
+#### Running Tests
 
 Run all tests.
 
@@ -60,7 +60,7 @@ Run all in the foreground and generate a junit xml report.
 rainforest run all --fg --junit rainforest.xml
 ```
 
-###### Creating and Managing Tests
+#### Creating and Managing Tests
 
 Create new Rainforest test in RFML format (Rainforest Markup Language).
 
@@ -88,12 +88,19 @@ Upload tests to Rainforest
 rainforest upload
 ```
 
+Remove RFML file and remove test from Rainforest test suite.
+
+```bash
+rainforest rm /path/to/test/file.rfml
+```
+
 Export all tests from Rainforest
+
 ```bash
 rainforest export
 ```
 
-###### Viewing Account Specific Information
+#### Viewing Account Specific Information
 
 See a list of all of your sites and their IDs
 ```bash
@@ -195,6 +202,9 @@ steps of an embedded test.
 - `--junit-file` - Create a junit xml report file with the specified name.  Must be run in foreground mode, or with the report command. Uses the rainforest
 api to construct a junit report.  This is useful to track tests in CI such as Jenkins or Bamboo.
 - `--run-id` - Only used with the report command.  Specify a past rainforest run by ID number to generate a report for.
+- `--import-variable-csv-file /path/to/csv/file.csv` - Use with `run` and `--import-variable-name` to upload new tabular variable values before your run to specify the path to your CSV file.
+- `--import-variable-name NAME` - Use with `run` and `import-variable-csv-file` to upload
+new tabular variable values before your run to specify the name of your tabular variable.
 
 
 #### Specifying Test IDs

@@ -34,15 +34,18 @@ class RainforestCli::FileUploader
 
   def upload_from_match_data(matches, rfml_test)
     test_id = @remote_tests.primary_key_dictionary[rfml_test.rfml_id]
-    file_dir = File.dirname(rfml_test.file_name)
+    test_path = rfml_test.file_name
+    test_dir = File.dirname(test_path)
 
     matches.each do |match|
-      file_path = File.expand_path(File.join(file_dir, match[1]))
-      file_name = File.split(file_path).last.gsub(/[^\w\d,\.\+\/=]/, '')
+      step_var, relative_file_path = match
+      file_path = File.expand_path(File.join(test_dir, relative_file_path))
 
       if File.exist?(file_path)
+        file_name = File.split(file_path).last.gsub(/[^\w\d,\.\+\/=]/, '')
         file = File.new(file_path)
         mime_type = MimeMagic.by_magic(file)
+
         resp = @http_client.post(
           "/tests/#{test_id}/files",
           mime_type: mime_type,
@@ -59,13 +62,14 @@ class RainforestCli::FileUploader
         end
 
         sig = resp['file_signature'][0..6]
-        puts "file name: #{file_name}"
-        puts "var name: #{match[0]}"
-        puts "var argument: #{match[1]}"
-        puts "file id: #{resp['file_id']}"
-        puts "sig: #{sig}"
-        # TODO: actually replace the text
-        # step.replace(matches[0], matches[1], resp['file_id'], sig, file_name)
+
+        if step_var == 'screenshot'
+          content = File.read(test_path).gsub(relative_file_path, "#{resp['file_id']}, #{sig}")
+        elsif step_var == 'download'
+          content = File.read(test_path).gsub(relative_file_path, "#{resp['file_id']}, #{sig}, #{file_name}")
+        end
+
+        File.open(test_path, 'w') { |f| f.puts content }
       else
         logger.warn "\t\tNo such file exists: #{file_name}"
       end

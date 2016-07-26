@@ -20,8 +20,8 @@ class RainforestCli::TestParser::Step < Struct.new(:action, :response, :redirect
       redirection: redirection,
       element: {
         action: action,
-        response: response
-      }
+        response: response,
+      },
     }
   end
 

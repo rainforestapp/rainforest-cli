@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
+require 'httmultiparty'
 require 'mimemagic'
+require 'json'
 
 class RainforestCli::FileUploader
   def initialize(options)
@@ -9,12 +11,6 @@ class RainforestCli::FileUploader
     @remote_tests = RainforestCli::RemoteTests.new(options.token)
   end
 
-  # check files for the markup
-  # if markup exists, get the file ids
-  # if a file hasn't been created yet, create it for the id
-  # upload the file for the file id and other data
-  # upload to AWS
-  # replace parsed string with the correct file
   def upload
     if tests_with_uploadables.empty?
       logger.info 'Nothing to upload'
@@ -34,8 +30,6 @@ class RainforestCli::FileUploader
   def upload_from_step(step, rfml_test)
     upload_from_match_data(step.uploadable_in_action, rfml_test) if step.uploadable_in_action
     upload_from_match_data(step.uploadable_in_response, rfml_test) if step.uploadable_in_response
-    # recursive for cases with multiple uploads
-    # upload_from_step(step, rfml_test) if step.has_uploadable?
   end
 
   def upload_from_match_data(matches, rfml_test)
@@ -43,22 +37,59 @@ class RainforestCli::FileUploader
     file_dir = File.dirname(rfml_test.file_name)
 
     matches.each do |match|
-      file_name = File.expand_path(File.join(file_dir, match[1]))
+      file_path = File.expand_path(File.join(file_dir, match[1]))
+      file_name = File.split(file_path).last.gsub(/[^\w\d,\.\+\/=]/, '')
 
-      if File.exist?(file_name)
-        puts "test id is #{test_id}"
+      if File.exist?(file_path)
+        file = File.new(file_path)
+        mime_type = MimeMagic.by_magic(file)
         resp = @http_client.post(
           "/tests/#{test_id}/files",
-          {
-            mime_type: MimeMagic.by_path(file_name),
-            size: File.new(file_name).size,
-            name: file_name.gsub(/[^\w\d,\.\+\/=]/, ''),
-          }
+          mime_type: mime_type,
+          size: file.size,
+          name: file_name
         )
-        puts resp
+
+        if resp['aws_url']
+          upload_to_aws(resp, file, mime_type)
+        else
+          logger.error "There was a problem with uploading your file: #{file_path}."
+          logger.error resp.to_json
+          exit 1
+        end
+
+        sig = resp['file_signature'][0..6]
+        puts "file name: #{file_name}"
+        puts "var name: #{match[0]}"
+        puts "var argument: #{match[1]}"
+        puts "file id: #{resp['file_id']}"
+        puts "sig: #{sig}"
+        # TODO: actually replace the text
+        # step.replace(matches[0], matches[1], resp['file_id'], sig, file_name)
       else
         logger.warn "\t\tNo such file exists: #{file_name}"
       end
+    end
+  end
+
+  def upload_to_aws(aws_info, file, mime_type)
+    resp = HTTMultiParty.post(
+      aws_info['aws_url'],
+      query: {
+        'key' => aws_info['aws_key'],
+        'AWSAccessKeyId' => aws_info['aws_access_id'],
+        'acl' => aws_info['aws_acl'],
+        'policy' => aws_info['aws_policy'],
+        'signature' => aws_info['aws_signature'],
+        'Content-Type' => mime_type,
+        'file' => file,
+      }
+    )
+
+    unless resp.code.between?(200, 299)
+      logger.fatal "There was a problem with uploading your file: #{file.path}."
+      logger.fatal resp.to_json
+      exit 2
     end
   end
 

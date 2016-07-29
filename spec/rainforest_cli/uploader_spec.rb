@@ -11,7 +11,7 @@ describe RainforestCli::Uploader do
 
   describe '#upload' do
     context 'with new tests' do
-      let(:test_directory) { File.expand_path(File.join(__FILE__, '../validation-examples/correct_embeds')) }
+      let(:test_directory) { File.expand_path(File.dirname(__FILE__) + '/../validation-examples/correct_embeds') }
       let(:rf_test_double) { instance_double('Rainforest::Test', id: 123) }
 
       before do
@@ -27,7 +27,7 @@ describe RainforestCli::Uploader do
   end
 
   describe 'uploaded test object' do
-    let(:test_directory) { File.expand_path(File.join(__FILE__, '../rainforest-example')) }
+    let(:test_directory) { File.expand_path(File.dirname(__FILE__) + '/../rainforest-example') }
     let(:test_double) { instance_double('Rainforest::Test', id: 123) }
 
     before do

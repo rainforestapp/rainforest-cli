@@ -3,3 +3,6 @@ inherit_gem:
 
 Style/FileName:
   Exclude: [rainforest-cli.gemspec]
+
+Metrics/LineLength:
+  Exclude: [spec/**]

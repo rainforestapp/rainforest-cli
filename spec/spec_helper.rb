@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 require 'rspec/its'
-require 'rainforest/cli'
+require 'rainforest_cli'
 
 RainforestCli.logger = Logger.new(StringIO.new)
 
@@ -15,6 +15,10 @@ RSpec.configure do |config|
   config.order = 'random'
 
   config.before do
+    # suppress output in terminal
+    allow_any_instance_of(Object).to receive(:print)
+    allow_any_instance_of(Object).to receive(:puts)
+
     progressbar_mock = double('ProgressBar')
     allow(ProgressBar).to receive(:create).and_return(progressbar_mock)
     allow(progressbar_mock).to receive(:increment)

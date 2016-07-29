@@ -39,17 +39,17 @@ describe RainforestCli::TestParser do
       context 'redirection' do
         context 'step' do
           context 'no redirection specified' do
-            let(:file_name) { File.dirname(__FILE__) + '/rainforest-example/example_test.rfml' }
+            let(:file_name) { File.dirname(__FILE__) + '/../rainforest-example/example_test.rfml' }
             it { has_redirection_value(subject.process, 'true') }
           end
 
           context 'redirection specified as true' do
-            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/redirect.rfml' }
+            let(:file_name) { File.dirname(__FILE__) + '/../redirection-examples/redirect.rfml' }
             it { has_redirection_value(subject.process, 'true') }
           end
 
           context 'redirection specified as not true or false' do
-            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/wrong_redirect.rfml' }
+            let(:file_name) { File.dirname(__FILE__) + '/../redirection-examples/wrong_redirect.rfml' }
             let(:redirect_line_no) { 7 }
             it { has_parsing_error(subject.process, redirect_line_no) }
           end
@@ -57,17 +57,17 @@ describe RainforestCli::TestParser do
 
         context 'embedded test' do
           context 'redirection specified as false' do
-            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/no_redirect_embedded.rfml' }
+            let(:file_name) { File.dirname(__FILE__) + '/../redirection-examples/no_redirect_embedded.rfml' }
             it { has_redirection_value(subject.process, 'false') }
           end
 
           context 'redirection specified as true' do
-            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/redirect_embedded.rfml' }
+            let(:file_name) { File.dirname(__FILE__) + '/../redirection-examples/redirect_embedded.rfml' }
             it { has_redirection_value(subject.process, 'true') }
           end
 
           context 'redirection specified as not true or false' do
-            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/wrong_redirect_embedded.rfml' }
+            let(:file_name) { File.dirname(__FILE__) + '/../redirection-examples/wrong_redirect_embedded.rfml' }
             let(:redirect_line_no) { 8 }
             it { has_parsing_error(subject.process, redirect_line_no) }
           end
@@ -75,7 +75,7 @@ describe RainforestCli::TestParser do
 
         context 'poor syntax' do
           context 'extra empty lines' do
-            let(:file_name) { File.dirname(__FILE__) + '/redirection-examples/wrong_redirect_spacing.rfml' }
+            let(:file_name) { File.dirname(__FILE__) + '/../redirection-examples/wrong_redirect_spacing.rfml' }
             let(:empty_line_no) { 8 }
             it { has_parsing_error(subject.process, empty_line_no) }
           end

@@ -217,7 +217,7 @@ test IDs taken from the Rainforest dashboard. ie:
 All other argument types should be specified as seen above.
 
 
-More detailed info on options can be [found here](https://github.com/rainforestapp/rainforest-cli/blob/master/lib/rainforest/cli/options.rb#L23-L74).
+More detailed info on options can be [found here](https://github.com/rainforestapp/rainforest-cli/blob/master/lib/rainforest_cli/options.rb#L23-L74).
 
 ## Support
 

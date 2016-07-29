@@ -53,8 +53,13 @@ class RainforestCli::FileUploader
         file = File.open(file_path, 'rb')
         mime_type = MimeMagic.by_path(file_path)
 
-        upload_to_rainforest(test_id, mime_type, file.size, file_name)
+        logger.info "\t\tUploading file:"
+        logger.info "\t\t\t#{file_path}"
+
+        resp = upload_to_rainforest(test_id, mime_type, file.size, file_name)
         upload_to_aws(resp, file, mime_type)
+
+        logger.info "\t\tSuccessfully uploaded file."
 
         sig = resp['file_signature'][0...6]
 
@@ -65,6 +70,8 @@ class RainforestCli::FileUploader
         end
 
         File.open(test_path, 'w') { |f| f.puts content }
+        logger.info "\t\tRFML test updated with new variable values:"
+        logger.info "\t\t\t#{test_path}"
       else
         logger.warn "\t\tNo such file exists: #{file_name}"
       end
@@ -72,6 +79,8 @@ class RainforestCli::FileUploader
   end
 
   def upload_to_rainforest(test_id, mime_type, file_size, file_name)
+    logger.info "\t\t\tUploading metadata..."
+
     resp = @http_client.post(
       "/tests/#{test_id}/files",
       mime_type: mime_type,
@@ -80,13 +89,17 @@ class RainforestCli::FileUploader
     )
 
     if resp['aws_url'].nil?
-      logger.error "There was a problem with uploading your file: #{file_path}."
-      logger.error resp.to_json
+      logger.fatal "There was a problem with uploading your file: #{file_path}."
+      logger.fatal resp.to_json
       exit 2
     end
+
+    resp
   end
 
   def upload_to_aws(aws_info, file, mime_type)
+    logger.info "\t\t\tUploading data..."
+
     resp = MultiFormPostRequest.request(
       aws_info['aws_url'],
       'key' => aws_info['aws_key'],

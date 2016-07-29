@@ -16,7 +16,7 @@ class RainforestCli::FileUploader
     if tests_with_uploadables.empty?
       logger.info 'Nothing to upload'
     else
-      @remote_tests.primary_key_dictionary # fetch Test IDs
+      primary_key_dictionary # fetch Test IDs
       logger.info "Starting file uploads for #{tests_with_uploadables.count} tests:"
       tests_with_uploadables.each do |rfml_test|
         logger.info "\t#{rfml_test.title}"
@@ -34,7 +34,7 @@ class RainforestCli::FileUploader
   end
 
   def upload_from_match_data(matches, rfml_test)
-    test_id = @remote_tests.primary_key_dictionary[rfml_test.rfml_id]
+    test_id = get_test_id(rfml_test)
     test_path = rfml_test.file_name
     test_dir = File.dirname(test_path)
 
@@ -43,9 +43,9 @@ class RainforestCli::FileUploader
       file_path = File.expand_path(File.join(test_dir, relative_file_path))
 
       if File.exist?(file_path)
-        file_name = File.split(file_path).last.gsub(/[^\w\d,\.\+\/=]/, '')
+        file_name = File.basename(file_path)
         file = File.open(file_path, 'rb')
-        mime_type = 'text/plain'
+        mime_type = MimeMagic.by_path(file_path)
 
         resp = @http_client.post(
           "/tests/#{test_id}/files",
@@ -96,7 +96,31 @@ class RainforestCli::FileUploader
     end
   end
 
+  def get_test_id(rfml_test)
+    if primary_key_dictionary[rfml_test.rfml_id].nil?
+      upload_empty_test(rfml_test)
+    end
+
+    primary_key_dictionary[rfml_test.rfml_id]
+  end
+
+  def upload_empty_test(rfml_test)
+    test_obj = {
+      title: rfml_test.title,
+      start_uri: rfml_test.start_uri,
+      rfml_id: rfml_test.rfml_id,
+      source: 'rainforest-cli',
+    }
+    rf_test = Rainforest::Test.create(test_obj)
+
+    primary_key_dictionary[rfml_test.rfml_id] = rf_test.id
+  end
+
   private
+
+  def primary_key_dictionary
+    @remote_tests.primary_key_dictionary
+  end
 
   def tests_with_uploadables
     @files_with_uploadables ||= @test_files.with_uploadables

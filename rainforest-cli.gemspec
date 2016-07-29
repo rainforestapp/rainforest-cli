@@ -20,6 +20,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'httparty', '~> 0.13.7'
+  spec.add_dependency 'mimemagic', '0.3.0'
   spec.add_dependency 'parallel', '~> 1.6', '>= 1.6.1'
   spec.add_dependency 'ruby-progressbar', '~> 1.7', '>= 1.7.5'
   spec.add_dependency 'rainforest', '~> 2.1', '>= 2.1.0'

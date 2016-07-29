@@ -47,20 +47,8 @@ class RainforestCli::FileUploader
         file = File.open(file_path, 'rb')
         mime_type = MimeMagic.by_path(file_path)
 
-        resp = @http_client.post(
-          "/tests/#{test_id}/files",
-          mime_type: mime_type,
-          size: file.size,
-          name: file_name
-        )
-
-        if resp['aws_url']
-          upload_to_aws(resp, file, mime_type)
-        else
-          logger.error "There was a problem with uploading your file: #{file_path}."
-          logger.error resp.to_json
-          exit 1
-        end
+        upload_to_rainforest(test_id, mime_type, file.size, file_name)
+        upload_to_aws(resp, file, mime_type)
 
         sig = resp['file_signature'][0...6]
 
@@ -74,6 +62,21 @@ class RainforestCli::FileUploader
       else
         logger.warn "\t\tNo such file exists: #{file_name}"
       end
+    end
+  end
+
+  def upload_to_rainforest(test_id, mime_type, file_size, file_name)
+    resp = @http_client.post(
+      "/tests/#{test_id}/files",
+      mime_type: mime_type,
+      size: file_size,
+      name: file_name
+    )
+
+    if resp['aws_url'].nil?
+      logger.error "There was a problem with uploading your file: #{file_path}."
+      logger.error resp.to_json
+      exit 1
     end
   end
 

@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'httmultiparty', '~> 0.3.16'
+  spec.add_dependency 'httparty', '~> 0.13.7'
   spec.add_dependency 'parallel', '~> 1.6', '>= 1.6.1'
   spec.add_dependency 'ruby-progressbar', '~> 1.7', '>= 1.7.5'
   spec.add_dependency 'rainforest', '~> 2.1', '>= 2.1.0'

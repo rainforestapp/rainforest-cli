@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
-require 'httmultiparty'
 require 'json'
+require 'mimemagic'
 
 class RainforestCli::FileUploader
+  require 'rainforest/cli/file_uploader/multi_form_post_request'
+
   def initialize(options)
     @http_client = RainforestCli::HttpClient.new(token: options.token)
     @test_files = RainforestCli::TestFiles.new(options)
@@ -42,8 +44,8 @@ class RainforestCli::FileUploader
 
       if File.exist?(file_path)
         file_name = File.split(file_path).last.gsub(/[^\w\d,\.\+\/=]/, '')
-        file = File.new(file_path)
-        mime_type = MimeMagic.by_magic(file)
+        file = File.open(file_path, 'rb')
+        mime_type = 'text/plain'
 
         resp = @http_client.post(
           "/tests/#{test_id}/files",
@@ -76,17 +78,15 @@ class RainforestCli::FileUploader
   end
 
   def upload_to_aws(aws_info, file, mime_type)
-    resp = HTTMultiParty.post(
+    resp = MultiFormPostRequest.request(
       aws_info['aws_url'],
-      query: {
-        'key' => aws_info['aws_key'],
-        'AWSAccessKeyId' => aws_info['aws_access_id'],
-        'acl' => aws_info['aws_acl'],
-        'policy' => aws_info['aws_policy'],
-        'signature' => aws_info['aws_signature'],
-        'Content-Type' => mime_type,
-        'file' => file,
-      }
+      'key' => aws_info['aws_key'],
+      'AWSAccessKeyId' => aws_info['aws_access_id'],
+      'acl' => aws_info['aws_acl'],
+      'policy' => aws_info['aws_policy'],
+      'signature' => aws_info['aws_signature'],
+      'Content-Type' => mime_type,
+      'file' => file,
     )
 
     unless resp.code.between?(200, 299)

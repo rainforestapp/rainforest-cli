@@ -13,6 +13,12 @@ class RainforestCli::FileUploader
   end
 
   def upload
+    unless upload_enabled?
+      logger.fatal 'File uploads are not enabled for this environment.'
+      logger.fatal 'For further information on how to enable uploads, please visit https://github.com/rainforestapp/rainforest-cli.'
+      exit 1
+    end
+
     if tests_with_uploadables.empty?
       logger.info 'Nothing to upload'
     else
@@ -76,7 +82,7 @@ class RainforestCli::FileUploader
     if resp['aws_url'].nil?
       logger.error "There was a problem with uploading your file: #{file_path}."
       logger.error resp.to_json
-      exit 1
+      exit 2
     end
   end
 
@@ -95,7 +101,7 @@ class RainforestCli::FileUploader
     unless resp.code.between?(200, 299)
       logger.fatal "There was a problem with uploading your file: #{file.path}."
       logger.fatal resp.to_json
-      exit 2
+      exit 3
     end
   end
 
@@ -120,6 +126,10 @@ class RainforestCli::FileUploader
   end
 
   private
+
+  def upload_enabled?
+    ENV.fetch('RAINFOREST_ENABLE_FILE_UPLOAD', false)
+  end
 
   def primary_key_dictionary
     @remote_tests.primary_key_dictionary

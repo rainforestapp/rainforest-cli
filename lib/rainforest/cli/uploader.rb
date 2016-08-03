@@ -28,6 +28,51 @@ class RainforestCli::Uploader
     each_in_parallel(rfml_tests) { |rfml_test| upload_test(rfml_test) }
   end
 
+  def create_test_obj(rfml_test)
+    test_obj = {
+      start_uri: rfml_test.start_uri || '/',
+      title: rfml_test.title,
+      site_id: rfml_test.site_id,
+      description: rfml_test.description,
+      source: 'rainforest-cli',
+      tags: rfml_test.tags.uniq,
+      rfml_id: rfml_test.rfml_id,
+    }
+    test_id = primary_key_dictionary[rfml_test.rfml_id]
+
+    if rfml_test.has_uploadable?
+      uploaded_files = http_client.get("/tests/#{test_id}/files")
+      FileParser.new(rfml_test, test_id, uploaded_files).parse_files!
+    end
+
+    test_obj[:elements] = rfml_test.steps.map do |step|
+      if step.is_a?(RainforestCli::TestParser::EmbeddedTest)
+        {
+          type: 'test',
+          redirection: step.redirect || true,
+          element: { id: primary_key_dictionary[step.rfml_id] },
+        }
+      else
+        {
+          type: 'step',
+          redirection: step.redirect || true,
+          element: {
+            action: step.action,
+            response: step.response,
+          },
+        }
+      end
+    end
+
+    unless rfml_test.browsers.empty?
+      test_obj[:browsers] = rfml_test.browsers.map do|b|
+        {'state' => 'enabled', 'name' => b}
+      end
+    end
+
+    test_obj
+  end
+
   private
 
   def each_in_parallel(tests, &blk)
@@ -69,6 +114,9 @@ class RainforestCli::Uploader
       Rainforest::Test.update(primary_key_dictionary[rfml_test.rfml_id], test_obj)
     rescue => e
       logger.fatal "Error: #{rfml_test.rfml_id}: #{e}"
+      puts test_obj[:elements]
+      puts '---'
+      puts test_obj[:elements].select { |el| el[:type] == 'test' }
       exit 2
     end
   end
@@ -81,48 +129,7 @@ class RainforestCli::Uploader
     RainforestCli.logger
   end
 
-  def create_test_obj(rfml_test)
-    test_obj = {
-      start_uri: rfml_test.start_uri || '/',
-      title: rfml_test.title,
-      site_id: rfml_test.site_id,
-      description: rfml_test.description,
-      source: 'rainforest-cli',
-      tags: rfml_test.tags.uniq,
-      rfml_id: rfml_test.rfml_id,
-    }
-
-    if rfml_test.has_uploadable?
-      FileParser.new(rfml_test, primary_key_dictionary[rfml_test.rfml_id]).parse_files!
-    end
-
-    test_obj[:elements] = rfml_test.steps.map do |step|
-      if step.is_a?(RainforestCli::TestParser::EmbeddedTest)
-        {
-          type: 'test',
-          redirection: step.redirect || true,
-          element: {
-            id: primary_key_dictionary[step.rfml_id],
-          },
-        }
-      else
-        {
-          type: 'step',
-          redirection: step.redirect || true,
-          element: {
-            action: step.action,
-            response: step.response,
-          },
-        }
-      end
-    end
-
-    unless rfml_test.browsers.empty?
-      test_obj[:browsers] = rfml_test.browsers.map do|b|
-        {'state' => 'enabled', 'name' => b}
-      end
-    end
-
-    test_obj
+  def http_client
+    RainforestCli.http_client
   end
 end

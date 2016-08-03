@@ -3,9 +3,10 @@ require 'mimemagic'
 require 'rainforest/cli/uploader/multi_form_post_request'
 
 class RainforestCli::Uploader::FileParser
-  def initialize(rfml_test, test_id)
+  def initialize(rfml_test, test_id, uploaded_files)
     @rfml_test = rfml_test
     @test_id = test_id
+    @uploaded_files = uploaded_files
   end
 
   def parse_files!
@@ -39,15 +40,20 @@ class RainforestCli::Uploader::FileParser
     end
 
     file = File.open(file_path, 'rb')
+    if file_already_uploaded?(file)
+      aws_info = get_uploaded_data(file)
+      puts 'SUCCESS'
+      puts aws_info
+    else
+      aws_info = upload_to_rainforest(file)
+      upload_to_aws(file, aws_info)
+    end
 
-    rf_response = upload_to_rainforest(file)
-    upload_to_aws(file, rf_response)
-
-    sig = rf_response['file_signature'][0...6]
+    sig = aws_info['file_signature'][0...6]
     if step_var == 'screenshot'
-      text.gsub(relative_file_path, "#{rf_response['file_id']}, #{sig}")
+      text.gsub(relative_file_path, "#{aws_info['file_id']}, #{sig}")
     elsif step_var == 'download'
-      text.gsub(relative_file_path, "#{rf_response['file_id']}, #{sig}, #{File.basename(file_path)}")
+      text.gsub(relative_file_path, "#{aws_info['file_id']}, #{sig}, #{File.basename(file_path)}")
     end
   end
 
@@ -59,7 +65,7 @@ class RainforestCli::Uploader::FileParser
       mime_type: MimeMagic.by_path(file).to_s,
       size: file.size,
       name: File.basename(file.path),
-      digest: Digest::MD5.file(file).hexdigest
+      digest: file_digest(file)
     )
 
     if resp['aws_url'].nil?
@@ -92,7 +98,23 @@ class RainforestCli::Uploader::FileParser
     end
   end
 
+  def file_already_uploaded?(file)
+    @uploaded_files.any? { |f| f['digest'] == file_digest(file) }
+  end
+
+  def get_uploaded_data(file)
+    file_data = @uploaded_files.find { |f| f['digest'] == file_digest(file) }
+    {
+      'file_signature' => file_data['signature'],
+      'file_id' => file_data['id'],
+    }
+  end
+
   private
+
+  def file_digest(file)
+    Digest::MD5.file(file).hexdigest
+  end
 
   def test_directory
     @test_directory ||= File.dirname(@rfml_test.file_name)

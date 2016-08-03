@@ -4,6 +4,8 @@ require 'parallel'
 require 'ruby-progressbar'
 
 class RainforestCli::Uploader
+  require 'rainforest/cli/uploader/file_parser'
+
   attr_reader :test_files, :remote_tests, :validator
 
   def initialize(options)
@@ -52,7 +54,7 @@ class RainforestCli::Uploader
       title: rfml_test.title,
       start_uri: rfml_test.start_uri,
       rfml_id: rfml_test.rfml_id,
-      source: 'rainforest-cli'
+      source: 'rainforest-cli',
     }
     rf_test = Rainforest::Test.create(test_obj)
 
@@ -64,7 +66,7 @@ class RainforestCli::Uploader
 
     test_obj = create_test_obj(rfml_test)
     begin
-      Rainforest::Test.update(primary_key_dictionary[rfml_test.rfml_id], test_obj)
+      # Rainforest::Test.update(primary_key_dictionary[rfml_test.rfml_id], test_obj)
     rescue => e
       logger.fatal "Error: #{rfml_test.rfml_id}: #{e}"
       exit 2
@@ -90,6 +92,10 @@ class RainforestCli::Uploader
       rfml_id: rfml_test.rfml_id,
     }
 
+    if rfml_test.has_uploadable?
+      FileParser.new(rfml_test, primary_key_dictionary[rfml_test.rfml_id]).parse_files!
+    end
+
     test_obj[:elements] = rfml_test.steps.map do |step|
       if step.is_a?(RainforestCli::TestParser::EmbeddedTest)
         {
@@ -104,8 +110,8 @@ class RainforestCli::Uploader
           type: 'step',
           redirection: step.redirect || true,
           element: {
-            action: action,
-            response: response,
+            action: step.action,
+            response: step.response,
           },
         }
       end

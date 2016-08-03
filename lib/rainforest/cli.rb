@@ -23,6 +23,7 @@ module RainforestCli
   def self.start(args)
     Rainforest.api_base = 'http://app.rainforest.dev/api/1/'
     options = OptionParser.new(args)
+    @http_client = HttpClient.new(token: options.token)
     OptionParser.new(['--help']) if args.size == 0
 
     begin
@@ -55,5 +56,9 @@ module RainforestCli
 
   def self.logger=(logger)
     @logger = logger
+  end
+
+  def self.http_client
+    @http_client
   end
 end

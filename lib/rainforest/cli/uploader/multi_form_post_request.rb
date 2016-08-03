@@ -1,11 +1,30 @@
 # frozen_string_literal: true
-
 require 'httparty'
 
-require 'rainforest/cli/file_uploader/param_types'
-
-class RainforestCli::FileUploader::MultiFormPostRequest
+class RainforestCli::Uploader::MultiFormPostRequest
   BOUNDARY = 'RainforestCli'
+
+  class Param < Struct.new(:param_name, :value)
+    def to_multipart
+      <<-EOS
+Content-Disposition: form-data; name="#{param_name}"\r
+\r
+#{value}\r
+      EOS
+    end
+  end
+
+  class FileParam < Struct.new(:param_name, :file)
+    def to_multipart
+      <<-EOS
+Content-Disposition: form-data; name="#{param_name}"; filename="#{File.basename(file.path)}"\r
+Content-Type: #{MimeMagic.by_path(file.path)}\r
+Content-Transfer-Encoding: binary\r
+\r
+#{file.read.strip}\r
+      EOS
+    end
+  end
 
   class << self
     def request(url, params)

@@ -17,7 +17,6 @@ require 'rainforest/cli/exporter'
 require 'rainforest/cli/deleter'
 require 'rainforest/cli/uploader'
 require 'rainforest/cli/resources'
-require 'rainforest/cli/file_uploader'
 
 module RainforestCli
   def self.start(args)

@@ -1,4 +1,7 @@
 # frozen_string_literal: true
+require 'mimemagic'
+require 'rainforest/cli/uploader/multi_form_post_request'
+
 class RainforestCli::Uploader::FileParser
   def initialize(rfml_test, test_id)
     @rfml_test = rfml_test
@@ -37,6 +40,7 @@ class RainforestCli::Uploader::FileParser
     file = File.open(file_path, 'rb')
 
     rf_response = upload_to_rainforest(file)
+    upload_to_aws(file, rf_response)
 
     sig = rf_response['file_signature'][0...6]
     if step_var == 'screenshot'
@@ -66,44 +70,26 @@ class RainforestCli::Uploader::FileParser
     resp
   end
 
-  # def upload_from_match_data(matches)
-  #   test_path = @rfml_test.file_name
-  #   test_dir = File.dirname(test_path)
-  #
-  #   matches.each do |match|
-  #     step_var, relative_file_path = match
-  #     file_path = File.expand_path(File.join(test_dir, relative_file_path))
-  #
-  #     if File.exist?(file_path)
-  #       file_name = File.basename(file_path)
-  #       file = File.open(file_path, 'rb')
-  #       mime_type = MimeMagic.by_path(file_path)
-  #
-  #       logger.info "\t\tUploading file:"
-  #       logger.info "\t\t\t#{file_path}"
-  #
-  #       resp = upload_to_rainforest(@test_id, mime_type, file)
-  #       upload_to_aws(resp, file, mime_type)
-  #
-  #       logger.info "\t\tSuccessfully uploaded file."
-  #
-  #       sig = resp['file_signature'][0...6]
-  #
-  #       # if step_var == 'screenshot'
-  #       #   content = File.read(test_path).gsub(relative_file_path, "#{resp['file_id']}, #{sig}")
-  #       # elsif step_var == 'download'
-  #       #   content = File.read(test_path).gsub(relative_file_path, "#{resp['file_id']}, #{sig}, #{file_name}")
-  #       # end
-  #
-  #       # TODO: don't change files - just change the strings in the steps
-  #       # File.open(test_path, 'w') { |f| f.puts content }
-  #       logger.info "\t\tRFML test updated with new variable values:"
-  #       logger.info "\t\t\t#{test_path}"
-  #     else
-  #       logger.warn "\t\tNo such file exists: #{file_name}"
-  #     end
-  #   end
-  # end
+  def upload_to_aws(file, aws_info)
+    logger.info "\t\t\tUploading data..."
+
+    resp = RainforestCli::Uploader::MultiFormPostRequest.request(
+      aws_info['aws_url'],
+      'key' => aws_info['aws_key'],
+      'AWSAccessKeyId' => aws_info['aws_access_id'],
+      'acl' => aws_info['aws_acl'],
+      'policy' => aws_info['aws_policy'],
+      'signature' => aws_info['aws_signature'],
+      'Content-Type' => MimeMagic.by_path(file),
+      'file' => file,
+    )
+
+    unless resp.code.between?(200, 299)
+      logger.fatal "There was a problem with uploading your file: #{file.path}."
+      logger.fatal resp.to_json
+      exit 3
+    end
+  end
 
   private
 

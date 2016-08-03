@@ -33,8 +33,9 @@ class RainforestCli::Uploader::FileParser
     file_path = File.expand_path(File.join(test_directory, relative_file_path))
 
     unless File.exist?(file_path)
+      logger.warn "\tError for test: #{@rfml_test.file_name}:"
       logger.warn "\t\tNo such file exists: #{File.basename(file_path)}"
-      return
+      return text
     end
 
     file = File.open(file_path, 'rb')
@@ -51,7 +52,7 @@ class RainforestCli::Uploader::FileParser
   end
 
   def upload_to_rainforest(file)
-    logger.info "\t\t\tUploading metadata..."
+    logger.info "\tUploading file metadata..."
 
     resp = http_client.post(
       "/tests/#{@test_id}/files",
@@ -62,8 +63,8 @@ class RainforestCli::Uploader::FileParser
     )
 
     if resp['aws_url'].nil?
-      logger.fatal "There was a problem with uploading your file: #{file_path}."
-      logger.fatal resp.to_json
+      logger.fatal "\tThere was a problem with uploading your file: #{file_path}."
+      logger.fatal "\t\t#{resp.to_json}"
       exit 2
     end
 
@@ -71,7 +72,7 @@ class RainforestCli::Uploader::FileParser
   end
 
   def upload_to_aws(file, aws_info)
-    logger.info "\t\t\tUploading data..."
+    logger.info "\tUploading file data..."
 
     resp = RainforestCli::Uploader::MultiFormPostRequest.request(
       aws_info['aws_url'],
@@ -85,8 +86,8 @@ class RainforestCli::Uploader::FileParser
     )
 
     unless resp.code.between?(200, 299)
-      logger.fatal "There was a problem with uploading your file: #{file.path}."
-      logger.fatal resp.to_json
+      logger.fatal "\tThere was a problem with uploading your file: #{file.path}."
+      logger.fatal "\t\t#{resp.to_json}"
       exit 3
     end
   end

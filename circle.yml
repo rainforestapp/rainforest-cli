@@ -1,0 +1,14 @@
+machine:
+  environment:
+    REPO_PATH: "$GOPATH/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
+
+dependencies:
+  pre:
+    - go get github.com/tools/godep
+  override:
+    - mkdir -p $REPO_PATH
+    - rsync -azC --delete ./ $REPO_PATH
+
+test:
+  override:
+    - godep go test -race

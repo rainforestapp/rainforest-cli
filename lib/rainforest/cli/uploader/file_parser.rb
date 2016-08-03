@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 class RainforestCli::Uploader::FileParser
   def initialize(rfml_test, test_id)
     @rfml_test = rfml_test
@@ -38,7 +37,13 @@ class RainforestCli::Uploader::FileParser
     file = File.open(file_path, 'rb')
 
     rf_response = upload_to_rainforest(file)
-    puts rf_response
+
+    sig = rf_response['file_signature'][0...6]
+    if step_var == 'screenshot'
+      text.gsub(relative_file_path, "#{rf_response['file_id']}, #{sig}")
+    elsif step_var == 'download'
+      text.gsub(relative_file_path, "#{rf_response['file_id']}, #{sig}, #{File.basename(file_path)}")
+    end
   end
 
   def upload_to_rainforest(file)

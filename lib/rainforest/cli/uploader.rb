@@ -66,7 +66,7 @@ class RainforestCli::Uploader
 
     test_obj = create_test_obj(rfml_test)
     begin
-      # Rainforest::Test.update(primary_key_dictionary[rfml_test.rfml_id], test_obj)
+      Rainforest::Test.update(primary_key_dictionary[rfml_test.rfml_id], test_obj)
     rescue => e
       logger.fatal "Error: #{rfml_test.rfml_id}: #{e}"
       exit 2

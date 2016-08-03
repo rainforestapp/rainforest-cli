@@ -21,6 +21,7 @@ require 'rainforest/cli/file_uploader'
 
 module RainforestCli
   def self.start(args)
+    Rainforest.api_base = 'http://app.rainforest.dev/api/1/'
     options = OptionParser.new(args)
     OptionParser.new(['--help']) if args.size == 0
 
@@ -38,7 +39,6 @@ module RainforestCli
     when 'upload' then Uploader.new(options).upload
     when 'rm' then Deleter.new(options).delete
     when 'export' then Exporter.new(options).export
-    when 'file-upload' then FileUploader.new(options).upload
     when 'sites', 'folders', 'browsers'
       Resources.new(options).public_send(options.command)
     else

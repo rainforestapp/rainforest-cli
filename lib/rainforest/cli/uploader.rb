@@ -87,14 +87,27 @@ class RainforestCli::Uploader
       description: rfml_test.description,
       source: 'rainforest-cli',
       tags: rfml_test.tags.uniq,
-      rfml_id: rfml_test.rfml_id
+      rfml_id: rfml_test.rfml_id,
     }
 
     test_obj[:elements] = rfml_test.steps.map do |step|
-      if step.respond_to?(:rfml_id)
-        step.to_element(primary_key_dictionary[step.rfml_id])
+      if step.is_a?(RainforestCli::TestParser::EmbeddedTest)
+        {
+          type: 'test',
+          redirection: step.redirect || true,
+          element: {
+            id: primary_key_dictionary[step.rfml_id],
+          },
+        }
       else
-        step.to_element
+        {
+          type: 'step',
+          redirection: step.redirect || true,
+          element: {
+            action: action,
+            response: response,
+          },
+        }
       end
     end
 

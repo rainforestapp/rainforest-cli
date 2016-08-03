@@ -2,6 +2,7 @@
 
 require 'json'
 require 'mimemagic'
+require 'digest'
 
 class RainforestCli::FileUploader
   require 'rainforest/cli/file_uploader/multi_form_post_request'
@@ -13,12 +14,6 @@ class RainforestCli::FileUploader
   end
 
   def upload
-    unless upload_enabled?
-      logger.fatal 'File uploads are not enabled for this environment.'
-      logger.fatal 'For further information on how to enable uploads, please visit https://github.com/rainforestapp/rainforest-cli.'
-      exit 1
-    end
-
     if tests_with_uploadables.empty?
       logger.info 'Nothing to upload'
     else
@@ -56,20 +51,21 @@ class RainforestCli::FileUploader
         logger.info "\t\tUploading file:"
         logger.info "\t\t\t#{file_path}"
 
-        resp = upload_to_rainforest(test_id, mime_type, file.size, file_name)
+        resp = upload_to_rainforest(test_id, mime_type, file)
         upload_to_aws(resp, file, mime_type)
 
         logger.info "\t\tSuccessfully uploaded file."
 
         sig = resp['file_signature'][0...6]
 
-        if step_var == 'screenshot'
-          content = File.read(test_path).gsub(relative_file_path, "#{resp['file_id']}, #{sig}")
-        elsif step_var == 'download'
-          content = File.read(test_path).gsub(relative_file_path, "#{resp['file_id']}, #{sig}, #{file_name}")
-        end
+        # if step_var == 'screenshot'
+        #   content = File.read(test_path).gsub(relative_file_path, "#{resp['file_id']}, #{sig}")
+        # elsif step_var == 'download'
+        #   content = File.read(test_path).gsub(relative_file_path, "#{resp['file_id']}, #{sig}, #{file_name}")
+        # end
 
-        File.open(test_path, 'w') { |f| f.puts content }
+        # TODO: don't change files - just change the strings in the steps
+        # File.open(test_path, 'w') { |f| f.puts content }
         logger.info "\t\tRFML test updated with new variable values:"
         logger.info "\t\t\t#{test_path}"
       else
@@ -78,15 +74,18 @@ class RainforestCli::FileUploader
     end
   end
 
-  def upload_to_rainforest(test_id, mime_type, file_size, file_name)
+  def upload_to_rainforest(test_id, mime_type, file)
     logger.info "\t\t\tUploading metadata..."
 
     resp = @http_client.post(
       "/tests/#{test_id}/files",
       mime_type: mime_type,
-      size: file_size,
-      name: file_name
+      size: file.size,
+      name: File.basename(file.path),
+      digest: Digest::MD5.file(file).hexdigest
     )
+
+    puts resp.body
 
     if resp['aws_url'].nil?
       logger.fatal "There was a problem with uploading your file: #{file_path}."
@@ -139,10 +138,6 @@ class RainforestCli::FileUploader
   end
 
   private
-
-  def upload_enabled?
-    ENV.fetch('RAINFOREST_ENABLE_FILE_UPLOAD', false)
-  end
 
   def primary_key_dictionary
     @remote_tests.primary_key_dictionary

@@ -6,23 +6,8 @@ class RainforestCli::TestParser::Step < Struct.new(:action, :response, :redirect
     :step
   end
 
-  def redirection
-    redirect || 'true'
-  end
-
   def to_s
     "#{action} --> #{response}"
-  end
-
-  def to_element
-    {
-      type: 'step',
-      redirection: redirection,
-      element: {
-        action: action,
-        response: response,
-      },
-    }
   end
 
   def has_uploadable?

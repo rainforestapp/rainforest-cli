@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 class RainforestCli::TestParser::Step < Struct.new(:action, :response, :redirect)
-  UPLOADABLE_REGEX = /{{ ?file\.(download|screenshot)\(([^\)]+)\) ?}}/
+  UPLOADABLE_REGEX = /{{ *file\.(download|screenshot)\(([^\)]+)\) *}}/
 
   def type
     :step

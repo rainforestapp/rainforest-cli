@@ -4,7 +4,7 @@ require 'parallel'
 require 'ruby-progressbar'
 
 class RainforestCli::Uploader
-  require 'rainforest/cli/uploader/file_parser'
+  require 'rainforest_cli/uploader/file_parser'
 
   attr_reader :test_files, :remote_tests, :validator
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 require 'mimemagic'
-require 'rainforest/cli/uploader/multi_form_post_request'
+require 'rainforest_cli/uploader/multi_form_post_request'
 
 class RainforestCli::Uploader::FileParser
   def initialize(rfml_test, test_id, uploaded_files)

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 module RainforestCli::TestParser
-  require 'rainforest/cli/test_parser/test'
-  require 'rainforest/cli/test_parser/step'
-  require 'rainforest/cli/test_parser/embedded_test'
+  require 'rainforest_cli/test_parser/test'
+  require 'rainforest_cli/test_parser/step'
+  require 'rainforest_cli/test_parser/embedded_test'
 
   class Error < Struct.new(:line, :reason)
     def to_s

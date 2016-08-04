@@ -93,9 +93,5 @@ module RainforestCli
         'User-Agent' => "Rainforest-cli-#{RainforestCli::VERSION}",
       }
     end
-
-    def logger
-      RainforestCli.logger
-    end
   end
 end

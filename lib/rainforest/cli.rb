@@ -20,7 +20,6 @@ require 'rainforest/cli/resources'
 
 module RainforestCli
   def self.start(args)
-    Rainforest.api_base = 'http://app.rainforest.dev/api/1/'
     options = OptionParser.new(args)
     @http_client = HttpClient.new(token: options.token)
     OptionParser.new(['--help']) if args.size == 0

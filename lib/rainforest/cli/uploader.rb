@@ -114,9 +114,6 @@ class RainforestCli::Uploader
       Rainforest::Test.update(primary_key_dictionary[rfml_test.rfml_id], test_obj)
     rescue => e
       logger.fatal "Error: #{rfml_test.rfml_id}: #{e}"
-      puts test_obj[:elements]
-      puts '---'
-      puts test_obj[:elements].select { |el| el[:type] == 'test' }
       exit 2
     end
   end

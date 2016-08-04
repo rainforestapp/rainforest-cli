@@ -42,8 +42,6 @@ class RainforestCli::Uploader::FileParser
     file = File.open(file_path, 'rb')
     if file_already_uploaded?(file)
       aws_info = get_uploaded_data(file)
-      puts 'SUCCESS'
-      puts aws_info
     else
       aws_info = upload_to_rainforest(file)
       upload_to_aws(file, aws_info)

@@ -8,7 +8,7 @@ class RainforestCli::TestParser::EmbeddedTest < Struct.new(:rfml_id, :redirect)
     "--> embed: #{rfml_id}"
   end
 
-  def has_uploadable?
+  def has_uploadable_files?
     false
   end
 end

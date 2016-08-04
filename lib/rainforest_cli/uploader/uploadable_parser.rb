@@ -2,7 +2,7 @@
 require 'mimemagic'
 require 'rainforest_cli/uploader/multi_form_post_request'
 
-class RainforestCli::Uploader::FileParser
+class RainforestCli::Uploader::UploadableParser
   def initialize(rfml_test, test_id, uploaded_files)
     @rfml_test = rfml_test
     @test_id = test_id
@@ -56,7 +56,7 @@ class RainforestCli::Uploader::FileParser
   end
 
   def upload_to_rainforest(file)
-    logger.info "\tUploading file metadata..."
+    logger.info "\tUploading file metadata for #{file.path}..."
 
     resp = http_client.post(
       "/tests/#{@test_id}/files",
@@ -76,7 +76,7 @@ class RainforestCli::Uploader::FileParser
   end
 
   def upload_to_aws(file, aws_info)
-    logger.info "\tUploading file data..."
+    logger.info "\tUploading file data for #{file.path}..."
 
     resp = RainforestCli::Uploader::MultiFormPostRequest.request(
       aws_info['aws_url'],

@@ -90,10 +90,6 @@ EOF
     file_path
   end
 
-  def with_uploadables
-    test_data.select(&:has_uploadable?)
-  end
-
   private
 
   def unique_path(file_path)

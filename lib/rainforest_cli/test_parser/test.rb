@@ -15,7 +15,26 @@ class RainforestCli::TestParser::Test < Struct.new(
     steps.inject([]) { |embeds, step| step.type == :test ? embeds + [step.rfml_id] : embeds }
   end
 
-  def has_uploadable?
-    steps.any?(&:has_uploadable?)
+  def to_json
+    {
+      start_uri: start_uri || '/',
+      title: title,
+      site_id: site_id,
+      description: description,
+      source: 'rainforest-cli',
+      tags: tags.uniq,
+      rfml_id: rfml_id,
+      browsers: browser_json,
+    }
+  end
+
+  def browser_json
+    browsers.map do |b|
+      {'state' => 'enabled', 'name' => b}
+    end
+  end
+
+  def has_uploadable_files?
+    steps.any?(&:has_uploadable_files?)
   end
 end

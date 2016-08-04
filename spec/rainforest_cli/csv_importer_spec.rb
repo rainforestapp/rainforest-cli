@@ -1,22 +1,15 @@
 # frozen_string_literal: true
 describe RainforestCli::CSVImporter do
-  let(:csv_file) { "#{File.dirname(__FILE__)}/fixtures/variables.txt" }
+  let(:csv_file) { "#{File.dirname(__FILE__)}/../fixtures/variables.txt" }
 
   describe '.import' do
     subject { described_class.new('variables', csv_file, 'abc123') }
-
-    before do
-      # suppress output in terminal
-      allow_any_instance_of(described_class).to receive(:print)
-      allow_any_instance_of(described_class).to receive(:puts)
-    end
-
     let(:columns) { %w(email pass) }
 
     let(:success_response) do
       {
         'id' => 12345,
-        'columns' => columns.each_with_index.map { |col, i| { 'id' => i, 'name' => col } }
+        'columns' => columns.each_with_index.map { |col, i| { 'id' => i, 'name' => col } },
       }
     end
 
@@ -25,7 +18,7 @@ describe RainforestCli::CSVImporter do
                               .with('/generators', {
                                       name: 'variables',
                                       description: 'variables',
-                                      columns: columns.map {|col| { name: col } }
+                                      columns: columns.map {|col| { name: col } },
                                     })
                               .and_return success_response
 
@@ -33,16 +26,16 @@ describe RainforestCli::CSVImporter do
                               .with('/generators/12345/rows', {
                                       data: {
                                         0 => 'russ@rainforestqa.com',
-                                        1 => 'abc123'
-                                      }
+                                        1 => 'abc123',
+                                      },
                                     }).and_return({})
 
       expect_any_instance_of(RainforestCli::HttpClient).to receive(:post)
                               .with('/generators/12345/rows', {
                                       data: {
                                         0 => 'bob@example.com',
-                                        1 => 'hunter2'
-                                      }
+                                        1 => 'hunter2',
+                                      },
                                     }).and_return({})
 
       subject.import

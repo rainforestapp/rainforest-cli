@@ -32,9 +32,9 @@ You can customize the amount of threads to use when making HTTP requests by sett
 API errors when fetching or updating multiple tests, lowering this value can help.
 The default value is `16`.
 
-#### Commands
+## Options
 
-###### Running Tests
+#### Running Tests
 
 Run all tests.
 
@@ -54,7 +54,13 @@ Run all tests with tag 'run-me' and abort previous in-progress runs.
 rainforest run --tag run-me --fg --conflict abort
 ```
 
-###### Creating and Managing Tests
+Run all in the foreground and generate a junit xml report.
+
+```bash
+rainforest run all --fg --junit rainforest.xml
+```
+
+#### Creating and Managing Tests
 
 Create new Rainforest test in RFML format (Rainforest Markup Language).
 
@@ -82,12 +88,19 @@ Upload tests to Rainforest
 rainforest upload
 ```
 
+Remove RFML file and remove test from Rainforest test suite.
+
+```bash
+rainforest rm /path/to/test/file.rfml
+```
+
 Export all tests from Rainforest
+
 ```bash
 rainforest export
 ```
 
-###### Viewing Account Specific Information
+#### Viewing Account Specific Information
 
 See a list of all of your sites and their IDs
 ```bash
@@ -102,6 +115,11 @@ rainforest folders
 See a list of all of your browsers and their IDs
 ```bash
 rainforest browsers
+```
+
+To generate a junit xml report for a test run which has already completed
+```bash
+rainforest report --run-id <run-id> --junit rainforest.xml
 ```
 
 ## Options
@@ -181,6 +199,12 @@ Popular command line options are:
 - `--embed-tests` - Use with `rainforest export` to export your tests without extracting the
 steps of an embedded test.
 - `--test-folder /path/to/directory` - Use with `rainforest [new, upload, export]`. If this option is not provided, rainforest-cli will, in the case of 'new' create a directory, or in the case of 'upload' and 'export' use the directory, at the default path `./spec/rainforest/`.
+- `--junit-file` - Create a junit xml report file with the specified name.  Must be run in foreground mode, or with the report command. Uses the rainforest
+api to construct a junit report.  This is useful to track tests in CI such as Jenkins or Bamboo.
+- `--run-id` - Only used with the report command.  Specify a past rainforest run by ID number to generate a report for.
+- `--import-variable-csv-file /path/to/csv/file.csv` - Use with `run` and `--import-variable-name` to upload new tabular variable values before your run to specify the path to your CSV file.
+- `--import-variable-name NAME` - Use with `run` and `import-variable-csv-file` to upload
+new tabular variable values before your run to specify the name of your tabular variable.
 
 
 #### Specifying Test IDs
@@ -193,7 +217,7 @@ test IDs taken from the Rainforest dashboard. ie:
 All other argument types should be specified as seen above.
 
 
-More detailed info on options can be [found here](https://github.com/rainforestapp/rainforest-cli/blob/master/lib/rainforest/cli/options.rb#L23-L74).
+More detailed info on options can be [found here](https://github.com/rainforestapp/rainforest-cli/blob/master/lib/rainforest_cli/options.rb#L23-L74).
 
 ## Support
 

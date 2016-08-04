@@ -30,7 +30,7 @@ describe RainforestCli::Validator do
 
     context 'with parsing errors' do
       let(:notification_method) { :parsing_error_notification }
-      let(:test_directory) { File.expand_path(File.join(__FILE__, '../validation-examples/parse_errors')) }
+      let(:test_directory) { File.expand_path(File.dirname(__FILE__) + '/../validation-examples/parse_errors') }
 
       context 'no rfml id' do
         let(:correct_file_name) { 'no_rfml_id.rfml' }
@@ -55,7 +55,7 @@ describe RainforestCli::Validator do
 
     context 'with a incorrect embedded RFML ID' do
       let(:notification_method) { :nonexisting_embedded_id_notification }
-      let(:test_directory) { File.expand_path(File.join(__FILE__, '../validation-examples/missing_embeds')) }
+      let(:test_directory) { File.expand_path(File.dirname(__FILE__) + '/../validation-examples/missing_embeds') }
 
       context 'the file containing in the incorrect id' do
         let(:correct_file_name) { 'incorrect_test.rfml' }
@@ -69,7 +69,7 @@ describe RainforestCli::Validator do
     end
 
     context 'with circular embeds' do
-      let(:test_directory) { File.expand_path(File.join(__FILE__, '../validation-examples/circular_embeds')) }
+      let(:test_directory) { File.expand_path(File.dirname(__FILE__) + '/../validation-examples/circular_embeds') }
       let(:file_name_a) { File.join(test_directory, 'test1.rfml') }
       let(:file_name_b) { File.join(test_directory, 'test2.rfml') }
 
@@ -87,7 +87,7 @@ describe RainforestCli::Validator do
     it_behaves_like 'it detects all the correct errors'
 
     context 'when multiple tests have the same rfml_ids' do
-      let(:test_directory) { File.expand_path(File.join(__FILE__, '../validation-examples/duplicate_rfml_ids')) }
+      let(:test_directory) { File.expand_path(File.dirname(__FILE__) + '/../validation-examples/duplicate_rfml_ids') }
       let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token', command: '') }
 
       subject { described_class.new(options) }
@@ -102,7 +102,6 @@ describe RainforestCli::Validator do
         expect { subject.validate }.to raise_error(SystemExit)
       end
 
-
       context 'when invalid' do
         before do
           allow(subject).to receive(:invalid?).and_return(true)
@@ -110,7 +109,7 @@ describe RainforestCli::Validator do
         it 'exits 1' do
           begin
             subject.validate
-            fail "validate did not exit with status 1"
+            fail 'validate did not exit with status 1'
           rescue SystemExit => e
             expect(e.status).to eq(1)
           end
@@ -125,7 +124,7 @@ describe RainforestCli::Validator do
     it_behaves_like 'it detects all the correct errors'
 
     context 'without a token option' do
-      let(:test_directory) { File.expand_path(File.join(__FILE__, '../validation-examples')) }
+      let(:test_directory) { File.expand_path(File.dirname(__FILE__) + '/../validation-examples') }
       let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: nil, command: '') }
       subject { described_class.new(options) }
 

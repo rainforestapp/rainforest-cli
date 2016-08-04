@@ -46,6 +46,7 @@ module RainforestCli
         if response.code == 200
           return JSON.parse(response.body)
         else
+          RainforestCli.logger.warn("Status Code: #{response.code}, #{response.body}")
           return nil
         end
       end

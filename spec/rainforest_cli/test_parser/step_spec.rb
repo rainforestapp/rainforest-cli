@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 describe RainforestCli::TestParser::Step do
-  subject { RainforestCli::TestParser::Step.new }
+  subject { described_class.new }
   let(:screenshot_string) do
     'Picture 1: {{ file.screenshot(./foo) }}. Picture 2: {{file.screenshot(bar/baz)   }}'
   end

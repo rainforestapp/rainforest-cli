@@ -40,12 +40,7 @@ class RainforestCli::Uploader::UploadableParser
     end
 
     file = File.open(file_path, 'rb')
-    if file_already_uploaded?(file)
-      aws_info = get_uploaded_data(file)
-    else
-      aws_info = upload_to_rainforest(file)
-      upload_to_aws(file, aws_info)
-    end
+    aws_info = get_aws_upload_info(file)
 
     sig = aws_info['file_signature'][0...6]
     if step_var == 'screenshot'
@@ -53,6 +48,17 @@ class RainforestCli::Uploader::UploadableParser
     elsif step_var == 'download'
       text.gsub(relative_file_path, "#{aws_info['file_id']}, #{sig}, #{File.basename(file_path)}")
     end
+  end
+
+  def get_aws_upload_info(file)
+    if file_already_uploaded?(file)
+      aws_info = get_uploaded_data(file)
+    else
+      aws_info = upload_to_rainforest(file)
+      upload_to_aws(file, aws_info)
+    end
+
+    aws_info
   end
 
   def upload_to_rainforest(file)

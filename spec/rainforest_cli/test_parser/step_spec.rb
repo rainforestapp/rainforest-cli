@@ -30,4 +30,24 @@ describe RainforestCli::TestParser::Step do
   describe '#uploadable_in_response' do
     it_behaves_like 'a method that detects step variables', :response
   end
+
+  describe '#has_uploadable_files?' do
+    let(:action) { 'Regular action' }
+    let(:response) { 'Regular response' }
+    subject { described_class.new(action, response).has_uploadable_files? }
+
+    context 'with no uploadables' do
+      it { is_expected.to be(false) }
+    end
+
+    context 'uploadable in action' do
+      let(:action) { 'Action with uploadable {{ file.download(/foo) }}' }
+      it { is_expected.to be(true) }
+    end
+
+    context 'uploadable in response' do
+      let(:response) { 'Response with uploadable {{ file.download(/foo) }}' }
+      it { is_expected.to be(true) }
+    end
+  end
 end

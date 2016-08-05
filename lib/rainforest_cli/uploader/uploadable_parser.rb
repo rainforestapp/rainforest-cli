@@ -55,6 +55,7 @@ class RainforestCli::Uploader::UploadableParser
       aws_info = get_uploaded_data(file)
     else
       aws_info = upload_to_rainforest(file)
+      add_file_to_uploaded_collection(file, aws_info)
       upload_to_aws(file, aws_info)
     end
 
@@ -100,6 +101,14 @@ class RainforestCli::Uploader::UploadableParser
       logger.fatal "\t\t#{resp.to_json}"
       exit 3
     end
+  end
+
+  def add_file_to_uploaded_collection(file, aws_info)
+    @uploaded_files.push({
+                           'id' => aws_info['file_id'],
+                           'signature' => aws_info['file_signature'],
+                           'digest' => file_digest(file),
+                         })
   end
 
   def file_already_uploaded?(file)

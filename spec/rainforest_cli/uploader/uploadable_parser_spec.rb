@@ -42,4 +42,26 @@ describe RainforestCli::Uploader::UploadableParser do
       end
     end
   end
+
+  describe '#upload_to_rainforest' do
+    let(:file_path) { 'test_file.txt' }
+    let(:mime_type) { 'text/plain' }
+    let(:size) { 4545 }
+    let(:file) { instance_double('File', path: file_path, size: size) }
+    let(:digest) { 'myDigest' }
+
+    before do
+      allow(subject).to receive(:file_digest).with(file).and_return(digest)
+      allow(MimeMagic).to receive(:by_path).with(file).and_return(mime_type)
+    end
+
+    it 'uploads the correct metadata to Rainforest' do
+      expect(RainforestCli.http_client).to receive(:post) do |url, params|
+        expect(url).to include(test_id.to_s)
+        expect(params).to include(mime_type: mime_type, size: size, name: file_path, digest: digest)
+      end.and_return({ 'aws_url' => 'http://aws.amazon.com/lol' })
+
+      subject.upload_to_rainforest(file)
+    end
+  end
 end

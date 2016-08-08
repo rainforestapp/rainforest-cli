@@ -35,6 +35,9 @@ class RainforestCli::Uploader
       element = case step.type
                 when :test then { id: primary_key_dictionary[step.rfml_id] }
                 when :step then { action: step.action, response: step.response }
+                else
+                  logger.fatal "Unable to parse step type: #{step.type} in #{rfml_test.file_name}"
+                  exit 1
                 end
       {
         type: step.type,

@@ -183,12 +183,11 @@ tests and the first step of a test.
 using the embedded test's RFML ID.
 
 Embedding Screenshots and Downloadable Files:
+- Your embedded files must be checked into version control with along your RFML tests.
 - `{{ file.screenshot(RELATIVE_PATH) }}` will embed screenshot found at RELATIVE_PATH
 which is a path to the screenshot relative to the RFML file.
 - `{{ file.download(RELATIVE_PATH) }}` will embed downloadable file link found at RELATIVE_PATH
 which is a path to the downloadable file relative to the RFML file.
-- It is _strongly_ recommended that your embedded files are checked into source control with the rest
-of your RFML tests.
 
 For more information on test writing, please visit our [documentation](http://support.rainforestqa.com/hc/en-us/sections/200585603-Writing-Tests).
 

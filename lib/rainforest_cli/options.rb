@@ -115,7 +115,7 @@ module RainforestCli
           @junit_file = value
         end
 
-        opts.on('--run-id ID', 'Gather the results of a completed run, must be run with export and --junit') do |value|
+        opts.on('--run-id ID', 'Gather the results of a completed run, must be run with export and --junit-file') do |value|
           @run_id = value
         end
 

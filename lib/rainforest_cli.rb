@@ -23,6 +23,7 @@ require 'rainforest_cli/reporter'
 module RainforestCli
   def self.start(args)
     options = OptionParser.new(args)
+    @http_client = HttpClient.new(token: options.token)
     OptionParser.new(['--help']) if args.size == 0
 
     begin
@@ -56,5 +57,9 @@ module RainforestCli
 
   def self.logger=(logger)
     @logger = logger
+  end
+
+  def self.http_client
+    @http_client
   end
 end

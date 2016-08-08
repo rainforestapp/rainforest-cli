@@ -16,7 +16,6 @@ RSpec.configure do |config|
 
   config.before do
     # suppress output in terminal
-    allow_any_instance_of(Object).to receive(:print)
     allow_any_instance_of(Object).to receive(:puts)
 
     progressbar_mock = double('ProgressBar')

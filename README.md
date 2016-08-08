@@ -146,8 +146,11 @@ Rainforest Tests written using RFML have the following format
 # redirect: [REDIRECT FLAG]
 - [EMBEDDED TEST RFML ID]
 
-[ACTION 2]
-[QUESTION 2]
+Action with an embedded screenshot: {{ file.screenshot(./relative/path/to/screenshot.jpg) }}
+Response with an embedded file download: {{ file.download(./relative/path/to/file.txt) }}
+
+[ACTION 3]
+[QUESTION 3]
 
 ... etc.
 ```
@@ -178,6 +181,13 @@ redirected. The default value is `true`. This flag is only applicable for embedd
 tests and the first step of a test.
 - `EMBEDDED TEST RFML ID` - Embed the steps of another test within the current test
 using the embedded test's RFML ID.
+
+Embedding Screenshots and Downloadable Files:
+- Your embedded files must be checked into version control with along your RFML tests.
+- `{{ file.screenshot(RELATIVE_PATH) }}` will embed screenshot found at RELATIVE_PATH
+which is a path to the screenshot relative to the RFML file.
+- `{{ file.download(RELATIVE_PATH) }}` will embed downloadable file link found at RELATIVE_PATH
+which is a path to the downloadable file relative to the RFML file.
 
 For more information on test writing, please visit our [documentation](http://support.rainforestqa.com/hc/en-us/sections/200585603-Writing-Tests).
 

@@ -4,6 +4,8 @@ require 'parallel'
 require 'ruby-progressbar'
 
 class RainforestCli::Uploader
+  require 'rainforest_cli/uploader/uploadable_parser'
+
   attr_reader :test_files, :remote_tests, :validator
 
   def initialize(options)
@@ -24,6 +26,33 @@ class RainforestCli::Uploader
     # Update all tests
     logger.info 'Uploading tests...'
     each_in_parallel(rfml_tests) { |rfml_test| upload_test(rfml_test) }
+  end
+
+  def create_test_obj(rfml_test)
+    parse_uploadables!(rfml_test) if rfml_test.has_uploadable_files?
+
+    elements = rfml_test.steps.map do |step|
+      element = case step.type
+                when :test then { id: primary_key_dictionary[step.rfml_id] }
+                when :step then { action: step.action, response: step.response }
+                else
+                  logger.fatal "Unable to parse step type: #{step.type} in #{rfml_test.file_name}"
+                  exit 1
+                end
+      {
+        type: step.type,
+        redirection: step.redirect || true,
+        element: element,
+      }
+    end
+
+    rfml_test.to_json.merge(elements: elements)
+  end
+
+  def parse_uploadables!(rfml_test)
+    test_id = primary_key_dictionary[rfml_test.rfml_id]
+    uploaded_files = http_client.get("/tests/#{test_id}/files")
+    UploadableParser.new(rfml_test, test_id, uploaded_files).parse_files!
   end
 
   private
@@ -52,7 +81,7 @@ class RainforestCli::Uploader
       title: rfml_test.title,
       start_uri: rfml_test.start_uri,
       rfml_id: rfml_test.rfml_id,
-      source: 'rainforest-cli'
+      source: 'rainforest-cli',
     }
     rf_test = Rainforest::Test.create(test_obj)
 
@@ -79,31 +108,7 @@ class RainforestCli::Uploader
     RainforestCli.logger
   end
 
-  def create_test_obj(rfml_test)
-    test_obj = {
-      start_uri: rfml_test.start_uri || '/',
-      title: rfml_test.title,
-      site_id: rfml_test.site_id,
-      description: rfml_test.description,
-      source: 'rainforest-cli',
-      tags: rfml_test.tags.uniq,
-      rfml_id: rfml_test.rfml_id
-    }
-
-    test_obj[:elements] = rfml_test.steps.map do |step|
-      if step.respond_to?(:rfml_id)
-        step.to_element(primary_key_dictionary[step.rfml_id])
-      else
-        step.to_element
-      end
-    end
-
-    unless rfml_test.browsers.empty?
-      test_obj[:browsers] = rfml_test.browsers.map do|b|
-        {'state' => 'enabled', 'name' => b}
-      end
-    end
-
-    test_obj
+  def http_client
+    RainforestCli.http_client
   end
 end

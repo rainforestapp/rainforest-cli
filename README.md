@@ -57,7 +57,7 @@ rainforest run --tag run-me --fg --conflict abort
 Run all in the foreground and generate a junit xml report.
 
 ```bash
-rainforest run all --fg --junit rainforest.xml
+rainforest run all --fg --junit-file rainforest.xml
 ```
 
 #### Creating and Managing Tests
@@ -119,7 +119,7 @@ rainforest browsers
 
 To generate a junit xml report for a test run which has already completed
 ```bash
-rainforest report --run-id <run-id> --junit rainforest.xml
+rainforest report --run-id <run-id> --junit-file rainforest.xml
 ```
 
 ## Options

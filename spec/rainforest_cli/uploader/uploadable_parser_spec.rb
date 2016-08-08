@@ -41,6 +41,23 @@ describe RainforestCli::Uploader::UploadableParser do
         expect(subject.replace_paths_in_text(original_text, match)).to eq(expected_text)
       end
     end
+
+    context 'file does not exist' do
+      let(:original_text) { "My download is {{ file.download(#{file_path}) }}" }
+      let(:match) { ['download', file_path] }
+      let(:file_name) { File.basename(file_path) }
+
+      before do
+        allow(File).to receive(:exist?).and_call_original # remove stub in previous before block
+        expect(File).to receive(:exist?).with(a_string_including(file_path)).and_return(false)
+      end
+
+      it 'warns the user and does not replace the variable values' do
+        expect_any_instance_of(Logger).to receive(:warn).with(a_string_including(rfml_test.file_name))
+        expect_any_instance_of(Logger).to receive(:warn).with(a_string_including(file_name))
+        expect(subject.replace_paths_in_text(original_text, match)).to eq(original_text)
+      end
+    end
   end
 
   describe '#upload_to_rainforest' do

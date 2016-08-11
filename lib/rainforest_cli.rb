@@ -2,25 +2,28 @@
 require 'erb'
 require 'json'
 require 'logger'
-require 'rainforest/cli/version'
-require 'rainforest/cli/constants'
-require 'rainforest/cli/options'
-require 'rainforest/cli/runner'
-require 'rainforest/cli/http_client'
-require 'rainforest/cli/git_trigger'
-require 'rainforest/cli/csv_importer'
-require 'rainforest/cli/test_parser'
-require 'rainforest/cli/test_files'
-require 'rainforest/cli/remote_tests'
-require 'rainforest/cli/validator'
-require 'rainforest/cli/exporter'
-require 'rainforest/cli/deleter'
-require 'rainforest/cli/uploader'
-require 'rainforest/cli/resources'
+require 'rainforest_cli/version'
+require 'rainforest_cli/constants'
+require 'rainforest_cli/options'
+require 'rainforest_cli/runner'
+require 'rainforest_cli/http_client'
+require 'rainforest_cli/git_trigger'
+require 'rainforest_cli/csv_importer'
+require 'rainforest_cli/test_parser'
+require 'rainforest_cli/test_files'
+require 'rainforest_cli/remote_tests'
+require 'rainforest_cli/validator'
+require 'rainforest_cli/exporter'
+require 'rainforest_cli/deleter'
+require 'rainforest_cli/uploader'
+require 'rainforest_cli/resources'
+require 'rainforest_cli/junit_outputter'
+require 'rainforest_cli/reporter'
 
 module RainforestCli
   def self.start(args)
     options = OptionParser.new(args)
+    @http_client = HttpClient.new(token: options.token)
     OptionParser.new(['--help']) if args.size == 0
 
     begin
@@ -37,6 +40,7 @@ module RainforestCli
     when 'upload' then Uploader.new(options).upload
     when 'rm' then Deleter.new(options).delete
     when 'export' then Exporter.new(options).export
+    when 'report' then Reporter.new(options).report
     when 'sites', 'folders', 'browsers'
       Resources.new(options).public_send(options.command)
     else
@@ -53,5 +57,9 @@ module RainforestCli
 
   def self.logger=(logger)
     @logger = logger
+  end
+
+  def self.http_client
+    @http_client
   end
 end

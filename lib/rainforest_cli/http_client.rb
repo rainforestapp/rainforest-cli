@@ -17,7 +17,7 @@ module RainforestCli
       response = HTTParty.delete make_url(url), {
         body: body,
         headers: headers,
-        verify: false
+        verify: false,
       }
 
       JSON.parse(response.body)
@@ -28,7 +28,7 @@ module RainforestCli
         response = HTTParty.post make_url(url), {
           body: body,
           headers: headers,
-          verify: false
+          verify: false,
         }
 
         return JSON.parse(response.body)
@@ -40,12 +40,13 @@ module RainforestCli
         response = HTTParty.get make_url(url), {
           body: body,
           headers: headers,
-          verify: false
+          verify: false,
         }
 
         if response.code == 200
           return JSON.parse(response.body)
         else
+          RainforestCli.logger.warn("Status Code: #{response.code}, #{response.body}")
           return nil
         end
       end
@@ -89,7 +90,7 @@ module RainforestCli
     def headers
       {
         'CLIENT_TOKEN' => @token,
-        'User-Agent' => "Rainforest-cli-#{RainforestCli::VERSION}"
+        'User-Agent' => "Rainforest-cli-#{RainforestCli::VERSION}",
       }
     end
   end

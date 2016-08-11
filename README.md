@@ -32,9 +32,9 @@ You can customize the amount of threads to use when making HTTP requests by sett
 API errors when fetching or updating multiple tests, lowering this value can help.
 The default value is `16`.
 
-#### Commands
+## Options
 
-###### Running Tests
+#### Running Tests
 
 Run all tests.
 
@@ -54,7 +54,13 @@ Run all tests with tag 'run-me' and abort previous in-progress runs.
 rainforest run --tag run-me --fg --conflict abort
 ```
 
-###### Creating and Managing Tests
+Run all in the foreground and generate a junit xml report.
+
+```bash
+rainforest run all --fg --junit-file rainforest.xml
+```
+
+#### Creating and Managing Tests
 
 Create new Rainforest test in RFML format (Rainforest Markup Language).
 
@@ -82,12 +88,19 @@ Upload tests to Rainforest
 rainforest upload
 ```
 
+Remove RFML file and remove test from Rainforest test suite.
+
+```bash
+rainforest rm /path/to/test/file.rfml
+```
+
 Export all tests from Rainforest
+
 ```bash
 rainforest export
 ```
 
-###### Viewing Account Specific Information
+#### Viewing Account Specific Information
 
 See a list of all of your sites and their IDs
 ```bash
@@ -102,6 +115,11 @@ rainforest folders
 See a list of all of your browsers and their IDs
 ```bash
 rainforest browsers
+```
+
+To generate a junit xml report for a test run which has already completed
+```bash
+rainforest report --run-id <run-id> --junit-file rainforest.xml
 ```
 
 ## Options
@@ -128,8 +146,11 @@ Rainforest Tests written using RFML have the following format
 # redirect: [REDIRECT FLAG]
 - [EMBEDDED TEST RFML ID]
 
-[ACTION 2]
-[QUESTION 2]
+Action with an embedded screenshot: {{ file.screenshot(./relative/path/to/screenshot.jpg) }}
+Response with an embedded file download: {{ file.download(./relative/path/to/file.txt) }}
+
+[ACTION 3]
+[QUESTION 3]
 
 ... etc.
 ```
@@ -161,18 +182,37 @@ tests and the first step of a test.
 - `EMBEDDED TEST RFML ID` - Embed the steps of another test within the current test
 using the embedded test's RFML ID.
 
+Embedding Screenshots and Downloadable Files:
+- Your embedded files must be checked into version control with along your RFML tests.
+- {{ file.screenshot(LOCAL_FILE_PATH) }} will embed screenshot found at LOCAL_FILE_PATH, which is a path to the screenshot relative to the RFML file.
+- {{ file.download(LOCAL_FILE_PATH) }} will embed a link to download the file found at LOCAL_FILE_PATH, which is a path to the downloadable file relative to the RFML file.
+
 For more information on test writing, please visit our [documentation](http://support.rainforestqa.com/hc/en-us/sections/200585603-Writing-Tests).
 
 ### Command Line Options
 
 Popular command line options are:
-<br>
-###Browsers
-specify the browsers you wish to run against. This overrides the test own settings. Valid browsers can be found in your account settings.
-- <pre>--browsers <b>browser_name</b>[<b>,browser_name</b>]</pre>
-###Tags
- only run tests which have this tag (recommended if you have lots of [test-steps](http://docs.rainforestqa.com/pages/example-test-suite.html#test_steps))!
-<pre>--tags <b>tag</b>[<b>,tag,...</b>]</pre> 
+- `--browsers ie8` or `--browsers ie8,chrome` - specify the browsers you wish to run against. This overrides the test own settings. Valid browsers can be found in your account settings.
+- `--tag run-me` - only run tests which have this tag (recommended if you have lots of [test-steps](http://docs.rainforestqa.com/pages/example-test-suite.html#test_steps))!)
+- `--site-id` - only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
+- `--folder ID` - run tests in specified folder.
+- `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
+- `--conflict OPTION` - use the `abort` option to abort any runs in progress in the same environment as your new run. use the `abort-all` option to abort all runs in progress.
+- `--fg` - results in the foreground - rainforest-cli will not return until the run is complete. This is what you want to make the build pass / fail dependent on rainforest results
+- `--wait RUN_ID` - wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.
+- `--fail-fast` - fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Use with `--fg`.
+- `--custom-url` - use a custom url for this run. Example use case: an ad-hoc QA environment with [Fourchette](https://github.com/rainforestapp/fourchette). You will need to specify a `site_id` too for this to work. Note that we will be creating a new environment for this particular run.
+- `--git-trigger` - only trigger a run when the last commit (for a git repo in the current working directory) has contains `@rainforest` and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged `checkout`. This over-rides `--tag` and any tests specified. If no `@rainforest` is detected it will exit 0.
+- `--description "CI automatic run"` - add an arbitrary description for the run.
+- `--embed-tests` - Use with `rainforest export` to export your tests without extracting the
+steps of an embedded test.
+- `--test-folder /path/to/directory` - Use with `rainforest [new, upload, export]`. If this option is not provided, rainforest-cli will, in the case of 'new' create a directory, or in the case of 'upload' and 'export' use the directory, at the default path `./spec/rainforest/`.
+- `--junit-file` - Create a junit xml report file with the specified name.  Must be run in foreground mode, or with the report command. Uses the rainforest
+api to construct a junit report.  This is useful to track tests in CI such as Jenkins or Bamboo.
+- `--run-id` - Only used with the report command.  Specify a past rainforest run by ID number to generate a report for.
+- `--import-variable-csv-file /path/to/csv/file.csv` - Use with `run` and `--import-variable-name` to upload new tabular variable values before your run to specify the path to your CSV file.
+- `--import-variable-name NAME` - Use with `run` and `import-variable-csv-file` to upload
+new tabular variable values before your run to specify the name of your tabular variable.
 
 ###Site-ID
  only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
@@ -203,7 +243,7 @@ results in the foreground - rainforest-cli will not return until the run is comp
 
 ###Wait
 wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.
-- <pre>--wait <b>RUN_ID</b></pre> 
+- <pre>--wait <b>RUN_ID</b></pre>
 
 ###Fail-fast
 fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Use with --fg.
@@ -229,7 +269,7 @@ add an arbitrary description for the run.
 Use with rainforest export to export your tests without extracting the steps of an embedded test.
 <pre>--embed-tests</pre>
 
-###Test-folder 
+###Test-folder
 Use with rainforest [new, upload, export]. If this option is not provided, rainforest-cli will, in the case of 'new' create a directory, or in the case of 'upload' and 'export' use the directory, at the default path ./spec/rainforest/.
 
 <pre>--test-folder /path/to/directory</pre>
@@ -244,7 +284,7 @@ test IDs taken from the Rainforest dashboard. ie:
 All other argument types should be specified as seen above.
 
 
-More detailed info on options can be [found here](https://github.com/rainforestapp/rainforest-cli/blob/master/lib/rainforest/cli/options.rb#L23-L74).
+More detailed info on options can be [found here](https://github.com/rainforestapp/rainforest-cli/blob/master/lib/rainforest_cli/options.rb#L23-L74).
 
 ## Support
 

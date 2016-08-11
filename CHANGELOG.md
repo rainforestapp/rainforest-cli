@@ -1,5 +1,13 @@
 # Rainforest CLI Changelog
 
+## 1.7.0 - 8th August 2016
+- New run flag: `--wait` for hooking into existing run instead of starting a new one.
+(77df41bf79b8635fb8c2d8a93968f975db092c69, @shosti)
+- New run flag: `--junit-file` for exporting run results into JUnit format.
+(349f2b1f5c8b423766875751c7cafed692fc2bed, @briancolby)
+- New feature: Embed screenshots and file download links in your RFML tests.
+(e081072c591c810b8bc3edce6d2e507d12a1a18e, @epaulet)
+
 ## 1.6.5 - 13th June 2016
 - Exit with non-zero status code when `validate` fails. (8db1d38be39aa50d2afcdef817f78c654b3108b6,
 @DyerSituation)

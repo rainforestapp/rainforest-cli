@@ -236,7 +236,7 @@ use the abort option to abort any runs in progress in the same environment as yo
 - <pre>--conflict <b>option</b></pre> </pre>
 
 
-###Fg
+###Foreground
 results in the foreground - rainforest-cli will not return until the run is complete. This is what you want to make the build pass / fail dependent on rainforest results
 - <pre>--fg</pre>
 

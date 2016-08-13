@@ -215,12 +215,12 @@ api to construct a junit report.  This is useful to track tests in CI such as Je
 new tabular variable values before your run to specify the name of your tabular variable.
 
 ###Site-ID
- only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
+Only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
 
 <pre>--site-id <b>ID</b></pre>
 
 ###Folder-ID
- run tests in specified folder.
+Run tests in specified folder.
 <pre>--folder <b>ID</b></pre>
 
 ###Environment-ID
@@ -230,26 +230,20 @@ run your tests using this environment. Otherwise it will use your default enviro
 ###Crowd
 <pre>--crowd [<b>default</b>|<b>on_premise_crowd</b>]</pre>
 
-
 ###Conflict
-use the abort option to abort any runs in progress in the same environment as your new run. use the abort-all option to abort all runs in progress.
-- <pre>--conflict <b>option</b></pre> </pre>
-
+Use the abort option to abort any runs in progress in the same environment as your new run. use the abort-all option to abort all runs in progress.
+<pre>--conflict <b>option</b></pre> </pre>
 
 ###Foreground
-results in the foreground - rainforest-cli will not return until the run is complete. This is what you want to make the build pass / fail dependent on rainforest results
-- <pre>--fg</pre>
-
+Results in the foreground - rainforest-cli will not return until the run is complete. This is what you want to make the build pass / fail dependent on rainforest results
+<pre>--fg</pre>
 
 ###Wait
-wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.
-- <pre>--wait <b>RUN_ID</b></pre>
+Wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.
+<pre>--wait <b>RUN_ID</b></pre>
 
 ###Fail-fast
 fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Use with --fg.
-
-
-
 <pre>--fail-fast</pre>
 ###Custom URL
 
@@ -264,14 +258,12 @@ only trigger a run when the last commit (for a git repo in the current working d
 add an arbitrary description for the run.
 <pre>--description "CI automatic run"</pre>
 
-
 ###Embed-tests
 Use with rainforest export to export your tests without extracting the steps of an embedded test.
 <pre>--embed-tests</pre>
 
 ###Test-folder
 Use with rainforest [new, upload, export]. If this option is not provided, rainforest-cli will, in the case of 'new' create a directory, or in the case of 'upload' and 'export' use the directory, at the default path ./spec/rainforest/.
-
 <pre>--test-folder /path/to/directory</pre>
 
 #### Specifying Test IDs

@@ -72,7 +72,7 @@ module RainforestCli
           @tags << value
         end
 
-        opts.on('--folder ID', 'Run tests in the specified folders') do |value|
+        opts.on('--folder ID', Integer, 'Filter for tests in the specified folders') do |value|
           @folder = value
         end
 

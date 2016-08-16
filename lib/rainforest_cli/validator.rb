@@ -8,7 +8,7 @@ class RainforestCli::Validator
 
   def initialize(options, local_tests = nil, remote_tests = nil)
     @local_tests = local_tests || RainforestCli::TestFiles.new(options)
-    @remote_tests = remote_tests || RainforestCli::RemoteTests.new(options.token)
+    @remote_tests = remote_tests || RainforestCli::RemoteTests.new(options)
   end
 
   def validate

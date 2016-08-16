@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 class RainforestCli::RemoteTests
+  def initialize(options)
+    @options = options
+  end
+
   def tests
     @tests ||= fetch_tests
   end
@@ -29,12 +33,20 @@ class RainforestCli::RemoteTests
   def fetch_tests
     if http_client.api_token_set?
       logger.info 'Fetching test data from server...'
-      test_list = http_client.get('/tests/rfml_ids')
+      test_list = http_client.get('/tests/rfml_ids', filters)
       logger.info 'Fetch complete.'
       test_list
     else
       logger.info 'No API Token set. Using local tests only...'
       []
+    end
+  end
+
+  def filters
+    {}.tap do |f|
+      f[:tags] = @options.tags if @options.tags.any?
+      f[:smart_folder_id] = @options.folder if @options.folder
+      f[:site_id] = @options.site_id if @options.site_id
     end
   end
 

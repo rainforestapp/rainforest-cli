@@ -14,10 +14,7 @@ module RainforestCli
     def initialize(args)
       @args = args.dup
       @tags = []
-      @browsers = nil
       @debug = false
-      @junit_file = nil
-      @run_id = nil
       @token = ENV['RAINFOREST_API_TOKEN']
 
       # NOTE: Disabling line length cop to allow for consistency of syntax
@@ -71,7 +68,7 @@ module RainforestCli
           @token = value
         end
 
-        opts.on('--tag TAG', String, 'A tag to run the tests with') do |value|
+        opts.on('--tag TAG', String, 'Filter your tests by tag') do |value|
           @tags << value
         end
 

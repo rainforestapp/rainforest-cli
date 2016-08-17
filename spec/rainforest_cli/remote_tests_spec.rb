@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 describe RainforestCli::RemoteTests do
-  subject { described_class.new('api_token') }
+  let(:options) { instance_double('RainforestCli::OptionsParser', tags: [], folder: nil, site_id: nil) }
+  let(:http_client) { instance_double('RainforestCli::HttpClient', api_token_set?: true) }
+  subject { described_class.new(options) }
 
   describe '#primary_key_dictionary' do
     Test = Struct.new(:rfml_id, :id)
@@ -11,8 +13,8 @@ describe RainforestCli::RemoteTests do
     let(:tests) { [test1, test2, test3] }
 
     before do
-      allow_any_instance_of(RainforestCli::HttpClient).to receive(:get)
-        .with('/tests/rfml_ids').and_return(tests)
+      allow(RainforestCli).to receive(:http_client).and_return(http_client)
+      allow(http_client).to receive(:get).with('/tests/rfml_ids', an_instance_of(Hash)).and_return(tests)
     end
 
     it "correctly formats the dictionary's keys and values" do
@@ -20,15 +22,15 @@ describe RainforestCli::RemoteTests do
         .to include({
                       test1['rfml_id'] => test1['id'],
                       test2['rfml_id'] => test2['id'],
-                      test3['rfml_id'] => test3['id']
+                      test3['rfml_id'] => test3['id'],
                     })
     end
 
     context 'no api token set' do
-      subject { described_class.new }
+      let(:http_client) { instance_double('RainforestCli::HttpClient', api_token_set?: false) }
 
       it 'does not make an API call but returns an empty dictionary' do
-        expect_any_instance_of(RainforestCli::HttpClient).to_not receive(:get)
+        expect(http_client).to_not receive(:get)
         dictionary = subject.primary_key_dictionary
         expect(dictionary).to be_a(Hash)
         expect(dictionary).to eq({})

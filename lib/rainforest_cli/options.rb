@@ -14,7 +14,10 @@ module RainforestCli
     def initialize(args)
       @args = args.dup
       @tags = []
+      @browsers = nil
       @debug = false
+      @junit_file = nil
+      @run_id = nil
       @token = ENV['RAINFOREST_API_TOKEN']
 
       # NOTE: Disabling line length cop to allow for consistency of syntax

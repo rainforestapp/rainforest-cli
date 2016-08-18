@@ -28,8 +28,6 @@ class RainforestCli::RemoteTests
     primary_key_dictionary
   end
 
-  private
-
   def fetch_tests
     if http_client.api_token_set?
       logger.info 'Fetching test data from server...'
@@ -41,6 +39,8 @@ class RainforestCli::RemoteTests
       []
     end
   end
+
+  private
 
   def filters
     {}.tap do |f|

@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-require 'securerandom'
-require 'rainforest'
 require 'parallel'
 require 'ruby-progressbar'
 

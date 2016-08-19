@@ -1,12 +1,7 @@
 # frozen_string_literal: true
 class RainforestCli::RemoteTests
-  def initialize(api_token = nil)
-    Rainforest.api_key = api_token
-    @client = RainforestCli::HttpClient.new token: api_token
-  end
-
-  def api_token_set?
-    !Rainforest.api_key.nil?
+  def initialize(options)
+    @options = options
   end
 
   def tests
@@ -33,21 +28,33 @@ class RainforestCli::RemoteTests
     primary_key_dictionary
   end
 
-  private
-
-  def logger
-    RainforestCli.logger
-  end
-
   def fetch_tests
-    if api_token_set?
+    if http_client.api_token_set?
       logger.info 'Fetching test data from server...'
-      test_list = @client.get('/tests/rfml_ids')
+      test_list = http_client.get('/tests/rfml_ids', filters)
       logger.info 'Fetch complete.'
       test_list
     else
       logger.info 'No API Token set. Using local tests only...'
       []
     end
+  end
+
+  private
+
+  def filters
+    {}.tap do |f|
+      f[:tags] = @options.tags if @options.tags.any?
+      f[:smart_folder_id] = @options.folder if @options.folder
+      f[:site_id] = @options.site_id if @options.site_id
+    end
+  end
+
+  def logger
+    RainforestCli.logger
+  end
+
+  def http_client
+    RainforestCli.http_client
   end
 end

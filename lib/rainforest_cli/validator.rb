@@ -8,7 +8,7 @@ class RainforestCli::Validator
 
   def initialize(options, local_tests = nil, remote_tests = nil)
     @local_tests = local_tests || RainforestCli::TestFiles.new(options)
-    @remote_tests = remote_tests || RainforestCli::RemoteTests.new(options.token)
+    @remote_tests = remote_tests || RainforestCli::RemoteTests.new(options)
   end
 
   def validate
@@ -19,7 +19,7 @@ class RainforestCli::Validator
   def validate_with_exception!
     check_test_directory_for_tests!
 
-    unless remote_tests.api_token_set?
+    unless http_client.api_token_set?
       logger.error API_TOKEN_ERROR
       exit 2
     end
@@ -181,5 +181,9 @@ class RainforestCli::Validator
 
   def logger
     RainforestCli.logger
+  end
+
+  def http_client
+    RainforestCli.http_client
   end
 end

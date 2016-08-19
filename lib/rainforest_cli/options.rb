@@ -71,11 +71,11 @@ module RainforestCli
           @token = value
         end
 
-        opts.on('--tag TAG', String, 'A tag to run the tests with') do |value|
+        opts.on('--tag TAG', String, 'Filter your tests by tag') do |value|
           @tags << value
         end
 
-        opts.on('--folder ID', 'Run tests in the specified folders') do |value|
+        opts.on('--folder ID', Integer, 'Filter for tests in the specified folders') do |value|
           @folder = value
         end
 

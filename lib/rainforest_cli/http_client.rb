@@ -52,7 +52,12 @@ module RainforestCli
       end
     end
 
+    def api_token_set?
+      !@token.nil?
+    end
+
     private
+
     def wrap_exceptions(retries_on_failures)
       @retry_delay = 0
       @waiting_on_retries = false

@@ -2,6 +2,11 @@
 
 describe RainforestCli::Validator do
   let(:file_path) { File.join(test_directory, correct_file_name) }
+  let(:http_client) { instance_double('RainforestCli::HttpClient', api_token_set?: true) }
+
+  before do
+    allow(RainforestCli).to receive(:http_client).and_return(http_client)
+  end
 
   def notifies_with_correct_file_name
     expect(subject).to receive(notification_method)
@@ -21,11 +26,11 @@ describe RainforestCli::Validator do
 
   shared_examples 'it detects all the correct errors' do
     let(:tested_method) { :validate }
-    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token', command: '') }
+    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token', command: '', tags: [], folder: nil, site_id: nil) }
     subject { described_class.new(options) }
 
     before do
-      allow_any_instance_of(RainforestCli::HttpClient).to receive(:get).and_return([])
+      allow(http_client).to receive(:get).and_return([])
     end
 
     context 'with parsing errors' do
@@ -125,7 +130,8 @@ describe RainforestCli::Validator do
 
     context 'without a token option' do
       let(:test_directory) { File.expand_path(File.dirname(__FILE__) + '/../validation-examples') }
-      let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: nil, command: '') }
+      let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, command: '') }
+      let(:http_client) { instance_double('RainforestCli::HttpClient', api_token_set?: false) }
       subject { described_class.new(options) }
 
       it 'validates locally and tells the user to include a token to valid with server tests as well' do

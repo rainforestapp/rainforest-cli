@@ -7,7 +7,7 @@ class RainforestCli::Deleter
   def initialize(options)
     @file_name = options.file_name
     @test_files = RainforestCli::TestFiles.new(options)
-    @remote_tests = RainforestCli::RemoteTests.new(options.token)
+    @remote_tests = RainforestCli::RemoteTests.new(options)
   end
 
   def delete

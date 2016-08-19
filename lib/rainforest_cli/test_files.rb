@@ -1,4 +1,6 @@
 # frozen_string_literal: true
+require 'securerandom'
+
 class RainforestCli::TestFiles
   DEFAULT_TEST_FOLDER = './spec/rainforest'
   FILE_EXTENSION = '.rfml'

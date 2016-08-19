@@ -55,7 +55,7 @@ describe RainforestCli::OptionParser do
 
     context 'run from folder' do
       let(:args) { ['run', '--folder', '12'] }
-      its(:folder) { should == '12'}
+      its(:folder) { should == 12 }
     end
 
     context 'only run in specific browsers' do

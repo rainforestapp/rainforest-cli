@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 1.8.0 - 19th August 2016
+- Filter RFML test downloads with `rainforest export` using `--tag`, `--folder`, and `--site-id` flags.
+
 ## 1.7.0 - 8th August 2016
 - New run flag: `--wait` for hooking into existing run instead of starting a new one.
 (77df41bf79b8635fb8c2d8a93968f975db092c69, @shosti)

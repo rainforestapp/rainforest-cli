@@ -24,6 +24,7 @@ module RainforestCli
   def self.start(args)
     options = OptionParser.new(args)
     @http_client = HttpClient.new(token: options.token)
+    ::Rainforest.api_key = options.token
     OptionParser.new(['--help']) if args.size == 0
 
     begin

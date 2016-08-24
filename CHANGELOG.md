@@ -1,7 +1,12 @@
 # Rainforest CLI Changelog
 
+## 1.8.1 - 19th August 2016
+- Fix a bug that prevent uploading tests as a result from 1.8.0.
+(651514ae94df6857c43e820fff60cdf8034f534d, @epaulet)
+
 ## 1.8.0 - 19th August 2016
 - Filter RFML test downloads with `rainforest export` using `--tag`, `--folder`, and `--site-id` flags.
+(5826000fddeb152dc1e2c8ad4baf04cdc0dd2001, @epaulet)
 
 ## 1.7.0 - 8th August 2016
 - New run flag: `--wait` for hooking into existing run instead of starting a new one.

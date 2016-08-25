@@ -9,6 +9,14 @@ describe RainforestCli::TestParser::Step do
     'Download 1: {{ file.download(./foo) }}. Download 2: {{file.download(bar/baz)   }}'
   end
 
+  let(:parameterized_screenshot_string) do
+    'Picture 1: {{ file.screenshot(./foo) }}. Picture 2: {{file.screenshot(123, signat)   }}'
+  end
+
+  let(:parameterized_download_string) do
+    'Download 1: {{ file.download(./foo) }}. Download 2: {{file.download(123, signat, baz.txt)   }}'
+  end
+
   shared_examples 'a method that detects step variables' do |att|
     it 'correctly detects a screenshot step variable' do
       subject[att] = screenshot_string
@@ -16,10 +24,22 @@ describe RainforestCli::TestParser::Step do
         .to eq([['screenshot', './foo'], ['screenshot', 'bar/baz']])
     end
 
-    it 'correctly detects the download step variable' do
+    it 'correctly detects a download step variable' do
       subject[att] = download_string
       expect(subject.send(:"uploadable_in_#{att}"))
         .to eq([['download', './foo'], ['download', 'bar/baz']])
+    end
+
+    it 'does not detect a parameterized screenshot step variable' do
+      subject[att] = parameterized_screenshot_string
+      expect(subject.send(:"uploadable_in_#{att}"))
+        .to eq([['screenshot', './foo']])
+    end
+
+    it 'does not detect a parameterized download step variable' do
+      subject[att] = parameterized_download_string
+      expect(subject.send(:"uploadable_in_#{att}"))
+        .to eq([['download', './foo']])
     end
   end
 

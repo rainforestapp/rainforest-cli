@@ -87,13 +87,17 @@ EOF
   private
 
   def get_test_data
-    data = []
-    if Dir.exist?(@test_folder)
-      Dir.glob(test_paths) do |file_name|
-        data << RainforestCli::TestParser::Parser.new(file_name).process
+    if @options.file_name
+      [RainforestCli::TestParser::Parser.new(@options.file_name).process]
+    else
+      data = []
+      if Dir.exist?(@test_folder)
+        Dir.glob(test_paths) do |file_name|
+          data << RainforestCli::TestParser::Parser.new(file_name).process
+        end
       end
+      filter_tests(data)
     end
-    filter_tests(data)
   end
 
   def filter_tests(tests)

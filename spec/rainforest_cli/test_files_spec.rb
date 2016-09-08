@@ -5,7 +5,7 @@ describe RainforestCli::TestFiles do
 
   describe '#test_data' do
     let(:test_directory) { File.dirname(__FILE__) + '/../rainforest-example' }
-    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, command: nil) }
+    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, command: nil, file_name: nil, tags: [], site_id: nil) }
 
     let(:rfml_test) { subject.test_data.first }
     let(:text_file) { File.read(test_directory + '/example_test.rfml') }
@@ -13,6 +13,17 @@ describe RainforestCli::TestFiles do
     it 'parses all available tests on initialization' do
       expect(rfml_test.title).to eq(text_file.match(/^# title: (.+)$/)[1])
       expect(rfml_test.rfml_id).to eq(text_file.match(/^#! (.+?)($| .+?$)/)[1])
+    end
+
+    context 'when filtering by file name' do
+      # let(:test_directory) { File.dirname(__FILE__) + '/../rainforest-example' }
+      # let(:file_name) { File.join(test_directory, 'example_test.rfml') }
+      let(:file_name) { File.join(File.dirname(__FILE__), '../multiple-rainforest-examples/example_test.rfml') }
+      let(:options) { instance_double('RainforestCli::Options', test_folder: nil, command: nil, file_name: file_name, tags: [], site_id: nil) }
+
+      it 'only parses that file' do
+        expect(subject.test_data.length).to eq(1)
+      end
     end
   end
 

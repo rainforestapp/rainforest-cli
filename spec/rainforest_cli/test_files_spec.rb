@@ -16,8 +16,6 @@ describe RainforestCli::TestFiles do
     end
 
     context 'when filtering by file name' do
-      # let(:test_directory) { File.dirname(__FILE__) + '/../rainforest-example' }
-      # let(:file_name) { File.join(test_directory, 'example_test.rfml') }
       let(:file_name) { File.join(File.dirname(__FILE__), '../multiple-rainforest-examples/example_test.rfml') }
       let(:options) { instance_double('RainforestCli::Options', test_folder: nil, command: nil, file_name: file_name, tags: [], site_id: nil) }
 

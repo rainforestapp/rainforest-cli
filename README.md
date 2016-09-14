@@ -88,6 +88,12 @@ Upload tests to Rainforest
 rainforest upload
 ```
 
+Upload a specific test to Rainforest
+
+```bash
+rainforest upload /path/to/test/file.rfml
+```
+
 Remove RFML file and remove test from Rainforest test suite.
 
 ```bash

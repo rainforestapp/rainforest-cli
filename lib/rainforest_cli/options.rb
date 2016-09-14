@@ -135,7 +135,7 @@ module RainforestCli
 
       @command = @args.shift
 
-      if ['new', 'rm'].include?(@command)
+      if ['new', 'rm', 'upload'].include?(@command)
         @file_name = @args.shift
 
         if @file_name && @command == 'rm'

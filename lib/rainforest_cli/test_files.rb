@@ -39,15 +39,7 @@ EOF
   end
 
   def test_data
-    if @test_data.nil?
-      @test_data = []
-      if Dir.exist?(@test_folder)
-        Dir.glob(test_paths) do |file_name|
-          @test_data << RainforestCli::TestParser::Parser.new(file_name).process
-        end
-      end
-    end
-    @test_data
+    @test_data ||= get_test_data
   end
 
   def file_extension
@@ -93,6 +85,28 @@ EOF
   end
 
   private
+
+  def get_test_data
+    if @options.file_name
+      [RainforestCli::TestParser::Parser.new(@options.file_name).process]
+    else
+      data = []
+      if Dir.exist?(@test_folder)
+        Dir.glob(test_paths) do |file_name|
+          data << RainforestCli::TestParser::Parser.new(file_name).process
+        end
+      end
+      filter_tests(data)
+    end
+  end
+
+  def filter_tests(tests)
+    tests.select do |test|
+      pass_tag_filter = (@options.tags - test.tags).empty?
+      pass_site_filter = @options.site_id.nil? || @options.site_id == test.site_id
+      pass_tag_filter || pass_site_filter
+    end
+  end
 
   def unique_path(file_path)
     path = file_path[0...-file_extension.length]

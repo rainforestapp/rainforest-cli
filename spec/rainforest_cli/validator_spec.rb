@@ -26,7 +26,7 @@ describe RainforestCli::Validator do
 
   shared_examples 'it detects all the correct errors' do
     let(:tested_method) { :validate }
-    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token', command: '', tags: [], folder: nil, site_id: nil) }
+    let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token', command: '', tags: [], folder: nil, site_id: nil, file_name: nil) }
     subject { described_class.new(options) }
 
     before do
@@ -93,7 +93,7 @@ describe RainforestCli::Validator do
 
     context 'when multiple tests have the same rfml_ids' do
       let(:test_directory) { File.expand_path(File.dirname(__FILE__) + '/../validation-examples/duplicate_rfml_ids') }
-      let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token', command: '') }
+      let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, token: 'api_token', command: '', file_name: nil, tags: [], site_id: nil) }
 
       subject { described_class.new(options) }
 
@@ -130,7 +130,7 @@ describe RainforestCli::Validator do
 
     context 'without a token option' do
       let(:test_directory) { File.expand_path(File.dirname(__FILE__) + '/../validation-examples') }
-      let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, command: '') }
+      let(:options) { instance_double('RainforestCli::Options', test_folder: test_directory, command: '', file_name: nil, tags: [], site_id: nil) }
       let(:http_client) { instance_double('RainforestCli::HttpClient', api_token_set?: false) }
       subject { described_class.new(options) }
 

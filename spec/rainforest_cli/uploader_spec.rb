@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 describe RainforestCli::Uploader do
-  let(:options) { instance_double('RainforestCli::Options', token: 'foo', test_folder: test_directory, command: '') }
+  let(:options) { instance_double('RainforestCli::Options', token: 'foo', test_folder: test_directory, command: '', file_name: nil, tags: [], site_id: nil) }
   subject { described_class.new(options) }
 
   before do

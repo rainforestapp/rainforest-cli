@@ -1,5 +1,11 @@
 # Rainforest CLI Changelog
 
+## 1.9.0 - 14th September 2016
+- Add `upload-csv` command for updating tabular variables without starting a new run.
+(069e943cd94cbb08e6f00347ab6c8327372897ce, @epaulet)
+- Add ability to filter uploads with `tag` and `site-id` and to upload specific test by file path.
+(1d6e0a39d664e4c2d2135fa654571c28aaaac031, @epaulet)
+
 ## 1.8.1 - 19th August 2016
 - Fix a bug that prevent uploading tests as a result from 1.8.0.
 (651514ae94df6857c43e820fff60cdf8034f534d, @epaulet)

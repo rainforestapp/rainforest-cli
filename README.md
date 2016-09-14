@@ -134,6 +134,13 @@ To generate a junit xml report for a test run which has already completed
 rainforest report --run-id <run-id> --junit-file rainforest.xml
 ```
 
+#### Updating Tabular Variables
+
+Upload a CSV file to update your tabular variables
+```bash
+rainforest csv-upload --import-variable-csv-file PATH/TO/CSV.csv --import-variable-name my_variable
+```
+
 ## Options
 
 ### General

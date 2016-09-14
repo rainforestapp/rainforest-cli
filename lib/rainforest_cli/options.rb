@@ -187,6 +187,8 @@ module RainforestCli
         end
       elsif import_file_name || import_name
         raise ValidationError, 'You must pass both --import-variable-csv-file and --import-variable-name'
+      elsif command == 'csv-upload'
+        raise ValidationError, 'You must pass both --import-variable-csv-file and --import-variable-name with the csv-upload command'
       end
 
       if command == 'rm' && file_name.nil?

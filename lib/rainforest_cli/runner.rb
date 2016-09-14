@@ -16,7 +16,7 @@ module RainforestCli
 
       if options.import_file_name && options.import_name
         delete_generator(options.import_name)
-        CSVImporter.new(options.import_name, options.import_file_name, options.token).import
+        CSVImporter.new(options).import
       end
 
       post_opts = make_create_run_options

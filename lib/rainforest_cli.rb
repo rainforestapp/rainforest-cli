@@ -41,6 +41,7 @@ module RainforestCli
     when 'upload' then Uploader.new(options).upload
     when 'rm' then Deleter.new(options).delete
     when 'export' then Exporter.new(options).export
+    when 'csv-upload' then CSVImporter.new(options).import
     when 'report' then Reporter.new(options).report
     when 'sites', 'folders', 'browsers'
       Resources.new(options).public_send(options.command)

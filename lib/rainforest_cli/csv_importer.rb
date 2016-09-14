@@ -6,12 +6,9 @@ require 'ruby-progressbar'
 
 module RainforestCli
   class CSVImporter
-    attr_reader :client
-
-    def initialize name, file, token
-      @generator_name = name
-      @file = file
-      @client = HttpClient.new token: token
+    def initialize(options)
+      @generator_name = options.import_name
+      @file = options.import_file_name
     end
 
     def row_data columns, values
@@ -31,7 +28,7 @@ module RainforestCli
       raise 'Invalid schema in CSV. You must include headers in first row.' if !columns
 
       print 'Creating custom step variable'
-      response = client.post '/generators', { name: @generator_name, description: @generator_name, columns: columns }
+      response = http_client.post '/generators', { name: @generator_name, description: @generator_name, columns: columns }
       raise "Error creating custom step variable: #{response['error']}" if response['error']
       puts "\t[OK]"
 
@@ -43,9 +40,15 @@ module RainforestCli
 
       # Insert the data
       Parallel.each(rows, in_threads: 16, finish: lambda { |_item, _i, _result| p.increment }) do |row|
-        response = client.post("/generators/#{@generator_id}/rows", {data: row_data(@columns, row)})
+        response = http_client.post("/generators/#{@generator_id}/rows", {data: row_data(@columns, row)})
         raise response['error'] if response['error']
       end
+    end
+
+    private
+
+    def http_client
+      RainforestCli.http_client
     end
   end
 end

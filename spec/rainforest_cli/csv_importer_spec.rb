@@ -1,9 +1,15 @@
 # frozen_string_literal: true
 describe RainforestCli::CSVImporter do
   let(:csv_file) { "#{File.dirname(__FILE__)}/../fixtures/variables.txt" }
+  let(:http_client) { instance_double('RainforestCli::HttpClient') }
+
+  before do
+    allow(RainforestCli).to receive(:http_client).and_return(http_client)
+  end
 
   describe '.import' do
-    subject { described_class.new('variables', csv_file, 'abc123') }
+    let(:options) { instance_double('RainforestCli::Options', import_name: 'variables', import_file_name: csv_file) }
+    subject { described_class.new(options) }
     let(:columns) { %w(email pass) }
 
     let(:success_response) do
@@ -14,7 +20,7 @@ describe RainforestCli::CSVImporter do
     end
 
     it 'should post the schema to the generators API' do
-      expect_any_instance_of(RainforestCli::HttpClient).to receive(:post)
+      expect(http_client).to receive(:post)
                               .with('/generators', {
                                       name: 'variables',
                                       description: 'variables',
@@ -22,7 +28,7 @@ describe RainforestCli::CSVImporter do
                                     })
                               .and_return success_response
 
-      expect_any_instance_of(RainforestCli::HttpClient).to receive(:post)
+      expect(http_client).to receive(:post)
                               .with('/generators/12345/rows', {
                                       data: {
                                         0 => 'russ@rainforestqa.com',
@@ -30,7 +36,7 @@ describe RainforestCli::CSVImporter do
                                       },
                                     }).and_return({})
 
-      expect_any_instance_of(RainforestCli::HttpClient).to receive(:post)
+      expect(http_client).to receive(:post)
                               .with('/generators/12345/rows', {
                                       data: {
                                         0 => 'bob@example.com',

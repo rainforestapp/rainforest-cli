@@ -1,6 +1,6 @@
 # Rainforest CLI Changelog
 
-## 1.9.1 - 19th September 2016
+## 1.10.0 - 19th September 2016
 - Add `--overwrite-variable` option to overwrite existing tabular variables if the
 desired variable name is already taken when uploading CSVs. (ebf4ab90c5db2589695eaf6c3d4c4206bad17e7b,
 @epaulet)

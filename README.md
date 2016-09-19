@@ -136,9 +136,14 @@ rainforest report --run-id <run-id> --junit-file rainforest.xml
 
 #### Updating Tabular Variables
 
-Upload a CSV file to update your tabular variables
+Upload a CSV to create a new tabular variables.
 ```bash
 rainforest csv-upload --import-variable-csv-file PATH/TO/CSV.csv --import-variable-name my_variable
+```
+
+Upload a CSV to update an existing tabular variables.
+```bash
+rainforest csv-upload --import-variable-csv-file PATH/TO/CSV.csv --import-variable-name my_variable --overwrite-variable
 ```
 
 ## Options

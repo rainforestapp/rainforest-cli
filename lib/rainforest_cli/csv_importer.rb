@@ -27,9 +27,19 @@ module RainforestCli
       end
       raise 'Invalid schema in CSV. You must include headers in first row.' if !columns
 
-      print 'Creating custom step variable'
+      puts 'Checking for existing tabular variables.'
+      generators = http_client.get('/generators')
+      generator = generators.find { |g| g['name'] == @generator_name }
+
+      if generator
+        puts 'Existing tabular variable found. Deleting old data.'
+        response = http_client.delete("/generators/#{generator['id']}")
+        raise "Error deleting old tabular variable: #{response['error']}" if response['error']
+      end
+
+      print 'Creating new tabular variable'
       response = http_client.post '/generators', { name: @generator_name, description: @generator_name, columns: columns }
-      raise "Error creating custom step variable: #{response['error']}" if response['error']
+      raise "Error creating tabular variable: #{response['error']}" if response['error']
       puts "\t[OK]"
 
       @columns = response['columns']
@@ -39,7 +49,7 @@ module RainforestCli
       p = ProgressBar.create(title: 'Rows', total: rows.count, format: '%a %B %p%% %t')
 
       # Insert the data
-      Parallel.each(rows, in_threads: 16, finish: lambda { |_item, _i, _result| p.increment }) do |row|
+      Parallel.each(rows, in_threads: RainforestCli::THREADS, finish: lambda { |_item, _i, _result| p.increment }) do |row|
         response = http_client.post("/generators/#{@generator_id}/rows", {data: row_data(@columns, row)})
         raise response['error'] if response['error']
       end

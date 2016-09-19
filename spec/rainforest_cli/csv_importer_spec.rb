@@ -8,10 +8,11 @@ describe RainforestCli::CSVImporter do
   end
 
   describe '.import' do
-    let(:options) { instance_double('RainforestCli::Options', import_name: 'variables', import_file_name: csv_file) }
+    let(:options) { instance_double('RainforestCli::Options', import_name: 'variables', import_file_name: csv_file, overwrite_variable: overwrite_variable) }
     subject { described_class.new(options) }
     let(:columns) { %w(email pass) }
     let(:generator_id) { 12345 }
+    let(:existing_generators) { [] }
 
     let(:success_response) do
       {
@@ -21,54 +22,89 @@ describe RainforestCli::CSVImporter do
     end
 
     before do
-      expect(http_client).to receive(:post)
-                              .with('/generators', {
-                                      name: 'variables',
-                                      description: 'variables',
-                                      columns: columns.map {|col| { name: col } },
-                                    })
-                              .and_return success_response
-
-      expect(http_client).to receive(:post)
-                              .with("/generators/#{generator_id}/rows", {
-                                      data: {
-                                        0 => 'russ@rainforestqa.com',
-                                        1 => 'abc123',
-                                      },
-                                    }).and_return({})
-
-      expect(http_client).to receive(:post)
-                              .with("/generators/#{generator_id}/rows", {
-                                      data: {
-                                        0 => 'bob@example.com',
-                                        1 => 'hunter2',
-                                      },
-                                    }).and_return({})
+      allow(http_client).to receive(:get).with('/generators').and_return(existing_generators)
     end
 
-    it 'should post the schema to the generators API' do
-      expect(http_client).to receive(:get).and_return([])
-      subject.import
-    end
+    shared_examples 'it properly uploads variables' do
+      it 'makes the proper API interactions' do
+        expect(http_client).to receive(:post)
+                                .with('/generators', {
+                                        name: 'variables',
+                                        description: 'variables',
+                                        columns: columns.map {|col| { name: col } },
+                                      })
+                                .and_return success_response
 
-    context 'tabular variable with given name already exists' do
-      let(:existing_generators) do
-        [
-          {
-            'id' => 98765,
-            'name' => 'existing',
-          },
-          {
-            'id' => generator_id,
-            'name' => 'variables',
-          },
-        ]
-      end
+        expect(http_client).to receive(:post)
+                                .with("/generators/#{generator_id}/rows", {
+                                        data: {
+                                          0 => 'russ@rainforestqa.com',
+                                          1 => 'abc123',
+                                        },
+                                      }).and_return({})
 
-      it 'deletes the old generator before making a new one' do
-        expect(http_client).to receive(:get).and_return(existing_generators)
-        expect(http_client).to receive(:delete).with("/generators/#{generator_id}").and_return({})
+        expect(http_client).to receive(:post)
+                                .with("/generators/#{generator_id}/rows", {
+                                        data: {
+                                          0 => 'bob@example.com',
+                                          1 => 'hunter2',
+                                        },
+                                      }).and_return({})
         subject.import
+      end
+    end
+
+    context 'without variable overwriting' do
+      let(:overwrite_variable) { nil }
+
+      it_behaves_like 'it properly uploads variables'
+
+      context 'tabular variable with given name already exists' do
+        let(:existing_generators) do
+          [
+            {
+              'id' => 98765,
+              'name' => 'existing',
+            },
+            {
+              'id' => generator_id,
+              'name' => 'variables',
+            },
+          ]
+        end
+
+        before do
+          expect(http_client).to_not receive(:delete)
+        end
+
+        it_behaves_like 'it properly uploads variables'
+      end
+    end
+
+    context 'with variable overwriting' do
+      let(:overwrite_variable) { true }
+
+      it_behaves_like 'it properly uploads variables'
+
+      context 'tabular variable with given name already exists' do
+        let(:existing_generators) do
+          [
+            {
+              'id' => 98765,
+              'name' => 'existing',
+            },
+            {
+              'id' => generator_id,
+              'name' => 'variables',
+            },
+          ]
+        end
+
+        before do
+          expect(http_client).to receive(:delete).with("/generators/#{generator_id}").and_return({})
+        end
+
+        it_behaves_like 'it properly uploads variables'
       end
     end
   end

@@ -7,7 +7,7 @@ module RainforestCli
     attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
                 :import_file_name, :import_name, :custom_url, :description, :folder,
                 :debug, :file_name, :test_folder, :embed_tests, :app_source_url, :crowd, :run_id,
-                :junit_file
+                :junit_file, :overwrite_variable
 
     TOKEN_NOT_REQUIRED = %w{new validate}.freeze
 
@@ -42,12 +42,16 @@ module RainforestCli
           @crowd = value
         end
 
-        opts.on('--import-variable-csv-file FILE', 'Import step variables; CSV data') do |value|
+        opts.on('--import-variable-csv-file FILE', 'Import tabular step variables; CSV data') do |value|
           @import_file_name = value
         end
 
-        opts.on('--import-variable-name NAME', 'Import step variables; Name of variable (note, will be replaced if exists)') do |value|
+        opts.on('--import-variable-name NAME', 'Import tabular step variables; Name of variable') do |value|
           @import_name = value
+        end
+
+        opts.on('--overwrite-variable', 'Import tabular step variables: overwrite existing variable if desired variable name is taken') do
+          @overwrite_variable = true
         end
 
         opts.on('--git-trigger', 'Only run if the last commit contains @rainforestapp') do |_value|

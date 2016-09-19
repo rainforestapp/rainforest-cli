@@ -9,6 +9,7 @@ module RainforestCli
     def initialize(options)
       @generator_name = options.import_name
       @file = options.import_file_name
+      @overwrite_variable = options.overwrite_variable
     end
 
     def row_data columns, values
@@ -27,14 +28,16 @@ module RainforestCli
       end
       raise 'Invalid schema in CSV. You must include headers in first row.' if !columns
 
-      puts 'Checking for existing tabular variables.'
-      generators = http_client.get('/generators')
-      generator = generators.find { |g| g['name'] == @generator_name }
+      if @overwrite_variable
+        puts 'Checking for existing tabular variables.'
+        generators = http_client.get('/generators')
+        generator = generators.find { |g| g['name'] == @generator_name }
 
-      if generator
-        puts 'Existing tabular variable found. Deleting old data.'
-        response = http_client.delete("/generators/#{generator['id']}")
-        raise "Error deleting old tabular variable: #{response['error']}" if response['error']
+        if generator
+          puts 'Existing tabular variable found. Deleting old data.'
+          response = http_client.delete("/generators/#{generator['id']}")
+          raise "Error deleting old tabular variable: #{response['error']}" if response['error']
+        end
       end
 
       print 'Creating new tabular variable'

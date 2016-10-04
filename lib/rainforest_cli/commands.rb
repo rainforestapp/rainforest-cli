@@ -4,9 +4,11 @@ module RainforestCli
   class Commands
     Command = Struct.new(:name, :description, :block)
 
+    attr_reader :commands
+
     def initialize
       @commands = []
-      yield(self)
+      yield(self) if block_given?
     end
 
     def add(command, description, &blk)
@@ -30,6 +32,12 @@ module RainforestCli
       @commands.each do |command|
         puts "\t#{command.name.ljust(command_col_width)}\t\t#{command.description}"
       end
+    end
+
+    private
+
+    def logger
+      RainforestCli.logger
     end
   end
 end

@@ -40,7 +40,7 @@ module RainforestCli
 
     if args.size == 0
       commands.print_documentation
-      OptionParser.new(['--help'])
+      options.print_documentation
     end
 
     begin
@@ -50,7 +50,7 @@ module RainforestCli
       exit 2
     end
 
-    commands.call(options.command)
+    commands.call(options.command) if options.command
     true
   end
 

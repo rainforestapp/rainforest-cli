@@ -150,6 +150,10 @@ module RainforestCli
       @tests = @args.dup
     end
 
+    def print_documentation
+      self.class.new(['--help'])
+    end
+
     def tests
       @tests
     end
@@ -175,7 +179,7 @@ module RainforestCli
     end
 
     def validate!
-      if !TOKEN_NOT_REQUIRED.include?(command)
+      unless command.nil? || TOKEN_NOT_REQUIRED.include?(command)
         unless token
           raise ValidationError, 'You must pass your API token using: --token TOKEN'
         end

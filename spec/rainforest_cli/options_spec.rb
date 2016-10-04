@@ -143,12 +143,12 @@ describe RainforestCli::OptionParser do
     end
 
     context 'with valid arguments' do
-      let(:args) { %w(--token foo) }
+      let(:args) { %w(new) }
       it { does_not_raise_a_validation_exception }
     end
 
     context 'with missing token' do
-      let(:args) { %w() }
+      let(:args) { %w(upload) }
       it { raises_a_validation_exception }
     end
 

@@ -5,6 +5,7 @@ require 'logger'
 require 'rainforest_cli/version'
 require 'rainforest_cli/constants'
 require 'rainforest_cli/options'
+require 'rainforest_cli/commands'
 require 'rainforest_cli/runner'
 require 'rainforest_cli/http_client'
 require 'rainforest_cli/git_trigger'
@@ -23,9 +24,24 @@ require 'rainforest_cli/reporter'
 module RainforestCli
   def self.start(args)
     options = OptionParser.new(args)
+    commands = Commands.new do |c|
+      c.add('run', 'Run your tests on Rainforest') { Runner.new(options).run }
+      c.add('new', 'Create a new RFML test') { TestFiles.new(options).create_file }
+      c.add('validate', 'Validate your RFML tests') { Validator.new(options).validate }
+      c.add('upload', 'Upload your RFML tests') { Uploader.new(options).upload }
+      c.add('rm', 'Remove an RFML test locally and remotely') { Deleter.new(options).delete }
+      c.add('export', 'Export your remote Rainforest tests to RFML') { Exporter.new(options).export }
+      c.add('csv-upload', 'Upload a new tabular variable from a CSV file') { CSVImporter.new(options).import }
+      c.add('report', 'Create a JUnit report from your run results') { Reporter.new(options).report }
+    end
+
     @http_client = HttpClient.new(token: options.token)
     ::Rainforest.api_key = options.token
-    OptionParser.new(['--help']) if args.size == 0
+
+    if args.size == 0
+      commands.print_documentation
+      OptionParser.new(['--help'])
+    end
 
     begin
       options.validate!
@@ -34,22 +50,7 @@ module RainforestCli
       exit 2
     end
 
-    case options.command
-    when 'run' then Runner.new(options).run
-    when 'new' then TestFiles.new(options).create_file
-    when 'validate' then Validator.new(options).validate
-    when 'upload' then Uploader.new(options).upload
-    when 'rm' then Deleter.new(options).delete
-    when 'export' then Exporter.new(options).export
-    when 'csv-upload' then CSVImporter.new(options).import
-    when 'report' then Reporter.new(options).report
-    when 'sites', 'folders', 'browsers'
-      Resources.new(options).public_send(options.command)
-    else
-      logger.fatal 'Unknown command'
-      exit 2
-    end
-
+    commands.call(options.command)
     true
   end
 

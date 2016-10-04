@@ -128,7 +128,7 @@ module RainforestCli
           exit 0
         end
 
-        opts.on_tail('--version', 'Display gem version') do
+        opts.on_tail('--version', '-v', 'Display gem version') do
           puts opts.ver
           exit 0
         end

@@ -128,7 +128,7 @@ module RainforestCli
           exit 0
         end
 
-        opts.on_tail('--version', 'Display gem version') do
+        opts.on_tail('--version', '-v', 'Display gem version') do
           puts opts.ver
           exit 0
         end
@@ -148,6 +148,10 @@ module RainforestCli
       end
 
       @tests = @args.dup
+    end
+
+    def print_documentation
+      self.class.new(['--help'])
     end
 
     def tests
@@ -175,7 +179,7 @@ module RainforestCli
     end
 
     def validate!
-      if !TOKEN_NOT_REQUIRED.include?(command)
+      unless command.nil? || TOKEN_NOT_REQUIRED.include?(command)
         unless token
           raise ValidationError, 'You must pass your API token using: --token TOKEN'
         end

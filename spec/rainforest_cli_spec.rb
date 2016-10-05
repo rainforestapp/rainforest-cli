@@ -40,6 +40,15 @@ describe RainforestCli do
       end
     end
 
+    context 'no parameters' do
+      let(:params) { %w() }
+      it 'prints out the help docs' do
+        expect_any_instance_of(RainforestCli::Commands).to receive(:print_documentation)
+        expect_any_instance_of(RainforestCli::OptionParser).to receive(:print_documentation)
+        described_class.start(params)
+      end
+    end
+
     context 'git-trigger' do
       let(:params) { %w(run --token x --git-trigger) }
       let(:commit_message) { 'a test commit message' }

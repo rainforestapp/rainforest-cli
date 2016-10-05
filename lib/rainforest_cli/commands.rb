@@ -28,7 +28,7 @@ module RainforestCli
 
     def print_documentation
       command_col_width = @commands.map { |c| c.name.length }.max
-      puts 'Rainforest CLI commands:'
+      puts 'Usage: Rainforest CLI commands:'
       @commands.each do |command|
         puts "\t#{command.name.ljust(command_col_width)}\t\t#{command.description}"
       end

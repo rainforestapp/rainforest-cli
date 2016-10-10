@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 1.10.1 - 10th October 2016
+- Add documentation for commands to `--help` text. (fe3fddbe7086a6b914ffe74f65ae128a14277f82, @epaulet)
+- Use more efficient CSV upload method. (e716e76b7627b334c4f8b50fd0afdad6fadd162e, @epaulet)
+
 ## 1.10.0 - 19th September 2016
 - Add `--overwrite-variable` option to overwrite existing tabular variables if the
 desired variable name is already taken when uploading CSVs. (ebf4ab90c5db2589695eaf6c3d4c4206bad17e7b,

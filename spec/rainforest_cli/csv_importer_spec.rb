@@ -31,24 +31,22 @@ describe RainforestCli::CSVImporter do
                                 .with('/generators', {
                                         name: 'variables',
                                         description: 'variables',
-                                        columns: columns.map {|col| { name: col } },
+                                        columns: columns,
                                       })
                                 .and_return success_response
 
         expect(http_client).to receive(:post)
-                                .with("/generators/#{generator_id}/rows", {
-                                        data: {
-                                          0 => 'russ@rainforestqa.com',
-                                          1 => 'abc123',
-                                        },
-                                      }).and_return({})
-
-        expect(http_client).to receive(:post)
-                                .with("/generators/#{generator_id}/rows", {
-                                        data: {
-                                          0 => 'bob@example.com',
-                                          1 => 'hunter2',
-                                        },
+                                .with("/generators/#{generator_id}/rows/batch", {
+                                        data: [
+                                          {
+                                            0 => 'russ@rainforestqa.com',
+                                            1 => 'abc123',
+                                          },
+                                          {
+                                            0 => 'bob@example.com',
+                                            1 => 'hunter2',
+                                          },
+                                        ],
                                       }).and_return({})
         subject.import
       end

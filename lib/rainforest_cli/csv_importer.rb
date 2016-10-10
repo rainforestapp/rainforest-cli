@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 require 'csv'
-require 'parallel'
-require 'ruby-progressbar'
 
 module RainforestCli
   class CSVImporter
@@ -24,7 +22,7 @@ module RainforestCli
 
       # Create the generator
       columns = rows.shift.map do |column|
-        {name: column.downcase.strip.gsub(/\s/, '_')}
+        column.downcase.strip.gsub(/\s/, '_')
       end
       raise 'Invalid schema in CSV. You must include headers in first row.' if !columns
 
@@ -45,17 +43,15 @@ module RainforestCli
       raise "Error creating tabular variable: #{response['error']}" if response['error']
       puts "\t[OK]"
 
-      @columns = response['columns']
-      @generator_id = response['id']
+      columns = response['columns']
+      generator_id = response['id']
+      data = rows.map { |row| row_data(columns, row) }
 
       puts 'Uploading data...'
-      p = ProgressBar.create(title: 'Rows', total: rows.count, format: '%a %B %p%% %t')
-
-      # Insert the data
-      Parallel.each(rows, in_threads: RainforestCli::THREADS, finish: lambda { |_item, _i, _result| p.increment }) do |row|
-        response = http_client.post("/generators/#{@generator_id}/rows", {data: row_data(@columns, row)})
-        raise response['error'] if response['error']
-      end
+      response = http_client.post("/generators/#{generator_id}/rows/batch", data: data)
+      # NOTE: Response for this endpoint will usually be an array representing all the rows created
+      raise response['error'] if response.is_a?(Hash) && response['error']
+      puts 'Upload complete.'
     end
 
     private

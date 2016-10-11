@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 1.10.2 - 11th October 2016
+- Limit CSV batch upload size to chunks of 20 at a time for more reliability.
+(abfed07df5635eb88029ee0b6cf8eea3a538fff6, @epaulet)
+
 ## 1.10.1 - 10th October 2016
 - Add documentation for commands to `--help` text. (fe3fddbe7086a6b914ffe74f65ae128a14277f82, @epaulet)
 - Use more efficient CSV upload method. (e716e76b7627b334c4f8b50fd0afdad6fadd162e, @epaulet)

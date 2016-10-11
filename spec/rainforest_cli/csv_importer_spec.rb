@@ -47,7 +47,7 @@ describe RainforestCli::CSVImporter do
                                             1 => 'hunter2',
                                           },
                                         ],
-                                      }).and_return({})
+                                      }, retries_on_failures: true).and_return({})
         subject.import
       end
     end

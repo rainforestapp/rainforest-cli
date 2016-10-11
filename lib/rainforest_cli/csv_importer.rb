@@ -4,6 +4,8 @@ require 'csv'
 
 module RainforestCli
   class CSVImporter
+    BATCH_SIZE = 50
+
     def initialize(options)
       @generator_name = options.import_name
       @file = options.import_file_name
@@ -48,9 +50,18 @@ module RainforestCli
       data = rows.map { |row| row_data(columns, row) }
 
       puts 'Uploading data...'
-      response = http_client.post("/generators/#{generator_id}/rows/batch", data: data)
-      # NOTE: Response for this endpoint will usually be an array representing all the rows created
-      raise response['error'] if response.is_a?(Hash) && response['error']
+      row_count = (1.0 * data.count / BATCH_SIZE).ceil
+      p = ProgressBar.create(title: 'Rows', total: row_count, format: '%a %B %p%% %t')
+
+      data.each_slice(BATCH_SIZE) do |data_slice|
+        response = http_client.post(
+          "/generators/#{generator_id}/rows/batch",
+          { data: data_slice },
+          retries_on_failures: true)
+        # NOTE: Response for this endpoint will usually be an array representing all the rows created
+        raise response['error'] if response.is_a?(Hash) && response['error']
+        p.increment
+      end
       puts 'Upload complete.'
     end
 

@@ -23,15 +23,9 @@ module RainforestCli
       JSON.parse(response.body)
     end
 
-    def post(url, body = {}, options = {})
+    def post(path, body = {}, options = {})
       wrap_exceptions(options[:retries_on_failures]) do
-        response = HTTParty.post make_url(url), {
-          body: body,
-          headers: headers,
-          verify: false,
-        }
-
-        return JSON.parse(response.body)
+        return request(:post, path, { body: body, headers: headers, verify: false }, options[:attempts].to_i)
       end
     end
 
@@ -57,6 +51,20 @@ module RainforestCli
     end
 
     private
+
+    # TODO: Refactor all methods to use #request
+    def request(method, path, options, remaining_attempts = 0)
+      url = File.join(API_URL, path)
+      response = HTTParty.send method, url, options
+
+      if response.code.between?(200, 299) || remaining_attempts == 0
+        JSON.parse(response.body)
+      else
+        logger.warn("HTTP request was unsuccessful. URL: #{url}. Status: #{response.code}")
+        logger.warn("Retrying HTTP request #{remaining_attempts} more times")
+        request(method, url, options, remaining_attempts - 1)
+      end
+    end
 
     def wrap_exceptions(retries_on_failures)
       @retry_delay = 0
@@ -97,6 +105,10 @@ module RainforestCli
         'CLIENT_TOKEN' => @token,
         'User-Agent' => "Rainforest-cli-#{RainforestCli::VERSION}",
       }
+    end
+
+    def logger
+      RainforestCli.logger
     end
   end
 end

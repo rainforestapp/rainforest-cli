@@ -32,7 +32,7 @@ describe RainforestCli::CSVImporter do
                                         name: 'variables',
                                         description: 'variables',
                                         columns: columns,
-                                      })
+                                      }, retries_on_failures: true, attempts: 5)
                                 .and_return success_response
 
         expect(http_client).to receive(:post)
@@ -47,7 +47,7 @@ describe RainforestCli::CSVImporter do
                                             1 => 'hunter2',
                                           },
                                         ],
-                                      }, retries_on_failures: true).and_return({})
+                                      }, retries_on_failures: true, attempts: 5).and_return({})
         subject.import
       end
     end

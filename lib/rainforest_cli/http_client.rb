@@ -25,24 +25,13 @@ module RainforestCli
 
     def post(path, body = {}, options = {})
       wrap_exceptions(options[:retries_on_failures]) do
-        return request(:post, path, { body: body, headers: headers, verify: false }, options[:attempts].to_i)
+        return request(:post, path, body, options[:attempts].to_i)
       end
     end
 
-    def get(url, body = {}, options = {})
+    def get(path, body = {}, options = {})
       wrap_exceptions(options[:retries_on_failures]) do
-        response = HTTParty.get make_url(url), {
-          body: body,
-          headers: headers,
-          verify: false,
-        }
-
-        if response.code == 200
-          return JSON.parse(response.body)
-        else
-          RainforestCli.logger.warn("Status Code: #{response.code}, #{response.body}")
-          return nil
-        end
+        return request(:get, path, body, options[:attempts].to_i)
       end
     end
 
@@ -53,9 +42,9 @@ module RainforestCli
     private
 
     # TODO: Refactor all methods to use #request
-    def request(method, path, options, remaining_attempts = 0)
+    def request(method, path, body, remaining_attempts)
       url = File.join(API_URL, path)
-      response = HTTParty.send method, url, options
+      response = HTTParty.send(method, url, { body: body, headers: headers, verify: false })
 
       if response.code.between?(200, 299) || remaining_attempts == 0
         JSON.parse(response.body)

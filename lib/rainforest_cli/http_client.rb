@@ -13,25 +13,36 @@ module RainforestCli
       @token = options.fetch(:token)
     end
 
-    def delete(url, body = {})
-      response = HTTParty.delete make_url(url), {
-        body: body,
-        headers: headers,
-        verify: false,
-      }
-
-      JSON.parse(response.body)
+    def delete(path, body = {}, options = {})
+      request(:delete, path, body, options)
     end
 
     def post(path, body = {}, options = {})
-      wrap_exceptions(options[:retries_on_failures]) do
-        return request(:post, path, body, options[:attempts].to_i)
-      end
+      request(:post, path, body, options)
     end
 
     def get(path, body = {}, options = {})
-      wrap_exceptions(options[:retries_on_failures]) do
-        return request(:get, path, body, options[:attempts].to_i)
+      request(:get, path, body, options)
+    end
+
+    def request(method, path, body, options)
+      url = File.join(API_URL, path)
+
+      response = wrap_exceptions(options[:retries_on_failures]) do
+        HTTParty.send(method, url, { body: body, headers: headers, verify: false })
+      end
+
+      if response.code.between?(200, 299)
+        JSON.parse(response.body)
+      elsif options[:attempts].to_i == 0
+        logger.fatal "Non 200 code received for request to #{url}"
+        logger.debug response.body if options[:debug]
+        exit 1
+      else
+        logger.warn("HTTP request was unsuccessful. URL: #{url}. Status: #{response.code}")
+        logger.warn("Retrying HTTP request #{remaining_attempts} more times")
+        options[:attempts] -= 1 unless options[:attempts].nil?
+        request(method, path, body, options)
       end
     end
 
@@ -40,20 +51,6 @@ module RainforestCli
     end
 
     private
-
-    # TODO: Refactor all methods to use #request
-    def request(method, path, body, remaining_attempts)
-      url = File.join(API_URL, path)
-      response = HTTParty.send(method, url, { body: body, headers: headers, verify: false })
-
-      if response.code.between?(200, 299) || remaining_attempts == 0
-        JSON.parse(response.body)
-      else
-        logger.warn("HTTP request was unsuccessful. URL: #{url}. Status: #{response.code}")
-        logger.warn("Retrying HTTP request #{remaining_attempts} more times")
-        request(method, url, options, remaining_attempts - 1)
-      end
-    end
 
     def wrap_exceptions(retries_on_failures)
       @retry_delay = 0
@@ -64,8 +61,7 @@ module RainforestCli
           if @waiting_on_retries
             Kernel.sleep 5
           else
-            Http::Exceptions.wrap_exception { yield }
-            break
+            return Http::Exceptions.wrap_exception { yield }
           end
         rescue Http::Exceptions::HttpException, Timeout::Error => e
           raise e unless retries_on_failures

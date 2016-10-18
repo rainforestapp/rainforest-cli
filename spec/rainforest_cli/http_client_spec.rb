@@ -66,13 +66,8 @@ describe RainforestCli::HttpClient do
 
         it 'gets an error 404 and prints the error' do
           expect(HTTParty).to receive(:get).and_return(response)
-          expect_any_instance_of(Logger).to receive(:warn).with('Status Code: 404, {"error":"some error","type":"some type"}')
-          expect(subject)
-        end
-
-        it 'returns nil' do
-          expect(HTTParty).to receive(:get).and_return(response)
-          expect(subject).to eq(nil)
+          expect_any_instance_of(Logger).to receive(:fatal).with(a_string_including('Non 200 code received'))
+          expect { subject }.to raise_error(SystemExit)
         end
       end
     end

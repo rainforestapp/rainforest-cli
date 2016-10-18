@@ -86,18 +86,6 @@ describe RainforestCli::Runner do
         }
       end
 
-      it 'errors out and exits if valid file but invalid token' do
-        File.should_receive(:exist?).with('fobar.ipa') { true }
-        subject.client.should_receive(:get).with('/uploads', {}, retries_on_failures: true) { nil }
-        expect_any_instance_of(Logger).to receive(:fatal).with(
-          'Failed to upload file fobar.ipa. Please, check your API token.')
-        expect do
-          subject.upload_app('fobar.ipa')
-        end.to raise_error(SystemExit) { |error|
-          expect(error.status).to eq 1
-        }
-      end
-
       it 'errors out and exits if was not possible to upload the file' do
         File.should_receive(:exist?).with('fobar.ipa') { true }
         File.should_receive(:read).with('fobar.ipa') { 'File data' }

@@ -36,11 +36,11 @@ module RainforestCli
         JSON.parse(response.body)
       elsif options[:attempts].to_i == 0
         logger.fatal "Non 200 code received for request to #{url}"
-        logger.debug response.body if options[:debug]
+        logger.fatal "Server response: #{response.body}"
         exit 1
       else
         logger.warn("HTTP request was unsuccessful. URL: #{url}. Status: #{response.code}")
-        logger.warn("Retrying HTTP request #{remaining_attempts} more times")
+        logger.warn("Retrying HTTP request #{options[:attempts]} more times")
         options[:attempts] -= 1 unless options[:attempts].nil?
         request(method, path, body, options)
       end

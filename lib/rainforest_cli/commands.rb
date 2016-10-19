@@ -6,6 +6,8 @@ module RainforestCli
 
     attr_reader :commands
 
+    SUPPORTED_COMMANDS = %w(run new validate upload rm export csv-upload report sites folders browsers)
+
     def initialize
       @commands = []
       yield(self) if block_given?

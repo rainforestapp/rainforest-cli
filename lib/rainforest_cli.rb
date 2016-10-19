@@ -33,6 +33,9 @@ module RainforestCli
       c.add('export', 'Export your remote Rainforest tests to RFML') { Exporter.new(options).export }
       c.add('csv-upload', 'Upload a new tabular variable from a CSV file') { CSVImporter.new(options).import }
       c.add('report', 'Create a JUnit report from your run results') { Reporter.new(options).report }
+      c.add('sites', 'Lists the available sites') { Resources.new(options).public_send('sites') }
+      c.add('folders', 'Lists the available folders') { Resources.new(options).public_send('folders') }
+      c.add('browsers', 'Lists the available browsers') { Resources.new(options).public_send('browsers') }
     end
 
     @http_client = HttpClient.new(token: options.token)

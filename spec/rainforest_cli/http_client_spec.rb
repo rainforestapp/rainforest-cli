@@ -3,7 +3,7 @@ describe RainforestCli::HttpClient do
   let(:path) { '/my/path' }
   let(:success_response) { instance_double('HTTParty::Response', code: 200, body: {'success'=>'true'}.to_json) }
 
-  %i(get post delete).each do |m|
+  [:get, :post, :delete].each do |m|
     describe "##{m}" do
       subject { described_class.new({ token: 'foo' }) }
 
@@ -49,23 +49,21 @@ describe RainforestCli::HttpClient do
         it 'it sleeps after failures before a retry' do
           expect(HTTParty).to receive(method).and_raise(SocketError).once.ordered
           expect(HTTParty).to receive(method).and_return(response).ordered
-          expect(Kernel).to receive(:sleep).with(delay_interval).once
+          expect(Kernel).to receive(:sleep)
           expect { subject }.to_not raise_error
         end
 
         it 'sleeps for longer periods with repeated exceptions' do
           expect(HTTParty).to receive(method).and_raise(SocketError).exactly(3).times.ordered
           expect(HTTParty).to receive(method).and_return(response).ordered
-          expect(Kernel).to receive(:sleep).with(delay_interval).once
-          expect(Kernel).to receive(:sleep).with(delay_interval * 2).once
-          expect(Kernel).to receive(:sleep).with(delay_interval * 3).once
+          expect(Kernel).to receive(:sleep).exactly(3).times
           expect { subject }.to_not raise_error
         end
 
         it 'returns the response upon success' do
           expect(HTTParty).to receive(method).and_raise(SocketError).once.ordered
           expect(HTTParty).to receive(method).and_return(response).ordered
-          expect(Kernel).to receive(:sleep).with(delay_interval).once
+          expect(Kernel).to receive(:sleep).once
           expect(subject).to eq(JSON.parse(response.body))
         end
       end
@@ -84,16 +82,6 @@ describe RainforestCli::HttpClient do
         expect_any_instance_of(Logger).to receive(:fatal).with(a_string_including('Non 200 code received'))
         expect_any_instance_of(Logger).to receive(:fatal).with(a_string_including(bad_response.body.to_s))
         expect { subject }.to raise_error(SystemExit)
-      end
-
-      context 'with multiple attempts' do
-        let(:options) { { attempts: 3 } }
-
-        it 'retries up to the number of attempts given' do
-          expect(HTTParty).to receive(method).and_return(bad_response).exactly(3).times.ordered
-          expect(HTTParty).to receive(method).and_return(success_response).ordered
-          expect { subject }.to_not raise_error
-        end
       end
     end
   end

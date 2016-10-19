@@ -14,6 +14,7 @@ class RainforestCli::Deleter
     validate_file_extension
     delete_remote_test(test_file)
     delete_local_file(test_file.file_name)
+    logger.info 'Test successfully deleted.'
   end
 
   private

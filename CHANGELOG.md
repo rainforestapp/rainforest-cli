@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 1.10.3 - 21st October 2016
+- Fix bug with accidental removal of 3 commands. (d9ebbd702ba1b1b64b9a1a222c301315b89d743e, @curtis-rainforestqa)
+- Add better tolerance for server errors. (b4180332ca13fec0972c3d65dbce00242907ca38, @epaulet)
+
 ## 1.10.2 - 11th October 2016
 - Limit CSV batch upload size to chunks of 20 at a time for more reliability.
 (abfed07df5635eb88029ee0b6cf8eea3a538fff6, @epaulet)

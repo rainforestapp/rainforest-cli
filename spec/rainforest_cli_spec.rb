@@ -211,4 +211,23 @@ describe RainforestCli do
       end
     end
   end
+
+  context 'commands' do
+    let(:valid_args) { %w(some args) }
+    let(:command) { double(:command, call: true) }
+    let(:option_parser) { double(:option_parser, token: '123abc', validate!: true, command: 'some-cmd') }
+
+    before do
+      allow(RainforestCli::OptionParser).to receive(:new) { option_parser }
+      allow(RainforestCli::Commands).to receive(:new).and_yield(command).and_return(command)
+    end
+
+    it 'we register all currently supported commands' do
+      RainforestCli::Commands::SUPPORTED_COMMANDS.each do |supported_command|
+        expect(command).to receive(:add).with(supported_command, kind_of(String))
+      end
+
+      described_class.start(valid_args)
+    end
+  end
 end

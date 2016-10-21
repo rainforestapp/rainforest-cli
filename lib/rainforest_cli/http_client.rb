@@ -38,7 +38,7 @@ module RainforestCli
             return JSON.parse(response.body)
           elsif options[:retries_on_failures] && response.code >= 500
             delay = retry_delay
-            logger.warn("HTTP request was unsuccessful. URL: #{url}. Status: #{response.code}")
+            logger.warn "HTTP request was unsuccessful. URL: #{url}. Status: #{response.code}"
             logger.warn "Retrying again in #{delay} seconds..."
             Kernel.sleep delay
           else

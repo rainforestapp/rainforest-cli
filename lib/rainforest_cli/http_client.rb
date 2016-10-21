@@ -13,41 +13,48 @@ module RainforestCli
       @token = options.fetch(:token)
     end
 
-    def delete(url, body = {})
-      response = HTTParty.delete make_url(url), {
-        body: body,
-        headers: headers,
-        verify: false,
-      }
-
-      JSON.parse(response.body)
+    def delete(path, body = {}, options = {})
+      request(:delete, path, body, options)
     end
 
-    def post(url, body = {}, options = {})
-      wrap_exceptions(options[:retries_on_failures]) do
-        response = HTTParty.post make_url(url), {
-          body: body,
-          headers: headers,
-          verify: false,
-        }
-
-        return JSON.parse(response.body)
-      end
+    def post(path, body = {}, options = {})
+      request(:post, path, body, options)
     end
 
-    def get(url, body = {}, options = {})
-      wrap_exceptions(options[:retries_on_failures]) do
-        response = HTTParty.get make_url(url), {
-          body: body,
-          headers: headers,
-          verify: false,
-        }
+    def get(path, body = {}, options = {})
+      request(:get, path, body, options)
+    end
 
-        if response.code == 200
-          return JSON.parse(response.body)
-        else
-          RainforestCli.logger.warn("Status Code: #{response.code}, #{response.body}")
-          return nil
+    def request(method, path, body, options)
+      url = File.join(API_URL, path)
+
+      loop do
+        begin
+          response = Http::Exceptions.wrap_exception do
+            HTTParty.send(method, url, { body: body, headers: headers, verify: false })
+          end
+
+          if response.code.between?(200, 299)
+            return JSON.parse(response.body)
+          elsif options[:retries_on_failures] && response.code >= 500
+            delay = retry_delay
+            logger.warn "HTTP request was unsuccessful. URL: #{url}. Status: #{response.code}"
+            logger.warn "Retrying again in #{delay} seconds..."
+            Kernel.sleep delay
+          else
+            logger.fatal "Non 200 code received for request to #{url}"
+            logger.fatal "Server response: #{response.body}"
+            exit 1
+          end
+        rescue Http::Exceptions::HttpException, Timeout::Error => e
+          raise e unless options[:retries_on_failures]
+
+          delay = retry_delay
+          logger.warn 'Exception Encountered while trying to contact Rainforest API:'
+          logger.warn "\t\t#{e.message}"
+          logger.warn "Retrying again in #{delay} seconds..."
+
+          Kernel.sleep delay
         end
       end
     end
@@ -58,36 +65,6 @@ module RainforestCli
 
     private
 
-    def wrap_exceptions(retries_on_failures)
-      @retry_delay = 0
-      @waiting_on_retries = false
-      loop do
-        begin
-          # Suspend tries until wait period is over
-          if @waiting_on_retries
-            Kernel.sleep 5
-          else
-            Http::Exceptions.wrap_exception { yield }
-            break
-          end
-        rescue Http::Exceptions::HttpException, Timeout::Error => e
-          raise e unless retries_on_failures
-
-          unless @waiting_on_retries
-            @waiting_on_retries = true
-            @retry_delay += RETRY_INTERVAL
-
-            RainforestCli.logger.warn 'Exception Encountered while trying to contact Rainforest API:'
-            RainforestCli.logger.warn "\t\t#{e.message}"
-            RainforestCli.logger.warn "Retrying again in #{@retry_delay} seconds..."
-
-            Kernel.sleep @retry_delay
-            @waiting_on_retries = false
-          end
-        end
-      end
-    end
-
     def make_url(url)
       File.join(API_URL, url)
     end
@@ -97,6 +74,15 @@ module RainforestCli
         'CLIENT_TOKEN' => @token,
         'User-Agent' => "Rainforest-cli-#{RainforestCli::VERSION}",
       }
+    end
+
+    def retry_delay
+      # make retry delay random to desynchronize multiple threads
+      RETRY_INTERVAL + rand(RETRY_INTERVAL)
+    end
+
+    def logger
+      RainforestCli.logger
     end
   end
 end

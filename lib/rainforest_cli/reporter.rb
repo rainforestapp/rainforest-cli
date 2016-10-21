@@ -22,11 +22,6 @@ module RainforestCli
 
       run = client.get("/runs/#{@run_id}.json")
 
-      if run == nil
-        logger.fatal "Non 200 code recieved"
-        exit 1
-      end
-
       if run['error']
         logger.fatal "Error retrieving results for your run: #{run['error']}"
         exit 1
@@ -34,11 +29,6 @@ module RainforestCli
 
       if run.has_key?('total_tests') and run['total_tests'] != 0
         tests = client.get("/runs/#{@run_id}/tests.json?page_size=#{run['total_tests']}")
-
-        if tests == nil
-          logger.fatal "Non 200 code recieved"
-          exit 1
-        end
 
         if tests.kind_of?(Hash) and tests['error'] # if this had worked tests would be an array
           logger.fatal "Error retrieving test details for your run: #{tests['error']}"

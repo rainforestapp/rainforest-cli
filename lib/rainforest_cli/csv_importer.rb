@@ -40,8 +40,12 @@ module RainforestCli
         end
       end
 
-      print 'Creating new tabular variable'
-      response = http_client.post '/generators', { name: @generator_name, description: @generator_name, columns: columns }
+      puts 'Creating new tabular variable'
+      response = http_client.post(
+        '/generators',
+        { name: @generator_name, description: @generator_name, columns: columns },
+        { retries_on_failures: true },
+      )
       raise "Error creating tabular variable: #{response['error']}" if response['error']
       puts "\t[OK]"
 
@@ -57,7 +61,8 @@ module RainforestCli
         response = http_client.post(
           "/generators/#{generator_id}/rows/batch",
           { data: data_slice },
-          retries_on_failures: true)
+          { retries_on_failures: true },
+        )
         # NOTE: Response for this endpoint will usually be an array representing all the rows created
         raise response['error'] if response.is_a?(Hash) && response['error']
         p.increment

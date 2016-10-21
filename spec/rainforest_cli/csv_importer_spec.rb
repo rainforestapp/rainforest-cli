@@ -32,7 +32,7 @@ describe RainforestCli::CSVImporter do
                                         name: 'variables',
                                         description: 'variables',
                                         columns: columns,
-                                      })
+                                      }, retries_on_failures: true)
                                 .and_return success_response
 
         expect(http_client).to receive(:post)

@@ -210,20 +210,6 @@ describe RainforestCli do
         expect(described_class.start(valid_args)).to eq(true)
       end
     end
-
-    context 'a run where the server 500s after a while' do
-      before do
-        allow_any_instance_of(http_client).to receive(:post).and_return('id' => 1)
-        expect_any_instance_of(http_client).to receive(:get).twice.and_return(ok_progress)
-        expect_any_instance_of(http_client).to receive(:get)
-        expect_any_instance_of(http_client).to receive(:get).twice.and_return(ok_progress)
-        expect_any_instance_of(http_client).to receive(:get).and_return(complete_response)
-      end
-
-      it 'should return true' do
-        expect(described_class.start(valid_args)).to eq(true)
-      end
-    end
   end
 
   context 'commands' do

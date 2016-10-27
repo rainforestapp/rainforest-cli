@@ -26,7 +26,7 @@ module RainforestCli::TestParser
       @test.browsers = []
     end
 
-    TEST_DATA_FIELDS = [:start_uri, :title, :site_id, :browsers].freeze
+    TEST_DATA_FIELDS = [:start_uri, :title, :site_id].freeze
     STEP_DATA_FIELDS = [:redirect].freeze
     CSV_FIELDS = [:tags, :browsers].freeze
 
@@ -37,32 +37,32 @@ module RainforestCli::TestParser
       text.lines.each_with_index do |line, line_no|
         line = line.chomp
         if line[0..1] == '#!'
-          # special comment, don't ignore!
           @test.rfml_id = line[2..-1].strip.split(' ')[0]
-          @test.description += line[1..-1] + "\n"
 
         elsif line[0] == '#'
-          # comment, store in description
-          @test.description += line[1..-1] + "\n"
+          comment = line[1..-1].strip
 
-          if line[1..-1].strip[0..8] == 'redirect:'
-            value = line[1..-1].split(' ')[1..-1].join(' ').strip
+          if comment.start_with?('redirect:')
+            value = comment.split(' ')[1..-1].join(' ').strip
             if %(true false).include?(value)
               step_settings_scratch[:redirect] = value
             else
               @test.errors[line_no] = Error.new(line_no, 'Redirection value must be true or false')
             end
-          end
+          else
+            special_fields = (CSV_FIELDS + TEST_DATA_FIELDS)
+            matched_field = special_fields.find { |f| comment.start_with?("#{f}:") }
+            if matched_field.nil?
+              # comment, store in description
+              @test.description += comment + "\n"
+            else
+              # extract just the text of the field
+              @test[matched_field] = comment.split(' ')[1..-1].join(' ').strip
 
-          (CSV_FIELDS + TEST_DATA_FIELDS).each do |field|
-            next unless line[1..-1].strip[0..(field.length)] == "#{field}:"
-
-            # extract just the text of the field
-            @test[field] = line[1..-1].split(' ')[1..-1].join(' ').strip
-
-            # if it's supposed to be a CSV field, split and trim it
-            if CSV_FIELDS.include?(field)
-              @test[field] = @test[field].split(',').map(&:strip).map(&:downcase)
+              # if it's supposed to be a CSV field, split and trim it
+              if CSV_FIELDS.include?(matched_field)
+                @test[matched_field] = @test[matched_field].split(',').map(&:strip).map(&:downcase)
+              end
             end
           end
 

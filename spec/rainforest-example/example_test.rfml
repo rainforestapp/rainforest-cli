@@ -3,6 +3,9 @@
 # tags: foo,bar,baz
 # site_id: 456
 # start_uri: /start_uri
+# This is a comment
 
+# this is also a comment
+# redirect: false
 This is a step action.
 This is a question?

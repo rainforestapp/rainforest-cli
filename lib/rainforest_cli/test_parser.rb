@@ -26,8 +26,7 @@ module RainforestCli::TestParser
       @test.browsers = []
     end
 
-    TEST_DATA_FIELDS = [:start_uri, :title, :site_id].freeze
-    STEP_DATA_FIELDS = [:redirect].freeze
+    TEST_DATA_FIELDS = [:start_uri, :title, :site_id, :tags, :browsers].freeze
     CSV_FIELDS = [:tags, :browsers].freeze
 
     def process
@@ -50,8 +49,7 @@ module RainforestCli::TestParser
               @test.errors[line_no] = Error.new(line_no, 'Redirection value must be true or false')
             end
           else
-            special_fields = (CSV_FIELDS + TEST_DATA_FIELDS)
-            matched_field = special_fields.find { |f| comment.start_with?("#{f}:") }
+            matched_field = TEST_DATA_FIELDS.find { |f| comment.start_with?("#{f}:") }
             if matched_field.nil?
               # comment, store in description
               @test.description += comment + "\n"

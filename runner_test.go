@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
@@ -28,6 +29,8 @@ func newTestPostServer(check func([]byte)) *httptest.Server {
 }
 
 func TestRunByTags(t *testing.T) {
+	tempTestInBackground := runTestInBackground
+	runTestInBackground = true
 	testCases := []testRequest{
 		{
 			tags: "foo,bar",
@@ -70,9 +73,12 @@ func TestRunByTags(t *testing.T) {
 		createRun()
 		ts.Close()
 	}
+	runTestInBackground = tempTestInBackground
 }
 
 func TestRunBySmartFolder(t *testing.T) {
+	tempTestInBackground := runTestInBackground
+	runTestInBackground = true
 	testCases := []testRequest{
 		{
 			smartFolderID: 0,
@@ -103,9 +109,12 @@ func TestRunBySmartFolder(t *testing.T) {
 		createRun()
 		ts.Close()
 	}
+	runTestInBackground = tempTestInBackground
 }
 
 func TestRunBySiteId(t *testing.T) {
+	tempTestInBackground := runTestInBackground
+	runTestInBackground = true
 	testCases := []testRequest{
 		{
 			siteID: 0,
@@ -135,11 +144,13 @@ func TestRunBySiteId(t *testing.T) {
 		testIDs = test.testIDs
 		createRun()
 		ts.Close()
-
 	}
+	runTestInBackground = tempTestInBackground
 }
 
 func TestRunByTestID(t *testing.T) {
+	tempTestInBackground := runTestInBackground
+	runTestInBackground = true
 	testCases := []testRequest{
 		{
 			testIDs: "200",
@@ -188,4 +199,57 @@ func TestRunByTestID(t *testing.T) {
 		createRun()
 		ts.Close()
 	}
+	runTestInBackground = tempTestInBackground
+}
+
+func checkRequest(want string, r *http.Request, t *testing.T) {
+	if r.URL.String() != want {
+		t.Errorf("Expected %v, got %v", want, r.URL)
+	}
+}
+
+func TestRunInForeground(t *testing.T) {
+	waitTime = 0
+	var percent int
+	tempTestInBackground := runTestInBackground
+	runTestInBackground = false
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			panic(err)
+		}
+		w.WriteHeader(200)
+		if r.Method == "POST" {
+			checkRequest("/runs", r, t)
+			w.Write([]byte(`{"id": 7000}`))
+		}
+
+		if r.Method == "GET" {
+			checkRequest("/runs/7000", r, t)
+			percent += 25
+			if percent < 100 {
+				response := runStatusResponse(`"in_progress"`, "false", percent)
+				w.Write([]byte(response))
+			} else {
+				response := runStatusResponse(`"passed"`, "true", 100)
+				w.Write([]byte(response))
+			}
+		}
+	}))
+	baseURL = ts.URL
+	createRun()
+	runTestInBackground = tempTestInBackground
+}
+
+func runStatusResponse(result string, finalState string, percent int) string {
+	response := `{
+		"id": 78902,
+		"state": "testing",
+		"state_details": {
+			"is_final_state": ` + finalState + `
+		},
+		"result": ` + result + `,
+		"current_progress": {"percent": ` + strconv.Itoa(percent) + `}}`
+	return response
 }

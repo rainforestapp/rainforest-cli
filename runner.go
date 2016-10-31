@@ -40,9 +40,8 @@ type runResponse struct {
 
 func createRun() {
 	params := makeParams()
-	resBody := postRun(params)
-
-	fmt.Println(resBody)
+	response := postRun(params)
+	fmt.Println(string(response))
 }
 
 func makeParams() *runParams {
@@ -79,7 +78,8 @@ func stringToIntSlice(s string) []int {
 	return slicedInt
 }
 
-func postRun(params *runParams) (resBody *runResponse) {
+func postRun(params *runParams) []byte {
+	var resBody runResponse
 	js, err := json.Marshal(params)
 
 	if err != nil {
@@ -92,7 +92,7 @@ func postRun(params *runParams) (resBody *runResponse) {
 		runID := resBody.ID
 		checkRunProgress(runID)
 	}
-	return
+	return data
 }
 
 func checkRunProgress(runID int) {

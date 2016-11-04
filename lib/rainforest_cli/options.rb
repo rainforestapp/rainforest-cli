@@ -7,7 +7,7 @@ module RainforestCli
     attr_reader :command, :token, :tags, :conflict, :browsers, :site_id, :environment_id,
                 :import_file_name, :import_name, :custom_url, :description, :folder,
                 :debug, :file_name, :test_folder, :embed_tests, :app_source_url, :crowd, :run_id,
-                :junit_file, :overwrite_variable
+                :junit_file, :overwrite_variable, :single_use_tabular_variable
 
     TOKEN_NOT_REQUIRED = %w{new validate}.freeze
 
@@ -48,6 +48,10 @@ module RainforestCli
 
         opts.on('--import-variable-name NAME', 'Import tabular step variables; Name of variable') do |value|
           @import_name = value
+        end
+
+        opts.on('--single-use', 'Flag your tabular variable as single use.') do
+          @single_use_tabular_variable = true
         end
 
         opts.on('--overwrite-variable', 'Import tabular step variables: overwrite existing variable if desired variable name is taken') do

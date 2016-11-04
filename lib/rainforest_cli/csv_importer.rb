@@ -10,6 +10,7 @@ module RainforestCli
       @generator_name = options.import_name
       @file = options.import_file_name
       @overwrite_variable = options.overwrite_variable
+      @single_use = options.single_use_tabular_variable || false
     end
 
     def row_data columns, values
@@ -43,8 +44,8 @@ module RainforestCli
       puts 'Creating new tabular variable'
       response = http_client.post(
         '/generators',
-        { name: @generator_name, description: @generator_name, columns: columns },
-        { retries_on_failures: true },
+        { name: @generator_name, description: @generator_name, columns: columns, single_use: @single_use },
+        { retries_on_failures: true }
       )
       raise "Error creating tabular variable: #{response['error']}" if response['error']
       puts "\t[OK]"

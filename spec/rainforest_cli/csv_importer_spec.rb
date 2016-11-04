@@ -8,8 +8,22 @@ describe RainforestCli::CSVImporter do
   end
 
   describe '.import' do
-    let(:options) { instance_double('RainforestCli::Options', import_name: 'variables', import_file_name: csv_file, overwrite_variable: overwrite_variable) }
     subject { described_class.new(options) }
+
+    let(:options) do
+      instance_double(
+      'RainforestCli::Options',
+      {
+        import_name: 'variables',
+        import_file_name: csv_file,
+        overwrite_variable: overwrite_variable,
+        single_use_tabular_variable: single_use_tabular_variable,
+      })
+    end
+
+    let(:overwrite_variable) { nil }
+    let(:single_use_tabular_variable) { nil }
+
     let(:columns) { %w(email pass) }
     let(:generator_id) { 12345 }
     let(:existing_generators) { [] }
@@ -32,6 +46,7 @@ describe RainforestCli::CSVImporter do
                                         name: 'variables',
                                         description: 'variables',
                                         columns: columns,
+                                        single_use: (single_use_tabular_variable || false),
                                       }, retries_on_failures: true)
                                 .and_return success_response
 
@@ -52,31 +67,27 @@ describe RainforestCli::CSVImporter do
       end
     end
 
-    context 'without variable overwriting' do
-      let(:overwrite_variable) { nil }
+    it_behaves_like 'it properly uploads variables'
+
+    context 'tabular variable with given name already exists' do
+      let(:existing_generators) do
+        [
+          {
+            'id' => 98765,
+            'name' => 'existing',
+          },
+          {
+            'id' => generator_id,
+            'name' => 'variables',
+          },
+        ]
+      end
+
+      before do
+        expect(http_client).to_not receive(:delete)
+      end
 
       it_behaves_like 'it properly uploads variables'
-
-      context 'tabular variable with given name already exists' do
-        let(:existing_generators) do
-          [
-            {
-              'id' => 98765,
-              'name' => 'existing',
-            },
-            {
-              'id' => generator_id,
-              'name' => 'variables',
-            },
-          ]
-        end
-
-        before do
-          expect(http_client).to_not receive(:delete)
-        end
-
-        it_behaves_like 'it properly uploads variables'
-      end
     end
 
     context 'with variable overwriting' do
@@ -104,6 +115,12 @@ describe RainforestCli::CSVImporter do
 
         it_behaves_like 'it properly uploads variables'
       end
+    end
+
+    context 'with single-use flag' do
+      let(:single_use_tabular_variable) { true }
+
+      it_behaves_like 'it properly uploads variables'
     end
   end
 end

@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 1.11.0 - 4th November 2016
+- Add `--single-use` flag for CSV uploads. (17a19694a788365beb59e634bd7286c86528484b, @epaulet)
+
 ## 1.10.4 - 31st October 2016
 - Do not upload test metadata as test description. (1c8b46d2156da17be939ac67edefe2bd2b56af47, @epaulet)
 

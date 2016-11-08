@@ -1,83 +1,286 @@
 package main
 
 import (
-	"flag"
-	"io"
+	"fmt"
 	"os"
-	"time"
+
+	"github.com/urfave/cli"
 )
 
-var (
-	apiToken string
-	baseURL            = "https://app.rainforestqa.com/api/1"
-	out      io.Writer = os.Stdout
-	waitTime           = time.Second * 5
-	//Options for which tests to run
-	smartFolderID int
-	siteID        int
-	tags          string
-	testIDs       string
-	//test options
-	crowd         string
-	conflict      string
-	browsers      string
-	description   string
-	environmentID int
-	//test configuration
-	runTestInBackground bool
-	failFast            bool
+const (
+	// Version of the app in SemVer
+	version = "2.0.0"
+	// URL of a current Rainforest API endpoint
+	baseURL = "https://app.rainforestqa.com/api/1"
 )
 
-func parseArgs(arguments []string) ([]string, []string) {
-	var commands []string
-	var flags []string
-	for i := 1; i < len(arguments); i++ {
-		if arguments[i][0] != '-' {
-			commands = append(commands, arguments[i])
-		} else {
-			flags = append(flags, arguments[i])
-		}
-	}
-	return commands, flags
+// notImplemented is a placholder function for actions that are not yet implemented.
+// In the current iteration of cli.
+func notImplemented(c *cli.Context) error {
+	fmt.Println("Not yet implemented. Check it out soon!")
+	return nil
 }
 
+// main is an entry point of the app. It sets up the new cli app, and defines the API.
 func main() {
-	commands, flags := parseArgs(os.Args)
-	command := commands[0]
+	app := cli.NewApp()
+	app.Usage = "CLI client for Rainforest QA services - http://rainforestqa.com"
+	app.Version = version
 
-	flag.StringVar(&apiToken, "token", "", "API token. You can find your account token at https://app.rainforestqa.com/settings/integrations")
-	flag.IntVar(&smartFolderID, "smart_folder_id", 0, "Smart Folder Id. use the `folders` command to find the ID's of your smart folders")
-	flag.IntVar(&siteID, "site_id", 0, "Site ID. use the `sites` command to find the ID's of your sites")
-	flag.StringVar(&tags, "tags", "", "Test tags. enter in a comma separated list")
-	flag.StringVar(&testIDs, "tests", "", "Run test by id. Enter in a comma separated list")
-
-	flag.StringVar(&crowd, "crowd", "", "Crowd to run test with. Enter `default` or `on_premise_crowd`")
-	flag.StringVar(&conflict, "conflict", "", "Handling of runs in progress. (A) Abort: only abort runs in the same environment as your new run. (B) Abort All.")
-	flag.StringVar(&browsers, "browsers", "", "Browsers to test against. enter in a comma separated list")
-	flag.StringVar(&description, "description", "", "An arbitrary string to associate with the run")
-	flag.IntVar(&environmentID, "environment_id", 0, "Use a specific environment for this run")
-	flag.BoolVar(&runTestInBackground, "bg", false, "run test in background")
-	flag.BoolVar(&runTestInBackground, "fail-fast", true, "run test in background")
-	flag.CommandLine.Parse(flags)
-
-	if len(apiToken) == 0 {
-		envToken, present := os.LookupEnv("RAINFOREST_API_TOKEN")
-
-		if present {
-			apiToken = envToken
-		}
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:   "token, t",
+			Usage:  "API token. You can find it at https://app.rainforestqa.com/settings/integrations",
+			EnvVar: "RAINFOREST_API_TOKEN",
+		},
+		cli.IntFlag{
+			Name:   "threads",
+			Usage:  "Used to customize the amount of threads to use when making HTTP requests.",
+			Value:  16,
+			EnvVar: "RAINFOREST_THREADS",
+		},
 	}
 
-	switch command {
-	case "run":
-		createRun()
-	case "sites":
-		printSites()
-	case "folders":
-		printFolders()
-	case "browsers":
-		printBrowsers()
-	default:
-		// TODO: Print out usage
+	app.Commands = []cli.Command{
+		{
+			Name:    "run",
+			Aliases: []string{"r"},
+			Usage:   "Run your tests on Rainforest",
+			Action:  notImplemented,
+			Description: "Runs your tests on Rainforest platform. " +
+				"You need to specify list of test IDs to run or use keyword 'all'. " +
+				"Alternatively you can use one of the filtering options.",
+			ArgsUsage: "[test IDs]",
+			Flags: []cli.Flag{
+				cli.StringSliceFlag{
+					Name:  "tag",
+					Usage: "filter tests by `TAG`. Can be used multiple times for filtering by multiple tags.",
+				},
+				cli.StringFlag{
+					Name:  "site, site-id",
+					Usage: "filter tests by a specific site. You can see a list of your `SITE-ID`s with sites command.",
+				},
+				cli.StringFlag{
+					Name:  "folder",
+					Usage: "filter tests by a specific folder. You can see a list of your `FOLDER-ID`s with folders command.",
+				},
+				cli.StringSliceFlag{
+					Name: "browsers",
+					Usage: "specify the `BROWSER` you wish to run against. This overrides test level settings." +
+						"Can be used multiple times to run against multiple browsers.",
+				},
+				cli.StringFlag{
+					Name:  "environment-id",
+					Usage: "run your tests using specified `ENVIRONMENT`. Otherwise it will use your default one.",
+				},
+				cli.StringFlag{
+					Name:  "crowd",
+					Value: "default",
+					Usage: "run your tests using specified `CROWD`. Available choices are: default or on_premise_crowd.",
+				},
+				cli.StringFlag{
+					Name: "conflict",
+					Usage: "use the abort option to abort any runs in the same environment or " +
+						"use the abort-all option to abort all runs in progress.",
+				},
+				cli.BoolTFlag{
+					Name: "fg",
+					Usage: "results in the foreground - rainforest-cli will not return until the run is complete. " +
+						"This is what you want to make the build pass / fail dependent on rainforest results",
+				},
+				cli.BoolTFlag{
+					Name: "fail-fast",
+					Usage: "fail the build as soon as the first failed result comes in. " +
+						"If you don't pass this it will wait until 100% of the run is done. Use with --fg.",
+				},
+				cli.StringFlag{
+					Name: "custom-url",
+					Usage: "use a custom `URL` for this run. Example use case: an ad-hoc QA environment with Fourchette. " +
+						"You will need to specify a site_id too for this to work.",
+				},
+				cli.BoolTFlag{
+					Name: "git-trigger",
+					Usage: "only trigger a run when the last commit (for a git repo in the current working directory) " +
+						"contains @rainforest and a list of one or more tags. rainforest-cli exits with 0 otherwise.",
+				},
+				cli.StringFlag{
+					Name:  "description",
+					Usage: "add arbitrary `DESCRIPTION` to the run.",
+				},
+				cli.StringFlag{
+					Name:  "junit-file",
+					Usage: "Create a JUnit XML report `FILE` with the specified name. Must be run in foreground mode.",
+				},
+				cli.StringFlag{
+					Name:  "import-variable-name",
+					Usage: "`NAME` of the tabular variable to be created or updated.",
+				},
+				cli.StringFlag{
+					Name:  "import-variable-csv-file",
+					Usage: "`PATH` to the CSV file to be uploaded.",
+				},
+				cli.BoolTFlag{
+					Name:  "overwrite-variable",
+					Usage: "If the flag is set, named variable will be updated.",
+				},
+				cli.BoolTFlag{
+					Name:  "single-use",
+					Usage: "This option marks uploaded variable as single-use",
+				},
+			},
+		},
+		{
+			Name:      "new",
+			Usage:     "Create a new RFML test",
+			ArgsUsage: "[name]",
+			Description: "Create new Rainforest test in RFML format (Rainforest Markup Language). " +
+				"You may also specify a custom test title or file name.",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:   "test-folder",
+					Value:  "./spec/rainforest/",
+					Usage:  "`PATH` at which to create new test.",
+					EnvVar: "RAINFOREST_TEST_FOLDER",
+				},
+			},
+			Action: notImplemented,
+		},
+		{
+			Name:      "validate",
+			Usage:     "Validate your RFML tests",
+			ArgsUsage: " ",
+			Description: "Validate your tests for syntax and correct RFML ids for embedded tests. " +
+				"If API token is set it'll validate your tests against server data as well.",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:   "test-folder",
+					Value:  "./spec/rainforest/",
+					Usage:  "`PATH` where to look for a tests to validate.",
+					EnvVar: "RAINFOREST_TEST_FOLDER",
+				},
+			},
+			Action: notImplemented,
+		},
+		{
+			Name:      "upload",
+			Usage:     "Upload your RFML tests",
+			ArgsUsage: "[path to RFML file]",
+			Description: "Uploads specified test to Rainforest. " +
+				"If no filepath is given it uploads all RFML tests.",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:   "test-folder",
+					Value:  "./spec/rainforest/",
+					Usage:  "`PATH` where to look for a tests to upload.",
+					EnvVar: "RAINFOREST_TEST_FOLDER",
+				},
+			},
+			Action: notImplemented,
+		},
+		{
+			Name:        "rm",
+			Usage:       "Remove an RFML test locally and remotely",
+			ArgsUsage:   "[path to RFML file]",
+			Description: "Remove RFML file and remove test from Rainforest test suite.",
+			Action:      notImplemented,
+		},
+		{
+			Name: "download",
+			// Left for legacy reason, should nuke?
+			Aliases:   []string{"export"},
+			Usage:     "Download your remote Rainforest tests to RFML",
+			ArgsUsage: "[test IDs]",
+			Description: "Download your remote tests from Rainforest to RFML. " +
+				"You need to specify list of test IDs to download or use keyword 'all'. " +
+				"Alternatively you can use one of the filtering options.",
+			Flags: []cli.Flag{
+				cli.StringSliceFlag{
+					Name:  "tag",
+					Usage: "filter tests by `TAG`. Can be used multiple times for filtering by multiple tags.",
+				},
+				cli.StringFlag{
+					Name:  "site, site-id",
+					Usage: "filter tests by a specific site. You can see a list of your `SITE-ID`s with sites command.",
+				},
+				cli.StringFlag{
+					Name:  "folder",
+					Usage: "filter tests by a specific folder. You can see a list of your `FOLDER-ID`s with folders command.",
+				},
+				cli.StringFlag{
+					Name:   "test-folder",
+					Value:  "./spec/rainforest/",
+					Usage:  "`PATH` at which to save all the downloaded tests.",
+					EnvVar: "RAINFOREST_TEST_FOLDER",
+				},
+				cli.BoolTFlag{
+					Name:  "embed-tests",
+					Usage: "download your tests without extracting the steps of an embedded test.",
+				},
+			},
+			Action: notImplemented,
+		},
+		{
+			Name:        "csv-upload",
+			Usage:       "Create or update tabular var from CSV.",
+			Description: "Upload a CSV file to create or update tabular variables.",
+			ArgsUsage:   "[path to CSV file]",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					// Alternative name left for legacy reason.
+					Name:  "name, import-variable-name",
+					Usage: "`NAME` of the tabular variable to be created or updated.",
+				},
+				cli.BoolTFlag{
+					Name:  "overwrite-variable, overwrite",
+					Usage: "If the flag is set, named variable will be updated.",
+				},
+				cli.BoolTFlag{
+					Name:  "single-use",
+					Usage: "This option marks uploaded variable as single-use",
+				},
+				// Left here for legacy reason, but imho we should move that to args
+				cli.StringFlag{
+					Name:  "csv-file, import-variable-csv-file",
+					Usage: "DEPRECATED: `PATH` to the CSV file to be uploaded. Since v2 please provide the path as an argument.",
+				},
+			},
+			Action: notImplemented,
+		},
+		{
+			Name:  "report",
+			Usage: "Create a JUnit report from your run results",
+			Description: "Creates a JUnit report from your specified run." +
+				"You can specify output file using options, otherwise report will be generated to STDOUT",
+			ArgsUsage: "[run ID]",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "junit-file, out, o",
+					Usage: "`PATH` of file to which save the JUnit report.",
+				},
+				// Left here for legacy reason, but imho we should move that to args
+				cli.StringFlag{
+					Name:  "run-id",
+					Usage: "DEPRECATED: ID of a run for which to generate results. Since v2 please provide the run ID as an argument.",
+				},
+			},
+			Action: notImplemented,
+		},
+		{
+			Name:   "sites",
+			Usage:  "Lists available sites",
+			Action: notImplemented,
+		},
+		{
+			Name:   "folders",
+			Usage:  "Lists available folders",
+			Action: notImplemented,
+		},
+		{
+			Name:   "browsers",
+			Usage:  "Lists available browsers",
+			Action: notImplemented,
+		},
 	}
+
+	app.Run(os.Args)
 }

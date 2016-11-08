@@ -44,10 +44,8 @@ func TestParseArguments(t *testing.T) {
 			wantFlags:    nil,
 		},
 	}
-	tempOsArgs := os.Args
 	for _, test := range testCases {
-		os.Args = test.input
-		gotCommands, gotFlags := parseArgs(os.Args)
+		gotCommands, gotFlags := parseArgs(test.input)
 		if !reflect.DeepEqual(test.wantCommands, gotCommands) {
 			t.Errorf("Command incorrect. Expected %v, got %v", test.wantCommands, gotCommands)
 		}
@@ -55,7 +53,6 @@ func TestParseArguments(t *testing.T) {
 			t.Errorf("Flag incorrect. Expected %v, got %v", test.wantFlags, gotFlags)
 		}
 	}
-	os.Args = tempOsArgs
 }
 
 func TestApiToken(t *testing.T) {

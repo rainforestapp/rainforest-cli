@@ -43,7 +43,13 @@ func parseArgs(arguments []string) ([]string, []string) {
 
 func main() {
 	commands, flags := parseArgs(os.Args)
-	command := commands[0]
+	var command string
+
+	if len(commands) == 0 {
+		flag.PrintDefaults()
+	} else {
+		command = commands[0]
+	}
 
 	flag.StringVar(&apiToken, "token", "", "API token. You can find your account token at https://app.rainforestqa.com/settings/integrations")
 	flag.IntVar(&smartFolderID, "smart_folder_id", 0, "Smart Folder Id. use the `folders` command to find the ID's of your smart folders")
@@ -78,6 +84,6 @@ func main() {
 	case "browsers":
 		printBrowsers()
 	default:
-		// TODO: Print out usage
+		flag.PrintDefaults()
 	}
 }

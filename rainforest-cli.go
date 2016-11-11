@@ -4,14 +4,18 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rainforest/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
 
 const (
 	// Version of the app in SemVer
 	version = "2.0.0"
-	// URL of a current Rainforest API endpoint
-	baseURL = "https://app.rainforestqa.com/api/1"
+)
+
+var (
+	// Rainforest API client
+	api *rainforest.Client
 )
 
 // notImplemented is a placholder function for actions that are not yet implemented.
@@ -26,6 +30,12 @@ func main() {
 	app := cli.NewApp()
 	app.Usage = "CLI client for Rainforest QA services - http://rainforestqa.com"
 	app.Version = version
+
+	// Before running any of the commands we init the API Client
+	app.Before = func(c *cli.Context) error {
+		api = rainforest.NewClient(c.String("token"))
+		return nil
+	}
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -268,17 +278,17 @@ func main() {
 		{
 			Name:   "sites",
 			Usage:  "Lists available sites",
-			Action: notImplemented,
+			Action: printSites,
 		},
 		{
 			Name:   "folders",
 			Usage:  "Lists available folders",
-			Action: notImplemented,
+			Action: printFolders,
 		},
 		{
 			Name:   "browsers",
 			Usage:  "Lists available browsers",
-			Action: notImplemented,
+			Action: printBrowsers,
 		},
 	}
 

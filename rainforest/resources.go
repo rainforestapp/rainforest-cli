@@ -27,7 +27,7 @@ func (f Folder) GetDescription() string {
 
 // GetFolders returns a slice of Folders (their names and IDs) which are available
 // for filtering RF tests.
-func (c *Client) GetFolders() ([]*Folder, error) {
+func (c *Client) GetFolders() ([]Folder, error) {
 	// Prepare request
 	req, err := c.NewRequest("GET", "folders.json?page_size=100", nil)
 	if err != nil {
@@ -35,7 +35,7 @@ func (c *Client) GetFolders() ([]*Folder, error) {
 	}
 
 	// Send request and process response
-	var folderResp []*Folder
+	var folderResp []Folder
 	_, err = c.Do(req, &folderResp)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (b Browser) GetDescription() string {
 
 // GetBrowsers returns a slice of Browsers which are available for the client to run
 // RF tests against.
-func (c *Client) GetBrowsers() ([]*Browser, error) {
+func (c *Client) GetBrowsers() ([]Browser, error) {
 	// Prepare request
 	req, err := c.NewRequest("GET", "clients.json", nil)
 	if err != nil {
@@ -70,7 +70,7 @@ func (c *Client) GetBrowsers() ([]*Browser, error) {
 
 	// browsersResp is a type returned by the API call for list of browsers
 	type browsersResponse struct {
-		AvailableBrowsers []*Browser `json:"available_browsers"`
+		AvailableBrowsers []Browser `json:"available_browsers"`
 	}
 	var browsersResp browsersResponse
 	// Send request and process response
@@ -98,7 +98,7 @@ func (s Site) GetDescription() string {
 }
 
 // GetSites fetches sites available to use during the RF runs.
-func (c *Client) GetSites() ([]*Site, error) {
+func (c *Client) GetSites() ([]Site, error) {
 	// Prepare request
 	req, err := c.NewRequest("GET", "sites.json", nil)
 	if err != nil {
@@ -106,7 +106,7 @@ func (c *Client) GetSites() ([]*Site, error) {
 	}
 
 	// Send request and process response
-	var sitesResp []*Site
+	var sitesResp []Site
 	_, err = c.Do(req, &sitesResp)
 	if err != nil {
 		return nil, err

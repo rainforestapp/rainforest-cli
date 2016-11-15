@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/rainforest/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
@@ -11,6 +12,9 @@ import (
 const (
 	// Version of the app in SemVer
 	version = "2.0.0"
+
+	// Run status poll interval
+	runStatusPollInterval = time.Second * 5
 )
 
 var (
@@ -56,7 +60,7 @@ func main() {
 			Name:    "run",
 			Aliases: []string{"r"},
 			Usage:   "Run your tests on Rainforest",
-			Action:  notImplemented,
+			Action:  startRun,
 			Description: "Runs your tests on Rainforest platform. " +
 				"You need to specify list of test IDs to run or use keyword 'all'. " +
 				"Alternatively you can use one of the filtering options.",
@@ -75,7 +79,7 @@ func main() {
 					Usage: "filter tests by a specific folder. You can see a list of your `FOLDER-ID`s with folders command.",
 				},
 				cli.StringSliceFlag{
-					Name: "browsers",
+					Name: "browser, browsers",
 					Usage: "specify the `BROWSER` you wish to run against. This overrides test level settings." +
 						"Can be used multiple times to run against multiple browsers.",
 				},
@@ -94,12 +98,12 @@ func main() {
 						"use the abort-all option to abort all runs in progress.",
 				},
 				cli.BoolTFlag{
-					Name: "fg",
+					Name: "fg, foreground",
 					Usage: "results in the foreground - rainforest-cli will not return until the run is complete. " +
 						"This is what you want to make the build pass / fail dependent on rainforest results",
 				},
 				cli.BoolTFlag{
-					Name: "fail-fast",
+					Name: "fail-fast, ff",
 					Usage: "fail the build as soon as the first failed result comes in. " +
 						"If you don't pass this it will wait until 100% of the run is done. Use with --fg.",
 				},

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -20,6 +21,9 @@ const (
 var (
 	// Rainforest API client
 	api *rainforest.Client
+
+	// default output for printing
+	out io.Writer = os.Stdout
 )
 
 // notImplemented is a placholder function for actions that are not yet implemented.

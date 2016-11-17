@@ -45,7 +45,7 @@ func (c *Client) CreateRun(params RunParams) (RunStatus, error) {
 	if err != nil {
 		return runStatus, err
 	}
-	_, err = c.Do(req, runStatus)
+	_, err = c.Do(req, &runStatus)
 	if err != nil {
 		return runStatus, err
 	}
@@ -68,7 +68,7 @@ func (c *Client) CheckRunStatus(runID int) (RunStatus, error) {
 	if err != nil {
 		return runStatus, err
 	}
-	_, err = c.Do(req, runStatus)
+	_, err = c.Do(req, &runStatus)
 	if err != nil {
 		return runStatus, err
 	}

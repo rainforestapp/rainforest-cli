@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	"github.com/olekukonko/tablewriter"
 	"github.com/rainforest/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
@@ -25,8 +23,8 @@ func formatAsTable(resources []rainforest.Resource) [][]string {
 // printResourceTable uses olekukonko/tablewriter as a pretty printer
 // for the tabular resources we get from the API and formatted using formatAsTable.
 func printResourceTable(resourceName string, data [][]string) {
-	// Init tablewriter with STDOUT - can be potentially parametrized in the future
-	table := tablewriter.NewWriter(os.Stdout)
+	// Init tablewriter with out global var as a target
+	table := tablewriter.NewWriter(out)
 
 	// Prepare the tablewriter
 	table.SetHeader([]string{resourceName + " ID", resourceName + " Description"})

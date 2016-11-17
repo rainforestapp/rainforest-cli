@@ -144,7 +144,6 @@ func makeRunParams(c *cli.Context) (rainforest.RunParams, error) {
 	tags := c.StringSlice("tag")
 	expandedTags := expandStringSlice(tags)
 
-	fmt.Println(expandedTags)
 	return rainforest.RunParams{
 		Tests:         testIDs,
 		Tags:          expandedTags,

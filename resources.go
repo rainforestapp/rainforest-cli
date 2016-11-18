@@ -1,9 +1,8 @@
 package main
 
 import (
-	"rainforest-cli/rainforest"
-
 	"github.com/olekukonko/tablewriter"
+	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
 

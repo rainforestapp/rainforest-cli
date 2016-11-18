@@ -3,11 +3,11 @@ package main
 import (
 	"errors"
 	"log"
-	"rainforest-cli/rainforest"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
 

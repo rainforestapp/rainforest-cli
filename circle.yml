@@ -1,18 +1,19 @@
 machine:
   environment:
-    IMPORT_PATH: "github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
-    GOPATH: "/home/ubuntu/.go_workspace"
-    BUILD: "$GOPATH/src/$IMPORT_PATH"
+    GOPATH: "$HOME/.go_workspace"
+    BUILD: "$GOPATH/src/rainforest-cli"
+
+checkout:
+  post:
+    - mkdir -p $BUILD
+    - rsync -av . $BUILD
+
 dependencies:
   pre:
-    - go get github.com/tools/godep
+    - curl https://glide.sh/get | sh
   override:
-    - mkdir -p $BUILD
-    - rsync -azC --delete ./ $BUILD
-    - mkdir -p $BUILD/Godeps/_workspace/src/rainforest-cli
-    - mv rainforest $BUILD/Godeps/_workspace/src/rainforest-cli
-    - cd $BUILD && godep go build
+    - cd $BUILD && glide install
 
 test:
   override:
-    - cd $BUILD && go test -v $(go list ./... | grep -v /vendor/)
+    - cd $BUILD && go test -v -race $(glide novendor)

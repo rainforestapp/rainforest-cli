@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"rainforest-cli/rainforest"
 	"time"
 
+	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
 

@@ -9,6 +9,8 @@ dependencies:
   override:
     - mkdir -p $BUILD
     - rsync -azC --delete ./ $BUILD
+    - mkdir -p $BUILD/Godeps/_workspace/src/rainforest-cli
+    - mv rainforest $BUILD/Godeps/_workspace/src/rainforest-cli
     - cd $BUILD && godep go build
 
 test:

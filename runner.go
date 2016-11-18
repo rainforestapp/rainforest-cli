@@ -3,13 +3,12 @@ package main
 import (
 	"errors"
 	"log"
+	"rainforest-cli/rainforest"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/urfave/cli"
-
-	"github.com/rainforest/rainforest-cli/rainforest"
 )
 
 // startRun starts a new Rainforest run & depending on passed flags monitors its execution

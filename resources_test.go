@@ -3,11 +3,10 @@ package main
 import (
 	"bytes"
 	"os"
+	"rainforest-cli/rainforest"
 	"reflect"
 	"regexp"
 	"testing"
-
-	"github.com/rainforest/rainforest-cli/rainforest"
 )
 
 func TestFormatAsTable(t *testing.T) {

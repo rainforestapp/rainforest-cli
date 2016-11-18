@@ -1,0 +1,16 @@
+machine:
+  environment:
+    IMPORT_PATH: "github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
+    GOPATH: "/home/ubuntu/.go_workspace"
+    BUILD: "$GOPATH/src/$IMPORT_PATH"
+dependencies:
+  pre:
+    - go get github.com/tools/godep
+  override:
+    - mkdir -p $BUILD
+    - rsync -azC --delete ./ $BUILD
+    - cd $BUILD && godep go build
+
+test:
+  override:
+    - cd $BUILD && go test -v $(go list ./... | grep -v /vendor/)

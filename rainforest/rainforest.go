@@ -14,6 +14,9 @@ import (
 )
 
 const (
+	// Version of the lib in SemVer
+	libVersion = "2.0.0"
+
 	currentBaseURL  = "https://app.rainforestqa.com/api/1/"
 	authTokenHeader = "CLIENT_TOKEN"
 )
@@ -25,6 +28,9 @@ type Client struct {
 
 	// URL of a Rainforest API endpoint to be used by the client
 	BaseURL *url.URL
+
+	// String that will be set as an user agent with current library version appended to it
+	UserAgent string
 
 	// Client token used for authenticating requests made to the RF
 	ClientToken string
@@ -85,6 +91,12 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	if c.ClientToken != "" {
 		req.Header.Set(authTokenHeader, c.ClientToken)
 	}
+
+	// Set UserAgent header with appended library version, will look like:
+	// "rainforest-cli/2.1.0 [rainforest golang lib/2.0.0]"
+	composedUserAgent := c.UserAgent + " [rainforest golang lib/" + libVersion + "]"
+	req.Header.Set("User-Agent", composedUserAgent)
+
 	return req, nil
 }
 

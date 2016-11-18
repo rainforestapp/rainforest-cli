@@ -19,6 +19,10 @@ const (
 )
 
 var (
+	// Build info to be set while building using:
+	// go build -ldflags "-X main.build 'build details'"
+	build string
+
 	// Rainforest API client
 	api *rainforest.Client
 
@@ -42,6 +46,14 @@ func main() {
 	// Before running any of the commands we init the API Client
 	app.Before = func(c *cli.Context) error {
 		api = rainforest.NewClient(c.String("token"))
+
+		// Set the User-Agent that will be used for api calls
+		if build != "" {
+			api.UserAgent = "rainforest-cli/" + version + " build: " + build
+		} else {
+			api.UserAgent = "rainforest-cli/" + version
+		}
+
 		return nil
 	}
 

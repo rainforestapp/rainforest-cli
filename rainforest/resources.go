@@ -29,7 +29,7 @@ func (f Folder) GetDescription() string {
 // for filtering RF tests.
 func (c *Client) GetFolders() ([]Folder, error) {
 	// Prepare request
-	req, err := c.NewRequest("GET", "folders.json?page_size=100", nil)
+	req, err := c.NewRequest("GET", "folders?page_size=100", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (b Browser) GetDescription() string {
 // RF tests against.
 func (c *Client) GetBrowsers() ([]Browser, error) {
 	// Prepare request
-	req, err := c.NewRequest("GET", "clients.json", nil)
+	req, err := c.NewRequest("GET", "clients", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (s Site) GetDescription() string {
 // GetSites fetches sites available to use during the RF runs.
 func (c *Client) GetSites() ([]Site, error) {
 	// Prepare request
-	req, err := c.NewRequest("GET", "sites.json", nil)
+	req, err := c.NewRequest("GET", "sites", nil)
 	if err != nil {
 		return nil, err
 	}

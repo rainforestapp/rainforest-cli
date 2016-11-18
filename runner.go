@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -23,7 +23,7 @@ func startRun(c *cli.Context) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
-	fmt.Printf("Run %v has been created...\n", runStatus.ID)
+	log.Printf("Run %v has been created...\n", runStatus.ID)
 
 	// if foreground flag is enabled we'll monitor run status
 	if c.Bool("fg") {
@@ -40,7 +40,7 @@ func startRun(c *cli.Context) error {
 		}
 
 		if finalState.status.FrontendURL != "" {
-			fmt.Printf("The detailed results are available at %v\n", finalState.status.FrontendURL)
+			log.Printf("The detailed results are available at %v\n", finalState.status.FrontendURL)
 		}
 
 		if finalState.status.Result != "passed" {
@@ -73,12 +73,12 @@ func updateRunStatus(c *cli.Context, runID int, t *time.Ticker, resChan chan sta
 		currentPercent := newStatus.CurrentProgress.Percent
 
 		if !isFinalState {
-			fmt.Printf("Run %v is %v and is %v%% complete\n", runID, state, currentPercent)
+			log.Printf("Run %v is %v and is %v%% complete\n", runID, state, currentPercent)
 			if newStatus.Result == "failed" && c.Bool("fail-fast") {
 				resChan <- statusWithError{status: newStatus, err: nil}
 			}
 		} else {
-			fmt.Printf("Run %v is now %v and has %v\n", runID, state, newStatus.Result)
+			log.Printf("Run %v is now %v and has %v\n", runID, state, newStatus.Result)
 			resChan <- statusWithError{status: newStatus, err: nil}
 		}
 	}

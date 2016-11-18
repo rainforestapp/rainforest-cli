@@ -1,9 +1,6 @@
 package rainforest
 
-import (
-	"errors"
-	"strconv"
-)
+import "strconv"
 
 // RunParams is a struct holding all potential parameters needed to start a new RF run.
 type RunParams struct {
@@ -48,11 +45,6 @@ func (c *Client) CreateRun(params RunParams) (RunStatus, error) {
 	_, err = c.Do(req, &runStatus)
 	if err != nil {
 		return runStatus, err
-	}
-
-	// Here we check if we successfully created a run in RF, if not then bail with an error.
-	if runStatus.ID == 0 {
-		return runStatus, errors.New("Failed to create a run.")
 	}
 
 	return runStatus, nil

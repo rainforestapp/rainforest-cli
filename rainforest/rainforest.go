@@ -7,8 +7,10 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 const (
@@ -31,7 +33,16 @@ type Client struct {
 // NewClient constructs a new rainforest API Client. As a parameter takes client token
 // which is used for authentication and is available in the rainforest web app.
 func NewClient(token string) *Client {
-	baseURL, _ := url.Parse(currentBaseURL)
+	var baseURL *url.URL
+	var err error
+	if envURL := os.Getenv("RAINFOREST_API_URL"); envURL != "" {
+		baseURL, err = url.Parse(envURL)
+		if err != nil {
+			log.Fatalf("Invalid URL set in $RAINFOREST_API_URL=%v", envURL)
+		}
+	} else {
+		baseURL, _ = url.Parse(currentBaseURL)
+	}
 	client := &Client{client: http.DefaultClient, BaseURL: baseURL, ClientToken: token}
 
 	return client

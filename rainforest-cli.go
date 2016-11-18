@@ -36,7 +36,7 @@ func notImplemented(c *cli.Context) error {
 // main is an entry point of the app. It sets up the new cli app, and defines the API.
 func main() {
 	app := cli.NewApp()
-	app.Usage = "CLI client for Rainforest QA services - http://rainforestqa.com"
+	app.Usage = "Rainforest QA CLI - https://www.rainforestqa.com/"
 	app.Version = version
 
 	// Before running any of the commands we init the API Client
@@ -53,7 +53,7 @@ func main() {
 		},
 		cli.IntFlag{
 			Name:   "threads",
-			Usage:  "Used to customize the amount of threads to use when making HTTP requests.",
+			Usage:  "Used to customize the amount of concurrent HTTP connections to use.",
 			Value:  16,
 			EnvVar: "RAINFOREST_THREADS",
 		},
@@ -94,7 +94,8 @@ func main() {
 				cli.StringFlag{
 					Name:  "crowd",
 					Value: "default",
-					Usage: "run your tests using specified `CROWD`. Available choices are: default or on_premise_crowd.",
+					Usage: "run your tests using specified `CROWD`. Available choices are: default or on_premise_crowd. " +
+						"Contact your CSM for more details.",
 				},
 				cli.StringFlag{
 					Name: "conflict",
@@ -103,7 +104,7 @@ func main() {
 				},
 				cli.BoolTFlag{
 					Name: "fg, foreground",
-					Usage: "results in the foreground - rainforest-cli will not return until the run is complete. " +
+					Usage: "show results in the foreground - rainforest-cli will not return until the run is complete. " +
 						"This is what you want to make the build pass / fail dependent on rainforest results",
 				},
 				cli.BoolTFlag{

@@ -1,7 +1,7 @@
 {
-	"ImportPath": "github.com/rainforestapp/rainforest-cli",
+	"ImportPath": "rainforest-cli",
 	"GoVersion": "go1.6",
-	"GodepVersion": "v74",
+	"GodepVersion": "v71",
 	"Deps": [
 		{
 			"ImportPath": "github.com/mattn/go-runewidth",
@@ -11,6 +11,11 @@
 		{
 			"ImportPath": "github.com/olekukonko/tablewriter",
 			"Rev": "daf2955e742cf123959884fdff4685aa79b63135"
+		},
+		{
+			"ImportPath": "github.com/urfave/cli",
+			"Comment": "v1.17.0-85-g4205e9c",
+			"Rev": "4205e9c4ee9672a8df5bb4fe486a8aa07e1e4037"
 		}
 	]
 }

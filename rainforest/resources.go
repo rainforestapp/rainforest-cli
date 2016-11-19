@@ -29,6 +29,7 @@ func (f Folder) GetDescription() string {
 // for filtering RF tests.
 func (c *Client) GetFolders() ([]Folder, error) {
 	// Prepare request
+
 	req, err := c.NewRequest("GET", "folders?page_size=100", nil)
 	if err != nil {
 		return nil, err

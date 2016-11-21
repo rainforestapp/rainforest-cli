@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -113,9 +112,8 @@ func checkResponse(res *http.Response) error {
 	type simpleErrorResponse struct {
 		Err string `json:"error"`
 	}
-	out := &simpleErrorResponse{}
-	err := json.NewDecoder(res.Body).Decode(out)
-	fmt.Println(err)
+	var out simpleErrorResponse
+	err := json.NewDecoder(res.Body).Decode(&out)
 	if err == nil {
 		return errors.New(out.Err)
 	}

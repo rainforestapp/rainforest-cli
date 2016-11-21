@@ -1,7 +1,9 @@
 package rainforest
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -71,11 +73,17 @@ func TestCheckResponse(t *testing.T) {
 			wantError: false,
 		},
 		{
-			httpResp:  &http.Response{StatusCode: 500},
+			httpResp: &http.Response{
+				StatusCode: 500,
+				Body:       ioutil.NopCloser(bytes.NewBufferString(`{"error": "foo"}`)),
+			},
 			wantError: true,
 		},
 		{
-			httpResp:  &http.Response{StatusCode: 103},
+			httpResp: &http.Response{
+				StatusCode: 103,
+				Body:       ioutil.NopCloser(bytes.NewBufferString(`Totally not JSON`)),
+			},
 			wantError: true,
 		},
 	}

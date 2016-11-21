@@ -1,0 +1,19 @@
+machine:
+  environment:
+    GOPATH: "$HOME/.go_workspace"
+    BUILD: "$GOPATH/src/github.com/rainforestapp/rainforest-cli"
+
+checkout:
+  post:
+    - mkdir -p $BUILD
+    - rsync -av . $BUILD
+
+dependencies:
+  pre:
+    - curl https://glide.sh/get | sh
+  override:
+    - cd $BUILD && glide install
+
+test:
+  override:
+    - cd $BUILD && go test -v -race $(glide novendor)

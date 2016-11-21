@@ -1,128 +1,187 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
+	"errors"
+	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/rainforestapp/rainforest-cli/rainforest"
+	"github.com/urfave/cli"
 )
 
-type runParams struct {
-	Tests         []int    `json:"tests,omitempty"`
-	Tags          []string `json:"tags,omitempty"`
-	SmartFolderID int      `json:"smart_folder_id,omitempty"`
-	SiteID        int      `json:"site_id,omitempty"`
-	Crowd         string   `json:"crowd,omitempty"`
-	Conflict      string   `json:"conflict,omitempty"`
-	Browsers      string   `json:"browsers,omitempty"`
-	Description   string   `json:"description,omitempty"`
-	EnvironmentID int      `json:"environment_id,omitempty"`
-}
-
-type runResponse struct {
-	ID           int    `json:"id"`
-	State        string `json:"state"`
-	StateDetails struct {
-		Name         string `json:"name"`
-		IsFinalState bool   `json:"is_final_state"`
-	} `json:"state_details"`
-	Result          string `json:"result"`
-	CurrentProgress struct {
-		Percent  int `json:"percent"`
-		Total    int `json:"total"`
-		Complete int `json:"complete"`
-		NoResult int `json:"no_result"`
-	} `json:"current_progress"`
-	FrontendURL string `json:"frontend_url,omitempty"`
-}
-
-func createRun() {
-	params := makeParams()
-	resBody := postRun(params)
-
-	fmt.Println(resBody)
-}
-
-func makeParams() *runParams {
-	if testIDs != "" {
-		testIDsSlice := stringToIntSlice(testIDs)
-		return &runParams{Tests: testIDsSlice}
+// startRun starts a new Rainforest run & depending on passed flags monitors its execution
+func startRun(c *cli.Context) error {
+	params, err := makeRunParams(c)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
 	}
-	tags = strings.TrimSpace(tags)
-	var slicedTags []string
-	if tags != "" {
-		slicedTags = strings.Split(tags, ",")
-		for i, slice := range slicedTags {
-			slicedTags[i] = strings.TrimSpace(slice)
+
+	runStatus, err := api.CreateRun(params)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	log.Printf("Run %v has been created...\n", runStatus.ID)
+
+	// if foreground flag is enabled we'll monitor run status
+	if c.Bool("fg") {
+		// Create two channels to communicate with the polling goroutine
+		// One that will tick when it's time to poll and the other to gather final state
+		t := time.NewTicker(runStatusPollInterval)
+		statusChan := make(chan statusWithError, 0)
+		go updateRunStatus(c, runStatus.ID, t, statusChan)
+
+		// This channel readout will block until updateRunStatus pushed final result to it
+		finalState := <-statusChan
+		if finalState.err != nil {
+			return cli.NewExitError(finalState.err.Error(), 1)
+		}
+
+		if finalState.status.FrontendURL != "" {
+			log.Printf("The detailed results are available at %v\n", finalState.status.FrontendURL)
+		}
+
+		if finalState.status.Result != "passed" {
+			return cli.NewExitError("", 1)
+		}
+
+		return nil
+	}
+
+	return nil
+}
+
+// statusWithError is a helper type used to send RunStatus and error using single channel
+type statusWithError struct {
+	status rainforest.RunStatus
+	err    error
+}
+
+func updateRunStatus(c *cli.Context, runID int, t *time.Ticker, resChan chan statusWithError) {
+	for {
+		// Wait for tick
+		<-t.C
+		newStatus, err := api.CheckRunStatus(runID)
+		if err != nil {
+			resChan <- statusWithError{status: newStatus, err: err}
+		}
+
+		isFinalState := newStatus.StateDetails.IsFinalState
+		state := newStatus.State
+		currentPercent := newStatus.CurrentProgress.Percent
+
+		if !isFinalState {
+			log.Printf("Run %v is %v and is %v%% complete\n", runID, state, currentPercent)
+			if newStatus.Result == "failed" && c.Bool("fail-fast") {
+				resChan <- statusWithError{status: newStatus, err: nil}
+			}
+		} else {
+			log.Printf("Run %v is now %v and has %v\n", runID, state, newStatus.Result)
+			resChan <- statusWithError{status: newStatus, err: nil}
 		}
 	}
-	return &runParams{
-		Tags:          slicedTags,
+}
+
+// makeRunParams parses and validates command line arguments + options
+// and makes RunParams struct out of them
+func makeRunParams(c *cli.Context) (rainforest.RunParams, error) {
+	var err error
+
+	var smartFolderID int
+	if s := c.String("folder"); s != "" {
+		smartFolderID, err = strconv.Atoi(c.String("folder"))
+		if err != nil {
+			return rainforest.RunParams{}, err
+		}
+	}
+
+	var siteID int
+	if s := c.String("site"); s != "" {
+		siteID, err = strconv.Atoi(c.String("site"))
+		if err != nil {
+			return rainforest.RunParams{}, err
+		}
+	}
+
+	var crowd string
+	if crowd = c.String("crowd"); crowd != "default" && crowd != "on_premise_crowd" {
+		return rainforest.RunParams{}, errors.New("Invalid crowd option specified")
+	}
+
+	var conflict string
+	if conflict = c.String("conflict"); conflict != "abort" && conflict != "abort-all" {
+		return rainforest.RunParams{}, errors.New("Invalid conflict option specified")
+	}
+
+	browsers := c.StringSlice("browser")
+	expandedBrowsers := expandStringSlice(browsers)
+
+	description := c.String("description")
+
+	var environmentID int
+	if s := c.String("environment-id"); s != "" {
+		environmentID, err = strconv.Atoi(c.String("environment-id"))
+		if err != nil {
+			return rainforest.RunParams{}, err
+		}
+	}
+
+	// Parse command argument as a list of test IDs
+	var testIDs []int
+	testIDsArg := c.Args().Get(0)
+	if testIDsArg != "all" {
+		testIDs, err = stringToIntSlice(testIDsArg)
+		if err != nil {
+			return rainforest.RunParams{}, err
+		}
+	} else {
+		// TODO: Figure out how to do 'all' tests as it's not an integer
+	}
+
+	// We get tags slice from arguments and then expand comma separated lists into separate entries
+	tags := c.StringSlice("tag")
+	expandedTags := expandStringSlice(tags)
+
+	return rainforest.RunParams{
+		Tests:         testIDs,
+		Tags:          expandedTags,
 		SmartFolderID: smartFolderID,
 		SiteID:        siteID,
 		Crowd:         crowd,
-	}
+		Conflict:      conflict,
+		Browsers:      expandedBrowsers,
+		Description:   description,
+		EnvironmentID: environmentID,
+	}, nil
 }
 
-func stringToIntSlice(s string) []int {
-	slicedString := strings.Split(s, ",")
+// stringToIntSlice takes a string of comma separated integers and returns a slice of them
+func stringToIntSlice(s string) ([]int, error) {
+	if s == "" {
+		return []int{}, nil
+	}
+	splitString := strings.Split(s, ",")
 	var slicedInt []int
-	for _, slice := range slicedString {
+	for _, slice := range splitString {
 		newInt, err := strconv.Atoi(strings.TrimSpace(slice))
 		if err != nil {
-			panic(err)
+			return slicedInt, err
 		}
 		slicedInt = append(slicedInt, newInt)
 	}
-	return slicedInt
+	return slicedInt, nil
 }
 
-func postRun(params *runParams) (resBody *runResponse) {
-	js, err := json.Marshal(params)
-
-	if err != nil {
-		panic(fmt.Sprintf("Unable to format JSON for run. Params: %v", params))
-	}
-
-	data := postRequest(baseURL+"/runs", js)
-	json.Unmarshal(data, &resBody)
-	if !runTestInBackground && resBody.ID != 0 {
-		runID := resBody.ID
-		checkRunProgress(runID)
-	}
-	return
-}
-
-func checkRunProgress(runID int) {
-	running := true
-	var response runResponse
-	for running {
-
-		getRun(strconv.Itoa(runID), &response)
-
-		isFinalState := response.StateDetails.IsFinalState
-		state := response.State
-		currentPercent := response.CurrentProgress.Percent
-
-		if !isFinalState {
-			fmt.Printf("Run %v is %v and is %v%% complete\n", runID, state, currentPercent)
-			if response.Result == "failed" && failFast {
-				running = false
-			}
-		} else {
-			fmt.Printf("Run %v is now %v and has %v\n", runID, state, response.Result)
-			running = false
+// expandStringSlice takes a slice of strings and expands any comma separated sublists
+// into one slice. This allows us to accept args like: -tag abc -tag qwe,xyz
+func expandStringSlice(slice []string) []string {
+	var result []string
+	for _, element := range slice {
+		splitElement := strings.Split(element, ",")
+		for _, singleElement := range splitElement {
+			result = append(result, strings.TrimSpace(singleElement))
 		}
-		time.Sleep(waitTime)
 	}
-	if response.FrontendURL != "" {
-		fmt.Printf("The detailed results are available at %v\n", response.FrontendURL)
-	}
-
-	if response.Result != "passed" {
-		os.Exit(1)
-	}
-
+	return result
 }

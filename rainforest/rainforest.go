@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -107,8 +108,18 @@ func checkResponse(res *http.Response) error {
 	if res.StatusCode >= 200 && res.StatusCode < 300 {
 		return nil
 	}
-	// Otherwise we return error
-	// TODO: We might add some better error handling here, like parsing error response.
+
+	// Otherwise we return error from the API or general one if we can't decode it
+	type simpleErrorResponse struct {
+		Err string `json:"error"`
+	}
+	out := &simpleErrorResponse{}
+	err := json.NewDecoder(res.Body).Decode(out)
+	fmt.Println(err)
+	if err == nil {
+		return errors.New(out.Err)
+	}
+
 	return errors.New("RF API Error")
 }
 

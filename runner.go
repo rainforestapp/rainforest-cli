@@ -110,7 +110,7 @@ func makeRunParams(c *cli.Context) (rainforest.RunParams, error) {
 	}
 
 	var conflict string
-	if conflict = c.String("conflict"); conflict != "abort" && conflict != "abort-all" {
+	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
 		return rainforest.RunParams{}, errors.New("Invalid conflict option specified")
 	}
 

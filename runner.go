@@ -129,7 +129,7 @@ func makeRunParams(c *cli.Context) (rainforest.RunParams, error) {
 
 	// Parse command argument as a list of test IDs
 	var testIDs []int
-	testIDsArg := c.Args().Get(0)
+	testIDsArg := c.Args().First()
 	if testIDsArg != "all" {
 		testIDs, err = stringToIntSlice(testIDsArg)
 		if err != nil {

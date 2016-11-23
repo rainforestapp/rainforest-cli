@@ -68,6 +68,7 @@ func TestExpandStringSlice(t *testing.T) {
 
 type fakeContext struct {
 	mappings map[string]interface{}
+	args     cli.Args
 }
 
 func (f fakeContext) String(s string) string {
@@ -89,7 +90,7 @@ func (f fakeContext) StringSlice(s string) []string {
 }
 
 func (f fakeContext) Args() cli.Args {
-	return []string{}
+	return f.args
 }
 
 func TestMakeRunParams(t *testing.T) {
@@ -97,10 +98,12 @@ func TestMakeRunParams(t *testing.T) {
 
 	var testCases = []struct {
 		mappings map[string]interface{}
+		args     cli.Args
 		expected rainforest.RunParams
 	}{
 		{
 			mappings: make(map[string]interface{}),
+			args:     cli.Args{},
 			expected: rainforest.RunParams{},
 		},
 		{
@@ -112,8 +115,9 @@ func TestMakeRunParams(t *testing.T) {
 				"browser":        []string{"chrome", "firefox,safari"},
 				"description":    "my awesome description",
 				"environment-id": "1337",
-				"tag":            []string{"tag", "tag2, tag3"},
+				"tag":            []string{"tag", "tag2,tag3"},
 			},
+			args: cli.Args{"12", "34", "56, 78"},
 			expected: rainforest.RunParams{
 				SmartFolderID: 123,
 				SiteID:        456,
@@ -123,12 +127,14 @@ func TestMakeRunParams(t *testing.T) {
 				Description:   "my awesome description",
 				EnvironmentID: 1337,
 				Tags:          []string{"tag", "tag2", "tag3"},
+				Tests:         []int{12, 34, 56, 78},
 			},
 		},
 	}
 
 	for _, testCase := range testCases {
 		c.mappings = testCase.mappings
+		c.args = testCase.args
 		res, err := makeRunParams(c)
 
 		if err != nil {

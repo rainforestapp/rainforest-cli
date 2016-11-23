@@ -135,11 +135,14 @@ func makeRunParams(c cliContext) (rainforest.RunParams, error) {
 
 	// Parse command argument as a list of test IDs
 	var testIDs []int
-	testIDsArg := c.Args().Get(0)
-	if testIDsArg != "all" {
-		testIDs, err = stringToIntSlice(testIDsArg)
-		if err != nil {
-			return rainforest.RunParams{}, err
+	testIDsArgs := c.Args()
+	if testIDsArgs.Get(0) != "all" {
+		for _, arg := range testIDsArgs {
+			nextTestIDs, err := stringToIntSlice(arg)
+			if err != nil {
+				return rainforest.RunParams{}, err
+			}
+			testIDs = append(testIDs, nextTestIDs...)
 		}
 	} else {
 		// TODO: Figure out how to do 'all' tests as it's not an integer

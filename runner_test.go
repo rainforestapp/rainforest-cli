@@ -80,6 +80,11 @@ func (f fakeContext) String(s string) string {
 }
 
 func (f fakeContext) StringSlice(s string) []string {
+	val, ok := f.mappings[s].([]string)
+
+	if ok {
+		return val
+	}
 	return []string{}
 }
 
@@ -90,13 +95,46 @@ func (f fakeContext) Args() cli.Args {
 func TestMakeRunParams(t *testing.T) {
 	c := fakeContext{}
 
-	res, err := makeRunParams(c)
+	var testCases = []struct {
+		mappings map[string]interface{}
+		expected rainforest.RunParams
+	}{
+		{
+			mappings: make(map[string]interface{}),
+			expected: rainforest.RunParams{},
+		},
+		{
+			mappings: map[string]interface{}{
+				"folder":         "123",
+				"site":           "456",
+				"crowd":          "on_premise_crowd",
+				"conflict":       "abort",
+				"browser":        []string{"chrome", "firefox,safari"},
+				"description":    "my awesome description",
+				"environment-id": "1337",
+				"tag":            []string{"tag", "tag2, tag3"},
+			},
+			expected: rainforest.RunParams{
+				SmartFolderID: 123,
+				SiteID:        456,
+				Crowd:         "on_premise_crowd",
+				Conflict:      "abort",
+				Browsers:      []string{"chrome", "firefox", "safari"},
+				Description:   "my awesome description",
+				EnvironmentID: 1337,
+				Tags:          []string{"tag", "tag2", "tag3"},
+			},
+		},
+	}
 
-	expected := rainforest.RunParams{}
+	for _, testCase := range testCases {
+		c.mappings = testCase.mappings
+		res, err := makeRunParams(c)
 
-	if err != nil {
-		t.Errorf("Error trying to create params: %v", err)
-	} else if !reflect.DeepEqual(res, expected) {
-		t.Errorf("Incorrect value for conflict.\nActual: %#v\nExpected: %#v", res, expected)
+		if err != nil {
+			t.Errorf("Error trying to create params: %v", err)
+		} else if !reflect.DeepEqual(res, testCase.expected) {
+			t.Errorf("Incorrect value for conflict.\nActual: %#v\nExpected: %#v", res, testCase.expected)
+		}
 	}
 }

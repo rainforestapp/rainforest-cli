@@ -16,6 +16,11 @@ const (
 
 	// Run status poll interval
 	runStatusPollInterval = time.Second * 5
+
+	// Batch size (number of rows) for tabular var upload
+	tabularBatchSize = 50
+	// Concurent connections when uploading CSV rows
+	tabularConcurency = 1
 )
 
 var (
@@ -275,7 +280,7 @@ func main() {
 					Usage: "DEPRECATED: `PATH` to the CSV file to be uploaded. Since v2 please provide the path as an argument.",
 				},
 			},
-			Action: notImplemented,
+			Action: csvUpload,
 		},
 		{
 			Name:  "report",

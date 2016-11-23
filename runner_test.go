@@ -3,6 +3,9 @@ package main
 import (
 	"reflect"
 	"testing"
+
+	"github.com/rainforestapp/rainforest-cli/rainforest"
+	"github.com/urfave/cli"
 )
 
 func TestStringToIntSlice(t *testing.T) {
@@ -60,5 +63,40 @@ func TestExpandStringSlice(t *testing.T) {
 		if !reflect.DeepEqual(tCase.want, got) {
 			t.Errorf("expandStringSlice returned %+v, want %+v", got, tCase.want)
 		}
+	}
+}
+
+type fakeContext struct {
+	mappings map[string]interface{}
+}
+
+func (f fakeContext) String(s string) string {
+	val, ok := f.mappings[s].(string)
+
+	if ok {
+		return val
+	}
+	return ""
+}
+
+func (f fakeContext) StringSlice(s string) []string {
+	return []string{}
+}
+
+func (f fakeContext) Args() cli.Args {
+	return []string{}
+}
+
+func TestMakeRunParams(t *testing.T) {
+	c := fakeContext{}
+
+	res, err := makeRunParams(c)
+
+	expected := rainforest.RunParams{}
+
+	if err != nil {
+		t.Errorf("Error trying to create params: %v", err)
+	} else if !reflect.DeepEqual(res, expected) {
+		t.Errorf("Incorrect value for conflict.\nActual: %#v\nExpected: %#v", res, expected)
 	}
 }

@@ -83,9 +83,15 @@ func updateRunStatus(c *cli.Context, runID int, t *time.Ticker, resChan chan sta
 	}
 }
 
+type cliContext interface {
+	String(flag string) (val string)
+	StringSlice(flag string) (vals []string)
+	Args() (args cli.Args)
+}
+
 // makeRunParams parses and validates command line arguments + options
 // and makes RunParams struct out of them
-func makeRunParams(c *cli.Context) (rainforest.RunParams, error) {
+func makeRunParams(c cliContext) (rainforest.RunParams, error) {
 	var err error
 
 	var smartFolderID int
@@ -105,12 +111,12 @@ func makeRunParams(c *cli.Context) (rainforest.RunParams, error) {
 	}
 
 	var crowd string
-	if crowd = c.String("crowd"); crowd != "default" && crowd != "on_premise_crowd" {
+	if crowd = c.String("crowd"); crowd != "" && crowd != "default" && crowd != "on_premise_crowd" {
 		return rainforest.RunParams{}, errors.New("Invalid crowd option specified")
 	}
 
 	var conflict string
-	if conflict = c.String("conflict"); conflict != "abort" && conflict != "abort-all" {
+	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
 		return rainforest.RunParams{}, errors.New("Invalid conflict option specified")
 	}
 
@@ -159,7 +165,7 @@ func makeRunParams(c *cli.Context) (rainforest.RunParams, error) {
 // stringToIntSlice takes a string of comma separated integers and returns a slice of them
 func stringToIntSlice(s string) ([]int, error) {
 	if s == "" {
-		return []int{}, nil
+		return nil, nil
 	}
 	splitString := strings.Split(s, ",")
 	var slicedInt []int

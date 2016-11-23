@@ -13,7 +13,7 @@ func TestGetFolders(t *testing.T) {
 
 	const reqMethod = "GET"
 
-	mux.HandleFunc("/folders.json", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/folders", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != reqMethod {
 			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
 		}
@@ -35,7 +35,7 @@ func TestGetBrowsers(t *testing.T) {
 
 	const reqMethod = "GET"
 
-	mux.HandleFunc("/clients.json", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/clients", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != reqMethod {
 			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
 		}
@@ -57,7 +57,7 @@ func TestGetSites(t *testing.T) {
 
 	const reqMethod = "GET"
 
-	mux.HandleFunc("/sites.json", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/sites", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != reqMethod {
 			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
 		}

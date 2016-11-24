@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"path/filepath"
 	"strconv"
 
+	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
 
@@ -15,7 +15,9 @@ type reporterCliContext interface {
 	Args() (args cli.Args)
 }
 
-type reporterClient interface{}
+type reporterClient interface {
+	GetRunDetails(runID int) (*rainforest.RunDetails, error)
+}
 
 type reporter struct {
 	createJunitReport func(filename string, runID int, client reporterClient) error
@@ -66,11 +68,22 @@ func createJunitReport(filename string, runID int, client reporterClient) error 
 	filepath, err := filepath.Abs(filename)
 
 	if err != nil {
+		log.Fatalf("Error parsing file path `%v`: %v", filepath, err.Error())
 		return err
 	}
 
-	output := fmt.Sprintf("Info for run #%v", runID)
-	ioutil.WriteFile(filepath, []byte(output), 0777)
+	var runDetails *rainforest.RunDetails
+	runDetails, err = client.GetRunDetails(runID)
+
+	if err != nil {
+		log.Fatalf("Error fetching details for run #%v: %v", runID, err.Error())
+		return err
+	}
+
+	fmt.Println(filepath)
+	fmt.Println(runDetails)
+	// output := fmt.Sprintf("Info for run #%v", runID)
+	// ioutil.WriteFile(filepath, []byte(output), 0777)
 
 	return nil
 }

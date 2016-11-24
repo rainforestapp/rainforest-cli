@@ -35,7 +35,7 @@ func cleanup() {
 
 func TestNewClient(t *testing.T) {
 	token := "testToken123"
-	client := NewClient(token)
+	client = NewClient(token)
 	if out := client.ClientToken; client.ClientToken != token {
 		t.Errorf("NewClient didn't set proper token %+v, want %+v", out, token)
 	}
@@ -43,7 +43,7 @@ func TestNewClient(t *testing.T) {
 
 func TestNewRequest(t *testing.T) {
 	token := "testToken123"
-	client := NewClient(token)
+	client = NewClient(token)
 	client.BaseURL, _ = url.Parse("https://example.org")
 	req, _ := client.NewRequest("GET", "test", nil)
 	if out := req.Header.Get(authTokenHeader); out != token {

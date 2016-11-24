@@ -16,6 +16,7 @@ tmp
 tags
 
 *.csv
+example.xml
 spec/rainforest
 spec/rainforest-testing
 

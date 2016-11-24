@@ -71,7 +71,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	var b io.ReadWriter
 	if body != nil {
 		b = new(bytes.Buffer)
-		err := json.NewEncoder(b).Encode(body)
+		err = json.NewEncoder(b).Encode(body)
 		if err != nil {
 			return nil, err
 		}

@@ -30,9 +30,7 @@ func TestCreateRun(t *testing.T) {
 		fmt.Fprint(w, `{"id": 123, "state":"in_progress"}`)
 	})
 
-	out, err := client.CreateRun(runParams)
-
-	fmt.Println(err)
+	out, _ := client.CreateRun(runParams)
 
 	want := RunStatus{ID: 123, State: "in_progress"}
 
@@ -55,9 +53,7 @@ func TestCheckRunStatus(t *testing.T) {
 		fmt.Fprint(w, `{"id": 123, "state":"in_progress"}`)
 	})
 
-	out, err := client.CheckRunStatus(123)
-
-	fmt.Println(err)
+	out, _ := client.CheckRunStatus(123)
 
 	want := RunStatus{ID: 123, State: "in_progress"}
 

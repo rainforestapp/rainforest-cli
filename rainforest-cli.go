@@ -297,19 +297,25 @@ func main() {
 			Action: notImplemented,
 		},
 		{
-			Name:   "sites",
-			Usage:  "Lists available sites",
-			Action: printSites,
+			Name:  "sites",
+			Usage: "Lists available sites",
+			Action: func(c *cli.Context) error {
+				return printSites(c, api)
+			},
 		},
 		{
-			Name:   "folders",
-			Usage:  "Lists available folders",
-			Action: printFolders,
+			Name:  "folders",
+			Usage: "Lists available folders",
+			Action: func(c *cli.Context) error {
+				return printFolders(c, api)
+			},
 		},
 		{
-			Name:   "browsers",
-			Usage:  "Lists available browsers",
-			Action: printBrowsers,
+			Name:  "browsers",
+			Usage: "Lists available browsers",
+			Action: func(c *cli.Context) error {
+				return printBrowsers(c, api)
+			},
 		},
 	}
 

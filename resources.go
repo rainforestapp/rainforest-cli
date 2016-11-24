@@ -36,8 +36,15 @@ func printResourceTable(resourceName string, data [][]string) {
 	table.Render()
 }
 
+// resourceAPI is part of the API connected to available resources
+type resourceAPI interface {
+	GetFolders() ([]rainforest.Folder, error)
+	GetBrowsers() ([]rainforest.Browser, error)
+	GetSites() ([]rainforest.Site, error)
+}
+
 // printFolders fetches and prints out the available folders from the API
-func printFolders(c *cli.Context) error {
+func printFolders(c *cli.Context, api resourceAPI) error {
 	// Fetch the list of folders from the Rainforest
 	folders, err := api.GetFolders()
 	if err != nil {
@@ -58,7 +65,7 @@ func printFolders(c *cli.Context) error {
 }
 
 // printBrowsers fetches and prints out the browsers available to the client
-func printBrowsers(c *cli.Context) error {
+func printBrowsers(c *cli.Context, api resourceAPI) error {
 	// Fetch the list of browsers from the Rainforest
 	browsers, err := api.GetBrowsers()
 	if err != nil {
@@ -79,7 +86,7 @@ func printBrowsers(c *cli.Context) error {
 }
 
 // printSites fetches and prints out the defined sites
-func printSites(c *cli.Context) error {
+func printSites(c *cli.Context, api resourceAPI) error {
 	// Fetch the list of sites from the Rainforest
 	sites, err := api.GetSites()
 	if err != nil {

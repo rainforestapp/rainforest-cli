@@ -135,7 +135,7 @@ func TestMakeRunParams(t *testing.T) {
 	for _, testCase := range testCases {
 		c.mappings = testCase.mappings
 		c.args = testCase.args
-		res, err := makeRunParams(c)
+		res, err := makeRunParams(&c)
 
 		if err != nil {
 			t.Errorf("Error trying to create params: %v", err)

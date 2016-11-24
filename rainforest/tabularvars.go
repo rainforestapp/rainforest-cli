@@ -149,10 +149,10 @@ func (c *Client) AddGeneratorRowsFromTable(targetGenerator Generator,
 	targetColumnIDs := make([]int, len(targetColumns))
 	for i, colName := range targetColumns {
 		id, ok := colNameToID[colName]
-		targetColumnIDs[i] = id
 		if !ok {
 			return errors.New("Invalid column name for given generator.")
 		}
+		targetColumnIDs[i] = id
 	}
 
 	// Use above helper array to create properly formatted row_data array
@@ -169,6 +169,6 @@ func (c *Client) AddGeneratorRowsFromTable(targetGenerator Generator,
 		formattedRowData[rowIndex] = formattedRow
 	}
 
-  // Call the function that will add the rows.
+	// Call the function that will add the rows.
 	return c.AddGeneratorRows(targetGenerator, formattedRowData)
 }

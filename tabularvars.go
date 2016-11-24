@@ -10,6 +10,9 @@ import (
 
 	"strings"
 
+	"log"
+
+	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
 
@@ -44,6 +47,7 @@ func uploadTabularVar(pathToCSV, name string, overwrite, singleUse bool) error {
 	if existingGenID != 0 {
 		if overwrite {
 			// if variable exists and we want to override it with new one delete it here
+			log.Printf("Tabular var %v exists, overwriting it with new data.\n", name)
 			err := api.DeleteGenerator(existingGenID)
 			if err != nil {
 				return err
@@ -80,9 +84,21 @@ func uploadTabularVar(pathToCSV, name string, overwrite, singleUse bool) error {
 	}
 	close(rowsToUpload)
 
+	// chan to gather errors from workers
+	errors := make(chan error, numOfBatches)
+
+	log.Println("Beginning batch upload of csv file...")
+
 	// spawn workers to upload the rows
 	for i := 0; i < tabularConcurency; i++ {
+		go rowUploadWorker(newGenerator, parsedColumnNames, rowsToUpload, errors)
+	}
 
+	for i := 0; i < numOfBatches; i++ {
+		if err := <-errors; err != nil {
+			return err
+		}
+		log.Printf("Tabular variable '%v' batch %v of %v uploaded.", name, i+1, numOfBatches)
 	}
 
 	return nil
@@ -97,10 +113,36 @@ func min(a, b int) int {
 }
 
 // rowUploadWorker is a helper worker which reads batch of rows to upload from rows chan
-//
-// func rowUploadWorker(generator rainforest.Generator, columns []string, rows <-chan []string)
+// and pushes potential errors through errorsChan
+func rowUploadWorker(generator rainforest.Generator,
+	columns []string, rowsChan <-chan [][]string, errorsChan chan<- error) {
+	for rows := range rowsChan {
+		error := api.AddGeneratorRowsFromTable(generator, columns, rows)
+		errorsChan <- error
+	}
+}
 
+// csvUpload is a wrapper around uploadTabularVar to function with csv-upload cli command
 func csvUpload(c *cli.Context) error {
 	// Get the csv file path either from the option or command argument
+	filePath := c.Args().First()
+	if filePath == "" {
+		filePath = c.String("csv-file")
+	}
+	if filePath == "" {
+		return cli.NewExitError("CSV filename not specified", 1)
+	}
+	name := c.String("name")
+	if name == "" {
+		return cli.NewExitError("Tabular variable name not specified", 1)
+	}
+	overwrite := c.BoolT("overwrite-variable")
+	singleUse := c.BoolT("single-use")
+
+	err := uploadTabularVar(filePath, name, overwrite, singleUse)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
 	return nil
 }

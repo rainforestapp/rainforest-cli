@@ -7,28 +7,29 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
 
-type reporter struct {
-	client *rainforest.Client
+type reporterCliContext interface {
+	String(flag string) (val string)
+	Args() (args cli.Args)
 }
 
-func createReports(c *cli.Context) error {
+type reporterClient interface{}
+
+type reporter struct {
+	createJunitReport func(filename string, runID int, client reporterClient) error
+}
+
+func createReport(c *cli.Context) error {
 	r := newReport()
 	return r.reportForRun(c)
 }
 
 func newReport() *reporter {
 	return &reporter{
-		client: api,
+		createJunitReport: createJunitReport,
 	}
-}
-
-type reporterCliContext interface {
-	String(flag string) (val string)
-	Args() (args cli.Args)
 }
 
 func (r *reporter) reportForRun(c reporterCliContext) error {
@@ -48,11 +49,11 @@ func (r *reporter) reportForRun(c reporterCliContext) error {
 
 		log.Println("Warning: `run-id` flag is deprecated. Please provide Run ID as an argument.")
 	} else {
-		return cli.NewExitError("No run found.", 1)
+		return cli.NewExitError("No run ID argument found.", 1)
 	}
 
 	if junitFile := c.String("junit-file"); junitFile != "" {
-		err = r.createJunitReport(junitFile, runID)
+		err = r.createJunitReport(junitFile, runID, api)
 		if err != nil {
 			return err
 		}
@@ -61,7 +62,7 @@ func (r *reporter) reportForRun(c reporterCliContext) error {
 	return nil
 }
 
-func (r *reporter) createJunitReport(filename string, runID int) error {
+func createJunitReport(filename string, runID int, client reporterClient) error {
 	filepath, err := filepath.Abs(filename)
 
 	if err != nil {

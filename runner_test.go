@@ -66,12 +66,12 @@ func TestExpandStringSlice(t *testing.T) {
 	}
 }
 
-type fakeContext struct {
+type runnerFakeContext struct {
 	mappings map[string]interface{}
 	args     cli.Args
 }
 
-func (f fakeContext) String(s string) string {
+func (f runnerFakeContext) String(s string) string {
 	val, ok := f.mappings[s].(string)
 
 	if ok {
@@ -80,7 +80,7 @@ func (f fakeContext) String(s string) string {
 	return ""
 }
 
-func (f fakeContext) StringSlice(s string) []string {
+func (f runnerFakeContext) StringSlice(s string) []string {
 	val, ok := f.mappings[s].([]string)
 
 	if ok {
@@ -89,12 +89,12 @@ func (f fakeContext) StringSlice(s string) []string {
 	return []string{}
 }
 
-func (f fakeContext) Args() cli.Args {
+func (f runnerFakeContext) Args() cli.Args {
 	return f.args
 }
 
 func TestMakeRunParams(t *testing.T) {
-	c := fakeContext{}
+	c := runnerFakeContext{}
 
 	var testCases = []struct {
 		mappings map[string]interface{}

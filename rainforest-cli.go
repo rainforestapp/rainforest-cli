@@ -293,7 +293,7 @@ func main() {
 					Usage: "DEPRECATED: ID of a run for which to generate results. Since v2 please provide the run ID as an argument.",
 				},
 			},
-			Action: createReports,
+			Action: createReport,
 		},
 		{
 			Name:  "sites",

@@ -83,7 +83,7 @@ func updateRunStatus(c *cli.Context, runID int, t *time.Ticker, resChan chan sta
 	}
 }
 
-type cliContext interface {
+type runnerCliContext interface {
 	String(flag string) (val string)
 	StringSlice(flag string) (vals []string)
 	Args() (args cli.Args)
@@ -91,7 +91,7 @@ type cliContext interface {
 
 // makeRunParams parses and validates command line arguments + options
 // and makes RunParams struct out of them
-func makeRunParams(c cliContext) (rainforest.RunParams, error) {
+func makeRunParams(c runnerCliContext) (rainforest.RunParams, error) {
 	var err error
 
 	var smartFolderID int

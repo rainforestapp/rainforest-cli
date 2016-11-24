@@ -11,7 +11,27 @@ import (
 	"github.com/urfave/cli"
 )
 
-func reportForRun(c *cli.Context) error {
+type reporter struct {
+	client *rainforest.Client
+}
+
+func createReports(c *cli.Context) error {
+	r := newReport()
+	return r.reportForRun(c)
+}
+
+func newReport() *reporter {
+	return &reporter{
+		client: api,
+	}
+}
+
+type reporterCliContext interface {
+	String(flag string) (val string)
+	Args() (args cli.Args)
+}
+
+func (r *reporter) reportForRun(c reporterCliContext) error {
 	var runID int
 	var err error
 
@@ -26,13 +46,13 @@ func reportForRun(c *cli.Context) error {
 			return err
 		}
 
-		log.Println("Warning - `run-id` flag is deprecated. Please provide Run ID as an argument.")
+		log.Println("Warning: `run-id` flag is deprecated. Please provide Run ID as an argument.")
 	} else {
 		return cli.NewExitError("No run found.", 1)
 	}
 
 	if junitFile := c.String("junit-file"); junitFile != "" {
-		err = createJunitReport(junitFile, runID, api)
+		err = r.createJunitReport(junitFile, runID)
 		if err != nil {
 			return err
 		}
@@ -41,7 +61,7 @@ func reportForRun(c *cli.Context) error {
 	return nil
 }
 
-func createJunitReport(filename string, runID int, api *rainforest.Client) error {
+func (r *reporter) createJunitReport(filename string, runID int) error {
 	filepath, err := filepath.Abs(filename)
 
 	if err != nil {

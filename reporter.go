@@ -23,17 +23,21 @@ type reporterClient interface {
 }
 
 type reporter struct {
-	createJUnitReport func(filename string, runID int, client reporterClient) error
+	getRunDetails    func(runID int, client *rainforest.Client) (*rainforest.RunDetails, error)
+	createOutputFile func(filepath string) (*os.File, error)
+	writeJUnitReport func(*rainforest.RunDetails, *os.File) error
 }
 
 func createReport(c *cli.Context) error {
-	r := newReport()
+	r := newReporter()
 	return r.reportForRun(c)
 }
 
-func newReport() *reporter {
+func newReporter() *reporter {
 	return &reporter{
-		createJUnitReport: createJUnitReport,
+		getRunDetails:    getRunDetails,
+		createOutputFile: createOutputFile,
+		writeJUnitReport: writeJUnitReport,
 	}
 }
 
@@ -58,10 +62,43 @@ func (r *reporter) reportForRun(c reporterCliContext) error {
 	}
 
 	if junitFile := c.String("junit-file"); junitFile != "" {
-		err = r.createJUnitReport(junitFile, runID, api)
+		err = r.createJUnitReport(runID, junitFile)
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (r *reporter) createJUnitReport(runID int, junitFile string) error {
+	if filepath.Ext(junitFile) != ".xml" {
+		errMessage := "JUnit file extension must be .xml"
+		log.Fatal(errMessage)
+		return fmt.Errorf(errMessage)
+	}
+
+	filepath, err := filepath.Abs(junitFile)
+	if err != nil {
+		log.Fatalf("Error parsing file path `%v`: %v", filepath, err.Error())
+		return err
+	}
+
+	var runDetails *rainforest.RunDetails
+	runDetails, err = r.getRunDetails(runID, api)
+	if err != nil {
+		return err
+	}
+
+	var outputFile *os.File
+	outputFile, err = r.createOutputFile(filepath)
+	if err != nil {
+		return err
+	}
+
+	err = r.writeJUnitReport(runDetails, outputFile)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -77,35 +114,39 @@ type JUnitReport struct {
 	Time     float64  `xml:"time,attr"`
 }
 
-func createJUnitReport(filename string, runID int, client reporterClient) error {
-	filepath, err := filepath.Abs(filename)
-	if err != nil {
-		log.Fatalf("Error parsing file path `%v`: %v", filepath, err.Error())
-		return err
-	}
-
+func getRunDetails(runID int, client *rainforest.Client) (*rainforest.RunDetails, error) {
 	var runDetails *rainforest.RunDetails
+	var err error
 	if runDetails, err = client.GetRunDetails(runID); err != nil {
 		log.Fatalf("Error fetching details for run #%v: %v", runID, err.Error())
-		return err
+		return runDetails, err
 	}
 
 	if !runDetails.StateDetails.IsFinalState {
-		log.Fatalf("Report cannot be created for an incomplete run")
-		return fmt.Errorf("Report cannot be created for an incomplete run")
+		errMessage := "Report cannot be created for an incomplete run"
+		log.Fatalf(errMessage)
+		err = fmt.Errorf(errMessage)
 	}
 
+	return runDetails, err
+}
+
+func createOutputFile(filepath string) (*os.File, error) {
 	var file *os.File
+	var err error
 	if file, err = os.Create(filepath); err != nil {
 		log.Fatalf("Error creating file at %v: %v", filepath, err.Error())
-		return err
 	}
+	return file, err
+}
 
+func writeJUnitReport(runDetails *rainforest.RunDetails, file *os.File) error {
 	file.Write([]byte(xml.Header))
 
 	enc := xml.NewEncoder(file)
 	var createdAt time.Time
 	var completedAt time.Time
+	var err error
 
 	createdAt, err = time.Parse(time.RFC3339Nano, runDetails.Timestamps["created_at"])
 	if err != nil {

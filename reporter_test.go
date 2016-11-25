@@ -1,15 +1,18 @@
 package main
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
 
 type reporterFakeContext struct {
-	mappings              map[string]interface{}
-	args                  cli.Args
-	createJunitReportStub func(filename string, runID int)
+	mappings map[string]interface{}
+	args     cli.Args
 }
 
 func (c reporterFakeContext) String(s string) string {
@@ -26,7 +29,7 @@ func (c reporterFakeContext) Args() cli.Args {
 }
 
 func TestReporterReportForRun(t *testing.T) {
-	r := newReport()
+	r := newReporter()
 	c := reporterFakeContext{}
 
 	err := r.reportForRun(c)
@@ -42,15 +45,27 @@ func TestReporterReportForRun(t *testing.T) {
 	var expectedFileName string
 	var expectedRunID int
 
-	r.createJunitReport = func(filename string, runID int, client reporterClient) error {
+	r.getRunDetails = func(runID int, client *rainforest.Client) (*rainforest.RunDetails, error) {
+		runDetails := rainforest.RunDetails{}
+		if runID != expectedRunID {
+			t.Errorf("Unexpected run ID given to createJunitReport.\nExpected: %v\nActual: %v", expectedRunID, runID)
+			return &runDetails, fmt.Errorf("Test failed")
+		}
+
+		return &runDetails, nil
+	}
+
+	r.createOutputFile = func(path string) (*os.File, error) {
+		filename := filepath.Base(path)
+
 		if filename != expectedFileName {
 			t.Errorf("Unexpected filename given to createJunitReport.\nExpected: %v\nActual: %v", expectedFileName, filename)
 		}
 
-		if runID != expectedRunID {
-			t.Errorf("Unexpected run ID given to createJunitReport.\nExpected: %v\nActual: %v", expectedRunID, runID)
-		}
+		return os.NewFile(1, "test"), nil
+	}
 
+	r.writeJUnitReport = func(*rainforest.RunDetails, *os.File) error {
 		return nil
 	}
 
@@ -62,20 +77,20 @@ func TestReporterReportForRun(t *testing.T) {
 	}{
 		{
 			mappings: map[string]interface{}{
-				"junit-file": "myfilename",
+				"junit-file": "myfilename.xml",
 			},
 			args:     []string{"112233"},
 			runID:    112233,
-			filename: "myfilename",
+			filename: "myfilename.xml",
 		},
 		{
 			mappings: map[string]interface{}{
-				"junit-file": "myfilename",
+				"junit-file": "myfilename.xml",
 				"run-id":     "112233",
 			},
 			args:     []string{},
 			runID:    112233,
-			filename: "myfilename",
+			filename: "myfilename.xml",
 		},
 	}
 

@@ -146,3 +146,20 @@ func csvUpload(c *cli.Context) error {
 
 	return nil
 }
+
+// preRunCSVUpload is a wrapper around uploadTabularVar to be ran before starting a new run
+func preRunCSVUpload(c *cli.Context) error {
+	// Get the csv file path either and skip uploading if it's not present
+	filePath := c.String("import-variable-csv-file")
+	if filePath == "" {
+		return nil
+	}
+	name := c.String("import-variable-name")
+	if name == "" {
+		return errors.New("Tabular variable name not specified")
+	}
+	overwrite := c.BoolT("overwrite-variable")
+	singleUse := c.BoolT("single-use")
+
+	return uploadTabularVar(filePath, name, overwrite, singleUse)
+}

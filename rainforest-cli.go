@@ -37,6 +37,18 @@ func notImplemented(c *cli.Context) error {
 	return nil
 }
 
+// cliContext is an interface providing context of running application
+// i.e. command line options and flags. One of the types that provides the interface is
+// cli.Context, the other is fakeCLIContext which is used for testing.
+type cliContext interface {
+	String(flag string) (val string)
+	StringSlice(flag string) (vals []string)
+	Bool(flag string) (val bool)
+	Int(flag string) (val int)
+
+	Args() (args cli.Args)
+}
+
 // main is an entry point of the app. It sets up the new cli app, and defines the API.
 func main() {
 	app := cli.NewApp()

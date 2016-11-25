@@ -1,10 +1,13 @@
 package main
 
 import (
+	"encoding/xml"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
@@ -20,7 +23,7 @@ type reporterClient interface {
 }
 
 type reporter struct {
-	createJunitReport func(filename string, runID int, client reporterClient) error
+	createJUnitReport func(filename string, runID int, client reporterClient) error
 }
 
 func createReport(c *cli.Context) error {
@@ -30,7 +33,7 @@ func createReport(c *cli.Context) error {
 
 func newReport() *reporter {
 	return &reporter{
-		createJunitReport: createJunitReport,
+		createJUnitReport: createJUnitReport,
 	}
 }
 
@@ -55,7 +58,7 @@ func (r *reporter) reportForRun(c reporterCliContext) error {
 	}
 
 	if junitFile := c.String("junit-file"); junitFile != "" {
-		err = r.createJunitReport(junitFile, runID, api)
+		err = r.createJUnitReport(junitFile, runID, api)
 		if err != nil {
 			return err
 		}
@@ -64,26 +67,72 @@ func (r *reporter) reportForRun(c reporterCliContext) error {
 	return nil
 }
 
-func createJunitReport(filename string, runID int, client reporterClient) error {
-	filepath, err := filepath.Abs(filename)
+// JUnitReport defines the format of the JUnit XML report.
+type JUnitReport struct {
+	XMLName  xml.Name `xml:"testsuite"`
+	Name     string   `xml:"name,attr"`
+	Tests    int      `xml:"tests,attr"`
+	Errors   int      `xml:"errors,attr"`
+	Failures int      `xml:"failures,attr"`
+	Time     float64  `xml:"time,attr"`
+}
 
+func createJUnitReport(filename string, runID int, client reporterClient) error {
+	filepath, err := filepath.Abs(filename)
 	if err != nil {
 		log.Fatalf("Error parsing file path `%v`: %v", filepath, err.Error())
 		return err
 	}
 
 	var runDetails *rainforest.RunDetails
-	runDetails, err = client.GetRunDetails(runID)
-
-	if err != nil {
+	if runDetails, err = client.GetRunDetails(runID); err != nil {
 		log.Fatalf("Error fetching details for run #%v: %v", runID, err.Error())
 		return err
 	}
 
-	fmt.Println(filepath)
-	fmt.Println(runDetails)
-	// output := fmt.Sprintf("Info for run #%v", runID)
-	// ioutil.WriteFile(filepath, []byte(output), 0777)
+	if !runDetails.StateDetails.IsFinalState {
+		log.Fatalf("Report cannot be created for an incomplete run")
+		return fmt.Errorf("Report cannot be created for an incomplete run")
+	}
+
+	var file *os.File
+	if file, err = os.Create(filepath); err != nil {
+		log.Fatalf("Error creating file at %v: %v", filepath, err.Error())
+		return err
+	}
+
+	file.Write([]byte(xml.Header))
+
+	enc := xml.NewEncoder(file)
+	var createdAt time.Time
+	var completedAt time.Time
+
+	createdAt, err = time.Parse(time.RFC3339Nano, runDetails.Timestamps["created_at"])
+	if err != nil {
+		log.Fatalf("Error parsing Run timestamp %v: %v", runDetails.Timestamps["created_at"], err.Error())
+		return err
+	}
+
+	finalStateName := runDetails.StateDetails.Name
+	completedAt, err = time.Parse(time.RFC3339Nano, runDetails.Timestamps[finalStateName])
+	if err != nil {
+		log.Fatalf("Error parsing Run timestamp %v: %v", runDetails.Timestamps[finalStateName], err.Error())
+		return err
+	}
+
+	v := &JUnitReport{
+		Name:     runDetails.Description,
+		Errors:   runDetails.TotalNoResultTests,
+		Failures: runDetails.TotalFailedTests,
+		Tests:    runDetails.TotalTests,
+		Time:     completedAt.Sub(createdAt).Seconds(),
+	}
+
+	err = enc.Encode(v)
+	if err != nil {
+		log.Fatalf("Error encoding XML report: %v", err.Error())
+		return err
+	}
 
 	return nil
 }

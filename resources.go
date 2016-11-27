@@ -44,7 +44,7 @@ type resourceAPI interface {
 }
 
 // printFolders fetches and prints out the available folders from the API
-func printFolders(c *cli.Context, api resourceAPI) error {
+func printFolders(c cliContext, api resourceAPI) error {
 	// Fetch the list of folders from the Rainforest
 	folders, err := api.GetFolders()
 	if err != nil {
@@ -65,7 +65,7 @@ func printFolders(c *cli.Context, api resourceAPI) error {
 }
 
 // printBrowsers fetches and prints out the browsers available to the client
-func printBrowsers(c *cli.Context, api resourceAPI) error {
+func printBrowsers(c cliContext, api resourceAPI) error {
 	// Fetch the list of browsers from the Rainforest
 	browsers, err := api.GetBrowsers()
 	if err != nil {
@@ -86,7 +86,7 @@ func printBrowsers(c *cli.Context, api resourceAPI) error {
 }
 
 // printSites fetches and prints out the defined sites
-func printSites(c *cli.Context, api resourceAPI) error {
+func printSites(c cliContext, api resourceAPI) error {
 	// Fetch the list of sites from the Rainforest
 	sites, err := api.GetSites()
 	if err != nil {

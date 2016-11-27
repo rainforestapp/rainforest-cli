@@ -58,7 +58,7 @@ type statusWithError struct {
 	err    error
 }
 
-func updateRunStatus(c *cli.Context, runID int, t *time.Ticker, resChan chan statusWithError) {
+func updateRunStatus(c cliContext, runID int, t *time.Ticker, resChan chan statusWithError) {
 	for {
 		// Wait for tick
 		<-t.C
@@ -83,15 +83,9 @@ func updateRunStatus(c *cli.Context, runID int, t *time.Ticker, resChan chan sta
 	}
 }
 
-type runnerCliContext interface {
-	String(flag string) (val string)
-	StringSlice(flag string) (vals []string)
-	Args() (args cli.Args)
-}
-
 // makeRunParams parses and validates command line arguments + options
 // and makes RunParams struct out of them
-func makeRunParams(c runnerCliContext) (rainforest.RunParams, error) {
+func makeRunParams(c cliContext) (rainforest.RunParams, error) {
 	var err error
 
 	var smartFolderID int

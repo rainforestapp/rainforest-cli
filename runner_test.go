@@ -66,36 +66,7 @@ func TestExpandStringSlice(t *testing.T) {
 	}
 }
 
-type runnerFakeContext struct {
-	mappings map[string]interface{}
-	args     cli.Args
-}
-
-func (f runnerFakeContext) String(s string) string {
-	val, ok := f.mappings[s].(string)
-
-	if ok {
-		return val
-	}
-	return ""
-}
-
-func (f runnerFakeContext) StringSlice(s string) []string {
-	val, ok := f.mappings[s].([]string)
-
-	if ok {
-		return val
-	}
-	return []string{}
-}
-
-func (f runnerFakeContext) Args() cli.Args {
-	return f.args
-}
-
 func TestMakeRunParams(t *testing.T) {
-	c := runnerFakeContext{}
-
 	var testCases = []struct {
 		mappings map[string]interface{}
 		args     cli.Args
@@ -133,9 +104,8 @@ func TestMakeRunParams(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		c.mappings = testCase.mappings
-		c.args = testCase.args
-		res, err := makeRunParams(&c)
+		c := newFakeContext(testCase.mappings, testCase.args)
+		res, err := makeRunParams(c)
 
 		if err != nil {
 			t.Errorf("Error trying to create params: %v", err)

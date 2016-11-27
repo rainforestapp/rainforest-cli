@@ -10,27 +10,9 @@ import (
 	"github.com/urfave/cli"
 )
 
-type reporterFakeContext struct {
-	mappings map[string]interface{}
-	args     cli.Args
-}
-
-func (c reporterFakeContext) String(s string) string {
-	val, ok := c.mappings[s].(string)
-
-	if ok {
-		return val
-	}
-	return ""
-}
-
-func (c reporterFakeContext) Args() cli.Args {
-	return c.args
-}
-
 func TestReporterReportForRun(t *testing.T) {
 	r := newReporter()
-	c := reporterFakeContext{}
+	c := newFakeContext(make(map[string]interface{}), cli.Args{})
 
 	err := r.reportForRun(c)
 
@@ -95,8 +77,7 @@ func TestReporterReportForRun(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		c.mappings = testCase.mappings
-		c.args = testCase.args
+		c := newFakeContext(testCase.mappings, testCase.args)
 		expectedRunID = testCase.runID
 		expectedFileName = testCase.filename
 

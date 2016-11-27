@@ -13,11 +13,6 @@ import (
 	"github.com/urfave/cli"
 )
 
-type reporterCliContext interface {
-	String(flag string) (val string)
-	Args() (args cli.Args)
-}
-
 type reporterClient interface {
 	GetRunDetails(runID int) (*rainforest.RunDetails, error)
 }
@@ -41,7 +36,7 @@ func newReporter() *reporter {
 	}
 }
 
-func (r *reporter) reportForRun(c reporterCliContext) error {
+func (r *reporter) reportForRun(c cliContext) error {
 	var runID int
 	var err error
 
@@ -104,16 +99,6 @@ func (r *reporter) createJUnitReport(runID int, junitFile string) error {
 	return nil
 }
 
-// JUnitReport defines the format of the JUnit XML report.
-type JUnitReport struct {
-	XMLName  xml.Name `xml:"testsuite"`
-	Name     string   `xml:"name,attr"`
-	Tests    int      `xml:"tests,attr"`
-	Errors   int      `xml:"errors,attr"`
-	Failures int      `xml:"failures,attr"`
-	Time     float64  `xml:"time,attr"`
-}
-
 func getRunDetails(runID int, client *rainforest.Client) (*rainforest.RunDetails, error) {
 	var runDetails *rainforest.RunDetails
 	var err error
@@ -140,6 +125,21 @@ func createOutputFile(filepath string) (*os.File, error) {
 	return file, err
 }
 
+type jUnitRunReport struct {
+	XMLName   xml.Name `xml:"testsuite"`
+	Name      string   `xml:"name,attr"`
+	Tests     int      `xml:"tests,attr"`
+	Errors    int      `xml:"errors,attr"`
+	Failures  int      `xml:"failures,attr"`
+	Time      float64  `xml:"time,attr"`
+	TestCases []jUnitTestReport
+}
+
+type jUnitTestReport struct {
+	XMLName xml.Name `xml:"testcase"`
+	Name    string   `xml:"name,attr"`
+}
+
 func writeJUnitReport(runDetails *rainforest.RunDetails, file *os.File) error {
 	file.Write([]byte(xml.Header))
 
@@ -161,15 +161,24 @@ func writeJUnitReport(runDetails *rainforest.RunDetails, file *os.File) error {
 		return err
 	}
 
-	v := &JUnitReport{
-		Name:     runDetails.Description,
-		Errors:   runDetails.TotalNoResultTests,
-		Failures: runDetails.TotalFailedTests,
-		Tests:    runDetails.TotalTests,
-		Time:     completedAt.Sub(createdAt).Seconds(),
+	testCases := []jUnitTestReport{}
+
+	for _, test := range runDetails.Tests {
+		testCase := jUnitTestReport{Name: test.Title}
+		testCases = append(testCases, testCase)
 	}
 
-	err = enc.Encode(v)
+	report := &jUnitRunReport{
+		Name:      runDetails.Description,
+		Errors:    runDetails.TotalNoResultTests,
+		Failures:  runDetails.TotalFailedTests,
+		Tests:     runDetails.TotalTests,
+		Time:      completedAt.Sub(createdAt).Seconds(),
+		TestCases: testCases,
+	}
+
+	enc.Indent("", "  ")
+	err = enc.Encode(report)
 	if err != nil {
 		log.Fatalf("Error encoding XML report: %v", err.Error())
 		return err

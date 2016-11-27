@@ -16,6 +16,12 @@ type RunDetails struct {
 	TotalNoResultTests int               `json:"total_no_result_tests"`
 	StateDetails       RunStateDetails   `json:"state_details"`
 	Timestamps         map[string]string `json:"timestamps"`
+	Tests              []RunTestDetails  `json:"tests"`
+}
+
+// RunTestDetails contains details about a specific Run Test
+type RunTestDetails struct {
+	Title string `json:"title"`
 }
 
 // GetRunDetails returns the top level details of a Run

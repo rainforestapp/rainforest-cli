@@ -47,7 +47,7 @@ func TestReporterCreateReport(t *testing.T) {
 		return os.NewFile(1, "test"), nil
 	}
 
-	r.createJunitReportSchema = func(*rainforest.RunDetails) (*jUnitReportSchema, error) {
+	r.createJunitReportSchema = func(*rainforest.RunDetails, *rainforest.Client) (*jUnitReportSchema, error) {
 		return &jUnitReportSchema{}, nil
 	}
 

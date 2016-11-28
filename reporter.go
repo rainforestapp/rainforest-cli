@@ -13,15 +13,11 @@ import (
 	"github.com/urfave/cli"
 )
 
-type reporterClient interface {
-	GetRunDetails(runID int) (*rainforest.RunDetails, error)
-}
-
 type reporter struct {
-	getRunDetails               func(runID int, client *rainforest.Client) (*rainforest.RunDetails, error)
-	createOutputFile            func(filepath string) (*os.File, error)
-	createJunitReportSchema     func(*rainforest.RunDetails) (*jUnitReportSchema, error)
-	createJunitTestReportSchema func(tests *[]rainforest.RunTestDetails) (*[]jUnitTestReportSchema, error)
+	getRunDetails               func(int, *rainforest.Client) (*rainforest.RunDetails, error)
+	createOutputFile            func(string) (*os.File, error)
+	createJunitReportSchema     func(*rainforest.RunDetails, *rainforest.Client) (*jUnitReportSchema, error)
+	createJunitTestReportSchema func(int, *[]rainforest.RunTestDetails, *rainforest.Client) (*[]jUnitTestReportSchema, error)
 	writeJUnitReport            func(*jUnitReportSchema, *os.File) error
 }
 
@@ -63,6 +59,7 @@ func (r *reporter) createReport(c cliContext) error {
 	if junitFile := c.String("junit-file"); junitFile != "" {
 		err = r.createJUnitReport(runID, junitFile)
 		if err != nil {
+			log.Fatalf("Error creating JUnit Report: %v", err.Error())
 			return err
 		}
 	}
@@ -72,14 +69,11 @@ func (r *reporter) createReport(c cliContext) error {
 
 func (r *reporter) createJUnitReport(runID int, junitFile string) error {
 	if filepath.Ext(junitFile) != ".xml" {
-		errMessage := "JUnit file extension must be .xml"
-		log.Fatal(errMessage)
-		return fmt.Errorf(errMessage)
+		return fmt.Errorf("JUnit file extension must be .xml")
 	}
 
 	filepath, err := filepath.Abs(junitFile)
 	if err != nil {
-		log.Fatalf("Error parsing file path `%v`: %v", filepath, err.Error())
 		return err
 	}
 
@@ -96,7 +90,7 @@ func (r *reporter) createJUnitReport(runID int, junitFile string) error {
 	}
 
 	var reportSchema *jUnitReportSchema
-	reportSchema, err = r.createJunitReportSchema(runDetails)
+	reportSchema, err = r.createJunitReportSchema(runDetails, api)
 	if err != nil {
 		return err
 	}
@@ -113,23 +107,27 @@ func getRunDetails(runID int, client *rainforest.Client) (*rainforest.RunDetails
 	var runDetails *rainforest.RunDetails
 	var err error
 	if runDetails, err = client.GetRunDetails(runID); err != nil {
-		log.Fatalf("Error fetching details for run #%v: %v", runID, err.Error())
 		return runDetails, err
 	}
 
 	if !runDetails.StateDetails.IsFinalState {
-		errMessage := "Report cannot be created for an incomplete run"
-		log.Fatalf(errMessage)
-		err = fmt.Errorf(errMessage)
+		err = fmt.Errorf("Report cannot be created for an incomplete run")
 	}
 
 	return runDetails, err
 }
 
+type jUnitTestReportFailure struct {
+	XMLName xml.Name `xml:"failure"`
+	Type    string   `xml:"type,attr"`
+	Message string   `xml:"message,attr"`
+}
+
 type jUnitTestReportSchema struct {
-	XMLName xml.Name `xml:"testcase"`
-	Name    string   `xml:"name,attr"`
-	Time    float64  `xml:"time,attr"`
+	XMLName  xml.Name `xml:"testcase"`
+	Name     string   `xml:"name,attr"`
+	Time     float64  `xml:"time,attr"`
+	Failures []jUnitTestReportFailure
 }
 
 type jUnitReportSchema struct {
@@ -142,7 +140,7 @@ type jUnitReportSchema struct {
 	TestCases []jUnitTestReportSchema
 }
 
-func createJunitReportSchema(runDetails *rainforest.RunDetails) (*jUnitReportSchema, error) {
+func createJunitReportSchema(runDetails *rainforest.RunDetails, client *rainforest.Client) (*jUnitReportSchema, error) {
 	var err error
 	var duration float64
 
@@ -153,7 +151,7 @@ func createJunitReportSchema(runDetails *rainforest.RunDetails) (*jUnitReportSch
 	}
 
 	var testCases *[]jUnitTestReportSchema
-	testCases, err = createJunitTestReportSchema(&runDetails.Tests)
+	testCases, err = createJunitTestReportSchema(runDetails.ID, &runDetails.Tests, client)
 	if err != nil {
 		return &jUnitReportSchema{}, err
 	}
@@ -170,7 +168,7 @@ func createJunitReportSchema(runDetails *rainforest.RunDetails) (*jUnitReportSch
 	return report, nil
 }
 
-func createJunitTestReportSchema(tests *[]rainforest.RunTestDetails) (*[]jUnitTestReportSchema, error) {
+func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, client *rainforest.Client) (*[]jUnitTestReportSchema, error) {
 	testCases := []jUnitTestReportSchema{}
 
 	for _, test := range *tests {
@@ -183,6 +181,31 @@ func createJunitTestReportSchema(tests *[]rainforest.RunTestDetails) (*[]jUnitTe
 		testCase := jUnitTestReportSchema{
 			Name: test.Title,
 			Time: duration,
+		}
+
+		if test.Result == "failed" {
+			var testDetails *rainforest.RunTestDetails
+			testDetails, err = client.GetRunTestDetails(runID, test.ID)
+
+			if err != nil {
+				return &[]jUnitTestReportSchema{}, err
+			}
+
+			for _, step := range testDetails.Steps {
+				for _, browser := range step.Browsers {
+					browserName := browser.Name
+
+					for _, feedback := range browser.Feedback {
+						if feedback.AnswerGiven == "no" && feedback.JobState == "approved" && feedback.Note != "" {
+							reportFailure := jUnitTestReportFailure{
+								Type:    browserName,
+								Message: feedback.Note,
+							}
+							testCase.Failures = append(testCase.Failures, reportFailure)
+						}
+					}
+				}
+			}
 		}
 
 		testCases = append(testCases, testCase)
@@ -199,7 +222,6 @@ func writeJUnitReport(reportSchema *jUnitReportSchema, file *os.File) error {
 	enc.Indent("", "  ")
 	err := enc.Encode(reportSchema)
 	if err != nil {
-		log.Fatalf("Error encoding XML report: %v", err.Error())
 		return err
 	}
 
@@ -214,7 +236,7 @@ func createOutputFile(filepath string) (*os.File, error) {
 	var file *os.File
 	var err error
 	if file, err = os.Create(filepath); err != nil {
-		log.Fatalf("Error creating file at %v: %v", filepath, err.Error())
+		return file, err
 	}
 	return file, err
 }
@@ -226,12 +248,10 @@ func timeStringDifferenceSecs(start string, end string) (float64, error) {
 	var diff float64
 
 	if startTime, err = time.Parse(time.RFC3339Nano, start); err != nil {
-		log.Fatalf("Error in parsing time string %v: %v", start, err)
 		return diff, err
 	}
 
 	if endTime, err = time.Parse(time.RFC3339Nano, end); err != nil {
-		log.Fatalf("Error in parsing time string %v: %v", start, end)
 		return diff, err
 	}
 

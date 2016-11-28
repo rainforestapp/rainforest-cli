@@ -176,6 +176,9 @@ func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, 
 
 	testChan := make(chan processedTestCase, len(*tests))
 
+	// Limit the maximum concurrent requests
+	httpThreads := make(chan struct{}, maxWebConcurrency)
+
 	processTest := func(test rainforest.RunTestDetails) {
 		testCase := jUnitTestReportSchema{}
 
@@ -191,7 +194,12 @@ func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, 
 
 		if test.Result == "failed" {
 			var testDetails *rainforest.RunTestDetails
+
+			// reserve a thread
+			httpThreads <- struct{}{}
 			testDetails, err = client.GetRunTestDetails(runID, test.ID)
+			// release the thread
+			<-httpThreads
 
 			if err != nil {
 				testChan <- processedTestCase{TestCase: jUnitTestReportSchema{}, Error: err}

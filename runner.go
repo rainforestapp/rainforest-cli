@@ -63,7 +63,7 @@ type statusWithError struct {
 	err    error
 }
 
-func updateRunStatus(c *cli.Context, runID int, t *time.Ticker, resChan chan statusWithError) {
+func updateRunStatus(c cliContext, runID int, t *time.Ticker, resChan chan statusWithError) {
 	for {
 		// Wait for tick
 		<-t.C
@@ -90,7 +90,7 @@ func updateRunStatus(c *cli.Context, runID int, t *time.Ticker, resChan chan sta
 
 // makeRunParams parses and validates command line arguments + options
 // and makes RunParams struct out of them
-func makeRunParams(c *cli.Context) (rainforest.RunParams, error) {
+func makeRunParams(c cliContext) (rainforest.RunParams, error) {
 	var err error
 
 	var smartFolderID int
@@ -110,7 +110,7 @@ func makeRunParams(c *cli.Context) (rainforest.RunParams, error) {
 	}
 
 	var crowd string
-	if crowd = c.String("crowd"); crowd != "default" && crowd != "on_premise_crowd" {
+	if crowd = c.String("crowd"); crowd != "" && crowd != "default" && crowd != "on_premise_crowd" {
 		return rainforest.RunParams{}, errors.New("Invalid crowd option specified")
 	}
 
@@ -134,11 +134,14 @@ func makeRunParams(c *cli.Context) (rainforest.RunParams, error) {
 
 	// Parse command argument as a list of test IDs
 	var testIDs []int
-	testIDsArg := c.Args().First()
-	if testIDsArg != "all" {
-		testIDs, err = stringToIntSlice(testIDsArg)
-		if err != nil {
-			return rainforest.RunParams{}, err
+	testIDsArgs := c.Args()
+	if testIDsArgs.First() != "all" {
+		for _, arg := range testIDsArgs {
+			nextTestIDs, err := stringToIntSlice(arg)
+			if err != nil {
+				return rainforest.RunParams{}, err
+			}
+			testIDs = append(testIDs, nextTestIDs...)
 		}
 	} else {
 		// TODO: Figure out how to do 'all' tests as it's not an integer
@@ -164,7 +167,7 @@ func makeRunParams(c *cli.Context) (rainforest.RunParams, error) {
 // stringToIntSlice takes a string of comma separated integers and returns a slice of them
 func stringToIntSlice(s string) ([]int, error) {
 	if s == "" {
-		return []int{}, nil
+		return nil, nil
 	}
 	splitString := strings.Split(s, ",")
 	var slicedInt []int

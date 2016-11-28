@@ -27,11 +27,6 @@ To use the cli client, you'll need your API token from a test settings page from
 
 You can either pass the token with `--token YOUR_TOKEN_HERE` CLI option, or put it in the `RAINFOREST_API_TOKEN` environment variable.
 
-You can customize the amount of threads to use when making HTTP requests by setting the
-`RAINFOREST_THREADS` to the number of threads you'd like to use. If you are noticing
-API errors when fetching or updating multiple tests, lowering this value can help.
-The default value is `16`.
-
 ## Options
 
 #### Running Tests

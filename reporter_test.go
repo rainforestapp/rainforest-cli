@@ -10,11 +10,11 @@ import (
 	"github.com/urfave/cli"
 )
 
-func TestReporterReportForRun(t *testing.T) {
+func TestReporterCreateReport(t *testing.T) {
 	r := newReporter()
 	c := newFakeContext(make(map[string]interface{}), cli.Args{})
 
-	err := r.reportForRun(c)
+	err := r.createReport(c)
 
 	if err == nil {
 		t.Error("No error produced in reporter.reportForRun when Run ID is omitted")
@@ -47,7 +47,11 @@ func TestReporterReportForRun(t *testing.T) {
 		return os.NewFile(1, "test"), nil
 	}
 
-	r.writeJUnitReport = func(*rainforest.RunDetails, *os.File) error {
+	r.createJunitReportSchema = func(*rainforest.RunDetails) (*jUnitReportSchema, error) {
+		return &jUnitReportSchema{}, nil
+	}
+
+	r.writeJUnitReport = func(*jUnitReportSchema, *os.File) error {
 		return nil
 	}
 
@@ -81,6 +85,6 @@ func TestReporterReportForRun(t *testing.T) {
 		expectedRunID = testCase.runID
 		expectedFileName = testCase.filename
 
-		r.reportForRun(c)
+		r.createReport(c)
 	}
 }

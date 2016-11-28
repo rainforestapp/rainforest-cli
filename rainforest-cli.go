@@ -16,6 +16,9 @@ const (
 
 	// Run status poll interval
 	runStatusPollInterval = time.Second * 5
+
+	// Maximum concurrency for multithreaded HTTP requests
+	maxWebConcurrency = 4
 )
 
 var (
@@ -74,12 +77,6 @@ func main() {
 			Name:   "token, t",
 			Usage:  "API token. You can find it at https://app.rainforestqa.com/settings/integrations",
 			EnvVar: "RAINFOREST_API_TOKEN",
-		},
-		cli.IntFlag{
-			Name:   "threads",
-			Usage:  "Used to customize the amount of concurrent HTTP connections to use.",
-			Value:  16,
-			EnvVar: "RAINFOREST_THREADS",
 		},
 	}
 

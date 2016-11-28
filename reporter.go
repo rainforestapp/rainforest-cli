@@ -18,25 +18,27 @@ type reporterClient interface {
 }
 
 type reporter struct {
-	getRunDetails    func(runID int, client *rainforest.Client) (*rainforest.RunDetails, error)
-	createOutputFile func(filepath string) (*os.File, error)
-	writeJUnitReport func(*rainforest.RunDetails, *os.File) error
+	getRunDetails           func(runID int, client *rainforest.Client) (*rainforest.RunDetails, error)
+	createOutputFile        func(filepath string) (*os.File, error)
+	createJunitReportSchema func(*rainforest.RunDetails) (*jUnitReportSchema, error)
+	writeJUnitReport        func(*jUnitReportSchema, *os.File) error
 }
 
 func createReport(c *cli.Context) error {
 	r := newReporter()
-	return r.reportForRun(c)
+	return r.createReport(c)
 }
 
 func newReporter() *reporter {
 	return &reporter{
-		getRunDetails:    getRunDetails,
-		createOutputFile: createOutputFile,
-		writeJUnitReport: writeJUnitReport,
+		getRunDetails:           getRunDetails,
+		createOutputFile:        createOutputFile,
+		createJunitReportSchema: createJunitReportSchema,
+		writeJUnitReport:        writeJUnitReport,
 	}
 }
 
-func (r *reporter) reportForRun(c cliContext) error {
+func (r *reporter) createReport(c cliContext) error {
 	var runID int
 	var err error
 
@@ -91,7 +93,13 @@ func (r *reporter) createJUnitReport(runID int, junitFile string) error {
 		return err
 	}
 
-	err = r.writeJUnitReport(runDetails, outputFile)
+	var reportSchema *jUnitReportSchema
+	reportSchema, err = r.createJunitReportSchema(runDetails)
+	if err != nil {
+		return err
+	}
+
+	err = r.writeJUnitReport(reportSchema, outputFile)
 	if err != nil {
 		return err
 	}
@@ -116,6 +124,59 @@ func getRunDetails(runID int, client *rainforest.Client) (*rainforest.RunDetails
 	return runDetails, err
 }
 
+type jUnitTestReportSchema struct {
+	XMLName xml.Name `xml:"testcase"`
+	Name    string   `xml:"name,attr"`
+}
+
+type jUnitReportSchema struct {
+	XMLName   xml.Name `xml:"testsuite"`
+	Name      string   `xml:"name,attr"`
+	Tests     int      `xml:"tests,attr"`
+	Errors    int      `xml:"errors,attr"`
+	Failures  int      `xml:"failures,attr"`
+	Time      float64  `xml:"time,attr"`
+	TestCases []jUnitTestReportSchema
+}
+
+func createJunitReportSchema(runDetails *rainforest.RunDetails) (*jUnitReportSchema, error) {
+	var err error
+
+	var createdAt time.Time
+	createdAt, err = time.Parse(time.RFC3339Nano, runDetails.Timestamps["created_at"])
+	if err != nil {
+		log.Fatalf("Error parsing Run timestamp %v: %v", runDetails.Timestamps["created_at"], err.Error())
+		return &jUnitReportSchema{}, err
+	}
+
+	finalStateName := runDetails.StateDetails.Name
+
+	var completedAt time.Time
+	completedAt, err = time.Parse(time.RFC3339Nano, runDetails.Timestamps[finalStateName])
+	if err != nil {
+		log.Fatalf("Error parsing Run timestamp %v: %v", runDetails.Timestamps[finalStateName], err.Error())
+		return &jUnitReportSchema{}, err
+	}
+
+	testCases := []jUnitTestReportSchema{}
+
+	for _, test := range runDetails.Tests {
+		testCase := jUnitTestReportSchema{Name: test.Title}
+		testCases = append(testCases, testCase)
+	}
+
+	report := &jUnitReportSchema{
+		Name:      runDetails.Description,
+		Errors:    runDetails.TotalNoResultTests,
+		Failures:  runDetails.TotalFailedTests,
+		Tests:     runDetails.TotalTests,
+		TestCases: testCases,
+		Time:      completedAt.Sub(createdAt).Seconds(),
+	}
+
+	return report, nil
+}
+
 func createOutputFile(filepath string) (*os.File, error) {
 	var file *os.File
 	var err error
@@ -125,60 +186,13 @@ func createOutputFile(filepath string) (*os.File, error) {
 	return file, err
 }
 
-type jUnitRunReport struct {
-	XMLName   xml.Name `xml:"testsuite"`
-	Name      string   `xml:"name,attr"`
-	Tests     int      `xml:"tests,attr"`
-	Errors    int      `xml:"errors,attr"`
-	Failures  int      `xml:"failures,attr"`
-	Time      float64  `xml:"time,attr"`
-	TestCases []jUnitTestReport
-}
+func writeJUnitReport(reportSchema *jUnitReportSchema, file *os.File) error {
+	enc := xml.NewEncoder(file)
 
-type jUnitTestReport struct {
-	XMLName xml.Name `xml:"testcase"`
-	Name    string   `xml:"name,attr"`
-}
-
-func writeJUnitReport(runDetails *rainforest.RunDetails, file *os.File) error {
 	file.Write([]byte(xml.Header))
 
-	enc := xml.NewEncoder(file)
-	var createdAt time.Time
-	var completedAt time.Time
-	var err error
-
-	createdAt, err = time.Parse(time.RFC3339Nano, runDetails.Timestamps["created_at"])
-	if err != nil {
-		log.Fatalf("Error parsing Run timestamp %v: %v", runDetails.Timestamps["created_at"], err.Error())
-		return err
-	}
-
-	finalStateName := runDetails.StateDetails.Name
-	completedAt, err = time.Parse(time.RFC3339Nano, runDetails.Timestamps[finalStateName])
-	if err != nil {
-		log.Fatalf("Error parsing Run timestamp %v: %v", runDetails.Timestamps[finalStateName], err.Error())
-		return err
-	}
-
-	testCases := []jUnitTestReport{}
-
-	for _, test := range runDetails.Tests {
-		testCase := jUnitTestReport{Name: test.Title}
-		testCases = append(testCases, testCase)
-	}
-
-	report := &jUnitRunReport{
-		Name:      runDetails.Description,
-		Errors:    runDetails.TotalNoResultTests,
-		Failures:  runDetails.TotalFailedTests,
-		Tests:     runDetails.TotalTests,
-		Time:      completedAt.Sub(createdAt).Seconds(),
-		TestCases: testCases,
-	}
-
 	enc.Indent("", "  ")
-	err = enc.Encode(report)
+	err := enc.Encode(reportSchema)
 	if err != nil {
 		log.Fatalf("Error encoding XML report: %v", err.Error())
 		return err

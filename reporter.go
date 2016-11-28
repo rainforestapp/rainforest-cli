@@ -68,6 +68,8 @@ func (r *reporter) createReport(c cliContext) error {
 }
 
 func (r *reporter) createJUnitReport(runID int, junitFile string) error {
+	log.Print("Creating JUnit report for run #" + strconv.Itoa(runID) + ": " + junitFile)
+
 	if filepath.Ext(junitFile) != ".xml" {
 		return fmt.Errorf("JUnit file extension must be .xml")
 	}
@@ -106,6 +108,8 @@ func (r *reporter) createJUnitReport(runID int, junitFile string) error {
 func getRunDetails(runID int, client *rainforest.Client) (*rainforest.RunDetails, error) {
 	var runDetails *rainforest.RunDetails
 	var err error
+
+	log.Printf("Fetching details for run #" + strconv.Itoa(runID))
 	if runDetails, err = client.GetRunDetails(runID); err != nil {
 		return runDetails, err
 	}
@@ -197,6 +201,7 @@ func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, 
 
 			// reserve a thread
 			httpThreads <- struct{}{}
+			log.Printf("Fetching information for failed test #" + strconv.Itoa(test.ID))
 			testDetails, err = client.GetRunTestDetails(runID, test.ID)
 			// release the thread
 			<-httpThreads
@@ -252,6 +257,8 @@ func writeJUnitReport(reportSchema *jUnitReportSchema, file *os.File) error {
 	if err != nil {
 		return err
 	}
+
+	log.Printf("JUnit report successfully written to %v", file.Name())
 
 	return nil
 }

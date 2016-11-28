@@ -18,10 +18,11 @@ type reporterClient interface {
 }
 
 type reporter struct {
-	getRunDetails           func(runID int, client *rainforest.Client) (*rainforest.RunDetails, error)
-	createOutputFile        func(filepath string) (*os.File, error)
-	createJunitReportSchema func(*rainforest.RunDetails) (*jUnitReportSchema, error)
-	writeJUnitReport        func(*jUnitReportSchema, *os.File) error
+	getRunDetails               func(runID int, client *rainforest.Client) (*rainforest.RunDetails, error)
+	createOutputFile            func(filepath string) (*os.File, error)
+	createJunitReportSchema     func(*rainforest.RunDetails) (*jUnitReportSchema, error)
+	createJunitTestReportSchema func(tests *[]rainforest.RunTestDetails) (*[]jUnitTestReportSchema, error)
+	writeJUnitReport            func(*jUnitReportSchema, *os.File) error
 }
 
 func createReport(c *cli.Context) error {
@@ -31,10 +32,11 @@ func createReport(c *cli.Context) error {
 
 func newReporter() *reporter {
 	return &reporter{
-		getRunDetails:           getRunDetails,
-		createOutputFile:        createOutputFile,
-		createJunitReportSchema: createJunitReportSchema,
-		writeJUnitReport:        writeJUnitReport,
+		getRunDetails:               getRunDetails,
+		createOutputFile:            createOutputFile,
+		createJunitReportSchema:     createJunitReportSchema,
+		createJunitTestReportSchema: createJunitTestReportSchema,
+		writeJUnitReport:            writeJUnitReport,
 	}
 }
 
@@ -127,6 +129,7 @@ func getRunDetails(runID int, client *rainforest.Client) (*rainforest.RunDetails
 type jUnitTestReportSchema struct {
 	XMLName xml.Name `xml:"testcase"`
 	Name    string   `xml:"name,attr"`
+	Time    float64  `xml:"time,attr"`
 }
 
 type jUnitReportSchema struct {
@@ -141,28 +144,18 @@ type jUnitReportSchema struct {
 
 func createJunitReportSchema(runDetails *rainforest.RunDetails) (*jUnitReportSchema, error) {
 	var err error
-
-	var createdAt time.Time
-	createdAt, err = time.Parse(time.RFC3339Nano, runDetails.Timestamps["created_at"])
-	if err != nil {
-		log.Fatalf("Error parsing Run timestamp %v: %v", runDetails.Timestamps["created_at"], err.Error())
-		return &jUnitReportSchema{}, err
-	}
+	var duration float64
 
 	finalStateName := runDetails.StateDetails.Name
-
-	var completedAt time.Time
-	completedAt, err = time.Parse(time.RFC3339Nano, runDetails.Timestamps[finalStateName])
+	duration, err = timeStringDifferenceSecs(runDetails.Timestamps["created_at"], runDetails.Timestamps[finalStateName])
 	if err != nil {
-		log.Fatalf("Error parsing Run timestamp %v: %v", runDetails.Timestamps[finalStateName], err.Error())
 		return &jUnitReportSchema{}, err
 	}
 
-	testCases := []jUnitTestReportSchema{}
-
-	for _, test := range runDetails.Tests {
-		testCase := jUnitTestReportSchema{Name: test.Title}
-		testCases = append(testCases, testCase)
+	var testCases *[]jUnitTestReportSchema
+	testCases, err = createJunitTestReportSchema(&runDetails.Tests)
+	if err != nil {
+		return &jUnitReportSchema{}, err
 	}
 
 	report := &jUnitReportSchema{
@@ -170,20 +163,32 @@ func createJunitReportSchema(runDetails *rainforest.RunDetails) (*jUnitReportSch
 		Errors:    runDetails.TotalNoResultTests,
 		Failures:  runDetails.TotalFailedTests,
 		Tests:     runDetails.TotalTests,
-		TestCases: testCases,
-		Time:      completedAt.Sub(createdAt).Seconds(),
+		TestCases: *testCases,
+		Time:      duration,
 	}
 
 	return report, nil
 }
 
-func createOutputFile(filepath string) (*os.File, error) {
-	var file *os.File
-	var err error
-	if file, err = os.Create(filepath); err != nil {
-		log.Fatalf("Error creating file at %v: %v", filepath, err.Error())
+func createJunitTestReportSchema(tests *[]rainforest.RunTestDetails) (*[]jUnitTestReportSchema, error) {
+	testCases := []jUnitTestReportSchema{}
+
+	for _, test := range *tests {
+		duration, err := timeStringDifferenceSecs(test.CreatedAt, test.UpdatedAt)
+
+		if err != nil {
+			return &[]jUnitTestReportSchema{}, err
+		}
+
+		testCase := jUnitTestReportSchema{
+			Name: test.Title,
+			Time: duration,
+		}
+
+		testCases = append(testCases, testCase)
 	}
-	return file, err
+
+	return &testCases, nil
 }
 
 func writeJUnitReport(reportSchema *jUnitReportSchema, file *os.File) error {
@@ -199,4 +204,38 @@ func writeJUnitReport(reportSchema *jUnitReportSchema, file *os.File) error {
 	}
 
 	return nil
+}
+
+/*
+	Utility Functions
+*/
+
+func createOutputFile(filepath string) (*os.File, error) {
+	var file *os.File
+	var err error
+	if file, err = os.Create(filepath); err != nil {
+		log.Fatalf("Error creating file at %v: %v", filepath, err.Error())
+	}
+	return file, err
+}
+
+func timeStringDifferenceSecs(start string, end string) (float64, error) {
+	var startTime time.Time
+	var endTime time.Time
+	var err error
+	var diff float64
+
+	if startTime, err = time.Parse(time.RFC3339Nano, start); err != nil {
+		log.Fatalf("Error in parsing time string %v: %v", start, err)
+		return diff, err
+	}
+
+	if endTime, err = time.Parse(time.RFC3339Nano, end); err != nil {
+		log.Fatalf("Error in parsing time string %v: %v", start, end)
+		return diff, err
+	}
+
+	diff = endTime.Sub(startTime).Seconds()
+
+	return diff, nil
 }

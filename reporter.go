@@ -169,26 +169,33 @@ func createJunitReportSchema(runDetails *rainforest.RunDetails, client *rainfore
 }
 
 func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, client *rainforest.Client) (*[]jUnitTestReportSchema, error) {
-	testCases := []jUnitTestReportSchema{}
+	type processedTestCase struct {
+		TestCase jUnitTestReportSchema
+		Error    error
+	}
 
-	for _, test := range *tests {
+	testChan := make(chan processedTestCase, len(*tests))
+
+	processTest := func(test rainforest.RunTestDetails) {
+		testCase := jUnitTestReportSchema{}
+
 		duration, err := timeStringDifferenceSecs(test.CreatedAt, test.UpdatedAt)
 
 		if err != nil {
-			return &[]jUnitTestReportSchema{}, err
+			testChan <- processedTestCase{TestCase: testCase, Error: err}
+			return
 		}
 
-		testCase := jUnitTestReportSchema{
-			Name: test.Title,
-			Time: duration,
-		}
+		testCase.Name = test.Title
+		testCase.Time = duration
 
 		if test.Result == "failed" {
 			var testDetails *rainforest.RunTestDetails
 			testDetails, err = client.GetRunTestDetails(runID, test.ID)
 
 			if err != nil {
-				return &[]jUnitTestReportSchema{}, err
+				testChan <- processedTestCase{TestCase: jUnitTestReportSchema{}, Error: err}
+				return
 			}
 
 			for _, step := range testDetails.Steps {
@@ -197,10 +204,7 @@ func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, 
 
 					for _, feedback := range browser.Feedback {
 						if feedback.AnswerGiven == "no" && feedback.JobState == "approved" && feedback.Note != "" {
-							reportFailure := jUnitTestReportFailure{
-								Type:    browserName,
-								Message: feedback.Note,
-							}
+							reportFailure := jUnitTestReportFailure{Type: browserName, Message: feedback.Note}
 							testCase.Failures = append(testCase.Failures, reportFailure)
 						}
 					}
@@ -208,7 +212,23 @@ func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, 
 			}
 		}
 
-		testCases = append(testCases, testCase)
+		testChan <- processedTestCase{TestCase: testCase}
+	}
+
+	for _, test := range *tests {
+		go processTest(test)
+	}
+
+	testCases := []jUnitTestReportSchema{}
+
+	for i := 0; i < len(*tests); i++ {
+		processed := <-testChan
+
+		if processed.Error != nil {
+			return &[]jUnitTestReportSchema{}, processed.Error
+		}
+
+		testCases = append(testCases, processed.TestCase)
 	}
 
 	return &testCases, nil

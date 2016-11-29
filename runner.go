@@ -18,7 +18,7 @@ func startRun(c *cli.Context) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
-	err = preRunCSVUpload(c)
+	err = preRunCSVUpload(c, api)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}

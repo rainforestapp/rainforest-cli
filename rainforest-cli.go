@@ -13,14 +13,6 @@ import (
 const (
 	// Version of the app in SemVer
 	version = "2.0.0"
-
-	// Run status poll interval
-	runStatusPollInterval = time.Second * 5
-
-	// Batch size (number of rows) for tabular var upload
-	tabularBatchSize = 50
-	// Concurent connections when uploading CSV rows
-	tabularConcurency = 1
 )
 
 var (
@@ -31,8 +23,16 @@ var (
 	// Rainforest API client
 	api *rainforest.Client
 
-	// default output for printing
-	out io.Writer = os.Stdout
+	// default output for printing resource tables
+	tablesOut io.Writer = os.Stdout
+
+	// Run status polling interval
+	runStatusPollInterval = time.Second * 5
+
+	// Batch size (number of rows) for tabular var upload
+	tabularBatchSize = 50
+	// Concurent connections when uploading CSV rows
+	tabularConcurency = 1
 )
 
 // notImplemented is a placholder function for actions that are not yet implemented.
@@ -292,7 +292,9 @@ func main() {
 					Usage: "DEPRECATED: `PATH` to the CSV file to be uploaded. Since v2 please provide the path as an argument.",
 				},
 			},
-			Action: csvUpload,
+			Action: func(c *cli.Context) error {
+				return csvUpload(c, api)
+			},
 		},
 		{
 			Name:  "report",

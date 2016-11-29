@@ -16,8 +16,18 @@ import (
 	"github.com/urfave/cli"
 )
 
+// tabularVariablesAPI is part of the API connected to the tabular variables
+type tabularVariablesAPI interface {
+	GetGenerators() ([]rainforest.Generator, error)
+	DeleteGenerator(genID int) error
+	CreateTabularVar(name, description string,
+		columns []string, singleUse bool) (rainforest.Generator, error)
+	AddGeneratorRowsFromTable(targetGenerator rainforest.Generator,
+		targetColumns []string, rowData [][]string) error
+}
+
 // uploadTabularVar takes a path to csv file and creates tabular variable generator from it.
-func uploadTabularVar(pathToCSV, name string, overwrite, singleUse bool) error {
+func uploadTabularVar(api tabularVariablesAPI, pathToCSV, name string, overwrite, singleUse bool) error {
 	// Open up the CSV file and parse it, return early with an error if we fail to get to the file
 	f, err := os.Open(pathToCSV)
 	if err != nil {
@@ -76,7 +86,7 @@ func uploadTabularVar(pathToCSV, name string, overwrite, singleUse bool) error {
 	}
 
 	// batch the rows and put them into a channel
-	numOfBatches := int(math.Ceil(float64(len(rows)) / tabularBatchSize))
+	numOfBatches := int(math.Ceil(float64(len(rows)) / float64(tabularBatchSize)))
 	rowsToUpload := make(chan [][]string, numOfBatches)
 	for i := 0; i < len(rows); i += tabularBatchSize {
 		batch := rows[i:min(i+tabularBatchSize, len(rows))]
@@ -91,7 +101,7 @@ func uploadTabularVar(pathToCSV, name string, overwrite, singleUse bool) error {
 
 	// spawn workers to upload the rows
 	for i := 0; i < tabularConcurency; i++ {
-		go rowUploadWorker(newGenerator, parsedColumnNames, rowsToUpload, errors)
+		go rowUploadWorker(api, newGenerator, parsedColumnNames, rowsToUpload, errors)
 	}
 
 	for i := 0; i < numOfBatches; i++ {
@@ -114,7 +124,7 @@ func min(a, b int) int {
 
 // rowUploadWorker is a helper worker which reads batch of rows to upload from rows chan
 // and pushes potential errors through errorsChan
-func rowUploadWorker(generator rainforest.Generator,
+func rowUploadWorker(api tabularVariablesAPI, generator rainforest.Generator,
 	columns []string, rowsChan <-chan [][]string, errorsChan chan<- error) {
 	for rows := range rowsChan {
 		error := api.AddGeneratorRowsFromTable(generator, columns, rows)
@@ -123,7 +133,7 @@ func rowUploadWorker(generator rainforest.Generator,
 }
 
 // csvUpload is a wrapper around uploadTabularVar to function with csv-upload cli command
-func csvUpload(c *cli.Context) error {
+func csvUpload(c cliContext, api tabularVariablesAPI) error {
 	// Get the csv file path either from the option or command argument
 	filePath := c.Args().First()
 	if filePath == "" {
@@ -136,10 +146,10 @@ func csvUpload(c *cli.Context) error {
 	if name == "" {
 		return cli.NewExitError("Tabular variable name not specified", 1)
 	}
-	overwrite := c.BoolT("overwrite-variable")
-	singleUse := c.BoolT("single-use")
+	overwrite := c.Bool("overwrite-variable")
+	singleUse := c.Bool("single-use")
 
-	err := uploadTabularVar(filePath, name, overwrite, singleUse)
+	err := uploadTabularVar(api, filePath, name, overwrite, singleUse)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -148,7 +158,7 @@ func csvUpload(c *cli.Context) error {
 }
 
 // preRunCSVUpload is a wrapper around uploadTabularVar to be ran before starting a new run
-func preRunCSVUpload(c *cli.Context) error {
+func preRunCSVUpload(c cliContext, api tabularVariablesAPI) error {
 	// Get the csv file path either and skip uploading if it's not present
 	filePath := c.String("import-variable-csv-file")
 	if filePath == "" {
@@ -158,8 +168,8 @@ func preRunCSVUpload(c *cli.Context) error {
 	if name == "" {
 		return errors.New("Tabular variable name not specified")
 	}
-	overwrite := c.BoolT("overwrite-variable")
-	singleUse := c.BoolT("single-use")
+	overwrite := c.Bool("overwrite-variable")
+	singleUse := c.Bool("single-use")
 
-	return uploadTabularVar(filePath, name, overwrite, singleUse)
+	return uploadTabularVar(api, filePath, name, overwrite, singleUse)
 }

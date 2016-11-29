@@ -63,7 +63,7 @@ func (c *Client) GetRunDetails(runID int) (*RunDetails, error) {
 		return &runDetails, err
 	}
 
-	// NOTE: This extra request is only necessary because `update_at` is not
+	// NOTE: This extra request is only necessary because `updated_at` is not
 	// currently exposed in the `/runs/:id` endpoint. This may change in the future:
 	// https://github.com/rainforestapp/rainforest-cli/issues/216
 	var runTests []RunTestDetails

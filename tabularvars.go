@@ -100,7 +100,7 @@ func uploadTabularVar(api tabularVariablesAPI, pathToCSV, name string, overwrite
 	log.Println("Beginning batch upload of csv file...")
 
 	// spawn workers to upload the rows
-	for i := 0; i < tabularConcurency; i++ {
+	for i := 0; i < tabularConcurrency; i++ {
 		go rowUploadWorker(api, newGenerator, parsedColumnNames, rowsToUpload, errors)
 	}
 

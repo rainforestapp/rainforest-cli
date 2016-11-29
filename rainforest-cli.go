@@ -31,8 +31,8 @@ var (
 
 	// Batch size (number of rows) for tabular var upload
 	tabularBatchSize = 50
-	// Concurent connections when uploading CSV rows
-	tabularConcurency = 1
+	// Concurrent connections when uploading CSV rows
+	tabularConcurrency = 1
 )
 
 // notImplemented is a placholder function for actions that are not yet implemented.

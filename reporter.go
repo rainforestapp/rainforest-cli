@@ -262,6 +262,7 @@ func writeJUnitReport(reportSchema *jUnitReportSchema, file *os.File) error {
 
 	log.Printf("JUnit report successfully written to %v", file.Name())
 
+	file.Close()
 	return nil
 }
 

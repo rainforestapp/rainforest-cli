@@ -18,6 +18,11 @@ func startRun(c *cli.Context) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
+	err = preRunCSVUpload(c, api)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
 	runStatus, err := api.CreateRun(params)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
@@ -130,7 +135,7 @@ func makeRunParams(c cliContext) (rainforest.RunParams, error) {
 	// Parse command argument as a list of test IDs
 	var testIDs interface{}
 	testIDsArgs := c.Args()
-	if testIDsArgs.Get(0) != "all" {
+	if testIDsArgs.First() != "all" && testIDsArgs.First() != "" {
 		testIDs = []int{}
 		for _, arg := range testIDsArgs {
 			nextTestIDs, err := stringToIntSlice(arg)
@@ -139,7 +144,7 @@ func makeRunParams(c cliContext) (rainforest.RunParams, error) {
 			}
 			testIDs = append(testIDs.([]int), nextTestIDs...)
 		}
-	} else {
+	} else if testIDsArgs.First() == "all" {
 		testIDs = "all"
 	}
 

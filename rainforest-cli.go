@@ -13,9 +13,6 @@ import (
 const (
 	// Version of the app in SemVer
 	version = "2.0.0"
-
-	// Run status poll interval
-	runStatusPollInterval = time.Second * 5
 )
 
 var (
@@ -26,8 +23,16 @@ var (
 	// Rainforest API client
 	api *rainforest.Client
 
-	// default output for printing
-	out io.Writer = os.Stdout
+	// default output for printing resource tables
+	tablesOut io.Writer = os.Stdout
+
+	// Run status polling interval
+	runStatusPollInterval = time.Second * 5
+
+	// Batch size (number of rows) for tabular var upload
+	tabularBatchSize = 50
+	// Concurrent connections when uploading CSV rows
+	tabularConcurrency = 1
 )
 
 // notImplemented is a placholder function for actions that are not yet implemented.
@@ -126,12 +131,12 @@ func main() {
 					Usage: "use the abort option to abort any runs in the same environment or " +
 						"use the abort-all option to abort all runs in progress.",
 				},
-				cli.BoolTFlag{
+				cli.BoolFlag{
 					Name: "fg, foreground",
 					Usage: "show results in the foreground - rainforest-cli will not return until the run is complete. " +
 						"This is what you want to make the build pass / fail dependent on rainforest results",
 				},
-				cli.BoolTFlag{
+				cli.BoolFlag{
 					Name: "fail-fast, ff",
 					Usage: "fail the build as soon as the first failed result comes in. " +
 						"If you don't pass this it will wait until 100% of the run is done. Use with --fg.",
@@ -141,7 +146,7 @@ func main() {
 					Usage: "use a custom `URL` for this run. Example use case: an ad-hoc QA environment with Fourchette. " +
 						"You will need to specify a site_id too for this to work.",
 				},
-				cli.BoolTFlag{
+				cli.BoolFlag{
 					Name: "git-trigger",
 					Usage: "only trigger a run when the last commit (for a git repo in the current working directory) " +
 						"contains @rainforest and a list of one or more tags. rainforest-cli exits with 0 otherwise.",
@@ -162,11 +167,11 @@ func main() {
 					Name:  "import-variable-csv-file",
 					Usage: "`PATH` to the CSV file to be uploaded.",
 				},
-				cli.BoolTFlag{
+				cli.BoolFlag{
 					Name:  "overwrite-variable",
 					Usage: "If the flag is set, named variable will be updated.",
 				},
-				cli.BoolTFlag{
+				cli.BoolFlag{
 					Name:  "single-use",
 					Usage: "This option marks uploaded variable as single-use",
 				},
@@ -255,7 +260,7 @@ func main() {
 					Usage:  "`PATH` at which to save all the downloaded tests.",
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
-				cli.BoolTFlag{
+				cli.BoolFlag{
 					Name:  "embed-tests",
 					Usage: "download your tests without extracting the steps of an embedded test.",
 				},
@@ -273,11 +278,11 @@ func main() {
 					Name:  "name, import-variable-name",
 					Usage: "`NAME` of the tabular variable to be created or updated.",
 				},
-				cli.BoolTFlag{
+				cli.BoolFlag{
 					Name:  "overwrite-variable, overwrite",
 					Usage: "If the flag is set, named variable will be updated.",
 				},
-				cli.BoolTFlag{
+				cli.BoolFlag{
 					Name:  "single-use",
 					Usage: "This option marks uploaded variable as single-use",
 				},
@@ -287,7 +292,9 @@ func main() {
 					Usage: "DEPRECATED: `PATH` to the CSV file to be uploaded. Since v2 please provide the path as an argument.",
 				},
 			},
-			Action: notImplemented,
+			Action: func(c *cli.Context) error {
+				return csvUpload(c, api)
+			},
 		},
 		{
 			Name:  "report",

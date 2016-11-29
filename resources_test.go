@@ -65,9 +65,9 @@ func TestFormatAsTable(t *testing.T) {
 }
 
 func TestPrintResourceTable(t *testing.T) {
-	out = &bytes.Buffer{}
+	tablesOut = &bytes.Buffer{}
 	defer func() {
-		out = os.Stdout
+		tablesOut = os.Stdout
 	}()
 
 	testBody := [][]string{{"1337", "Dyer"}, {"42", "Situation"}}
@@ -77,11 +77,11 @@ func TestPrintResourceTable(t *testing.T) {
 }
 
 func regexMatchOut(pattern string, t *testing.T) {
-	matched, err := regexp.Match(pattern, out.(*bytes.Buffer).Bytes())
+	matched, err := regexp.Match(pattern, tablesOut.(*bytes.Buffer).Bytes())
 	if err != nil {
 		t.Error("Error with pattern match:", err)
 	}
 	if !matched {
-		t.Errorf("Printed out %v, want %v", out, pattern)
+		t.Errorf("Printed out %v, want %v", tablesOut, pattern)
 	}
 }

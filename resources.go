@@ -24,7 +24,7 @@ func formatAsTable(resources []rainforest.Resource) [][]string {
 // for the tabular resources we get from the API and formatted using formatAsTable.
 func printResourceTable(resourceName string, data [][]string) {
 	// Init tablewriter with out global var as a target
-	table := tablewriter.NewWriter(out)
+	table := tablewriter.NewWriter(tablesOut)
 
 	// Prepare the tablewriter
 	table.SetHeader([]string{resourceName + " ID", resourceName + " Description"})

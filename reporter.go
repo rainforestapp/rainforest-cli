@@ -13,6 +13,9 @@ import (
 	"github.com/urfave/cli"
 )
 
+// Maximum concurrency for multithreaded HTTP requests
+const reporterConcurrency = 4
+
 // resourceAPI is part of the API connected to available resources
 type reporterAPI interface {
 	GetRunTestDetails(int, int) (*rainforest.RunTestDetails, error)
@@ -183,7 +186,7 @@ func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, 
 	testChan := make(chan processedTestCase, len(*tests))
 
 	// Limit the maximum concurrent requests
-	httpThreads := make(chan struct{}, maxWebConcurrency)
+	httpThreads := make(chan struct{}, reporterConcurrency)
 
 	processTest := func(test rainforest.RunTestDetails) {
 		testCase := jUnitTestReportSchema{}

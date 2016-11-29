@@ -110,7 +110,7 @@ func TestMakeRunParams(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error trying to create params: %v", err)
 		} else if !reflect.DeepEqual(res, testCase.expected) {
-			t.Errorf("Incorrect value for conflict.\nActual: %#v\nExpected: %#v", res, testCase.expected)
+			t.Errorf("Incorrect resulting run params.\nActual: %#v\nExpected: %#v", res, testCase.expected)
 		}
 	}
 }

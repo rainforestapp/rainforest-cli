@@ -135,7 +135,7 @@ func makeRunParams(c cliContext) (rainforest.RunParams, error) {
 	// Parse command argument as a list of test IDs
 	var testIDs interface{}
 	testIDsArgs := c.Args()
-	if testIDsArgs.First() != "all" {
+	if testIDsArgs.First() != "all" && testIDsArgs.First() != "" {
 		testIDs = []int{}
 		for _, arg := range testIDsArgs {
 			nextTestIDs, err := stringToIntSlice(arg)
@@ -144,7 +144,7 @@ func makeRunParams(c cliContext) (rainforest.RunParams, error) {
 			}
 			testIDs = append(testIDs.([]int), nextTestIDs...)
 		}
-	} else {
+	} else if testIDsArgs.First() == "all" {
 		testIDs = "all"
 	}
 

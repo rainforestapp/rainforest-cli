@@ -4,15 +4,16 @@ import "strconv"
 
 // RunParams is a struct holding all potential parameters needed to start a new RF run.
 type RunParams struct {
-	Tests         []int    `json:"tests,omitempty"`
-	Tags          []string `json:"tags,omitempty"`
-	SmartFolderID int      `json:"smart_folder_id,omitempty"`
-	SiteID        int      `json:"site_id,omitempty"`
-	Crowd         string   `json:"crowd,omitempty"`
-	Conflict      string   `json:"conflict,omitempty"`
-	Browsers      []string `json:"browsers,omitempty"`
-	Description   string   `json:"description,omitempty"`
-	EnvironmentID int      `json:"environment_id,omitempty"`
+	// This can be eiter []int or string containing 'all'
+	Tests         interface{} `json:"tests,omitempty"`
+	Tags          []string    `json:"tags,omitempty"`
+	SmartFolderID int         `json:"smart_folder_id,omitempty"`
+	SiteID        int         `json:"site_id,omitempty"`
+	Crowd         string      `json:"crowd,omitempty"`
+	Conflict      string      `json:"conflict,omitempty"`
+	Browsers      []string    `json:"browsers,omitempty"`
+	Description   string      `json:"description,omitempty"`
+	EnvironmentID int         `json:"environment_id,omitempty"`
 }
 
 // RunStatus represents a status of a RF run in progress.

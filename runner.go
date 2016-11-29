@@ -128,18 +128,19 @@ func makeRunParams(c cliContext) (rainforest.RunParams, error) {
 	}
 
 	// Parse command argument as a list of test IDs
-	var testIDs []int
+	var testIDs interface{}
 	testIDsArgs := c.Args()
 	if testIDsArgs.Get(0) != "all" {
+		testIDs = []int{}
 		for _, arg := range testIDsArgs {
 			nextTestIDs, err := stringToIntSlice(arg)
 			if err != nil {
 				return rainforest.RunParams{}, err
 			}
-			testIDs = append(testIDs, nextTestIDs...)
+			testIDs = append(testIDs.([]int), nextTestIDs...)
 		}
 	} else {
-		// TODO: Figure out how to do 'all' tests as it's not an integer
+		testIDs = "all"
 	}
 
 	// We get tags slice from arguments and then expand comma separated lists into separate entries

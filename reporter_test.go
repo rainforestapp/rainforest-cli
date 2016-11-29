@@ -4,13 +4,56 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
+	"time"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
 
+func newFakeReporter() *reporter {
+	r := newReporter()
+
+	r.createJunitReportSchema = func(*rainforest.RunDetails, *rainforest.Client) (*jUnitReportSchema, error) {
+		return &jUnitReportSchema{}, nil
+	}
+
+	r.writeJUnitReport = func(*jUnitReportSchema, *os.File) error {
+		return nil
+	}
+
+	r.getRunDetails = func(int, *rainforest.Client) (*rainforest.RunDetails, error) {
+		return &rainforest.RunDetails{}, nil
+	}
+
+	r.createOutputFile = func(path string) (*os.File, error) {
+		return os.NewFile(1, "test"), nil
+	}
+
+	return r
+}
+
+type fakeReporterAPI struct {
+	t              *testing.T
+	RunTestDetails *rainforest.RunTestDetails
+	ExpectedRunID  int
+	ExpectedTestID int
+}
+
+func (api fakeReporterAPI) GetRunTestDetails(runID int, testID int) (*rainforest.RunTestDetails, error) {
+	if runID != api.ExpectedRunID || testID != api.ExpectedTestID {
+		api.t.Errorf("Unexpected arguments given to GetRunTestDetails. runID: %v, testID: %v", runID, testID)
+	}
+	return api.RunTestDetails, nil
+}
+
+func newFakeReporterAPI(t *testing.T) *fakeReporterAPI {
+	return &fakeReporterAPI{t: t}
+}
+
 func TestReporterCreateReport(t *testing.T) {
+	// No Flags
 	r := newReporter()
 	c := newFakeContext(make(map[string]interface{}), cli.Args{})
 
@@ -24,8 +67,11 @@ func TestReporterCreateReport(t *testing.T) {
 		}
 	}
 
+	// With Flags
 	var expectedFileName string
 	var expectedRunID int
+
+	r = newFakeReporter()
 
 	r.getRunDetails = func(runID int, client *rainforest.Client) (*rainforest.RunDetails, error) {
 		runDetails := rainforest.RunDetails{}
@@ -45,14 +91,6 @@ func TestReporterCreateReport(t *testing.T) {
 		}
 
 		return os.NewFile(1, "test"), nil
-	}
-
-	r.createJunitReportSchema = func(*rainforest.RunDetails, *rainforest.Client) (*jUnitReportSchema, error) {
-		return &jUnitReportSchema{}, nil
-	}
-
-	r.writeJUnitReport = func(*jUnitReportSchema, *os.File) error {
-		return nil
 	}
 
 	testCases := []struct {
@@ -86,5 +124,118 @@ func TestReporterCreateReport(t *testing.T) {
 		expectedFileName = testCase.filename
 
 		r.createReport(c)
+	}
+}
+
+func TestCreateJunitTestReportSchema(t *testing.T) {
+	// Without failures
+
+	runID := 0 // Doesn't matter for this test
+	runTestTitle := "My title"
+	createdAt := "2016-07-13T22:00:00Z"
+	updatedAt := "2016-07-13T22:10:00Z"
+
+	tests := []rainforest.RunTestDetails{
+		{
+			Title:     runTestTitle,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+			Result:    "passed",
+		},
+	}
+
+	api := newFakeReporterAPI(t)
+
+	schema, err := createJunitTestReportSchema(runID, &tests, api)
+	if err != nil {
+		t.Errorf("Unexpected error returned by createJunitTestReportSchema: %v", err)
+	}
+
+	testSchema := (*schema)[0]
+	expectedTestSchema := jUnitTestReportSchema{
+		Name: runTestTitle,
+		Time: 10 * time.Minute.Seconds(),
+	}
+
+	if !reflect.DeepEqual(testSchema, expectedTestSchema) {
+		t.Error("Incorrect JUnitTestReportSchema returned by createJunitTestReportSchema")
+		t.Errorf("Expected: %#v", expectedTestSchema)
+		t.Errorf("Actual: %#v", testSchema)
+	}
+
+	// With failures
+
+	runTestID := 123
+	runID = 987
+	failedBrowser := "chrome"
+	failedNote := "This note should appear"
+
+	tests = []rainforest.RunTestDetails{
+		{
+			ID:        runTestID,
+			Title:     runTestTitle,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+			Result:    "failed",
+		},
+	}
+
+	api.ExpectedTestID = runTestID
+	api.ExpectedRunID = runID
+	api.RunTestDetails = &rainforest.RunTestDetails{
+		ID:        runTestID,
+		Title:     runTestTitle,
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
+		Result:    "failed",
+		Steps: []rainforest.RunStepDetails{
+			{
+				Browsers: []rainforest.RunBrowserDetails{
+					{
+						Name: failedBrowser,
+						Feedback: []rainforest.RunFeedback{
+							{
+								AnswerGiven: "no",
+								JobState:    "approved",
+								Note:        failedNote,
+							},
+							{
+								AnswerGiven: "yes",
+								JobState:    "approved",
+								Note:        "This note should not appear",
+							},
+							{
+								AnswerGiven: "no",
+								JobState:    "rejected",
+								Note:        "This note should not appear either",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	schema, err = createJunitTestReportSchema(runID, &tests, api)
+	if err != nil {
+		t.Errorf("Unexpected error returned by createJunitTestReportSchema: %v", err)
+	}
+
+	testSchema = (*schema)[0]
+	expectedTestSchema = jUnitTestReportSchema{
+		Name: runTestTitle,
+		Time: 10 * time.Minute.Seconds(),
+		Failures: []jUnitTestReportFailure{
+			{
+				Type:    failedBrowser,
+				Message: "This note should appear",
+			},
+		},
+	}
+
+	if !reflect.DeepEqual(testSchema, expectedTestSchema) {
+		t.Error("Incorrect JUnitTestReportSchema returned by createJunitTestReportSchema")
+		t.Errorf("Expected: %#v", expectedTestSchema)
+		t.Errorf("Actual: %#v", testSchema)
 	}
 }

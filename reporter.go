@@ -13,11 +13,16 @@ import (
 	"github.com/urfave/cli"
 )
 
+// resourceAPI is part of the API connected to available resources
+type reporterAPI interface {
+	GetRunTestDetails(int, int) (*rainforest.RunTestDetails, error)
+}
+
 type reporter struct {
 	getRunDetails               func(int, *rainforest.Client) (*rainforest.RunDetails, error)
 	createOutputFile            func(string) (*os.File, error)
 	createJunitReportSchema     func(*rainforest.RunDetails, *rainforest.Client) (*jUnitReportSchema, error)
-	createJunitTestReportSchema func(int, *[]rainforest.RunTestDetails, *rainforest.Client) (*[]jUnitTestReportSchema, error)
+	createJunitTestReportSchema func(int, *[]rainforest.RunTestDetails, reporterAPI) (*[]jUnitTestReportSchema, error)
 	writeJUnitReport            func(*jUnitReportSchema, *os.File) error
 }
 
@@ -145,11 +150,8 @@ type jUnitReportSchema struct {
 }
 
 func createJunitReportSchema(runDetails *rainforest.RunDetails, client *rainforest.Client) (*jUnitReportSchema, error) {
-	var err error
-	var duration float64
-
 	finalStateName := runDetails.StateDetails.Name
-	duration, err = timeStringDifferenceSecs(runDetails.Timestamps["created_at"], runDetails.Timestamps[finalStateName])
+	duration, err := timeStringDifferenceSecs(runDetails.Timestamps["created_at"], runDetails.Timestamps[finalStateName])
 	if err != nil {
 		return &jUnitReportSchema{}, err
 	}
@@ -172,7 +174,7 @@ func createJunitReportSchema(runDetails *rainforest.RunDetails, client *rainfore
 	return report, nil
 }
 
-func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, client *rainforest.Client) (*[]jUnitTestReportSchema, error) {
+func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, api reporterAPI) (*[]jUnitTestReportSchema, error) {
 	type processedTestCase struct {
 		TestCase jUnitTestReportSchema
 		Error    error
@@ -202,7 +204,7 @@ func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, 
 			// reserve a thread
 			httpThreads <- struct{}{}
 			log.Printf("Fetching information for failed test #" + strconv.Itoa(test.ID))
-			testDetails, err = client.GetRunTestDetails(runID, test.ID)
+			testDetails, err = api.GetRunTestDetails(runID, test.ID)
 			// release the thread
 			<-httpThreads
 

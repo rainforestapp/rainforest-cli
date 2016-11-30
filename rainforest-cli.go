@@ -132,9 +132,9 @@ func main() {
 						"use the abort-all option to abort all runs in progress.",
 				},
 				cli.BoolFlag{
-					Name: "fg, foreground",
-					Usage: "show results in the foreground - rainforest-cli will not return until the run is complete. " +
-						"This is what you want to make the build pass / fail dependent on rainforest results",
+					Name: "bg, background",
+					Usage: "run in the background. This option makes cli return after succesfully starting a run, " +
+						"without waiting for the run results.",
 				},
 				cli.BoolFlag{
 					Name: "fail-fast, ff",

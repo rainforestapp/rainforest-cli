@@ -29,29 +29,29 @@ func startRun(c *cli.Context) error {
 	}
 	log.Printf("Run %v has been created...\n", runStatus.ID)
 
-	// if foreground flag is enabled we'll monitor run status
-	if c.Bool("fg") {
-		// Create two channels to communicate with the polling goroutine
-		// One that will tick when it's time to poll and the other to gather final state
-		t := time.NewTicker(runStatusPollInterval)
-		statusChan := make(chan statusWithError, 0)
-		go updateRunStatus(c, runStatus.ID, t, statusChan)
-
-		// This channel readout will block until updateRunStatus pushed final result to it
-		finalState := <-statusChan
-		if finalState.err != nil {
-			return cli.NewExitError(finalState.err.Error(), 1)
-		}
-
-		if finalState.status.FrontendURL != "" {
-			log.Printf("The detailed results are available at %v\n", finalState.status.FrontendURL)
-		}
-
-		if finalState.status.Result != "passed" {
-			return cli.NewExitError("", 1)
-		}
-
+	// if background flag is enabled we'll skip monitoring run status
+	if c.Bool("bg") {
 		return nil
+	}
+
+	// Create two channels to communicate with the polling goroutine
+	// One that will tick when it's time to poll and the other to gather final state
+	t := time.NewTicker(runStatusPollInterval)
+	statusChan := make(chan statusWithError, 0)
+	go updateRunStatus(c, runStatus.ID, t, statusChan)
+
+	// This channel readout will block until updateRunStatus pushed final result to it
+	finalState := <-statusChan
+	if finalState.err != nil {
+		return cli.NewExitError(finalState.err.Error(), 1)
+	}
+
+	if finalState.status.FrontendURL != "" {
+		log.Printf("The detailed results are available at %v\n", finalState.status.FrontendURL)
+	}
+
+	if finalState.status.Result != "passed" {
+		return cli.NewExitError("", 1)
 	}
 
 	return nil

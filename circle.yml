@@ -23,3 +23,7 @@ dependencies:
 test:
   override:
     - cd $BUILD && go test -v -race $(glide novendor)
+
+dependencies:
+  cache_directories:
+    - "~/download"

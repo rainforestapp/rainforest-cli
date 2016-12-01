@@ -35,36 +35,36 @@ type RunStatus struct {
 }
 
 // CreateRun starts a new RF run with given params.
-func (c *Client) CreateRun(params RunParams) (RunStatus, error) {
+func (c *Client) CreateRun(params RunParams) (*RunStatus, error) {
 	var runStatus RunStatus
 
 	// Usual stuff - create a request and send it
 	req, err := c.NewRequest("POST", "runs", params)
 	if err != nil {
-		return runStatus, err
+		return &runStatus, err
 	}
 	_, err = c.Do(req, &runStatus)
 	if err != nil {
-		return runStatus, err
+		return &runStatus, err
 	}
 
-	return runStatus, nil
+	return &runStatus, nil
 }
 
 // CheckRunStatus returns the status of a specified run.
-func (c *Client) CheckRunStatus(runID int) (RunStatus, error) {
+func (c *Client) CheckRunStatus(runID int) (*RunStatus, error) {
 	var runStatus RunStatus
 	// Get proper URL then prepare and send the request
 	url := "runs/" + strconv.Itoa(runID)
 
 	req, err := c.NewRequest("GET", url, nil)
 	if err != nil {
-		return runStatus, err
+		return &runStatus, err
 	}
 	_, err = c.Do(req, &runStatus)
 	if err != nil {
-		return runStatus, err
+		return &runStatus, err
 	}
 
-	return runStatus, nil
+	return &runStatus, nil
 }

@@ -59,7 +59,7 @@ func startRun(c *cli.Context) error {
 
 // statusWithError is a helper type used to send RunStatus and error using single channel
 type statusWithError struct {
-	status rainforest.RunStatus
+	status *rainforest.RunStatus
 	err    error
 }
 

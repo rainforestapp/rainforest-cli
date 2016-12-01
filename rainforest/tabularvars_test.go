@@ -103,7 +103,7 @@ func TestCreateTabularVar(t *testing.T) {
 	})
 
 	newGenerator, _ := client.CreateTabularVar("foo", "bar", []string{"baz", "wut"}, false)
-	want := Generator{
+	want := &Generator{
 		ID:           1337,
 		Name:         "foo",
 		CreationDate: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
@@ -171,7 +171,7 @@ func TestAddGeneratorRows(t *testing.T) {
 		},
 	}
 	rowData := []map[int]string{{123: "foo", 456: "baz"}, {123: "bar", 456: "wut"}}
-	err := client.AddGeneratorRows(fakeGen, rowData)
+	err := client.AddGeneratorRows(&fakeGen, rowData)
 	if err != nil {
 		t.Errorf("Got error: %v", err.Error())
 	}
@@ -218,7 +218,7 @@ func TestAddGeneratorRowsFromTable(t *testing.T) {
 		},
 	}
 	rowData := [][]string{{"foo", "baz"}, {"bar", "wut"}}
-	err := client.AddGeneratorRowsFromTable(fakeGen, []string{"qwe", "asd"}, rowData)
+	err := client.AddGeneratorRowsFromTable(&fakeGen, []string{"qwe", "asd"}, rowData)
 	if err != nil {
 		t.Errorf("Got error: %v", err.Error())
 	}

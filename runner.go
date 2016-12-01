@@ -18,6 +18,25 @@ func startRun(c *cli.Context) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
+	if c.Bool("git-trigger") {
+		git, err := newGitTrigger()
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+		if !git.checkTrigger() {
+			log.Printf("Git trigger enabled, but %v was not found in latest commit. Exiting...", git.Trigger)
+			return nil
+		}
+		if tags := git.getTags(); len(tags) > 0 {
+			if len(params.Tags) == 0 {
+				log.Print("Found tag list in the commit message, overwriting argument.")
+			} else {
+				log.Print("Found tag list in the commit message.")
+			}
+			params.Tags = tags
+		}
+	}
+
 	err = preRunCSVUpload(c, api)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)

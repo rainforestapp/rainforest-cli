@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
+
+	"log"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
@@ -15,7 +19,7 @@ import (
 func newFakeReporter() *reporter {
 	r := newReporter()
 
-	r.createJUnitReportSchema = func(*rainforest.RunDetails, *rainforest.Client) (*jUnitReportSchema, error) {
+	r.createJUnitReportSchema = func(*rainforest.RunDetails, reporterAPI) (*jUnitReportSchema, error) {
 		return &jUnitReportSchema{}, nil
 	}
 
@@ -23,7 +27,7 @@ func newFakeReporter() *reporter {
 		return nil
 	}
 
-	r.getRunDetails = func(int, *rainforest.Client) (*rainforest.RunDetails, error) {
+	r.getRunDetails = func(int, reporterAPI) (*rainforest.RunDetails, error) {
 		return &rainforest.RunDetails{}, nil
 	}
 
@@ -48,11 +52,15 @@ func (api fakeReporterAPI) GetRunTestDetails(runID int, testID int) (*rainforest
 	return api.RunTestDetails, nil
 }
 
+func (api fakeReporterAPI) GetRunDetails(smth int) (*rainforest.RunDetails, error) {
+	return nil, nil
+}
+
 func newFakeReporterAPI(t *testing.T) *fakeReporterAPI {
 	return &fakeReporterAPI{t: t}
 }
 
-func TestReporterCreateReport(t *testing.T) {
+func TestReporterCreateReport_WithoutFlags(t *testing.T) {
 	// No Flags
 	r := newReporter()
 	c := newFakeContext(make(map[string]interface{}), cli.Args{})
@@ -66,14 +74,15 @@ func TestReporterCreateReport(t *testing.T) {
 			t.Errorf("Unexpected error in reporter.reportForRun when Run ID is omitted: %v", err.Error())
 		}
 	}
+}
 
-	// With Flags
+func TestReporterCreateReport(t *testing.T) {
 	var expectedFileName string
 	var expectedRunID int
 
-	r = newFakeReporter()
+	r := newFakeReporter()
 
-	r.getRunDetails = func(runID int, client *rainforest.Client) (*rainforest.RunDetails, error) {
+	r.getRunDetails = func(runID int, client reporterAPI) (*rainforest.RunDetails, error) {
 		runDetails := rainforest.RunDetails{}
 		if runID != expectedRunID {
 			t.Errorf("Unexpected run ID given to createJunitReport.\nExpected: %v\nActual: %v", expectedRunID, runID)
@@ -90,8 +99,10 @@ func TestReporterCreateReport(t *testing.T) {
 			t.Errorf("Unexpected filename given to createJunitReport.\nExpected: %v\nActual: %v", expectedFileName, filename)
 		}
 
-		return os.NewFile(1, "test"), nil
+		return os.Create("myfilename.xml")
 	}
+
+	defer os.Remove("myfilename.xml")
 
 	testCases := []struct {
 		mappings map[string]interface{}
@@ -123,7 +134,12 @@ func TestReporterCreateReport(t *testing.T) {
 		expectedRunID = testCase.runID
 		expectedFileName = testCase.filename
 
-		r.createReport(c)
+		log.SetOutput(ioutil.Discard)
+		defer log.SetOutput(os.Stdout)
+		err := r.createReport(c)
+		if err != nil {
+			t.Errorf("Unexpected error in reporter.createReport: %v", err.Error())
+		}
 	}
 }
 
@@ -146,12 +162,12 @@ func TestCreateJunitTestReportSchema(t *testing.T) {
 
 	api := newFakeReporterAPI(t)
 
-	schema, err := createJunitTestReportSchema(runID, &tests, api)
+	schema, err := createJunitTestReportSchema(runID, tests, api)
 	if err != nil {
 		t.Errorf("Unexpected error returned by createJunitTestReportSchema: %v", err)
 	}
 
-	testSchema := (*schema)[0]
+	testSchema := schema[0]
 	expectedTestSchema := jUnitTestReportSchema{
 		Name: runTestTitle,
 		Time: 10 * time.Minute.Seconds(),
@@ -215,13 +231,15 @@ func TestCreateJunitTestReportSchema(t *testing.T) {
 			},
 		},
 	}
-
-	schema, err = createJunitTestReportSchema(runID, &tests, api)
+	var out bytes.Buffer
+	log.SetOutput(&out)
+	schema, err = createJunitTestReportSchema(runID, tests, api)
+	log.SetOutput(os.Stdout)
 	if err != nil {
 		t.Errorf("Unexpected error returned by createJunitTestReportSchema: %v", err)
 	}
 
-	testSchema = (*schema)[0]
+	testSchema = schema[0]
 	expectedTestSchema = jUnitTestReportSchema{
 		Name: runTestTitle,
 		Time: 10 * time.Minute.Seconds(),

@@ -2,7 +2,6 @@ package rainforest
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -45,13 +44,12 @@ func TestGetRunDetails(t *testing.T) {
 		if r.Method != reqMethod {
 			t.Errorf("Unexpected request method in GetRunTestDetails. Expected: %v, Actual: %v", reqMethod, r.Method)
 		}
-		fmt.Println("Runs URL reached")
 
 		enc := json.NewEncoder(w)
 		enc.Encode(runDetails)
 	})
 
-	updatedAt := time.Now()
+	updatedAt, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:21:31.492Z")
 	createdAt := updatedAt.Add(-10 * time.Minute)
 	runTests := []RunTestDetails{
 		{
@@ -103,7 +101,7 @@ func TestGetRunTestDetails(t *testing.T) {
 	testID := 456
 	reqMethod := "GET"
 
-	updatedAt := time.Now()
+	updatedAt, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:21:31.492Z")
 	createdAt := updatedAt.Add(-10 * time.Minute)
 	runTest := RunTestDetails{
 		ID:        runID,

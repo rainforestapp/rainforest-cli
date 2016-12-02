@@ -2,11 +2,12 @@ package main
 
 import (
 	"encoding/xml"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"errors"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
@@ -18,13 +19,14 @@ const reporterConcurrency = 4
 // resourceAPI is part of the API connected to available resources
 type reporterAPI interface {
 	GetRunTestDetails(int, int) (*rainforest.RunTestDetails, error)
+	GetRunDetails(int) (*rainforest.RunDetails, error)
 }
 
 type reporter struct {
-	getRunDetails               func(int, *rainforest.Client) (*rainforest.RunDetails, error)
+	getRunDetails               func(int, reporterAPI) (*rainforest.RunDetails, error)
 	createOutputFile            func(string) (*os.File, error)
-	createJUnitReportSchema     func(*rainforest.RunDetails, *rainforest.Client) (*jUnitReportSchema, error)
-	createJunitTestReportSchema func(int, *[]rainforest.RunTestDetails, reporterAPI) (*[]jUnitTestReportSchema, error)
+	createJUnitReportSchema     func(*rainforest.RunDetails, reporterAPI) (*jUnitReportSchema, error)
+	createJunitTestReportSchema func(int, []rainforest.RunTestDetails, reporterAPI) ([]jUnitTestReportSchema, error)
 	writeJUnitReport            func(*jUnitReportSchema, *os.File) error
 }
 
@@ -47,7 +49,7 @@ func postRunJUnitReport(c cliContext, runID int) error {
 func newReporter() *reporter {
 	return &reporter{
 		getRunDetails:               getRunDetails,
-		createOutputFile:            createOutputFile,
+		createOutputFile:            os.Create,
 		createJUnitReportSchema:     createJUnitReportSchema,
 		createJunitTestReportSchema: createJunitTestReportSchema,
 		writeJUnitReport:            writeJUnitReport,
@@ -61,12 +63,12 @@ func (r *reporter) createReport(c cliContext) error {
 	if runIDArg := c.Args().Get(0); runIDArg != "" {
 		runID, err = strconv.Atoi(runIDArg)
 		if err != nil {
-			return err
+			return cli.NewExitError(err.Error(), 1)
 		}
 	} else if deprecatedRunIDArg := c.String("run-id"); deprecatedRunIDArg != "" {
 		runID, err = strconv.Atoi(deprecatedRunIDArg)
 		if err != nil {
-			return err
+			return cli.NewExitError(err.Error(), 1)
 		}
 
 		log.Println("Warning: `run-id` flag is deprecated. Please provide Run ID as an argument.")
@@ -77,9 +79,10 @@ func (r *reporter) createReport(c cliContext) error {
 	if junitFile := c.String("junit-file"); junitFile != "" {
 		err = r.createJUnitReport(runID, junitFile)
 		if err != nil {
-			log.Fatalf("Error creating JUnit Report: %v", err.Error())
-			return err
+			return cli.NewExitError(err.Error(), 1)
 		}
+	} else {
+		return cli.NewExitError("Output file not specified", 1)
 	}
 
 	return nil
@@ -89,7 +92,7 @@ func (r *reporter) createJUnitReport(runID int, junitFile string) error {
 	log.Print("Creating JUnit report for run #" + strconv.Itoa(runID) + ": " + junitFile)
 
 	if filepath.Ext(junitFile) != ".xml" {
-		return fmt.Errorf("JUnit file extension must be .xml")
+		return errors.New("JUnit file extension must be .xml")
 	}
 
 	filepath, err := filepath.Abs(junitFile)
@@ -105,6 +108,7 @@ func (r *reporter) createJUnitReport(runID int, junitFile string) error {
 
 	var outputFile *os.File
 	outputFile, err = r.createOutputFile(filepath)
+	defer outputFile.Close()
 	if err != nil {
 		return err
 	}
@@ -123,7 +127,7 @@ func (r *reporter) createJUnitReport(runID int, junitFile string) error {
 	return nil
 }
 
-func getRunDetails(runID int, client *rainforest.Client) (*rainforest.RunDetails, error) {
+func getRunDetails(runID int, client reporterAPI) (*rainforest.RunDetails, error) {
 	var runDetails *rainforest.RunDetails
 	var err error
 
@@ -133,7 +137,7 @@ func getRunDetails(runID int, client *rainforest.Client) (*rainforest.RunDetails
 	}
 
 	if !runDetails.StateDetails.IsFinalState {
-		err = fmt.Errorf("Report cannot be created for an incomplete run")
+		err = errors.New("Report cannot be created for an incomplete run")
 	}
 
 	return runDetails, err
@@ -162,11 +166,11 @@ type jUnitReportSchema struct {
 	TestCases []jUnitTestReportSchema
 }
 
-func createJUnitReportSchema(runDetails *rainforest.RunDetails, client *rainforest.Client) (*jUnitReportSchema, error) {
+func createJUnitReportSchema(runDetails *rainforest.RunDetails, client reporterAPI) (*jUnitReportSchema, error) {
 	finalStateName := runDetails.StateDetails.Name
 	duration := runDetails.Timestamps[finalStateName].Sub(runDetails.Timestamps["created_at"]).Seconds()
 
-	testCases, err := createJunitTestReportSchema(runDetails.ID, &runDetails.Tests, client)
+	testCases, err := createJunitTestReportSchema(runDetails.ID, runDetails.Tests, client)
 	if err != nil {
 		return &jUnitReportSchema{}, err
 	}
@@ -176,79 +180,83 @@ func createJUnitReportSchema(runDetails *rainforest.RunDetails, client *rainfore
 		Errors:    runDetails.TotalNoResultTests,
 		Failures:  runDetails.TotalFailedTests,
 		Tests:     runDetails.TotalTests,
-		TestCases: *testCases,
+		TestCases: testCases,
 		Time:      duration,
 	}
 
 	return report, nil
 }
 
-func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, api reporterAPI) (*[]jUnitTestReportSchema, error) {
+func createJunitTestReportSchema(runID int, tests []rainforest.RunTestDetails, api reporterAPI) ([]jUnitTestReportSchema, error) {
 	type processedTestCase struct {
 		TestCase jUnitTestReportSchema
 		Error    error
 	}
 
-	testChan := make(chan processedTestCase, len(*tests))
+	// Create channels for work to be done and results
+	processedTestChan := make(chan processedTestCase, len(tests))
+	testsChan := make(chan rainforest.RunTestDetails, len(tests))
 
-	// Limit the maximum concurrent requests
-	httpThreads := make(chan struct{}, reporterConcurrency)
+	processTestWorker := func(testsChan <-chan rainforest.RunTestDetails) {
+		for test := range testsChan {
+			testCase := jUnitTestReportSchema{}
 
-	processTest := func(test rainforest.RunTestDetails) {
-		testCase := jUnitTestReportSchema{}
+			duration := test.UpdatedAt.Sub(test.CreatedAt).Seconds()
 
-		duration := test.UpdatedAt.Sub(test.CreatedAt).Seconds()
+			testCase.Name = test.Title
+			testCase.Time = duration
 
-		testCase.Name = test.Title
-		testCase.Time = duration
+			if test.Result == "failed" {
+				log.Printf("Fetching information for failed test #" + strconv.Itoa(test.ID))
+				testDetails, err := api.GetRunTestDetails(runID, test.ID)
 
-		if test.Result == "failed" {
-			// reserve a thread
-			httpThreads <- struct{}{}
-			log.Printf("Fetching information for failed test #" + strconv.Itoa(test.ID))
-			testDetails, err := api.GetRunTestDetails(runID, test.ID)
-			// release the thread
-			<-httpThreads
+				if err != nil {
+					processedTestChan <- processedTestCase{TestCase: jUnitTestReportSchema{}, Error: err}
+					return
+				}
 
-			if err != nil {
-				testChan <- processedTestCase{TestCase: jUnitTestReportSchema{}, Error: err}
-				return
-			}
+				for _, step := range testDetails.Steps {
+					for _, browser := range step.Browsers {
+						browserName := browser.Name
 
-			for _, step := range testDetails.Steps {
-				for _, browser := range step.Browsers {
-					browserName := browser.Name
-
-					for _, feedback := range browser.Feedback {
-						if feedback.AnswerGiven == "no" && feedback.JobState == "approved" && feedback.Note != "" {
-							reportFailure := jUnitTestReportFailure{Type: browserName, Message: feedback.Note}
-							testCase.Failures = append(testCase.Failures, reportFailure)
+						for _, feedback := range browser.Feedback {
+							if feedback.AnswerGiven == "no" && feedback.JobState == "approved" && feedback.Note != "" {
+								reportFailure := jUnitTestReportFailure{Type: browserName, Message: feedback.Note}
+								testCase.Failures = append(testCase.Failures, reportFailure)
+							}
 						}
 					}
 				}
 			}
+
+			processedTestChan <- processedTestCase{TestCase: testCase}
 		}
-
-		testChan <- processedTestCase{TestCase: testCase}
 	}
 
-	for _, test := range *tests {
-		go processTest(test)
+	// spawn workers
+	for i := 0; i < reporterConcurrency; i++ {
+		go processTestWorker(testsChan)
 	}
 
-	testCases := []jUnitTestReportSchema{}
+	// give them work
+	for _, test := range tests {
+		testsChan <- test
+	}
+	close(testsChan)
 
-	for i := 0; i < len(*tests); i++ {
-		processed := <-testChan
+	// and collect the results
+	testCases := make([]jUnitTestReportSchema, len(tests))
+	for i := 0; i < len(tests); i++ {
+		processed := <-processedTestChan
 
 		if processed.Error != nil {
-			return &[]jUnitTestReportSchema{}, processed.Error
+			return []jUnitTestReportSchema{}, processed.Error
 		}
 
-		testCases = append(testCases, processed.TestCase)
+		testCases[i] = processed.TestCase
 	}
 
-	return &testCases, nil
+	return testCases, nil
 }
 
 func writeJUnitReport(reportSchema *jUnitReportSchema, file *os.File) error {
@@ -263,20 +271,5 @@ func writeJUnitReport(reportSchema *jUnitReportSchema, file *os.File) error {
 	}
 
 	log.Printf("JUnit report successfully written to %v", file.Name())
-
-	file.Close()
 	return nil
-}
-
-/*
-	Utility Functions
-*/
-
-func createOutputFile(filepath string) (*os.File, error) {
-	var file *os.File
-	var err error
-	if file, err = os.Create(filepath); err != nil {
-		return file, err
-	}
-	return file, err
 }

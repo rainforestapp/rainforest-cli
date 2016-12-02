@@ -15,7 +15,7 @@ import (
 func newFakeReporter() *reporter {
 	r := newReporter()
 
-	r.createJunitReportSchema = func(*rainforest.RunDetails, *rainforest.Client) (*jUnitReportSchema, error) {
+	r.createJUnitReportSchema = func(*rainforest.RunDetails, *rainforest.Client) (*jUnitReportSchema, error) {
 		return &jUnitReportSchema{}, nil
 	}
 
@@ -132,8 +132,8 @@ func TestCreateJunitTestReportSchema(t *testing.T) {
 
 	runID := 0 // Doesn't matter for this test
 	runTestTitle := "My title"
-	createdAt := "2016-07-13T22:00:00Z"
-	updatedAt := "2016-07-13T22:10:00Z"
+	updatedAt := time.Now()
+	createdAt := updatedAt.Add(-10 * time.Minute)
 
 	tests := []rainforest.RunTestDetails{
 		{

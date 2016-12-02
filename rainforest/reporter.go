@@ -1,6 +1,9 @@
 package rainforest
 
-import "strconv"
+import (
+	"strconv"
+	"time"
+)
 
 // RunFeedback contains details about the feedback of a Run Step for a browser
 type RunFeedback struct {
@@ -24,8 +27,8 @@ type RunStepDetails struct {
 type RunTestDetails struct {
 	ID        int              `json:"id"`
 	Title     string           `json:"title"`
-	CreatedAt string           `json:"created_at"`
-	UpdatedAt string           `json:"updated_at"`
+	CreatedAt time.Time        `json:"created_at"`
+	UpdatedAt time.Time        `json:"updated_at"`
 	Result    string           `json:"result"`
 	Steps     []RunStepDetails `json:"steps"`
 }
@@ -38,13 +41,13 @@ type RunStateDetails struct {
 
 // RunDetails contains top level details of a Run
 type RunDetails struct {
-	ID                 int               `json:"id"`
-	Description        string            `json:"description"`
-	TotalTests         int               `json:"total_tests"`
-	TotalFailedTests   int               `json:"total_failed_tests"`
-	TotalNoResultTests int               `json:"total_no_result_tests"`
-	StateDetails       RunStateDetails   `json:"state_details"`
-	Timestamps         map[string]string `json:"timestamps"`
+	ID                 int                  `json:"id"`
+	Description        string               `json:"description"`
+	TotalTests         int                  `json:"total_tests"`
+	TotalFailedTests   int                  `json:"total_failed_tests"`
+	TotalNoResultTests int                  `json:"total_no_result_tests"`
+	StateDetails       RunStateDetails      `json:"state_details"`
+	Timestamps         map[string]time.Time `json:"timestamps"`
 	Tests              []RunTestDetails
 }
 

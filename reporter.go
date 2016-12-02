@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
@@ -24,21 +23,32 @@ type reporterAPI interface {
 type reporter struct {
 	getRunDetails               func(int, *rainforest.Client) (*rainforest.RunDetails, error)
 	createOutputFile            func(string) (*os.File, error)
-	createJunitReportSchema     func(*rainforest.RunDetails, *rainforest.Client) (*jUnitReportSchema, error)
+	createJUnitReportSchema     func(*rainforest.RunDetails, *rainforest.Client) (*jUnitReportSchema, error)
 	createJunitTestReportSchema func(int, *[]rainforest.RunTestDetails, reporterAPI) (*[]jUnitTestReportSchema, error)
 	writeJUnitReport            func(*jUnitReportSchema, *os.File) error
 }
 
-func createReport(c *cli.Context) error {
+func createReport(c cliContext) error {
 	r := newReporter()
 	return r.createReport(c)
+}
+
+func postRunJUnitReport(c cliContext, runID int) error {
+	// Get the csv file path either and skip uploading if it's not present
+	fileName := c.String("junit-file")
+	if fileName == "" {
+		return nil
+	}
+
+	r := newReporter()
+	return r.createJUnitReport(runID, fileName)
 }
 
 func newReporter() *reporter {
 	return &reporter{
 		getRunDetails:               getRunDetails,
 		createOutputFile:            createOutputFile,
-		createJunitReportSchema:     createJunitReportSchema,
+		createJUnitReportSchema:     createJUnitReportSchema,
 		createJunitTestReportSchema: createJunitTestReportSchema,
 		writeJUnitReport:            writeJUnitReport,
 	}
@@ -100,7 +110,7 @@ func (r *reporter) createJUnitReport(runID int, junitFile string) error {
 	}
 
 	var reportSchema *jUnitReportSchema
-	reportSchema, err = r.createJunitReportSchema(runDetails, api)
+	reportSchema, err = r.createJUnitReportSchema(runDetails, api)
 	if err != nil {
 		return err
 	}
@@ -152,15 +162,11 @@ type jUnitReportSchema struct {
 	TestCases []jUnitTestReportSchema
 }
 
-func createJunitReportSchema(runDetails *rainforest.RunDetails, client *rainforest.Client) (*jUnitReportSchema, error) {
+func createJUnitReportSchema(runDetails *rainforest.RunDetails, client *rainforest.Client) (*jUnitReportSchema, error) {
 	finalStateName := runDetails.StateDetails.Name
-	duration, err := timeStringDifferenceSecs(runDetails.Timestamps["created_at"], runDetails.Timestamps[finalStateName])
-	if err != nil {
-		return &jUnitReportSchema{}, err
-	}
+	duration := runDetails.Timestamps[finalStateName].Sub(runDetails.Timestamps["created_at"]).Seconds()
 
-	var testCases *[]jUnitTestReportSchema
-	testCases, err = createJunitTestReportSchema(runDetails.ID, &runDetails.Tests, client)
+	testCases, err := createJunitTestReportSchema(runDetails.ID, &runDetails.Tests, client)
 	if err != nil {
 		return &jUnitReportSchema{}, err
 	}
@@ -191,23 +197,16 @@ func createJunitTestReportSchema(runID int, tests *[]rainforest.RunTestDetails, 
 	processTest := func(test rainforest.RunTestDetails) {
 		testCase := jUnitTestReportSchema{}
 
-		duration, err := timeStringDifferenceSecs(test.CreatedAt, test.UpdatedAt)
-
-		if err != nil {
-			testChan <- processedTestCase{TestCase: testCase, Error: err}
-			return
-		}
+		duration := test.UpdatedAt.Sub(test.CreatedAt).Seconds()
 
 		testCase.Name = test.Title
 		testCase.Time = duration
 
 		if test.Result == "failed" {
-			var testDetails *rainforest.RunTestDetails
-
 			// reserve a thread
 			httpThreads <- struct{}{}
 			log.Printf("Fetching information for failed test #" + strconv.Itoa(test.ID))
-			testDetails, err = api.GetRunTestDetails(runID, test.ID)
+			testDetails, err := api.GetRunTestDetails(runID, test.ID)
 			// release the thread
 			<-httpThreads
 
@@ -280,23 +279,4 @@ func createOutputFile(filepath string) (*os.File, error) {
 		return file, err
 	}
 	return file, err
-}
-
-func timeStringDifferenceSecs(start string, end string) (float64, error) {
-	var startTime time.Time
-	var endTime time.Time
-	var err error
-	var diff float64
-
-	if startTime, err = time.Parse(time.RFC3339Nano, start); err != nil {
-		return diff, err
-	}
-
-	if endTime, err = time.Parse(time.RFC3339Nano, end); err != nil {
-		return diff, err
-	}
-
-	diff = endTime.Sub(startTime).Seconds()
-
-	return diff, nil
 }

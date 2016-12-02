@@ -47,6 +47,8 @@ func startRun(c *cli.Context) error {
 			log.Printf("The detailed results are available at %v\n", finalState.status.FrontendURL)
 		}
 
+		postRunJUnitReport(c, runStatus.ID)
+
 		if finalState.status.Result != "passed" {
 			return cli.NewExitError("", 1)
 		}

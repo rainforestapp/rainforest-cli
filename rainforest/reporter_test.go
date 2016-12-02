@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+	"time"
 )
 
 func TestGetRunDetails(t *testing.T) {
@@ -16,6 +17,11 @@ func TestGetRunDetails(t *testing.T) {
 	runID := 1337
 	reqMethod := "GET"
 	runsURL := "/runs/" + strconv.Itoa(runID)
+
+	completeTime, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:21:31.492Z")
+	inProgressTime, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:06:18.279Z")
+	validatingTime, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:06:12.411Z")
+	createdAtTime, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:06:10.034Z")
 
 	runDetails := RunDetails{
 		ID:                 runID,
@@ -27,11 +33,11 @@ func TestGetRunDetails(t *testing.T) {
 			Name:         "aborted",
 			IsFinalState: true,
 		},
-		Timestamps: map[string]string{
-			"complete":    "2016-07-13T22:21:31.492Z",
-			"in_progress": "2016-07-13T22:06:18.279Z",
-			"validating":  "2016-07-13T22:06:12.411Z",
-			"created_at":  "2016-07-13T22:06:10.034Z",
+		Timestamps: map[string]time.Time{
+			"complete":    completeTime,
+			"in_progress": inProgressTime,
+			"validating":  validatingTime,
+			"created_at":  createdAtTime,
 		},
 	}
 
@@ -45,12 +51,14 @@ func TestGetRunDetails(t *testing.T) {
 		enc.Encode(runDetails)
 	})
 
+	updatedAt := time.Now()
+	createdAt := updatedAt.Add(-10 * time.Minute)
 	runTests := []RunTestDetails{
 		{
 			ID:        999,
 			Title:     "Run test title",
-			CreatedAt: "2016-07-13T22:06:10.034Z",
-			UpdatedAt: "2016-07-13T22:21:31.492Z",
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
 			Result:    "failed",
 		},
 	}
@@ -95,11 +103,13 @@ func TestGetRunTestDetails(t *testing.T) {
 	testID := 456
 	reqMethod := "GET"
 
+	updatedAt := time.Now()
+	createdAt := updatedAt.Add(-10 * time.Minute)
 	runTest := RunTestDetails{
 		ID:        runID,
 		Title:     "my test title",
-		CreatedAt: "2016-07-13T22:00:00Z",
-		UpdatedAt: "2016-07-13T22:10:00Z",
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
 		Result:    "passed",
 		Steps: []RunStepDetails{
 			{

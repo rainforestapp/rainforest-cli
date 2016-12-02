@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"time"
 
@@ -54,11 +55,21 @@ type cliContext interface {
 	Args() (args cli.Args)
 }
 
+// Create custom writer which will use timestamps
+type logWriter struct{}
+
+func (l *logWriter) Write(p []byte) (int, error) {
+	log.Printf("%s", p)
+	return len(p), nil
+}
+
 // main is an entry point of the app. It sets up the new cli app, and defines the API.
 func main() {
 	app := cli.NewApp()
 	app.Usage = "Rainforest QA CLI - https://www.rainforestqa.com/"
 	app.Version = version
+	// Use our custom writer to print our errors with timestamps
+	cli.ErrWriter = &logWriter{}
 
 	// Before running any of the commands we init the API Client
 	app.Before = func(c *cli.Context) error {

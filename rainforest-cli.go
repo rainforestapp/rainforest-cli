@@ -175,6 +175,10 @@ func main() {
 					Name:  "single-use",
 					Usage: "This option marks uploaded variable as single-use",
 				},
+				cli.StringFlag{
+					Name:  "wait, reattach",
+					Usage: "monitor existing run with `RUN_ID` instead of starting a new one.",
+				},
 			},
 		},
 		{

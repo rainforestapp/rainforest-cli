@@ -196,9 +196,10 @@ func main() {
 		{
 			Name:      "validate",
 			Usage:     "Validate your RFML tests",
-			ArgsUsage: " ",
+			ArgsUsage: "[path to RFML file]",
 			Description: "Validate your tests for syntax and correct RFML ids for embedded tests. " +
-				"If API token is set it'll validate your tests against server data as well.",
+				"If API token is set it'll validate your tests against server data as well. " +
+				"If no filepath is given it validates all RFML tests.",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "test-folder",
@@ -207,7 +208,7 @@ func main() {
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
 			},
-			Action: notImplemented,
+			Action: validateRFML,
 		},
 		{
 			Name:      "upload",

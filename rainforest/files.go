@@ -31,20 +31,32 @@ func (c *Client) GetUploadedFiles(fileID int) ([]UploadedFile, error) {
 	return fileResp, err
 }
 
+// AWSFileInfo represents the response when uploading new file data to Rainforest.
+// It contains information used to upload data the file to AWS.
+type AWSFileInfo struct {
+	FileID        int    `json:"file_id"`
+	FileSignature string `json:"file_signature"`
+	AWSURL        string `json:"aws_url"`
+	AWSKey        string `json:"aws_key"`
+	AWSAccessID   string `json:"aws_access_id"`
+	AWSPolicy     string `json:"aws_policy"`
+	AWSACL        string `json:"aws_acl"`
+	AWSSignature  string `json:"aws_signature"`
+}
+
 // CreateFile creates a UploadedFile resource by sending file information to
 // Rainforest. This information is used for uploading the actual file to AWS.
-func (c *Client) CreateFile(testID int, file os.File) (UploadedFile, error) {
-	var fileResp UploadedFile
-	// fileName := file.Name()
+func (c *Client) CreateFile(testID int, file os.File) (*AWSFileInfo, error) {
+	var awsFileInfo *AWSFileInfo
 	fileInfo, err := os.Stat(file.Name())
 
 	if err != nil {
-		return fileResp, err
+		return awsFileInfo, err
 	}
 
 	data, err := ioutil.ReadAll(&file)
 	if err != nil {
-		return fileResp, err
+		return awsFileInfo, err
 	}
 
 	md5CheckSum := md5.Sum(data)
@@ -59,9 +71,9 @@ func (c *Client) CreateFile(testID int, file os.File) (UploadedFile, error) {
 	url := "tests/" + strconv.Itoa(testID) + "/files"
 	req, err := c.NewRequest("POST", url, body)
 	if err != nil {
-		return fileResp, err
+		return awsFileInfo, err
 	}
 
-	_, err = c.Do(req, &fileResp)
-	return UploadedFile{}, err
+	_, err = c.Do(req, awsFileInfo)
+	return awsFileInfo, err
 }

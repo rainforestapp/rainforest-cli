@@ -21,8 +21,8 @@ type tabularVariablesAPI interface {
 	GetGenerators() ([]rainforest.Generator, error)
 	DeleteGenerator(genID int) error
 	CreateTabularVar(name, description string,
-		columns []string, singleUse bool) (rainforest.Generator, error)
-	AddGeneratorRowsFromTable(targetGenerator rainforest.Generator,
+		columns []string, singleUse bool) (*rainforest.Generator, error)
+	AddGeneratorRowsFromTable(targetGenerator *rainforest.Generator,
 		targetColumns []string, rowData [][]string) error
 }
 
@@ -124,7 +124,7 @@ func min(a, b int) int {
 
 // rowUploadWorker is a helper worker which reads batch of rows to upload from rows chan
 // and pushes potential errors through errorsChan
-func rowUploadWorker(api tabularVariablesAPI, generator rainforest.Generator,
+func rowUploadWorker(api tabularVariablesAPI, generator *rainforest.Generator,
 	columns []string, rowsChan <-chan [][]string, errorsChan chan<- error) {
 	for rows := range rowsChan {
 		error := api.AddGeneratorRowsFromTable(generator, columns, rows)

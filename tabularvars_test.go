@@ -56,8 +56,8 @@ type fakePI struct {
 	getGenerators    func() ([]rainforest.Generator, error)
 	deleteGenerator  func(genID int) error
 	createTabularVar func(name, description string,
-		columns []string, singleUse bool) (rainforest.Generator, error)
-	addGeneratorRowsFromTable func(targetGenerator rainforest.Generator,
+		columns []string, singleUse bool) (*rainforest.Generator, error)
+	addGeneratorRowsFromTable func(targetGenerator *rainforest.Generator,
 		targetColumns []string, rowData [][]string) error
 }
 
@@ -76,14 +76,14 @@ func (f fakePI) DeleteGenerator(genID int) error {
 }
 
 func (f fakePI) CreateTabularVar(name, description string,
-	columns []string, singleUse bool) (rainforest.Generator, error) {
+	columns []string, singleUse bool) (*rainforest.Generator, error) {
 	if f.createTabularVar != nil {
 		return f.createTabularVar(name, description, columns, singleUse)
 	}
-	return rainforest.Generator{}, nil
+	return &rainforest.Generator{}, nil
 }
 
-func (f fakePI) AddGeneratorRowsFromTable(targetGenerator rainforest.Generator,
+func (f fakePI) AddGeneratorRowsFromTable(targetGenerator *rainforest.Generator,
 	targetColumns []string, rowData [][]string) error {
 	if f.addGeneratorRowsFromTable != nil {
 		return f.addGeneratorRowsFromTable(targetGenerator, targetColumns, rowData)
@@ -93,7 +93,7 @@ func (f fakePI) AddGeneratorRowsFromTable(targetGenerator rainforest.Generator,
 
 func TestRowUploadWorker(t *testing.T) {
 	const testBatchesCount = 2
-	gen := rainforest.Generator{ID: 123}
+	gen := &rainforest.Generator{ID: 123}
 	cols := []string{"test", "columns"}
 	inChan := make(chan [][]string, testBatchesCount)
 	firstBatch := [][]string{{"foo", "bar"}, {"baz", "wut"}}
@@ -104,7 +104,7 @@ func TestRowUploadWorker(t *testing.T) {
 	errorsChan := make(chan error, testBatchesCount)
 	var callCount int
 	f := fakePI{
-		addGeneratorRowsFromTable: func(targetGenerator rainforest.Generator,
+		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
 			if !reflect.DeepEqual(targetGenerator, gen) {
 				t.Errorf("Incorrect value of targetGenerator passed. Got: %v, expected: %v", targetGenerator, gen)
@@ -138,7 +138,7 @@ func TestRowUploadWorker(t *testing.T) {
 
 func TestRowUploadWorker_Error(t *testing.T) {
 	const testBatchesCount = 2
-	gen := rainforest.Generator{ID: 123}
+	gen := &rainforest.Generator{ID: 123}
 	cols := []string{"test", "columns"}
 	inChan := make(chan [][]string, testBatchesCount)
 	firstBatch := [][]string{{"foo", "bar"}, {"baz", "wut"}}
@@ -149,7 +149,7 @@ func TestRowUploadWorker_Error(t *testing.T) {
 	errorsChan := make(chan error, testBatchesCount)
 	var callCount int
 	f := fakePI{
-		addGeneratorRowsFromTable: func(targetGenerator rainforest.Generator,
+		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
 			if !reflect.DeepEqual(targetGenerator, gen) {
 				t.Errorf("Incorrect value of targetGenerator passed. Got: %v, expected: %v", targetGenerator, gen)
@@ -223,9 +223,9 @@ func TestUploadTabularVar(t *testing.T) {
 	}
 	callCount := make(map[string]int)
 	f := fakePI{
-		addGeneratorRowsFromTable: func(targetGenerator rainforest.Generator,
+		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
-			if !reflect.DeepEqual(targetGenerator, fakeNewGen) {
+			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
 				t.Errorf("Incorrect value of targetGenerator passed. Got: %v, expected: %v", targetGenerator, fakeNewGen)
 			}
 			if !reflect.DeepEqual(targetColumns, cols) {
@@ -261,7 +261,7 @@ func TestUploadTabularVar(t *testing.T) {
 			return nil
 		},
 		createTabularVar: func(name, description string, columns []string,
-			singleUse bool) (rainforest.Generator, error) {
+			singleUse bool) (*rainforest.Generator, error) {
 			if variableName != name {
 				t.Errorf("Incorrect value of name passed to newTabVar. Got: %v, expected: %v", name, variableName)
 			}
@@ -272,7 +272,7 @@ func TestUploadTabularVar(t *testing.T) {
 				t.Errorf("Incorrect value of singleUse passed to newTabVar. Got: %v, expected: %v", singleUse, variableSingleUse)
 			}
 			callCount["createTabularVar"] = callCount["createTabularVar"] + 1
-			return fakeNewGen, nil
+			return &fakeNewGen, nil
 		},
 	}
 
@@ -332,9 +332,9 @@ func TestUploadTabularVar_Exists_NoOverwrite(t *testing.T) {
 	}
 	callCount := make(map[string]int)
 	f := fakePI{
-		addGeneratorRowsFromTable: func(targetGenerator rainforest.Generator,
+		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
-			if !reflect.DeepEqual(targetGenerator, fakeNewGen) {
+			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
 				t.Errorf("Incorrect value of targetGenerator passed. Got: %v, expected: %v", targetGenerator, fakeNewGen)
 			}
 			if !reflect.DeepEqual(targetColumns, cols) {
@@ -371,7 +371,7 @@ func TestUploadTabularVar_Exists_NoOverwrite(t *testing.T) {
 			return nil
 		},
 		createTabularVar: func(name, description string, columns []string,
-			singleUse bool) (rainforest.Generator, error) {
+			singleUse bool) (*rainforest.Generator, error) {
 			if variableName != name {
 				t.Errorf("Incorrect value of name passed to newTabVar. Got: %v, expected: %v", name, variableName)
 			}
@@ -382,7 +382,7 @@ func TestUploadTabularVar_Exists_NoOverwrite(t *testing.T) {
 				t.Errorf("Incorrect value of singleUse passed to newTabVar. Got: %v, expected: %v", singleUse, variableSingleUse)
 			}
 			callCount["createTabularVar"] = callCount["createTabularVar"] + 1
-			return fakeNewGen, nil
+			return &fakeNewGen, nil
 		},
 	}
 	err := uploadTabularVar(f, fakeCSVPath, variableName, variableOverwrite, variableSingleUse)
@@ -432,9 +432,9 @@ func TestUploadTabularVar_Exists_Overwrite(t *testing.T) {
 	}
 	callCount := make(map[string]int)
 	f := fakePI{
-		addGeneratorRowsFromTable: func(targetGenerator rainforest.Generator,
+		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
-			if !reflect.DeepEqual(targetGenerator, fakeNewGen) {
+			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
 				t.Errorf("Incorrect value of targetGenerator passed. Got: %v, expected: %v", targetGenerator, fakeNewGen)
 			}
 			if !reflect.DeepEqual(targetColumns, cols) {
@@ -471,7 +471,7 @@ func TestUploadTabularVar_Exists_Overwrite(t *testing.T) {
 			return nil
 		},
 		createTabularVar: func(name, description string, columns []string,
-			singleUse bool) (rainforest.Generator, error) {
+			singleUse bool) (*rainforest.Generator, error) {
 			if variableName != name {
 				t.Errorf("Incorrect value of name passed to newTabVar. Got: %v, expected: %v", name, variableName)
 			}
@@ -482,7 +482,7 @@ func TestUploadTabularVar_Exists_Overwrite(t *testing.T) {
 				t.Errorf("Incorrect value of singleUse passed to newTabVar. Got: %v, expected: %v", singleUse, variableSingleUse)
 			}
 			callCount["createTabularVar"] = callCount["createTabularVar"] + 1
-			return fakeNewGen, nil
+			return &fakeNewGen, nil
 		},
 	}
 
@@ -545,9 +545,9 @@ func TestCSVUpload(t *testing.T) {
 	}
 	callCount := make(map[string]int)
 	f := fakePI{
-		addGeneratorRowsFromTable: func(targetGenerator rainforest.Generator,
+		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
-			if !reflect.DeepEqual(targetGenerator, fakeNewGen) {
+			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
 				t.Errorf("Incorrect value of targetGenerator passed. Got: %v, expected: %v", targetGenerator, fakeNewGen)
 			}
 			if !reflect.DeepEqual(targetColumns, cols) {
@@ -584,7 +584,7 @@ func TestCSVUpload(t *testing.T) {
 			return nil
 		},
 		createTabularVar: func(name, description string, columns []string,
-			singleUse bool) (rainforest.Generator, error) {
+			singleUse bool) (*rainforest.Generator, error) {
 			if variableName != name {
 				t.Errorf("Incorrect value of name passed to newTabVar. Got: %v, expected: %v", name, variableName)
 			}
@@ -595,7 +595,7 @@ func TestCSVUpload(t *testing.T) {
 				t.Errorf("Incorrect value of singleUse passed to newTabVar. Got: %v, expected: %v", singleUse, variableSingleUse)
 			}
 			callCount["createTabularVar"] = callCount["createTabularVar"] + 1
-			return fakeNewGen, nil
+			return &fakeNewGen, nil
 		},
 	}
 
@@ -665,9 +665,9 @@ func TestCSVUpload_MissingName(t *testing.T) {
 	}
 	callCount := make(map[string]int)
 	f := fakePI{
-		addGeneratorRowsFromTable: func(targetGenerator rainforest.Generator,
+		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
-			if !reflect.DeepEqual(targetGenerator, fakeNewGen) {
+			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
 				t.Errorf("Incorrect value of targetGenerator passed. Got: %v, expected: %v", targetGenerator, fakeNewGen)
 			}
 			if !reflect.DeepEqual(targetColumns, cols) {
@@ -704,7 +704,7 @@ func TestCSVUpload_MissingName(t *testing.T) {
 			return nil
 		},
 		createTabularVar: func(name, description string, columns []string,
-			singleUse bool) (rainforest.Generator, error) {
+			singleUse bool) (*rainforest.Generator, error) {
 			if variableName != name {
 				t.Errorf("Incorrect value of name passed to newTabVar. Got: %v, expected: %v", name, variableName)
 			}
@@ -715,7 +715,7 @@ func TestCSVUpload_MissingName(t *testing.T) {
 				t.Errorf("Incorrect value of singleUse passed to newTabVar. Got: %v, expected: %v", singleUse, variableSingleUse)
 			}
 			callCount["createTabularVar"] = callCount["createTabularVar"] + 1
-			return fakeNewGen, nil
+			return &fakeNewGen, nil
 		},
 	}
 
@@ -777,9 +777,9 @@ func TestPreRunCSVUpload(t *testing.T) {
 	}
 	callCount := make(map[string]int)
 	f := fakePI{
-		addGeneratorRowsFromTable: func(targetGenerator rainforest.Generator,
+		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
-			if !reflect.DeepEqual(targetGenerator, fakeNewGen) {
+			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
 				t.Errorf("Incorrect value of targetGenerator passed. Got: %v, expected: %v", targetGenerator, fakeNewGen)
 			}
 			if !reflect.DeepEqual(targetColumns, cols) {
@@ -816,7 +816,7 @@ func TestPreRunCSVUpload(t *testing.T) {
 			return nil
 		},
 		createTabularVar: func(name, description string, columns []string,
-			singleUse bool) (rainforest.Generator, error) {
+			singleUse bool) (*rainforest.Generator, error) {
 			if variableName != name {
 				t.Errorf("Incorrect value of name passed to newTabVar. Got: %v, expected: %v", name, variableName)
 			}
@@ -827,7 +827,7 @@ func TestPreRunCSVUpload(t *testing.T) {
 				t.Errorf("Incorrect value of singleUse passed to newTabVar. Got: %v, expected: %v", singleUse, variableSingleUse)
 			}
 			callCount["createTabularVar"] = callCount["createTabularVar"] + 1
-			return fakeNewGen, nil
+			return &fakeNewGen, nil
 		},
 	}
 
@@ -898,9 +898,9 @@ func TestPreRunCSVUpload_MissingName(t *testing.T) {
 	}
 	callCount := make(map[string]int)
 	f := fakePI{
-		addGeneratorRowsFromTable: func(targetGenerator rainforest.Generator,
+		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
-			if !reflect.DeepEqual(targetGenerator, fakeNewGen) {
+			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
 				t.Errorf("Incorrect value of targetGenerator passed. Got: %v, expected: %v", targetGenerator, fakeNewGen)
 			}
 			if !reflect.DeepEqual(targetColumns, cols) {
@@ -937,7 +937,7 @@ func TestPreRunCSVUpload_MissingName(t *testing.T) {
 			return nil
 		},
 		createTabularVar: func(name, description string, columns []string,
-			singleUse bool) (rainforest.Generator, error) {
+			singleUse bool) (*rainforest.Generator, error) {
 			if variableName != name {
 				t.Errorf("Incorrect value of name passed to newTabVar. Got: %v, expected: %v", name, variableName)
 			}
@@ -948,7 +948,7 @@ func TestPreRunCSVUpload_MissingName(t *testing.T) {
 				t.Errorf("Incorrect value of singleUse passed to newTabVar. Got: %v, expected: %v", singleUse, variableSingleUse)
 			}
 			callCount["createTabularVar"] = callCount["createTabularVar"] + 1
-			return fakeNewGen, nil
+			return &fakeNewGen, nil
 		},
 	}
 

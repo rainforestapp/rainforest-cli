@@ -81,7 +81,7 @@ func (c *Client) DeleteGenerator(genID int) error {
 // columns argument should contain just an array of column names, contents of the generator should
 // be filled using AddGeneratorRows.
 func (c *Client) CreateTabularVar(name, description string,
-	columns []string, singleUse bool) (Generator, error) {
+	columns []string, singleUse bool) (*Generator, error) {
 	//Prepare request
 	type genCreateRequest struct {
 		Name        string   `json:"name,omitempty"`
@@ -92,10 +92,10 @@ func (c *Client) CreateTabularVar(name, description string,
 	body := genCreateRequest{name, description, singleUse, columns}
 	req, err := c.NewRequest("POST", "generators", body)
 	if err != nil {
-		return Generator{}, err
+		return &Generator{}, err
 	}
 
-	var out Generator
+	var out *Generator
 	_, err = c.Do(req, &out)
 	if err != nil {
 		return out, err
@@ -107,7 +107,7 @@ func (c *Client) CreateTabularVar(name, description string,
 // AddGeneratorRows adds rows to the specified tabular variable
 // rowData is in a form of [{ 123: "foo", 124: "bar" }, { 123: "baz", 124: "qux" }] where 123 is a column ID
 // AddGeneratorRowsFromTable is also provided which accepts different rowData format
-func (c *Client) AddGeneratorRows(targetGenerator Generator, rowData []map[int]string) error {
+func (c *Client) AddGeneratorRows(targetGenerator *Generator, rowData []map[int]string) error {
 	//Prepare request
 	type batchRowsRequest struct {
 		RowData []map[int]string `json:"data,omitempty"`
@@ -132,7 +132,7 @@ func (c *Client) AddGeneratorRows(targetGenerator Generator, rowData []map[int]s
 // data should be formatted as follows:
 // targetColumns contains names of existing columns to which add data e.g. ["login", "password"]
 // rowData contains row data in columns order specified in targetColumns e.g. [["foo", "bar"], ["baz", "qux"]]
-func (c *Client) AddGeneratorRowsFromTable(targetGenerator Generator,
+func (c *Client) AddGeneratorRowsFromTable(targetGenerator *Generator,
 	targetColumns []string, rowData [][]string) error {
 	// Quick sanity check of the args
 	if len(targetColumns) != len(targetGenerator.Columns) {

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"time"
 
@@ -54,11 +55,21 @@ type cliContext interface {
 	Args() (args cli.Args)
 }
 
+// Create custom writer which will use timestamps
+type logWriter struct{}
+
+func (l *logWriter) Write(p []byte) (int, error) {
+	log.Printf("%s", p)
+	return len(p), nil
+}
+
 // main is an entry point of the app. It sets up the new cli app, and defines the API.
 func main() {
 	app := cli.NewApp()
 	app.Usage = "Rainforest QA CLI - https://www.rainforestqa.com/"
 	app.Version = version
+	// Use our custom writer to print our errors with timestamps
+	cli.ErrWriter = &logWriter{}
 
 	// Before running any of the commands we init the API Client
 	app.Before = func(c *cli.Context) error {
@@ -126,9 +137,9 @@ func main() {
 						"use the abort-all option to abort all runs in progress.",
 				},
 				cli.BoolFlag{
-					Name: "fg, foreground",
-					Usage: "show results in the foreground - rainforest-cli will not return until the run is complete. " +
-						"This is what you want to make the build pass / fail dependent on rainforest results",
+					Name: "bg, background",
+					Usage: "run in the background. This option makes cli return after succesfully starting a run, " +
+						"without waiting for the run results.",
 				},
 				cli.BoolFlag{
 					Name: "fail-fast, ff",
@@ -168,6 +179,10 @@ func main() {
 				cli.BoolFlag{
 					Name:  "single-use",
 					Usage: "This option marks uploaded variable as single-use",
+				},
+				cli.StringFlag{
+					Name:  "wait, reattach",
+					Usage: "monitor existing run with `RUN_ID` instead of starting a new one.",
 				},
 			},
 		},

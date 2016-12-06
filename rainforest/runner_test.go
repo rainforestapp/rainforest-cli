@@ -32,7 +32,7 @@ func TestCreateRun(t *testing.T) {
 
 	out, _ := client.CreateRun(runParams)
 
-	want := RunStatus{ID: 123, State: "in_progress"}
+	want := &RunStatus{ID: 123, State: "in_progress"}
 
 	if !reflect.DeepEqual(out, want) {
 		t.Errorf("Response out = %v, want %v", out, want)
@@ -55,7 +55,7 @@ func TestCheckRunStatus(t *testing.T) {
 
 	out, _ := client.CheckRunStatus(123)
 
-	want := RunStatus{ID: 123, State: "in_progress"}
+	want := &RunStatus{ID: 123, State: "in_progress"}
 
 	if !reflect.DeepEqual(out, want) {
 		t.Errorf("Response out = %v, want %v", out, want)

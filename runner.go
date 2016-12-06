@@ -12,10 +12,39 @@ import (
 )
 
 // startRun starts a new Rainforest run & depending on passed flags monitors its execution
-func startRun(c *cli.Context) error {
+func startRun(c cliContext) error {
+	// First check if we even want to crate new run or just monitor the existing one.
+	if runIDStr := c.String("reattach"); runIDStr != "" {
+		runID, err := strconv.Atoi(runIDStr)
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+		return monitorRunStatus(c, runID)
+	}
+
 	params, err := makeRunParams(c)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
+	}
+
+	if c.Bool("git-trigger") {
+		var git gitTrigger
+		git, err = newGitTrigger()
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+		if !git.checkTrigger() {
+			log.Printf("Git trigger enabled, but %v was not found in latest commit. Exiting...", git.Trigger)
+			return nil
+		}
+		if tags := git.getTags(); len(tags) > 0 {
+			if len(params.Tags) == 0 {
+				log.Print("Found tag list in the commit message, overwriting argument.")
+			} else {
+				log.Print("Found tag list in the commit message.")
+			}
+			params.Tags = tags
+		}
 	}
 
 	err = preRunCSVUpload(c, api)
@@ -29,31 +58,35 @@ func startRun(c *cli.Context) error {
 	}
 	log.Printf("Run %v has been created...\n", runStatus.ID)
 
-	// if foreground flag is enabled we'll monitor run status
-	if c.Bool("fg") {
-		// Create two channels to communicate with the polling goroutine
-		// One that will tick when it's time to poll and the other to gather final state
-		t := time.NewTicker(runStatusPollInterval)
-		statusChan := make(chan statusWithError, 0)
-		go updateRunStatus(c, runStatus.ID, t, statusChan)
-
-		// This channel readout will block until updateRunStatus pushed final result to it
-		finalState := <-statusChan
-		if finalState.err != nil {
-			return cli.NewExitError(finalState.err.Error(), 1)
-		}
-
-		if finalState.status.FrontendURL != "" {
-			log.Printf("The detailed results are available at %v\n", finalState.status.FrontendURL)
-		}
-
-		postRunJUnitReport(c, runStatus.ID)
-
-		if finalState.status.Result != "passed" {
-			return cli.NewExitError("", 1)
-		}
-
+	// if background flag is enabled we'll skip monitoring run status
+	if c.Bool("bg") {
 		return nil
+	}
+
+	return monitorRunStatus(c, runStatus.ID)
+}
+
+func monitorRunStatus(c cliContext, runID int) error {
+	// Create two channels to communicate with the polling goroutine
+	// One that will tick when it's time to poll and the other to gather final state
+	t := time.NewTicker(runStatusPollInterval)
+	statusChan := make(chan statusWithError, 0)
+	go updateRunStatus(c, runID, t, statusChan)
+
+	// This channel readout will block until updateRunStatus pushed final result to it
+	finalState := <-statusChan
+	if finalState.err != nil {
+		return cli.NewExitError(finalState.err.Error(), 1)
+	}
+
+	if finalState.status.FrontendURL != "" {
+		log.Printf("The detailed results are available at %v\n", finalState.status.FrontendURL)
+	}
+
+	postRunJUnitReport(c, runID)
+
+	if finalState.status.Result != "passed" {
+		return cli.NewExitError("", 1)
 	}
 
 	return nil
@@ -61,7 +94,7 @@ func startRun(c *cli.Context) error {
 
 // statusWithError is a helper type used to send RunStatus and error using single channel
 type statusWithError struct {
-	status rainforest.RunStatus
+	status *rainforest.RunStatus
 	err    error
 }
 
@@ -72,6 +105,7 @@ func updateRunStatus(c cliContext, runID int, t *time.Ticker, resChan chan statu
 		newStatus, err := api.CheckRunStatus(runID)
 		if err != nil {
 			resChan <- statusWithError{status: newStatus, err: err}
+			return
 		}
 
 		isFinalState := newStatus.StateDetails.IsFinalState

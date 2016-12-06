@@ -49,9 +49,8 @@ func NewClient(token string) *Client {
 	} else {
 		baseURL, _ = url.Parse(currentBaseURL)
 	}
-	client := &Client{client: http.DefaultClient, BaseURL: baseURL, ClientToken: token}
 
-	return client
+	return &Client{client: http.DefaultClient, BaseURL: baseURL, ClientToken: token}
 }
 
 // NewRequest creates an API request. Provided url will be resolved using ResolveReference,

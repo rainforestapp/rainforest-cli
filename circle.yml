@@ -19,6 +19,8 @@ dependencies:
     - curl https://glide.sh/get | sh
   override:
     - cd $BUILD && glide install
+  cache_directories:
+    - "~/download"
 
 test:
   override:

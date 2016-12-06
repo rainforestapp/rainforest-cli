@@ -10,15 +10,33 @@ import (
 
 // RFTest is a struct representing the Rainforest Test with its settings and steps
 type RFTest struct {
-	RFMLID      string   `json:"rfml_id"`
-	Title       string   `json:"title"`
-	StartURI    string   `json:"start_uri"`
-	SiteID      int      `json:"site_id"`
-	Description string   `json:"description"`
-	Tags        []string `json:"tags"`
-	BrowsersMap string   `json:"browser_json"`
+	RFMLID      string              `json:"rfml_id"`
+	Title       string              `json:"title"`
+	StartURI    string              `json:"start_uri"`
+	SiteID      int                 `json:"site_id"`
+	Description string              `json:"description"`
+	Tags        []string            `json:"tags"`
+	BrowsersMap []map[string]string `json:"browser_json"`
 	Browsers    []string
 	Steps       []interface{}
+}
+
+func (t *RFTest) mapBrowsers() {
+	for _, browser := range t.Browsers {
+		mappedBrowser := map[string]string{
+			"state": "enabled",
+			"name":  browser,
+		}
+		t.BrowsersMap = append(t.BrowsersMap, mappedBrowser)
+	}
+}
+
+func (t *RFTest) unmapBrowsers() {
+	for _, browserMap := range t.BrowsersMap {
+		if browserMap["state"] == "enabled" {
+			t.Browsers = append(t.Browsers, browserMap["name"])
+		}
+	}
 }
 
 // RFTestStep contains single Rainforest step
@@ -40,6 +58,8 @@ type RFMLReader struct {
 	r *bufio.Reader
 	// Version sets the RFML spec version, it's set by NewRFMLReader to the newest one.
 	Version int
+	// Sets the default value of redirect, that's used when it's not specified in RFML
+	RedirectDefault bool
 }
 
 // parseError is a custom error implementing error interface for reporting RFML parsing errors.
@@ -55,8 +75,9 @@ func (e *parseError) Error() string {
 // NewRFMLReader returns RFML parser based on passed io.Reader - typically a RFML file.
 func NewRFMLReader(r io.Reader) *RFMLReader {
 	return &RFMLReader{
-		r:       bufio.NewReader(r),
-		Version: 1,
+		r:               bufio.NewReader(r),
+		Version:         1,
+		RedirectDefault: false,
 	}
 }
 
@@ -67,9 +88,12 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 	// Set up a new scanner to read in data line by line
 	scanner := bufio.NewScanner(r.r)
 	lineNum := 0
+	// Temp variables where we put stuff while parsing
+	currStep := make([]string, 0, 2)
+	currStepRedirect := r.RedirectDefault
 	for scanner.Scan() {
 		lineNum++
-		line := scanner.Text()
+		line := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(line, "#!") {
 			// Handle shebang
 			parsedRFTest.RFMLID = line[2:]
@@ -89,7 +113,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 				case "site_id":
 					siteID, err := strconv.Atoi(value)
 					if err != nil {
-						return &RFTest{}, &parseError{lineNum, "Site ID must be a valid integer."}
+						return &RFTest{}, &parseError{lineNum, "Site ID must be a valid integer"}
 					}
 					parsedRFTest.SiteID = siteID
 				case "tags":
@@ -107,7 +131,11 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 					}
 					parsedRFTest.Browsers = strippedBrowsers
 				case "redirect":
-					// HANDLE REDIRECT FOR STEP
+					redirect, err := strconv.ParseBool(value)
+					if err != nil {
+						return &RFTest{}, &parseError{lineNum, "Redirect value must be a valid boolean"}
+					}
+					currStepRedirect = redirect
 				default:
 					// If it doesn't match known key add it to description
 					parsedRFTest.Description += content + "\n"
@@ -118,8 +146,40 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 			}
 		} else {
 			// Handle non prefixed lines
+			// Here what we do depends on the fact if we have some step data collected already
+			switch len(currStep) {
+			case 0:
+				if strings.HasPrefix(line, "-") {
+					embeddedID := strings.TrimSpace(line[strings.Index(line, "-")+1:])
+					embeddedStep := RFEmbeddedTest{embeddedID, currStepRedirect}
+					parsedRFTest.Steps = append(parsedRFTest.Steps, embeddedStep)
+					// Reset currStepRedirect
+					currStepRedirect = r.RedirectDefault
+				} else if line != "" {
+					currStep = append(currStep, line)
+				}
+			case 1:
+				if strings.Contains(line, "?") {
+					currStep = append(currStep, line)
+				} else {
+					return &RFTest{}, &parseError{lineNum, "Each step must contain a question, with a `?`"}
+				}
+			case 2:
+				if line == "" {
+					parsedStep := RFTestStep{currStep[0], currStep[1], currStepRedirect}
+					parsedRFTest.Steps = append(parsedRFTest.Steps, parsedStep)
+					// Reset temp vars to defaults
+					currStep = make([]string, 0, 2)
+					currStepRedirect = r.RedirectDefault
+				} else {
+					return &RFTest{}, &parseError{lineNum, "Steps must be separated with empty lines"}
+				}
+			}
 		}
-		fmt.Println(line)
 	}
+	if parsedRFTest.RFMLID == "" {
+		return &RFTest{}, &parseError{1, "RFML ID is required for .rfml files, specify it using #!"}
+	}
+	parsedRFTest.mapBrowsers()
 	return parsedRFTest, nil
 }

@@ -8,50 +8,6 @@ import (
 	"strings"
 )
 
-// RFTest is a struct representing the Rainforest Test with its settings and steps
-type RFTest struct {
-	RFMLID      string              `json:"rfml_id"`
-	Title       string              `json:"title"`
-	StartURI    string              `json:"start_uri"`
-	SiteID      int                 `json:"site_id"`
-	Description string              `json:"description"`
-	Tags        []string            `json:"tags"`
-	BrowsersMap []map[string]string `json:"browser_json"`
-	Browsers    []string
-	Steps       []interface{}
-}
-
-func (t *RFTest) mapBrowsers() {
-	for _, browser := range t.Browsers {
-		mappedBrowser := map[string]string{
-			"state": "enabled",
-			"name":  browser,
-		}
-		t.BrowsersMap = append(t.BrowsersMap, mappedBrowser)
-	}
-}
-
-func (t *RFTest) unmapBrowsers() {
-	for _, browserMap := range t.BrowsersMap {
-		if browserMap["state"] == "enabled" {
-			t.Browsers = append(t.Browsers, browserMap["name"])
-		}
-	}
-}
-
-// RFTestStep contains single Rainforest step
-type RFTestStep struct {
-	Action   string
-	Response string
-	Redirect bool
-}
-
-// RFEmbeddedTest contains an embedded test details
-type RFEmbeddedTest struct {
-	RFMLID   string
-	Redirect bool
-}
-
 // RFMLReader reads form RFML formatted file.
 // It exports some settings that can be set before parsing.
 type RFMLReader struct {

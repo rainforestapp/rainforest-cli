@@ -13,7 +13,7 @@ func TestGetRFMLIDs(t *testing.T) {
 
 	const reqMethod = "GET"
 
-	rfmlIDs := []Test{
+	rfmlIDs := []TestIDMap{
 		{ID: 123, RFMLID: "abc"},
 		{ID: 456, RFMLID: "xyz"},
 	}

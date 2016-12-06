@@ -16,6 +16,7 @@ checkout:
 
 dependencies:
   pre:
+    - mkdir -p $GOPATH/bin
     - curl https://glide.sh/get | sh
   override:
     - cd $BUILD && glide install

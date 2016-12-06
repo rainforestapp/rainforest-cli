@@ -28,7 +28,8 @@ func startRun(c cliContext) error {
 	}
 
 	if c.Bool("git-trigger") {
-		git, err := newGitTrigger()
+		var git gitTrigger
+		git, err = newGitTrigger()
 		if err != nil {
 			return cli.NewExitError(err.Error(), 1)
 		}
@@ -81,6 +82,8 @@ func monitorRunStatus(c cliContext, runID int) error {
 	if finalState.status.FrontendURL != "" {
 		log.Printf("The detailed results are available at %v\n", finalState.status.FrontendURL)
 	}
+
+	postRunJUnitReport(c, runID)
 
 	if finalState.status.Result != "passed" {
 		return cli.NewExitError("", 1)

@@ -58,7 +58,7 @@ func uploadTabularVar(api tabularVariablesAPI, pathToCSV, name string, overwrite
 		if overwrite {
 			// if variable exists and we want to override it with new one delete it here
 			log.Printf("Tabular var %v exists, overwriting it with new data.\n", name)
-			err := api.DeleteGenerator(existingGenID)
+			err = api.DeleteGenerator(existingGenID)
 			if err != nil {
 				return err
 			}

@@ -91,12 +91,6 @@ func main() {
 			Usage:  "API token. You can find it at https://app.rainforestqa.com/settings/integrations",
 			EnvVar: "RAINFOREST_API_TOKEN",
 		},
-		cli.IntFlag{
-			Name:   "threads",
-			Usage:  "Used to customize the amount of concurrent HTTP connections to use.",
-			Value:  16,
-			EnvVar: "RAINFOREST_THREADS",
-		},
 	}
 
 	app.Commands = []cli.Command{
@@ -313,22 +307,21 @@ func main() {
 		},
 		{
 			Name:  "report",
-			Usage: "Create a JUnit report from your run results",
-			Description: "Creates a JUnit report from your specified run." +
+			Usage: "Create a report from your run results",
+			Description: "Creates a report from your specified run." +
 				"You can specify output file using options, otherwise report will be generated to STDOUT",
 			ArgsUsage: "[run ID]",
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "junit-file, out, o",
-					Usage: "`PATH` of file to which save the JUnit report.",
+					Name:  "junit-file",
+					Usage: "`PATH` of file to which write a JUnit report for the specified run.",
 				},
-				// Left here for legacy reason, but imho we should move that to args
 				cli.StringFlag{
 					Name:  "run-id",
 					Usage: "DEPRECATED: ID of a run for which to generate results. Since v2 please provide the run ID as an argument.",
 				},
 			},
-			Action: notImplemented,
+			Action: createReport,
 		},
 		{
 			Name:  "sites",

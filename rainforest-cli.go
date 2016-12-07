@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"time"
 
@@ -54,11 +55,21 @@ type cliContext interface {
 	Args() (args cli.Args)
 }
 
+// Create custom writer which will use timestamps
+type logWriter struct{}
+
+func (l *logWriter) Write(p []byte) (int, error) {
+	log.Printf("%s", p)
+	return len(p), nil
+}
+
 // main is an entry point of the app. It sets up the new cli app, and defines the API.
 func main() {
 	app := cli.NewApp()
 	app.Usage = "Rainforest QA CLI - https://www.rainforestqa.com/"
 	app.Version = version
+	// Use our custom writer to print our errors with timestamps
+	cli.ErrWriter = &logWriter{}
 
 	// Before running any of the commands we init the API Client
 	app.Before = func(c *cli.Context) error {
@@ -79,12 +90,6 @@ func main() {
 			Name:   "token, t",
 			Usage:  "API token. You can find it at https://app.rainforestqa.com/settings/integrations",
 			EnvVar: "RAINFOREST_API_TOKEN",
-		},
-		cli.IntFlag{
-			Name:   "threads",
-			Usage:  "Used to customize the amount of concurrent HTTP connections to use.",
-			Value:  16,
-			EnvVar: "RAINFOREST_THREADS",
 		},
 	}
 
@@ -174,6 +179,10 @@ func main() {
 				cli.BoolFlag{
 					Name:  "single-use",
 					Usage: "This option marks uploaded variable as single-use",
+				},
+				cli.StringFlag{
+					Name:  "wait, reattach",
+					Usage: "monitor existing run with `RUN_ID` instead of starting a new one.",
 				},
 			},
 		},
@@ -299,22 +308,21 @@ func main() {
 		},
 		{
 			Name:  "report",
-			Usage: "Create a JUnit report from your run results",
-			Description: "Creates a JUnit report from your specified run." +
+			Usage: "Create a report from your run results",
+			Description: "Creates a report from your specified run." +
 				"You can specify output file using options, otherwise report will be generated to STDOUT",
 			ArgsUsage: "[run ID]",
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "junit-file, out, o",
-					Usage: "`PATH` of file to which save the JUnit report.",
+					Name:  "junit-file",
+					Usage: "`PATH` of file to which write a JUnit report for the specified run.",
 				},
-				// Left here for legacy reason, but imho we should move that to args
 				cli.StringFlag{
 					Name:  "run-id",
 					Usage: "DEPRECATED: ID of a run for which to generate results. Since v2 please provide the run ID as an argument.",
 				},
 			},
-			Action: notImplemented,
+			Action: createReport,
 		},
 		{
 			Name:  "sites",

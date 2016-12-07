@@ -1,6 +1,7 @@
 .DS_Store
 
 *.csv
+*.xml
 spec/rainforest
 spec/rainforest-testing
 

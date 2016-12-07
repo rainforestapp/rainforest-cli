@@ -52,7 +52,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 		line := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(line, "#!") {
 			// Handle shebang
-			parsedRFTest.RFMLID = line[2:]
+			parsedRFTest.RFMLID = strings.TrimSpace(line[2:])
 		} else if strings.HasPrefix(line, "#") {
 			// Handle hashed lines
 			content := line[1:]

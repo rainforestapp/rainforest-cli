@@ -197,9 +197,9 @@ func main() {
 			Name:      "validate",
 			Usage:     "Validate your RFML tests",
 			ArgsUsage: "[path to RFML file]",
-			Description: "Validate your tests for syntax and correct RFML ids for embedded tests. " +
-				"If API token is set it'll validate your tests against server data as well. " +
-				"If no filepath is given it validates all RFML tests.",
+			Description: "Validate your test for syntax. " +
+				"If no filepath is given it validates all RFML tests and performs additional checks for RFML ID validity and more. " +
+				"If API token is set it'll validate your tests against server data as well.",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "test-folder",

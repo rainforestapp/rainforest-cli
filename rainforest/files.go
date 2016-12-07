@@ -2,9 +2,11 @@ package rainforest
 
 import (
 	"crypto/md5"
+	"encoding/hex"
 	"io/ioutil"
 	"mime"
 	"os"
+	"path/filepath"
 	"strconv"
 )
 
@@ -46,26 +48,28 @@ type AWSFileInfo struct {
 
 // CreateFile creates a UploadedFile resource by sending file information to
 // Rainforest. This information is used for uploading the actual file to AWS.
-func (c *Client) CreateFile(testID int, file os.File) (*AWSFileInfo, error) {
-	var awsFileInfo *AWSFileInfo
-	fileInfo, err := os.Stat(file.Name())
+func (c *Client) CreateFile(testID int, file *os.File) (*AWSFileInfo, error) {
+	awsFileInfo := &AWSFileInfo{}
+	fileName := file.Name()
+	fileInfo, err := os.Stat(fileName)
 
 	if err != nil {
 		return awsFileInfo, err
 	}
 
-	data, err := ioutil.ReadAll(&file)
+	data, err := ioutil.ReadAll(file)
 	if err != nil {
 		return awsFileInfo, err
 	}
 
 	md5CheckSum := md5.Sum(data)
+	hexDigest := hex.EncodeToString(md5CheckSum[:16])
 
 	body := UploadedFile{
-		MimeType: mime.TypeByExtension(fileInfo.Name()),
+		MimeType: mime.TypeByExtension(filepath.Ext(fileName)),
 		Size:     fileInfo.Size(),
-		Name:     fileInfo.Name(),
-		Digest:   string(md5CheckSum[:16]),
+		Name:     fileName,
+		Digest:   hexDigest,
 	}
 
 	url := "tests/" + strconv.Itoa(testID) + "/files"

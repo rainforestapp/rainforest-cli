@@ -1,6 +1,7 @@
 package rainforest
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -9,9 +10,11 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/urfave/cli"
 )
@@ -57,7 +60,7 @@ type AWSFileInfo struct {
 func (c *Client) CreateTestFile(testID int, file *os.File) (*AWSFileInfo, error) {
 	awsFileInfo := &AWSFileInfo{}
 	fileName := file.Name()
-	fileInfo, err := os.Stat(fileName)
+	fileInfo, err := file.Stat()
 
 	if err != nil {
 		return awsFileInfo, err
@@ -93,35 +96,44 @@ func (c *Client) UploadTestFile(file *os.File, awsFileInfo *AWSFileInfo) error {
 	fileName := filepath.Base(file.Name())
 	fileExt := filepath.Ext(fileName)
 
-	var w io.ReadWriteCloser
+	buffer := new(bytes.Buffer)
+	writer := multipart.NewWriter(buffer)
 
-	mp := multipart.NewWriter(w)
-	mp.CreateFormFile("file", fileName)
+	writer.WriteField("key", awsFileInfo.AWSKey)
+	writer.WriteField("AWSAccessKeyId", awsFileInfo.AWSAccessID)
+	writer.WriteField("acl", awsFileInfo.AWSACL)
+	writer.WriteField("policy", awsFileInfo.AWSPolicy)
+	writer.WriteField("signature", awsFileInfo.AWSSignature)
+	writer.WriteField("Content-Type", mime.TypeByExtension(fileExt))
 
-	data, err := ioutil.ReadAll(file)
+	// For some reason it's impossible to set Content-Type and Content-Transfer-Encoding
+	// by simply using writer.CreateFormField, so doing it manually.
+	part, err := createFormFile(writer, fileName)
+
+	var contents []byte
+	contents, err = ioutil.ReadAll(file)
 	if err != nil {
 		return err
 	}
 
-	w.Write(data)
+	part.Write(contents)
+	buffer.Write([]byte("--" + writer.Boundary() + "--"))
 
-	mp.WriteField("key", awsFileInfo.AWSKey)
-	mp.WriteField("AWSAccessKeyId", awsFileInfo.AWSAccessID)
-	mp.WriteField("acl", awsFileInfo.AWSACL)
-	mp.WriteField("policy", awsFileInfo.AWSPolicy)
-	mp.WriteField("signature", awsFileInfo.AWSSignature)
-	mp.WriteField("Content-Type", mime.TypeByExtension(fileExt))
+	x, _ := ioutil.ReadAll(buffer)
+	y, _ := os.Create("test.txt")
+	s := fmt.Sprintf("%q", x)
+	y.Write([]byte(s))
 
 	url := awsFileInfo.AWSURL
 
 	var req *http.Request
-	req, err = http.NewRequest("POST", url, w)
+	req, err = http.NewRequest("POST", url, buffer)
 
 	if err != nil {
 		return err
 	}
 
-	req.Header.Set("Content-Type", "multipart/form-data, boundary="+mp.Boundary())
+	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	var resp *http.Response
 	resp, err = http.DefaultClient.Do(req)
@@ -144,4 +156,16 @@ func (c *Client) UploadTestFile(file *os.File, awsFileInfo *AWSFileInfo) error {
 	}
 
 	return nil
+}
+
+func createFormFile(w *multipart.Writer, fileName string) (io.Writer, error) {
+	quoteEscaper := strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
+
+	h := make(textproto.MIMEHeader)
+	contentDisposition := fmt.Sprintf(`form-data; name="file"; filename="%s"`, quoteEscaper.Replace(fileName))
+	h.Set("Content-Disposition", contentDisposition)
+	contentType := mime.TypeByExtension(filepath.Ext(fileName))
+	h.Set("Content-Type", contentType)
+	h.Set("Content-Transfer-Encoding", "binary")
+	return w.CreatePart(h)
 }

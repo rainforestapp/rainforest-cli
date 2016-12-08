@@ -6,3 +6,4 @@ import:
   version: daf2955e742cf123959884fdff4685aa79b63135
 - package: github.com/urfave/cli
   version: 4205e9c4ee9672a8df5bb4fe486a8aa07e1e4037
+- package: github.com/equinox-io/equinox

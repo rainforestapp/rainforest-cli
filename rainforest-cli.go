@@ -13,13 +13,17 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.0.0"
+	version = "2.0.0-alpha.2"
 )
 
 var (
 	// Build info to be set while building using:
 	// go build -ldflags "-X main.build 'build details'"
 	build string
+
+	// Release channel to be set while building using:
+	// go build -ldflags "-X main.releaseChannel 'channel'"
+	releaseChannel string
 
 	// Rainforest API client
 	api *rainforest.Client
@@ -67,7 +71,11 @@ func (l *logWriter) Write(p []byte) (int, error) {
 func main() {
 	app := cli.NewApp()
 	app.Usage = "Rainforest QA CLI - https://www.rainforestqa.com/"
-	app.Version = version
+	if releaseChannel != "" {
+		app.Version = fmt.Sprintf("%v - %v channel", version, releaseChannel)
+	} else {
+		app.Version = version
+	}
 	// Use our custom writer to print our errors with timestamps
 	cli.ErrWriter = &logWriter{}
 
@@ -343,6 +351,12 @@ func main() {
 			Action: func(c *cli.Context) error {
 				return printBrowsers(c, api)
 			},
+		},
+		{
+			Name:      "update",
+			Usage:     "Updates application to the latest version on specified release channel (stable/beta)",
+			ArgsUsage: "[CHANNEL]",
+			Action:    updateCmd,
 		},
 	}
 

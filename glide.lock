@@ -1,6 +1,14 @@
-hash: 296716a2649407be95c00ead9aa5e0079418f1ad17b9d528c887a10b0e56e14a
-updated: 2016-11-18T15:52:29.565351828-08:00
+hash: 1f8ac5a7cada382b7de1e9309aa622d54fe0b6a14338a178d1133c3078200bcb
+updated: 2016-12-08T13:51:53.945252415Z
 imports:
+- name: github.com/equinox-io/equinox
+  version: 6f97d0d3970881d3e53dd6f547a41109eb055e54
+  subpackages:
+  - internal/go-update
+  - internal/go-update/internal/binarydist
+  - internal/go-update/internal/osext
+  - internal/osext
+  - proto
 - name: github.com/mattn/go-runewidth
   version: d6bea18f789704b5f83375793155289da36a3c7f
 - name: github.com/olekukonko/tablewriter

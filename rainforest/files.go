@@ -55,9 +55,40 @@ type AWSFileInfo struct {
 	AWSSignature  string `json:"aws_signature"`
 }
 
+// MultipartFormRequest FILL THIS IN
+func (aws *AWSFileInfo) MultipartFormRequest(fileName string, fileContents []byte) (*http.Request, error) {
+	var req *http.Request
+	fileExt := filepath.Ext(fileName)
+
+	buffer := new(bytes.Buffer)
+	writer := multipart.NewWriter(buffer)
+
+	writer.WriteField("key", aws.AWSKey)
+	writer.WriteField("AWSAccessKeyId", aws.AWSAccessID)
+	writer.WriteField("acl", aws.AWSACL)
+	writer.WriteField("policy", aws.AWSPolicy)
+	writer.WriteField("signature", aws.AWSSignature)
+	writer.WriteField("Content-Type", mime.TypeByExtension(fileExt))
+
+	part, err := createFormFile(writer, fileName)
+	part.Write(fileContents)
+
+	url := aws.AWSURL
+	req, err = http.NewRequest("POST", url, buffer)
+	if err != nil {
+		return req, err
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	writer.Close()
+	req.ContentLength = int64(buffer.Len())
+
+	return req, nil
+}
+
 // CreateTestFile creates a UploadedFile resource by sending file information to
 // Rainforest. This information is used for uploading the actual file to AWS.
-func (c *Client) CreateTestFile(testID int, file *os.File) (*AWSFileInfo, error) {
+func (c *Client) CreateTestFile(testID int, file *os.File, fileContents []byte) (*AWSFileInfo, error) {
 	awsFileInfo := &AWSFileInfo{}
 	fileName := file.Name()
 	fileInfo, err := file.Stat()
@@ -66,12 +97,7 @@ func (c *Client) CreateTestFile(testID int, file *os.File) (*AWSFileInfo, error)
 		return awsFileInfo, err
 	}
 
-	data, err := ioutil.ReadAll(file)
-	if err != nil {
-		return awsFileInfo, err
-	}
-
-	md5CheckSum := md5.Sum(data)
+	md5CheckSum := md5.Sum(fileContents)
 	hexDigest := hex.EncodeToString(md5CheckSum[:16])
 
 	body := UploadedFile{
@@ -92,51 +118,11 @@ func (c *Client) CreateTestFile(testID int, file *os.File) (*AWSFileInfo, error)
 }
 
 // UploadTestFile is a function that uploads the actual file contents to AWS
-func (c *Client) UploadTestFile(file *os.File, awsFileInfo *AWSFileInfo) error {
-	fileName := filepath.Base(file.Name())
-	fileExt := filepath.Ext(fileName)
-
-	buffer := new(bytes.Buffer)
-	writer := multipart.NewWriter(buffer)
-
-	writer.WriteField("key", awsFileInfo.AWSKey)
-	writer.WriteField("AWSAccessKeyId", awsFileInfo.AWSAccessID)
-	writer.WriteField("acl", awsFileInfo.AWSACL)
-	writer.WriteField("policy", awsFileInfo.AWSPolicy)
-	writer.WriteField("signature", awsFileInfo.AWSSignature)
-	writer.WriteField("Content-Type", mime.TypeByExtension(fileExt))
-
-	// For some reason it's impossible to set Content-Type and Content-Transfer-Encoding
-	// by simply using writer.CreateFormField, so doing it manually.
-	part, err := createFormFile(writer, fileName)
-
-	var contents []byte
-	contents, err = ioutil.ReadAll(file)
-	if err != nil {
-		return err
-	}
-
-	part.Write(contents)
-	buffer.Write([]byte("--" + writer.Boundary() + "--"))
-
-	x, _ := ioutil.ReadAll(buffer)
-	y, _ := os.Create("test.txt")
-	s := fmt.Sprintf("%q", x)
-	y.Write([]byte(s))
-
-	url := awsFileInfo.AWSURL
-
-	var req *http.Request
-	req, err = http.NewRequest("POST", url, buffer)
-
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Content-Type", writer.FormDataContentType())
+func (c *Client) UploadTestFile(fileName string, fileContents []byte, awsFileInfo *AWSFileInfo) error {
+	req, err := awsFileInfo.MultipartFormRequest(fileName, fileContents)
 
 	var resp *http.Response
-	resp, err = http.DefaultClient.Do(req)
+	resp, err = c.client.Do(req)
 
 	if err != nil {
 		return err
@@ -151,7 +137,7 @@ func (c *Client) UploadTestFile(file *os.File, awsFileInfo *AWSFileInfo) error {
 			return err
 		}
 
-		errMsg := fmt.Sprintf("There was an error uploading your file - %v: %v", file.Name(), string(body))
+		errMsg := fmt.Sprintf("There was an error uploading your file - %v: %v", fileName, string(body))
 		return cli.NewExitError(errMsg, 1)
 	}
 

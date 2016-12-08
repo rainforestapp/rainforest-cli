@@ -3,11 +3,17 @@ package rainforest
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"mime"
+	"mime/multipart"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/urfave/cli"
 )
 
 // UploadedFile represents a file that has been uploaded to Rainforest
@@ -46,9 +52,9 @@ type AWSFileInfo struct {
 	AWSSignature  string `json:"aws_signature"`
 }
 
-// CreateFile creates a UploadedFile resource by sending file information to
+// CreateTestFile creates a UploadedFile resource by sending file information to
 // Rainforest. This information is used for uploading the actual file to AWS.
-func (c *Client) CreateFile(testID int, file *os.File) (*AWSFileInfo, error) {
+func (c *Client) CreateTestFile(testID int, file *os.File) (*AWSFileInfo, error) {
 	awsFileInfo := &AWSFileInfo{}
 	fileName := file.Name()
 	fileInfo, err := os.Stat(fileName)
@@ -80,4 +86,62 @@ func (c *Client) CreateFile(testID int, file *os.File) (*AWSFileInfo, error) {
 
 	_, err = c.Do(req, awsFileInfo)
 	return awsFileInfo, err
+}
+
+// UploadTestFile is a function that uploads the actual file contents to AWS
+func (c *Client) UploadTestFile(file *os.File, awsFileInfo *AWSFileInfo) error {
+	fileName := filepath.Base(file.Name())
+	fileExt := filepath.Ext(fileName)
+
+	var w io.ReadWriteCloser
+
+	mp := multipart.NewWriter(w)
+	mp.CreateFormFile("file", fileName)
+
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	w.Write(data)
+
+	mp.WriteField("key", awsFileInfo.AWSKey)
+	mp.WriteField("AWSAccessKeyId", awsFileInfo.AWSAccessID)
+	mp.WriteField("acl", awsFileInfo.AWSACL)
+	mp.WriteField("policy", awsFileInfo.AWSPolicy)
+	mp.WriteField("signature", awsFileInfo.AWSSignature)
+	mp.WriteField("Content-Type", mime.TypeByExtension(fileExt))
+
+	url := awsFileInfo.AWSURL
+
+	var req *http.Request
+	req, err = http.NewRequest("POST", url, w)
+
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "multipart/form-data, boundary="+mp.Boundary())
+
+	var resp *http.Response
+	resp, err = http.DefaultClient.Do(req)
+
+	if err != nil {
+		return err
+	}
+
+	status := resp.StatusCode
+	if status >= 300 {
+		var body []byte
+		body, err = ioutil.ReadAll(resp.Body)
+
+		if err != nil {
+			return err
+		}
+
+		errMsg := fmt.Sprintf("There was an error uploading your file - %v: %v", file.Name(), string(body))
+		return cli.NewExitError(errMsg, 1)
+	}
+
+	return nil
 }

@@ -72,11 +72,14 @@ func main() {
 	updateFinishedChan := make(chan struct{})
 	app := cli.NewApp()
 	app.Usage = "Rainforest QA CLI - https://www.rainforestqa.com/"
+	app.Version = version
 	if releaseChannel != "" {
-		app.Version = fmt.Sprintf("%v - %v channel", version, releaseChannel)
-	} else {
-		app.Version = version
+		app.Version = fmt.Sprintf("%v - %v channel", app.Version, releaseChannel)
 	}
+	if build != "" {
+		app.Version = fmt.Sprintf("%v - build: %v", app.Version, build)
+	}
+
 	// Use our custom writer to print our errors with timestamps
 	cli.ErrWriter = &logWriter{}
 

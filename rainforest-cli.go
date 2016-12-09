@@ -18,11 +18,11 @@ const (
 
 var (
 	// Build info to be set while building using:
-	// go build -ldflags "-X main.build 'build details'"
+	// go build -ldflags "-X main.build=build"
 	build string
 
 	// Release channel to be set while building using:
-	// go build -ldflags "-X main.releaseChannel 'channel'"
+	// go build -ldflags "-X main.releaseChannel=channel"
 	releaseChannel string
 
 	// Rainforest API client
@@ -69,6 +69,7 @@ func (l *logWriter) Write(p []byte) (int, error) {
 
 // main is an entry point of the app. It sets up the new cli app, and defines the API.
 func main() {
+	updateFinishedChan := make(chan struct{})
 	app := cli.NewApp()
 	app.Usage = "Rainforest QA CLI - https://www.rainforestqa.com/"
 	if releaseChannel != "" {
@@ -79,8 +80,10 @@ func main() {
 	// Use our custom writer to print our errors with timestamps
 	cli.ErrWriter = &logWriter{}
 
-	// Before running any of the commands we init the API Client
+	// Before running any of the commands we init the API Client & update
 	app.Before = func(c *cli.Context) error {
+		go autoUpdate(c, updateFinishedChan)
+
 		api = rainforest.NewClient(c.String("token"))
 
 		// Set the User-Agent that will be used for api calls
@@ -93,11 +96,21 @@ func main() {
 		return nil
 	}
 
+	// Wait for the update to finish if it's still going on
+	app.After = func(c *cli.Context) error {
+		<-updateFinishedChan
+		return nil
+	}
+
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:   "token, t",
 			Usage:  "API token. You can find it at https://app.rainforestqa.com/settings/integrations",
 			EnvVar: "RAINFOREST_API_TOKEN",
+		},
+		cli.BoolFlag{
+			Name:  "skip-update",
+			Usage: "Used to disable auto-updating of the cli",
 		},
 	}
 

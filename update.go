@@ -49,13 +49,17 @@ func update(channel string, silent bool) error {
 	}
 
 	// fetch the update and apply it
-	log.Print("Found a cli update, applying it.")
+	if !silent {
+		log.Print("Found a cli update, applying it.")
+	}
 	err = resp.Apply()
 	if err != nil {
 		return err
 	}
 
-	log.Printf("Updated to new version: %s!\n", resp.ReleaseVersion)
+	if !silent {
+		log.Printf("Updated to new version: %s!\n", resp.ReleaseVersion)
+	}
 	return nil
 }
 
@@ -69,4 +73,11 @@ func updateCmd(c cliContext) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 	return nil
+}
+
+func autoUpdate(c cliContext, updateFinishedChan chan<- struct{}) {
+	if !c.Bool("skip-update") {
+		update("", true)
+	}
+	updateFinishedChan <- struct{}{}
 }

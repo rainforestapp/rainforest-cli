@@ -5,16 +5,13 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"mime"
 	"mime/multipart"
 	"net/http"
-	"net/textproto"
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/urfave/cli"
 )
@@ -55,7 +52,8 @@ type AWSFileInfo struct {
 	AWSSignature  string `json:"aws_signature"`
 }
 
-// MultipartFormRequest FILL THIS IN
+// MultipartFormRequest creates a http.Request containing the required body for
+// uploading a file to AWS given the values stored in the receiving AWSFileInfo struct.
 func (aws *AWSFileInfo) MultipartFormRequest(fileName string, fileContents []byte) (*http.Request, error) {
 	var req *http.Request
 	fileExt := filepath.Ext(fileName)
@@ -70,7 +68,7 @@ func (aws *AWSFileInfo) MultipartFormRequest(fileName string, fileContents []byt
 	writer.WriteField("signature", aws.AWSSignature)
 	writer.WriteField("Content-Type", mime.TypeByExtension(fileExt))
 
-	part, err := createFormFile(writer, fileName)
+	part, err := writer.CreateFormFile("file", fileName)
 	part.Write(fileContents)
 
 	url := aws.AWSURL
@@ -142,16 +140,4 @@ func (c *Client) UploadTestFile(fileName string, fileContents []byte, awsFileInf
 	}
 
 	return nil
-}
-
-func createFormFile(w *multipart.Writer, fileName string) (io.Writer, error) {
-	quoteEscaper := strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
-
-	h := make(textproto.MIMEHeader)
-	contentDisposition := fmt.Sprintf(`form-data; name="file"; filename="%s"`, quoteEscaper.Replace(fileName))
-	h.Set("Content-Disposition", contentDisposition)
-	contentType := mime.TypeByExtension(filepath.Ext(fileName))
-	h.Set("Content-Type", contentType)
-	h.Set("Content-Transfer-Encoding", "binary")
-	return w.CreatePart(h)
 }

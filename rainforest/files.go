@@ -9,7 +9,6 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
 
@@ -84,9 +83,22 @@ func (aws *AWSFileInfo) MultipartFormRequest(fileName string, fileContents []byt
 	return req, nil
 }
 
+// OSFileInfo is an abstraction for an object that contains file information.
+// os.FileInfo implements OSFileInfo.
+type OSFileInfo interface {
+	Size() int64
+}
+
+// OSFile is an abstraction for a file object that contains a Name and returns
+// Stats. os.File implements OSFile.
+type OSFile interface {
+	Name() string
+	Stat() (OSFileInfo, error)
+}
+
 // CreateTestFile creates a UploadedFile resource by sending file information to
 // Rainforest. This information is used for uploading the actual file to AWS.
-func (c *Client) CreateTestFile(testID int, file *os.File, fileContents []byte) (*AWSFileInfo, error) {
+func (c *Client) CreateTestFile(testID int, file OSFile, fileContents []byte) (*AWSFileInfo, error) {
 	awsFileInfo := &AWSFileInfo{}
 	fileName := file.Name()
 	fileInfo, err := file.Stat()

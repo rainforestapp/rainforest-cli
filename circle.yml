@@ -29,8 +29,7 @@ test:
 
 deployment:
   stable:
-    branch: master
-    tag: /v[0-9]+(\.[0-9]+)*/
+    tag: /^v[0-9]+(\.[0-9]+)*$/
     owner: rainforestapp
     commands:
       - cd ~/download && curl -O https://bin.equinox.io/c/mBWdkfai63v/release-tool-stable-linux-amd64.zip
@@ -42,7 +41,7 @@ deployment:
 
 
   beta:
-    tag: /v[0-9]+(\.[0-9]+)*(\-(alpha|beta)\.[0-9]+)?/
+    tag: /^v[0-9]+(\.[0-9]+)*(\-(alpha|beta)\.[0-9]+)$/
     owner: rainforestapp
     commands:
       - cd ~/download && curl -O https://bin.equinox.io/c/mBWdkfai63v/release-tool-stable-linux-amd64.zip

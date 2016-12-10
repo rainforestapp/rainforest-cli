@@ -43,12 +43,12 @@ func (c *Client) GetUploadedFiles(fileID int) ([]UploadedFile, error) {
 type AWSFileInfo struct {
 	FileID        int    `json:"file_id"`
 	FileSignature string `json:"file_signature"`
-	AWSURL        string `json:"aws_url"`
-	AWSKey        string `json:"aws_key"`
-	AWSAccessID   string `json:"aws_access_id"`
-	AWSPolicy     string `json:"aws_policy"`
-	AWSACL        string `json:"aws_acl"`
-	AWSSignature  string `json:"aws_signature"`
+	URL           string `json:"aws_url"`
+	Key           string `json:"aws_key"`
+	AccessID      string `json:"aws_access_id"`
+	Policy        string `json:"aws_policy"`
+	ACL           string `json:"aws_acl"`
+	Signature     string `json:"aws_signature"`
 }
 
 // MultipartFormRequest creates a http.Request containing the required body for
@@ -60,17 +60,17 @@ func (aws *AWSFileInfo) MultipartFormRequest(fileName string, fileContents []byt
 	buffer := new(bytes.Buffer)
 	writer := multipart.NewWriter(buffer)
 
-	writer.WriteField("key", aws.AWSKey)
-	writer.WriteField("AWSAccessKeyId", aws.AWSAccessID)
-	writer.WriteField("acl", aws.AWSACL)
-	writer.WriteField("policy", aws.AWSPolicy)
-	writer.WriteField("signature", aws.AWSSignature)
+	writer.WriteField("key", aws.Key)
+	writer.WriteField("AWSAccessKeyId", aws.AccessID)
+	writer.WriteField("acl", aws.ACL)
+	writer.WriteField("policy", aws.Policy)
+	writer.WriteField("signature", aws.Signature)
 	writer.WriteField("Content-Type", mime.TypeByExtension(fileExt))
 
 	part, err := writer.CreateFormFile("file", fileName)
 	part.Write(fileContents)
 
-	url := aws.AWSURL
+	url := aws.URL
 	req, err = http.NewRequest("POST", url, buffer)
 	if err != nil {
 		return req, err

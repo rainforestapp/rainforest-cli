@@ -5,10 +5,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"mime"
 	"net/http"
+	"path/filepath"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -37,6 +40,78 @@ func TestGetUploadedFiles(t *testing.T) {
 
 	if !reflect.DeepEqual(files, out) {
 		t.Errorf("Response expected = %v, actual %v", files, out)
+	}
+}
+
+func TestMultipartFormRequest(t *testing.T) {
+	Key := "awsKey"
+	AccessID := "accessID"
+	ACL := "acl"
+	Policy := "policy"
+	Signature := "signature"
+
+	aws := AWSFileInfo{
+		URL:       "https://f.rainforestqa.com/stuff",
+		Key:       Key,
+		AccessID:  AccessID,
+		ACL:       ACL,
+		Policy:    Policy,
+		Signature: Signature,
+	}
+
+	fileName := "my_file.txt"
+	fileContents := []byte("This is in my file")
+
+	req, err := aws.MultipartFormRequest(fileName, fileContents)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var body []byte
+	body, err = ioutil.ReadAll(req.Body)
+
+	if req.URL.String() != aws.URL {
+		t.Errorf("Incorrect URL. Have %v, want %v", req.URL, aws.URL)
+	}
+
+	if req.ContentLength != int64(len(body)) {
+		t.Errorf("Incorrect ContentLength for request. Have %v, want %v.", req.ContentLength, len(body))
+	}
+
+	stringBody := string(body)
+
+	fileExt := filepath.Ext(fileName)
+	fields := map[string]string{
+		"key":            Key,
+		"AWSAccessKeyId": AccessID,
+		"acl":            ACL,
+		"policy":         Policy,
+		"signature":      Signature,
+		"Content-Type":   mime.TypeByExtension(fileExt),
+	}
+
+	for k, v := range fields {
+		keyStr := fmt.Sprintf("Content-Disposition: form-data; name=\"%v\"", k)
+
+		if !strings.Contains(stringBody, keyStr) {
+			t.Errorf("Required field not found in request body: %v", keyStr)
+		}
+
+		if !strings.Contains(stringBody, v) {
+			t.Errorf("Required value not found in request body for %v: %v", k, v)
+		}
+	}
+
+	fileHeaderStr := fmt.Sprintf("Content-Disposition: form-data; name=\"file\"; filename=\"%v\"\r\n"+
+		"Content-Type: application/octet-stream", fileName)
+
+	if !strings.Contains(stringBody, fileHeaderStr) {
+		t.Error("Incorrect file header in request body")
+	}
+
+	if !strings.Contains(stringBody, string(fileContents)) {
+		t.Error("File contents not found in request body")
 	}
 }
 
@@ -82,12 +157,12 @@ func TestCreateTestFile(t *testing.T) {
 	awsInfo := AWSFileInfo{
 		FileID:        1234,
 		FileSignature: "file signature",
-		AWSURL:        "https://f.rainforestqa.com/stuff",
-		AWSKey:        "tests/1234",
-		AWSAccessID:   "accessId",
-		AWSPolicy:     "abc123",
-		AWSACL:        "private",
-		AWSSignature:  "signature",
+		URL:           "https://f.rainforestqa.com/stuff",
+		Key:           "tests/1234",
+		AccessID:      "accessId",
+		Policy:        "abc123",
+		ACL:           "private",
+		Signature:     "signature",
 	}
 
 	expectedRequestBody := UploadedFile{

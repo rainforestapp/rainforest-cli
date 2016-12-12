@@ -6,6 +6,8 @@ import (
 	"io"
 	"strconv"
 	"strings"
+
+	"github.com/urfave/cli"
 )
 
 // RFMLReader reads form RFML formatted file.
@@ -38,7 +40,7 @@ func NewRFMLReader(r io.Reader) *RFMLReader {
 }
 
 // ReadAll parses whole RFML file using RFML version specified by Version parameter of reader
-// and returns reulting RFTest
+// and returns resulting RFTest
 func (r *RFMLReader) ReadAll() (*RFTest, error) {
 	parsedRFTest := &RFTest{}
 	// Set up a new scanner to read in data line by line
@@ -138,4 +140,66 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 	}
 	parsedRFTest.mapBrowsers()
 	return parsedRFTest, nil
+}
+
+// RFMLWriter writes a RFML formatted test to a given file.
+type RFMLWriter struct {
+	w *bufio.Writer
+	// Version sets the RFML spec version
+	Version int
+}
+
+// NewRFMLWriter returns RFML writer based on passed io.Writer - typically a RFML file.
+func NewRFMLWriter(w io.Writer) *RFMLWriter {
+	return &RFMLWriter{
+		w:       bufio.NewWriter(w),
+		Version: 1,
+	}
+}
+
+// WriteRFMLTest writes a given RFTest to its writer in the given RFML version.
+func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
+	writer := r.w
+	headerTemplate := `#! %v
+# title: %v
+# start_uri: %v
+`
+
+	header := fmt.Sprintf(headerTemplate, test.RFMLID, test.Title, test.StartURI)
+	_, err := writer.WriteString(header)
+
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	if len(test.Tags) > 0 {
+		tags := strings.Join(test.Tags, ", ")
+		tagsHeader := fmt.Sprintf("# tags: %v\n", tags)
+
+		_, err = writer.WriteString(tagsHeader)
+
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+	}
+
+	if len(test.Browsers) > 0 {
+		browsers := strings.Join(test.Browsers, ", ")
+		browsersHeader := fmt.Sprintf("# browsers: %v\n", browsers)
+
+		_, err = writer.WriteString(browsersHeader)
+
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+	}
+
+	// Writes buffered data to the underlying io.Writer
+	err = writer.Flush()
+
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	return nil
 }

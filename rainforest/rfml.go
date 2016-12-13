@@ -6,8 +6,6 @@ import (
 	"io"
 	"strconv"
 	"strings"
-
-	"github.com/urfave/cli"
 )
 
 // RFMLReader reads form RFML formatted file.
@@ -169,7 +167,7 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 	_, err := writer.WriteString(header)
 
 	if err != nil {
-		return cli.NewExitError(err.Error(), 1)
+		return err
 	}
 
 	if len(test.Tags) > 0 {
@@ -179,7 +177,7 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		_, err = writer.WriteString(tagsHeader)
 
 		if err != nil {
-			return cli.NewExitError(err.Error(), 1)
+			return err
 		}
 	}
 
@@ -190,7 +188,7 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		_, err = writer.WriteString(browsersHeader)
 
 		if err != nil {
-			return cli.NewExitError(err.Error(), 1)
+			return err
 		}
 	}
 
@@ -200,7 +198,7 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 	err = writer.Flush()
 
 	if err != nil {
-		return cli.NewExitError(err.Error(), 1)
+		return err
 	}
 
 	return nil

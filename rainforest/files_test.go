@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"mime"
 	"net/http"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -115,39 +116,31 @@ func TestMultipartFormRequest(t *testing.T) {
 	}
 }
 
-type fakeOSFile struct {
-	name  string
-	stats OSFileInfo
-}
-
-func (f *fakeOSFile) Name() string {
-	return f.name
-}
-
-func (f *fakeOSFile) Stat() (OSFileInfo, error) {
-	return f.stats, nil
-}
-
-type fakeOSFileInfo struct {
-	size int64
-}
-
-func (fi *fakeOSFileInfo) Size() int64 {
-	return fi.size
-}
-
 func TestCreateTestFile(t *testing.T) {
 	testID := 1001
-	fileSize := int64(1337)
 	fileExt := ".txt"
-	fileName := "files/my_file_name" + fileExt
+	fileName := "my_file_name" + fileExt
 	fileContents := []byte("my file contents")
 
 	md5CheckSum := md5.Sum(fileContents)
 	hexDigest := hex.EncodeToString(md5CheckSum[:16])
 
-	fileInfo := fakeOSFileInfo{size: fileSize}
-	file := fakeOSFile{name: fileName, stats: &fileInfo}
+	file, err := os.Create(fileName)
+
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	defer func() {
+		file.Close()
+		os.Remove(fileName)
+	}()
+
+	_, err = file.Write(fileContents)
+
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 
 	setup()
 	defer cleanup()
@@ -167,7 +160,7 @@ func TestCreateTestFile(t *testing.T) {
 
 	expectedRequestBody := UploadedFile{
 		MimeType: mime.TypeByExtension(fileExt),
-		Size:     fileSize,
+		Size:     int64(len(fileContents)),
 		Name:     fileName,
 		Digest:   hexDigest,
 	}
@@ -180,7 +173,7 @@ func TestCreateTestFile(t *testing.T) {
 		defer r.Body.Close()
 
 		out := &UploadedFile{}
-		err := json.NewDecoder(r.Body).Decode(out)
+		err = json.NewDecoder(r.Body).Decode(out)
 
 		if err != nil {
 			t.Errorf("Error decoding request body: %v", err.Error())
@@ -194,13 +187,11 @@ func TestCreateTestFile(t *testing.T) {
 		enc.Encode(awsInfo)
 	})
 
-	out, err := client.CreateTestFile(testID, &file, fileContents)
+	out, err := client.CreateTestFile(testID, file, fileContents)
 
 	if err != nil {
 		t.Error(err.Error())
-	}
-
-	if !reflect.DeepEqual(*out, awsInfo) {
+	} else if !reflect.DeepEqual(*out, awsInfo) {
 		t.Errorf("Unexpected response from CreateTestFile.\nActual: %#v\nExpected: %#v", *out, awsInfo)
 	}
 }

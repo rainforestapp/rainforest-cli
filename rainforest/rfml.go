@@ -194,6 +194,8 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		}
 	}
 
+	// TODO: Steps
+
 	// Writes buffered data to the underlying io.Writer
 	err = writer.Flush()
 

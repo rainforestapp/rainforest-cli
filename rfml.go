@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
+	"github.com/satori/go.uuid"
 	"github.com/urfave/cli"
 )
 
@@ -91,13 +92,15 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 	var validationErrors []error
 	var parsedTests []parsedTest
 	for _, filePath := range fileList {
-		f, err := os.Open(filePath)
+		var f *os.File
+		f, err = os.Open(filePath)
 		if err != nil {
 			return err
 		}
 		defer f.Close()
 		rfmlReader := rainforest.NewRFMLReader(f)
-		pTest, err := rfmlReader.ReadAll()
+		var pTest *rainforest.RFTest
+		pTest, err = rfmlReader.ReadAll()
 		if err != nil {
 			validationErrors = append(validationErrors, fileParseError{filePath, err})
 		} else {
@@ -119,7 +122,8 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 	// check for embedded tests id validity
 	// start with pulling the external test ids to validate against them as well
 	if api.ClientToken != "" {
-		externalTests, err := api.GetRFMLIDs()
+		var externalTests rainforest.TestIDMappings
+		externalTests, err = api.GetRFMLIDs()
 		if err != nil {
 			return err
 		}
@@ -158,5 +162,28 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 	}
 
 	log.Print("All files are valid!")
+	return nil
+}
+
+func newRFMLTest(c cliContext) error {
+	test := rainforest.RFTest{
+		RFMLID:   uuid.NewV4().String(),
+		Title:    "This is a title",
+		StartURI: "/lol/testing",
+	}
+
+	f, err := os.Create("testing.rfml")
+
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	writer := rainforest.NewRFMLWriter(f)
+	err = writer.WriteRFMLTest(&test)
+
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
 	return nil
 }

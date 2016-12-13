@@ -200,7 +200,7 @@ func main() {
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
 			},
-			Action: notImplemented,
+			Action: newRFMLTest,
 		},
 		{
 			Name:      "validate",

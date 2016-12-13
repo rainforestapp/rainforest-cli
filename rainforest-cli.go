@@ -237,7 +237,7 @@ func main() {
 		},
 		{
 			Name:        "rm",
-			Usage:       "Remove an RFML test locally and remotely (if token is specified)",
+			Usage:       "Remove an RFML test locally and remotely",
 			ArgsUsage:   "[path to RFML file]",
 			Description: "Remove RFML file and remove test from Rainforest test suite.",
 			Action:      deleteRFML,

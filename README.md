@@ -77,6 +77,15 @@ to validate your tests against server data as well.
 rainforest validate
 ```
 
+Validate RFML syntax of a specified file.
+This command just validates RFML syntax for more complex validation including checking
+embedded tests id correctness and existence of potential circural dependiences in tests
+use general command.
+
+```bash
+rainforest validate /path/to/test/file.rfml
+```
+
 Upload tests to Rainforest
 
 ```bash

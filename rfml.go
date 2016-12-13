@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gyuho/goraph"
 	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
@@ -90,6 +91,7 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 	}
 	var validationErrors []error
 	var parsedTests []parsedTest
+	dependencyGraph := goraph.NewGraph()
 	for _, filePath := range fileList {
 		f, err := os.Open(filePath)
 		if err != nil {
@@ -113,6 +115,7 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 			validationErrors = append(validationErrors, fileParseError{pTest.filePath, err})
 		} else {
 			rfmlIDToTest[pTest.content.RFMLID] = pTest
+			dependencyGraph.AddNode(goraph.NewNode(pTest.content.RFMLID))
 		}
 	}
 
@@ -126,6 +129,7 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 		for _, externalTest := range externalTests {
 			if _, ok := rfmlIDToTest[externalTest.RFMLID]; !ok {
 				rfmlIDToTest[externalTest.RFMLID] = parsedTest{"external", &rainforest.RFTest{}}
+				dependencyGraph.AddNode(goraph.NewNode(externalTest.RFMLID))
 			}
 		}
 	}
@@ -135,7 +139,7 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 		for stepNum, step := range pTest.content.Steps {
 			// then check if it's embeddedTest
 			if embeddedTest, ok := step.(rainforest.RFEmbeddedTest); ok {
-				// if so, check if it's rfml id exists
+				// if so, check if its rfml id exists
 				if _, ok := rfmlIDToTest[embeddedTest.RFMLID]; !ok {
 					if api.ClientToken != "" {
 						err = fmt.Errorf("step %v - embeddedTest RFML id %v not found", stepNum+1, embeddedTest.RFMLID)
@@ -143,18 +147,29 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 						err = fmt.Errorf("step %v - embeddedTest RFML id %v not found. Specify token_id to check against external tests", stepNum+1, embeddedTest.RFMLID)
 					}
 					validationErrors = append(validationErrors, fileParseError{pTest.filePath, err})
+				} else {
+					pNode := dependencyGraph.GetNode(goraph.StringID(pTest.content.RFMLID))
+					eNode := dependencyGraph.GetNode(goraph.StringID(embeddedTest.RFMLID))
+					dependencyGraph.AddEdge(pNode.ID(), eNode.ID(), 1)
 				}
 			}
 		}
 	}
 
-	// TODO: validate circular dependiences probably using Tarjan's strongly connected components
+	// validate circular dependiences probably using Tarjan's strongly connected components
+	stronglyConnected := goraph.Tarjan(dependencyGraph)
+	for _, circularTests := range stronglyConnected {
+		if len(circularTests) > 1 {
+			err = fmt.Errorf("Found circular dependiences between: %v", circularTests)
+			validationErrors = append(validationErrors, err)
+		}
+	}
 
 	if len(validationErrors) > 0 {
 		for _, err := range validationErrors {
 			log.Print(err.Error())
 		}
-		return errors.New("Some of the files are invalid")
+		return errors.New("Validation failed")
 	}
 
 	log.Print("All files are valid!")

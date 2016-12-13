@@ -175,3 +175,34 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 	log.Print("All files are valid!")
 	return nil
 }
+
+func deleteRFML(c cliContext) error {
+	filePath := c.Args().First()
+	if !strings.Contains(filePath, ".rfml") {
+		return cli.NewExitError("RFML files should have .rfml extension", 1)
+	}
+	f, err := os.Open(filePath)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	rfmlReader := rainforest.NewRFMLReader(f)
+	parsedRFML, err := rfmlReader.ReadAll()
+	if parsedRFML.RFMLID == "" {
+		return cli.NewExitError("RFML file doesn't have RFML ID", 1)
+	}
+
+	// Close the file now so we can delete it
+	f.Close()
+
+	// Delete remote first
+	err = api.DeleteTestByRFMLID(parsedRFML.RFMLID)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	// Then delete local file
+	err = os.Remove(filePath)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	return nil
+}

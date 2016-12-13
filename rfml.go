@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
@@ -166,13 +167,69 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 }
 
 func newRFMLTest(c cliContext) error {
-	test := rainforest.RFTest{
-		RFMLID:   uuid.NewV4().String(),
-		Title:    "This is a title",
-		StartURI: "/lol/testing",
+	testDirectory := c.String("test-folder")
+
+	// first just make sure we are dealing with directory
+	absTestDirectory, err := filepath.Abs(testDirectory)
+
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
 	}
 
-	f, err := os.Create("testing.rfml")
+	dirStat, err := os.Stat(absTestDirectory)
+	if os.IsNotExist(err) {
+		log.Printf("Creating test directory: %v", absTestDirectory)
+		os.MkdirAll(absTestDirectory, os.ModePerm)
+	} else {
+		if !dirStat.IsDir() {
+			errStr := fmt.Sprintf("%v should be a directory", absTestDirectory)
+			return cli.NewExitError(errStr, 1)
+		}
+	}
+
+	fileName := c.Args().First()
+	title := fileName
+
+	if fileName == "" {
+		fileName = "Unnamed Test.rfml"
+		title = "Unnamed Test"
+	} else if strings.HasSuffix(fileName, ".rfml") {
+		title = strings.TrimSuffix(title, ".rfml")
+	} else {
+		fileName = fileName + ".rfml"
+	}
+
+	filePath := filepath.Join(absTestDirectory, fileName)
+
+	// Make sure that the file is unique
+	basePath := strings.TrimSuffix(filePath, ".rfml")
+	fileIdentifier := 0
+	var identStr string
+	for {
+		if fileIdentifier == 0 {
+			identStr = ""
+		} else {
+			identStr = fmt.Sprintf(" (%v)", strconv.Itoa(fileIdentifier))
+		}
+
+		testPath := basePath + identStr + ".rfml"
+
+		_, err = os.Stat(testPath)
+		if !os.IsNotExist(err) {
+			fileIdentifier = fileIdentifier + 1
+		} else {
+			filePath = testPath
+			break
+		}
+	}
+
+	test := rainforest.RFTest{
+		RFMLID:   uuid.NewV4().String(),
+		Title:    title,
+		StartURI: "/",
+	}
+
+	f, err := os.Create(filePath)
 
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)

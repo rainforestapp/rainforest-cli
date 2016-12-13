@@ -8,3 +8,5 @@ import:
   version: 4205e9c4ee9672a8df5bb4fe486a8aa07e1e4037
 - package: github.com/satori/go.uuid
   version: ~1.1.0
+- package: github.com/gyuho/goraph
+  version: ^2.0.0

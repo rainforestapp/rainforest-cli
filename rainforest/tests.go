@@ -1,5 +1,10 @@
 package rainforest
 
+import (
+	"fmt"
+	"strconv"
+)
+
 // TestIDMap is a type representing RF tests that contain the test definitions.
 type TestIDMap struct {
 	ID     int    `json:"id"`
@@ -86,4 +91,34 @@ func (c *Client) GetRFMLIDs() (TestIDMappings, error) {
 		return nil, err
 	}
 	return testResp, nil
+}
+
+// DeleteTest deletes test with a specified ID from the RF test suite
+func (c *Client) DeleteTest(testID int) error {
+	// Prepare request
+	req, err := c.NewRequest("DELETE", "tests/"+strconv.Itoa(testID), nil)
+	if err != nil {
+		return err
+	}
+
+	// Send request and process response
+	_, err = c.Do(req, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteTestByRFMLID deletes test with a specified RFMLID from the RF test suite
+func (c *Client) DeleteTestByRFMLID(testRFMLID string) error {
+	testMappings, err := c.GetRFMLIDs()
+	if err != nil {
+		return err
+	}
+	rfmlMap := testMappings.mapRFMLIDtoID()
+	testID, ok := rfmlMap[testRFMLID]
+	if !ok {
+		return fmt.Errorf("RFML ID: %v doesn't exist in Rainforest", testRFMLID)
+	}
+	return c.DeleteTest(testID)
 }

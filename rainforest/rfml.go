@@ -69,7 +69,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 				case "site_id":
 					siteID, err := strconv.Atoi(value)
 					if err != nil {
-						return &RFTest{}, &parseError{lineNum, "Site ID must be a valid integer"}
+						return parsedRFTest, &parseError{lineNum, "Site ID must be a valid integer"}
 					}
 					parsedRFTest.SiteID = siteID
 				case "tags":
@@ -89,7 +89,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 				case "redirect":
 					redirect, err := strconv.ParseBool(value)
 					if err != nil {
-						return &RFTest{}, &parseError{lineNum, "Redirect value must be a valid boolean"}
+						return parsedRFTest, &parseError{lineNum, "Redirect value must be a valid boolean"}
 					}
 					currStepRedirect = redirect
 				default:
@@ -118,7 +118,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 				if strings.Contains(line, "?") {
 					currStep = append(currStep, line)
 				} else {
-					return &RFTest{}, &parseError{lineNum, "Each step must contain a question, with a `?`"}
+					return parsedRFTest, &parseError{lineNum, "Each step must contain a question, with a `?`"}
 				}
 			case 2:
 				if line == "" {
@@ -128,13 +128,13 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 					currStep = make([]string, 0, 2)
 					currStepRedirect = r.RedirectDefault
 				} else {
-					return &RFTest{}, &parseError{lineNum, "Steps must be separated with empty lines"}
+					return parsedRFTest, &parseError{lineNum, "Steps must be separated with empty lines"}
 				}
 			}
 		}
 	}
 	if parsedRFTest.RFMLID == "" {
-		return &RFTest{}, &parseError{1, "RFML ID is required for .rfml files, specify it using #!"}
+		return parsedRFTest, &parseError{1, "RFML ID is required for .rfml files, specify it using #!"}
 	}
 	parsedRFTest.mapBrowsers()
 	return parsedRFTest, nil

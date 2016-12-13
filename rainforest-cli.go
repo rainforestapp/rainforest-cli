@@ -205,8 +205,9 @@ func main() {
 		{
 			Name:      "validate",
 			Usage:     "Validate your RFML tests",
-			ArgsUsage: " ",
-			Description: "Validate your tests for syntax and correct RFML ids for embedded tests. " +
+			ArgsUsage: "[path to RFML file]",
+			Description: "Validate your test for syntax. " +
+				"If no filepath is given it validates all RFML tests and performs additional checks for RFML ID validity and more. " +
 				"If API token is set it'll validate your tests against server data as well.",
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -216,7 +217,7 @@ func main() {
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
 			},
-			Action: notImplemented,
+			Action: validateRFML,
 		},
 		{
 			Name:      "upload",
@@ -239,7 +240,7 @@ func main() {
 			Usage:       "Remove an RFML test locally and remotely",
 			ArgsUsage:   "[path to RFML file]",
 			Description: "Remove RFML file and remove test from Rainforest test suite.",
-			Action:      notImplemented,
+			Action:      deleteRFML,
 		},
 		{
 			Name: "download",

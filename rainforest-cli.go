@@ -240,7 +240,7 @@ func main() {
 			Usage:       "Remove an RFML test locally and remotely",
 			ArgsUsage:   "[path to RFML file]",
 			Description: "Remove RFML file and remove test from Rainforest test suite.",
-			Action:      notImplemented,
+			Action:      deleteRFML,
 		},
 		{
 			Name: "download",

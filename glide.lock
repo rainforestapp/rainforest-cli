@@ -1,6 +1,8 @@
-hash: 296716a2649407be95c00ead9aa5e0079418f1ad17b9d528c887a10b0e56e14a
-updated: 2016-11-18T15:52:29.565351828-08:00
+hash: 0c77622bb7c9aa42c353d3871da70955106b98e01ed2a68ae4ab3d2b98d9e715
+updated: 2016-12-13T12:52:30.231314657Z
 imports:
+- name: github.com/gyuho/goraph
+  version: d460590d53a91b1f29347ca9b01d1e8c158cbeb2
 - name: github.com/mattn/go-runewidth
   version: d6bea18f789704b5f83375793155289da36a3c7f
 - name: github.com/olekukonko/tablewriter

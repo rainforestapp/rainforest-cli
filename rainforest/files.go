@@ -11,8 +11,6 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
-
-	"github.com/urfave/cli"
 )
 
 // UploadedFile represents a file that has been uploaded to Rainforest
@@ -147,8 +145,7 @@ func (c *Client) UploadTestFile(fileName string, fileContents []byte, awsFileInf
 			return err
 		}
 
-		errMsg := fmt.Sprintf("There was an error uploading your file - %v: %v", fileName, string(body))
-		return cli.NewExitError(errMsg, 1)
+		return fmt.Errorf("There was an error uploading your file - %v: %v", fileName, string(body))
 	}
 
 	return nil

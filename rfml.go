@@ -186,7 +186,6 @@ func newRFMLTest(c cliContext) error {
 
 	// first just make sure we are dealing with directory
 	absTestDirectory, err := filepath.Abs(testDirectory)
-
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -259,14 +258,12 @@ func newRFMLTest(c cliContext) error {
 	}
 
 	f, err := os.Create(filePath)
-
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
 	writer := rainforest.NewRFMLWriter(f)
 	err = writer.WriteRFMLTest(&test)
-
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}

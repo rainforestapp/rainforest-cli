@@ -18,6 +18,7 @@ func TestNewRFMLTest(t *testing.T) {
 	var rfmlText string
 	var err error
 	var expectedRFMLPath string
+	var file *os.File
 
 	/*
 	   Helper functions
@@ -25,12 +26,14 @@ func TestNewRFMLTest(t *testing.T) {
 	testExpectation := func(filePath string, title string) {
 		_, err = os.Stat(filePath)
 		if os.IsNotExist(err) {
-			t.Fatalf("Expected RFML test does not exist: %v", filePath)
+			t.Errorf("Expected RFML test does not exist: %v", filePath)
+			return
 		}
 
 		contents, err = ioutil.ReadFile(filePath)
 		if err != nil {
-			t.Fatal(err.Error())
+			t.Error(err.Error())
+			return
 		}
 
 		rfmlText = string(contents)
@@ -94,6 +97,7 @@ func TestNewRFMLTest(t *testing.T) {
 
 	err = newRFMLTest(context)
 	if err != nil {
+		removeSpecFolder(specFolder)
 		t.Fatal(err)
 	}
 
@@ -132,4 +136,67 @@ func TestNewRFMLTest(t *testing.T) {
 	expectedRFMLPath = filepath.Join(defaultSpecFolder, "my_test_title.rfml")
 	testExpectation(expectedRFMLPath, "my_test_title")
 	removeSpecFolder(defaultSpecFolder)
+
+	/*
+	   Test folder flag is actually a file
+	*/
+	dummyFolder := "./dummy"
+	err = os.MkdirAll(dummyFolder, os.ModePerm)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dummyFilePath := filepath.Join(dummyFolder, "dummy_file")
+	file, err = os.Create(dummyFilePath)
+	if err != nil {
+		removeSpecFolder(dummyFolder)
+		t.Fatal(err)
+	}
+
+	file.Close()
+
+	context.args = []string{}
+	context.mappings = map[string]interface{}{
+		"test-folder": dummyFilePath,
+	}
+
+	err = newRFMLTest(context)
+	if err == nil {
+		t.Error("Expecting an error, got nil")
+	}
+
+	os.RemoveAll(dummyFolder)
+
+	/*
+	   RFML file already exists
+	*/
+	context.mappings = map[string]interface{}{
+		"test-folder": defaultSpecFolder,
+	}
+
+	err = os.MkdirAll(defaultSpecFolder, os.ModePerm)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	existingRFMLPath := filepath.Join(defaultSpecFolder, "Unnamed Test.rfml")
+	file, err = os.Create(existingRFMLPath)
+	file.Close()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	err = newRFMLTest(context)
+	if err != nil {
+		removeSpecFolder(defaultSpecFolder)
+		t.Fatal(err.Error())
+	}
+
+	expectedRFMLPath = filepath.Join(defaultSpecFolder, "Unnamed Test (1).rfml")
+	_, err = os.Stat(expectedRFMLPath)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	os.RemoveAll(defaultSpecFolder)
 }

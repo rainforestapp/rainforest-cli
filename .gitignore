@@ -2,8 +2,7 @@
 
 *.csv
 *.xml
-spec/rainforest
-spec/rainforest-testing
+spec
 
 rainforest-cli
 /vendor

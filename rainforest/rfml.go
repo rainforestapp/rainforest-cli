@@ -192,15 +192,6 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		}
 	}
 
-	// Add an extra newline to separate steps from the header
-	if len(test.Steps) > 0 {
-		_, err = writer.WriteString("\n")
-
-		if err != nil {
-			return err
-		}
-	}
-
 	firstStepProcessed := false
 	processStep := func(idx int, step RFTestStep) string {
 		stepText := ""
@@ -209,10 +200,9 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		}
 		action := strings.Replace(step.Action, "\n", " ", -1)
 		response := strings.Replace(step.Response, "\n", " ", -1)
-		stepText = fmt.Sprintf("%v%v\n%v\n", stepText, action, response)
 		firstStepProcessed = true
 
-		return stepText
+		return stepText + action + "\n" + response
 	}
 
 	for idx, step := range test.Steps {
@@ -223,12 +213,12 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		case RFEmbeddedTest:
 			embeddedTest := step.(RFEmbeddedTest)
 			if idx > 0 {
-				stepText = "# redirect: " + strconv.FormatBool(embeddedTest.Redirect)
+				stepText = "# redirect: " + strconv.FormatBool(embeddedTest.Redirect) + "\n"
 			}
 			stepText = stepText + "- " + embeddedTest.RFMLID
 		}
 
-		writer.WriteString(stepText)
+		writer.WriteString("\n" + stepText + "\n")
 	}
 
 	// Writes buffered data to the underlying io.Writer

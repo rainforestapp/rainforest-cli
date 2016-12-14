@@ -242,6 +242,20 @@ func newRFMLTest(c cliContext) error {
 		RFMLID:   uuid.NewV4().String(),
 		Title:    title,
 		StartURI: "/",
+		Tags:     []string{"foo", "bar"},
+		Browsers: []string{"chrome", "firefox"},
+		Steps: []interface{}{
+			rainforest.RFTestStep{
+				Action:   "This is a step action.",
+				Response: "This is a step question?",
+				Redirect: true,
+			},
+			rainforest.RFTestStep{
+				Action:   "This is another step action.",
+				Response: "This is another step question?",
+				Redirect: true,
+			},
+		},
 	}
 
 	f, err := os.Create(filePath)

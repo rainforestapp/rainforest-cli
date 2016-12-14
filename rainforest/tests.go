@@ -1,6 +1,7 @@
 package rainforest
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 )
@@ -34,14 +35,30 @@ func (s TestIDMappings) mapRFMLIDtoID() map[string]int {
 // RFTest is a struct representing the Rainforest Test with its settings and steps
 type RFTest struct {
 	RFMLID      string              `json:"rfml_id"`
-	Title       string              `json:"title"`
-	StartURI    string              `json:"start_uri"`
-	SiteID      int                 `json:"site_id"`
-	Description string              `json:"description"`
-	Tags        []string            `json:"tags"`
-	BrowsersMap []map[string]string `json:"browser_json"`
+	Title       string              `json:"title, omitempty"`
+	StartURI    string              `json:"start_uri, omitempty"`
+	SiteID      int                 `json:"site_id, omitempty"`
+	Description string              `json:"description, omitempty"`
+	Tags        []string            `json:"tags, omitempty"`
+	BrowsersMap []map[string]string `json:"browsers, omitempty"`
+	Source      string              `json:"source"`
+	Elements    []testElement       `json:"elements, omitempty"`
 	Browsers    []string
 	Steps       []interface{}
+}
+
+// testElement is one of the helpers to construct the proper JSON test sturcture
+type testElement struct {
+	Redirect bool               `json:"redirection"`
+	Type     string             `json:"type"`
+	Details  testElementDetails `json:"element"`
+}
+
+// testElementDetails is one of the helpers to construct the proper JSON test sturcture
+type testElementDetails struct {
+	ID       int    `json:"id, omitempty"`
+	Action   string `json:"action, omitempty"`
+	Response string `json:"response, omitempty"`
 }
 
 func (t *RFTest) mapBrowsers() {
@@ -60,6 +77,46 @@ func (t *RFTest) unmapBrowsers() {
 			t.Browsers = append(t.Browsers, browserMap["name"])
 		}
 	}
+}
+
+func (t *RFTest) marshallElements(mappings TestIDMappings) error {
+	rfmlidToID := mappings.mapRFMLIDtoID()
+	for _, step := range t.Steps {
+		switch castStep := step.(type) {
+		case RFTestStep:
+			stepElementDetails := testElementDetails{Action: castStep.Action, Response: castStep.Response}
+			stepElement := testElement{Redirect: castStep.Redirect, Type: "step", Details: stepElementDetails}
+			t.Elements = append(t.Elements, stepElement)
+		case RFEmbeddedTest:
+			embeddedID, ok := rfmlidToID[castStep.RFMLID]
+			if !ok {
+				return errors.New("Couldn't convert RFML ID to test ID")
+			}
+			embeddedElementDetails := testElementDetails{ID: embeddedID}
+			embeddedElement := testElement{Redirect: castStep.Redirect, Type: "test", Details: embeddedElementDetails}
+			t.Elements = append(t.Elements, embeddedElement)
+		}
+	}
+	return nil
+}
+
+func (t *RFTest) unmarshallElements(mappings TestIDMappings) error {
+	idToRFMLID := mappings.mapIDtoRFMLID()
+	for _, element := range t.Elements {
+		switch element.Type {
+		case "step":
+			step := RFTestStep{Action: element.Details.Action, Response: element.Details.Response, Redirect: element.Redirect}
+			t.Steps = append(t.Steps, step)
+		case "test":
+			rfmlID, ok := idToRFMLID[element.Details.ID]
+			if !ok {
+				return errors.New("Couldn't convert test ID to RFML ID")
+			}
+			embedd := RFEmbeddedTest{RFMLID: rfmlID, Redirect: element.Redirect}
+			t.Steps = append(t.Steps, embedd)
+		}
+	}
+	return nil
 }
 
 // RFTestStep contains single Rainforest step
@@ -121,4 +178,67 @@ func (c *Client) DeleteTestByRFMLID(testRFMLID string) error {
 		return fmt.Errorf("RFML ID: %v doesn't exist in Rainforest", testRFMLID)
 	}
 	return c.DeleteTest(testID)
+}
+
+// CreateTest creates new test on RF
+func (c *Client) CreateTest(test RFTest) error {
+	// Get mappings needed to convert RFML IDs
+	mappings, err := c.GetRFMLIDs()
+	if err != nil {
+		return err
+	}
+	// Prepare JSON struct
+	test.Source = "rainforest-cli"
+	test.mapBrowsers()
+	err = test.marshallElements(mappings)
+	if err != nil {
+		return err
+	}
+
+	// Prepare request
+	req, err := c.NewRequest("POST", "/tests", test)
+	if err != nil {
+		return err
+	}
+
+	// Send request and process response
+	_, err = c.Do(req, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// UpdateTest updates existing test on RF
+func (c *Client) UpdateTest(test RFTest) error {
+	// Get mappings needed to convert RFML IDs
+	mappings, err := c.GetRFMLIDs()
+	if err != nil {
+		return err
+	}
+
+	testID, ok := mappings.mapRFMLIDtoID()[test.RFMLID]
+	if !ok {
+		return errors.New("Couldn't update the test - RFML ID doesn't exist on RF")
+	}
+	// Prepare JSON struct
+	test.Source = "rainforest-cli"
+	test.mapBrowsers()
+	err = test.marshallElements(mappings)
+	if err != nil {
+		return err
+	}
+
+	// Prepare request
+	req, err := c.NewRequest("PUT", "/tests/"+strconv.Itoa(testID), test)
+	if err != nil {
+		return err
+	}
+
+	// Send request and process response
+	_, err = c.Do(req, nil)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -33,7 +33,7 @@ func NewRFMLReader(r io.Reader) *RFMLReader {
 	return &RFMLReader{
 		r:               bufio.NewReader(r),
 		Version:         1,
-		RedirectDefault: false,
+		RedirectDefault: true,
 	}
 }
 

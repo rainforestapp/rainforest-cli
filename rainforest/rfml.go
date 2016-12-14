@@ -171,7 +171,7 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 	}
 
 	if test.SiteID != 0 {
-		writer.WriteString("site_id: " + strconv.Itoa(test.SiteID) + "\n")
+		writer.WriteString("# site_id: " + strconv.Itoa(test.SiteID) + "\n")
 	}
 
 	if len(test.Tags) > 0 {

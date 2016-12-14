@@ -136,6 +136,5 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 	if parsedRFTest.RFMLID == "" {
 		return parsedRFTest, &parseError{1, "RFML ID is required for .rfml files, specify it using #!"}
 	}
-	parsedRFTest.mapBrowsers()
 	return parsedRFTest, nil
 }

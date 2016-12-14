@@ -11,12 +11,12 @@ import (
 type Generator struct {
 	ID           int               `json:"id,omitempty"`
 	Name         string            `json:"name,omitempty"`
-	CreationDate time.Time         `json:"created_at, omitempty"`
-	Description  string            `json:"description, omitempty"`
-	Type         string            `json:"generator_type, omitempty"`
-	SingleUse    bool              `json:"single_use, omitempty"`
-	Columns      []GeneratorColumn `json:"columns, omitempty"`
-	RowCount     int               `json:"row_count, omitempty"`
+	CreationDate time.Time         `json:"created_at,omitempty"`
+	Description  string            `json:"description,omitempty"`
+	Type         string            `json:"generator_type,omitempty"`
+	SingleUse    bool              `json:"single_use,omitempty"`
+	Columns      []GeneratorColumn `json:"columns,omitempty"`
+	RowCount     int               `json:"row_count,omitempty"`
 }
 
 // GetID returns the Generator name
@@ -31,15 +31,15 @@ func (g Generator) GetDescription() string {
 
 // GeneratorColumn is a type of column in a generator
 type GeneratorColumn struct {
-	ID           int       `json:"id, omitempty"`
-	CreationDate time.Time `json:"created_at, omitempty"`
-	Name         string    `json:"name, omitempty"`
+	ID           int       `json:"id,omitempty"`
+	CreationDate time.Time `json:"created_at,omitempty"`
+	Name         string    `json:"name,omitempty"`
 }
 
 // GeneratorRelatedTests is a type which holds tests where the generator has been used
 type GeneratorRelatedTests struct {
-	ID    int    `json:"id, omitempty"`
-	Title string `json:"title, omitempty"`
+	ID    int    `json:"id,omitempty"`
+	Title string `json:"title,omitempty"`
 }
 
 // GetGenerators fetches a list of all available generators for the account
@@ -85,9 +85,9 @@ func (c *Client) CreateTabularVar(name, description string,
 	//Prepare request
 	type genCreateRequest struct {
 		Name        string   `json:"name,omitempty"`
-		Description string   `json:"description, omitempty"`
-		SingleUse   bool     `json:"single_use, omitempty"`
-		Columns     []string `json:"columns, omitempty"`
+		Description string   `json:"description,omitempty"`
+		SingleUse   bool     `json:"single_use,omitempty"`
+		Columns     []string `json:"columns,omitempty"`
 	}
 	body := genCreateRequest{name, description, singleUse, columns}
 	req, err := c.NewRequest("POST", "generators", body)

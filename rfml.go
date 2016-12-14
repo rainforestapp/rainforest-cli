@@ -206,3 +206,61 @@ func deleteRFML(c cliContext) error {
 	}
 	return nil
 }
+
+// uploadRFML is a wrapper around test creating/updating functions
+func uploadRFML(c cliContext) error {
+	if path := c.Args().First(); path != "" {
+		err := uploadSingleRFMLFile(path)
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+		return nil
+	}
+	err := uploadRFMLFilesInDirectory(c.String("test-folder"))
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	return nil
+}
+
+// uploadSingleRFMLFile uploads RFML file syntax by
+// trying to parse the file and sending any parse errors to the caller
+func uploadSingleRFMLFile(filePath string) error {
+	// Validate first before uploading
+	err := validateSingleRFMLFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	rfmlReader := rainforest.NewRFMLReader(f)
+	parsedTest, err := rfmlReader.ReadAll()
+	if err != nil {
+		return fileParseError{filePath, err}
+	}
+
+	// Check if the test already exists in RF so we can decide between updating and creating new one
+	mappings, err := api.GetRFMLIDs()
+	if err != nil {
+		return err
+	}
+	err = parsedTest.PrepareToUploadFromRFML(mappings)
+	if err != nil {
+		return err
+	}
+	if parsedTest.TestID == 0 {
+		// Create new test
+		return api.CreateTest(parsedTest)
+	}
+
+	// Or update the old one
+	return api.UpdateTest(parsedTest)
+}
+
+func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
+	return nil
+}

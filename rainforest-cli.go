@@ -233,7 +233,7 @@ func main() {
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
 			},
-			Action: notImplemented,
+			Action: uploadRFML,
 		},
 		{
 			Name:        "rm",

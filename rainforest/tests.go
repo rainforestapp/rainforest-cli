@@ -16,6 +16,7 @@ type TestIDMap struct {
 // And has a set of functions defined to get map of one to the other.
 type TestIDMappings []TestIDMap
 
+// mapIDtoRFMLID creates a map from test IDs to RFML IDs
 func (s TestIDMappings) mapIDtoRFMLID() map[int]string {
 	resultMap := make(map[int]string)
 	for _, mapping := range s {
@@ -24,6 +25,7 @@ func (s TestIDMappings) mapIDtoRFMLID() map[int]string {
 	return resultMap
 }
 
+// mapRFMLIDtoID creates a map from RFML IDs to IDs
 func (s TestIDMappings) mapRFMLIDtoID() map[string]int {
 	resultMap := make(map[string]int)
 	for _, mapping := range s {
@@ -35,16 +37,19 @@ func (s TestIDMappings) mapRFMLIDtoID() map[string]int {
 // RFTest is a struct representing the Rainforest Test with its settings and steps
 type RFTest struct {
 	RFMLID      string              `json:"rfml_id"`
-	Title       string              `json:"title, omitempty"`
-	StartURI    string              `json:"start_uri, omitempty"`
-	SiteID      int                 `json:"site_id, omitempty"`
-	Description string              `json:"description, omitempty"`
-	Tags        []string            `json:"tags, omitempty"`
-	BrowsersMap []map[string]string `json:"browsers, omitempty"`
 	Source      string              `json:"source"`
-	Elements    []testElement       `json:"elements, omitempty"`
-	Browsers    []string
-	Steps       []interface{}
+	Title       string              `json:"title,omitempty"`
+	StartURI    string              `json:"start_uri,omitempty"`
+	SiteID      int                 `json:"site_id,omitempty"`
+	Description string              `json:"description,omitempty"`
+	Tags        []string            `json:"tags,omitempty"`
+	BrowsersMap []map[string]string `json:"browsers,omitempty"`
+	Elements    []testElement       `json:"elements,omitempty"`
+
+	// Browsers, Steps and TestID are helper fields
+	Browsers []string      `json:"-"`
+	Steps    []interface{} `json:"-"`
+	TestID   int           `json:"-"`
 }
 
 // testElement is one of the helpers to construct the proper JSON test sturcture
@@ -56,37 +61,55 @@ type testElement struct {
 
 // testElementDetails is one of the helpers to construct the proper JSON test sturcture
 type testElementDetails struct {
-	ID       int    `json:"id, omitempty"`
-	Action   string `json:"action, omitempty"`
-	Response string `json:"response, omitempty"`
+	ID       int    `json:"id,omitempty"`
+	Action   string `json:"action,omitempty"`
+	Response string `json:"response,omitempty"`
 }
 
+// mapBrowsers fills the browsers field with format recognized by the API
 func (t *RFTest) mapBrowsers() {
-	for _, browser := range t.Browsers {
+	// if there are no browsers skip mapping
+	if len(t.Browsers) == 0 {
+		return
+	}
+	t.BrowsersMap = make([]map[string]string, len(t.Browsers))
+	for i, browser := range t.Browsers {
 		mappedBrowser := map[string]string{
 			"state": "enabled",
 			"name":  browser,
 		}
-		t.BrowsersMap = append(t.BrowsersMap, mappedBrowser)
+		t.BrowsersMap[i] = mappedBrowser
 	}
 }
 
+// unmapBrowsers parses browsers from the API format to internal go one
 func (t *RFTest) unmapBrowsers() {
-	for _, browserMap := range t.BrowsersMap {
+	// if there are no browsers skip unmapping
+	if len(t.BrowsersMap) == 0 {
+		return
+	}
+	t.Browsers = make([]string, len(t.BrowsersMap))
+	for i, browserMap := range t.BrowsersMap {
 		if browserMap["state"] == "enabled" {
-			t.Browsers = append(t.Browsers, browserMap["name"])
+			t.Browsers[i] = browserMap["name"]
 		}
 	}
 }
 
+// marshallElements converts go rfml structs into format understood by the API
 func (t *RFTest) marshallElements(mappings TestIDMappings) error {
+	// if there are no steps skip marshalling
+	if len(t.Steps) == 0 {
+		return nil
+	}
+	t.Elements = make([]testElement, len(t.Steps))
 	rfmlidToID := mappings.mapRFMLIDtoID()
-	for _, step := range t.Steps {
+	for i, step := range t.Steps {
 		switch castStep := step.(type) {
 		case RFTestStep:
 			stepElementDetails := testElementDetails{Action: castStep.Action, Response: castStep.Response}
 			stepElement := testElement{Redirect: castStep.Redirect, Type: "step", Details: stepElementDetails}
-			t.Elements = append(t.Elements, stepElement)
+			t.Elements[i] = stepElement
 		case RFEmbeddedTest:
 			embeddedID, ok := rfmlidToID[castStep.RFMLID]
 			if !ok {
@@ -94,27 +117,48 @@ func (t *RFTest) marshallElements(mappings TestIDMappings) error {
 			}
 			embeddedElementDetails := testElementDetails{ID: embeddedID}
 			embeddedElement := testElement{Redirect: castStep.Redirect, Type: "test", Details: embeddedElementDetails}
-			t.Elements = append(t.Elements, embeddedElement)
+			t.Elements[i] = embeddedElement
 		}
 	}
 	return nil
 }
 
+// unmarshallElements converts API elements format into RFML go structs
 func (t *RFTest) unmarshallElements(mappings TestIDMappings) error {
+	if len(t.Elements) == 0 {
+		return nil
+	}
+	t.Steps = make([]interface{}, len(t.Elements))
 	idToRFMLID := mappings.mapIDtoRFMLID()
-	for _, element := range t.Elements {
+
+	for i, element := range t.Elements {
 		switch element.Type {
 		case "step":
 			step := RFTestStep{Action: element.Details.Action, Response: element.Details.Response, Redirect: element.Redirect}
-			t.Steps = append(t.Steps, step)
+			t.Steps[i] = step
 		case "test":
 			rfmlID, ok := idToRFMLID[element.Details.ID]
 			if !ok {
 				return errors.New("Couldn't convert test ID to RFML ID")
 			}
 			embedd := RFEmbeddedTest{RFMLID: rfmlID, Redirect: element.Redirect}
-			t.Steps = append(t.Steps, embedd)
+			t.Steps[i] = embedd
 		}
+	}
+	return nil
+}
+
+// PrepareToUploadFromRFML uses different helper methods to prepare struct for API upload
+func (t *RFTest) PrepareToUploadFromRFML(mappings TestIDMappings) error {
+	t.Source = "rainforest-cli"
+	t.mapBrowsers()
+	err := t.marshallElements(mappings)
+	if err != nil {
+		return err
+	}
+	testID, ok := mappings.mapRFMLIDtoID()[t.RFMLID]
+	if ok {
+		t.TestID = testID
 	}
 	return nil
 }
@@ -180,23 +224,10 @@ func (c *Client) DeleteTestByRFMLID(testRFMLID string) error {
 	return c.DeleteTest(testID)
 }
 
-// CreateTest creates new test on RF
-func (c *Client) CreateTest(test RFTest) error {
-	// Get mappings needed to convert RFML IDs
-	mappings, err := c.GetRFMLIDs()
-	if err != nil {
-		return err
-	}
-	// Prepare JSON struct
-	test.Source = "rainforest-cli"
-	test.mapBrowsers()
-	err = test.marshallElements(mappings)
-	if err != nil {
-		return err
-	}
-
+// CreateTest creates new test on RF, requires RFTest struct to be prepared to upload using helpers
+func (c *Client) CreateTest(test *RFTest) error {
 	// Prepare request
-	req, err := c.NewRequest("POST", "/tests", test)
+	req, err := c.NewRequest("POST", "tests", test)
 	if err != nil {
 		return err
 	}
@@ -209,28 +240,14 @@ func (c *Client) CreateTest(test RFTest) error {
 	return nil
 }
 
-// UpdateTest updates existing test on RF
-func (c *Client) UpdateTest(test RFTest) error {
-	// Get mappings needed to convert RFML IDs
-	mappings, err := c.GetRFMLIDs()
-	if err != nil {
-		return err
-	}
-
-	testID, ok := mappings.mapRFMLIDtoID()[test.RFMLID]
-	if !ok {
-		return errors.New("Couldn't update the test - RFML ID doesn't exist on RF")
-	}
-	// Prepare JSON struct
-	test.Source = "rainforest-cli"
-	test.mapBrowsers()
-	err = test.marshallElements(mappings)
-	if err != nil {
-		return err
+// UpdateTest updates existing test on RF, requires RFTest struct to be prepared to upload using helpers
+func (c *Client) UpdateTest(test *RFTest) error {
+	if test.TestID == 0 {
+		return errors.New("Couldn't update the test TestID not specified in RFTest")
 	}
 
 	// Prepare request
-	req, err := c.NewRequest("PUT", "/tests/"+strconv.Itoa(testID), test)
+	req, err := c.NewRequest("PUT", "tests/"+strconv.Itoa(test.TestID), test)
 	if err != nil {
 		return err
 	}

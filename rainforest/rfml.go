@@ -170,6 +170,10 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		return err
 	}
 
+	if test.SiteID != 0 {
+		writer.WriteString("site_id: " + strconv.Itoa(test.SiteID) + "\n")
+	}
+
 	if len(test.Tags) > 0 {
 		tags := strings.Join(test.Tags, ", ")
 		tagsHeader := fmt.Sprintf("# tags: %v\n", tags)
@@ -190,6 +194,10 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	if test.Description != "" {
+		writer.WriteString("# " + strings.Replace(test.Description, "\n", "\n# ", -1))
 	}
 
 	firstStepProcessed := false

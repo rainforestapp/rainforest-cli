@@ -209,6 +209,9 @@ func deleteRFML(c cliContext) error {
 
 // uploadRFML is a wrapper around test creating/updating functions
 func uploadRFML(c cliContext) error {
+	if c.Bool("synchronous-upload") {
+		rfmlUploadConcurrency = 1
+	}
 	if path := c.Args().First(); path != "" {
 		err := uploadSingleRFMLFile(path)
 		if err != nil {

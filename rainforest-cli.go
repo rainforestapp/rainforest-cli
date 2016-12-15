@@ -235,6 +235,10 @@ func main() {
 					Usage:  "`PATH` where to look for a tests to upload.",
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
+				cli.BoolFlag{
+					Name:  "synchronous-upload",
+					Usage: "uploads your test in a synchronous manner i.e. not using concurrency.",
+				},
 			},
 			Action: uploadRFML,
 		},

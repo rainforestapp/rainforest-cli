@@ -94,7 +94,7 @@ func TestCreateTabularVar(t *testing.T) {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(r.Body)
 		s := strings.TrimSpace(buf.String())
-		if wantedBody := `{"name":"foo","description":"bar","single_use":false,"columns":["baz","wut"]}`; s != wantedBody {
+		if wantedBody := `{"name":"foo","description":"bar","columns":["baz","wut"]}`; s != wantedBody {
 			t.Errorf("Request body = %v, want %v", s, wantedBody)
 		}
 		fmt.Fprint(w, `{"id":1337,"created_at":"2016-11-24T14:56:19Z","name":"foo","description":`+

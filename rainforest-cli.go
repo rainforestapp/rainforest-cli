@@ -34,6 +34,8 @@ var (
 	tabularBatchSize = 50
 	// Concurrent connections when uploading CSV rows
 	tabularConcurrency = 1
+	// Maximum concurrent connections with Rainforest server
+	rfmlDownloadConcurrency = 4
 )
 
 // notImplemented is a placholder function for actions that are not yet implemented.
@@ -275,7 +277,7 @@ func main() {
 					Usage: "download your tests without extracting the steps of an embedded test.",
 				},
 			},
-			Action: notImplemented,
+			Action: downloadRFML,
 		},
 		{
 			Name:        "csv-upload",

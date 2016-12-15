@@ -82,8 +82,8 @@ func (t *RFTest) mapBrowsers() {
 	}
 }
 
-// unmapBrowsers parses browsers from the API format to internal go one
-func (t *RFTest) unmapBrowsers() {
+// UnmapBrowsers parses browsers from the API format to internal go one
+func (t *RFTest) UnmapBrowsers() {
 	// if there are no browsers skip unmapping
 	if len(t.BrowsersMap) == 0 {
 		return
@@ -123,8 +123,8 @@ func (t *RFTest) marshallElements(mappings TestIDMappings) error {
 	return nil
 }
 
-// unmarshallElements converts API elements format into RFML go structs
-func (t *RFTest) unmarshallElements(mappings TestIDMappings) error {
+// UnmarshalElements converts API elements format into RFML go structs
+func (t *RFTest) UnmarshalElements(mappings TestIDMappings) error {
 	if len(t.Elements) == 0 {
 		return nil
 	}
@@ -192,6 +192,22 @@ func (c *Client) GetRFMLIDs() (TestIDMappings, error) {
 		return nil, err
 	}
 	return testResp, nil
+}
+
+// GetTest gets a test from RF specified by the given test ID
+func (c *Client) GetTest(testID int) (*RFTest, error) {
+	req, err := c.NewRequest("GET", "tests/"+strconv.Itoa(testID), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var testResp RFTest
+	_, err = c.Do(req, &testResp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &testResp, nil
 }
 
 // DeleteTest deletes test with a specified ID from the RF test suite

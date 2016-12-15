@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/gyuho/goraph"
@@ -263,4 +264,81 @@ func uploadSingleRFMLFile(filePath string) error {
 
 func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
 	return nil
+}
+
+func downloadRFML(c cliContext) error {
+	var testIDs []int
+	var err error
+
+	if len(c.Args()) > 0 {
+		var testID int
+
+		for _, arg := range c.Args() {
+			testID, err = strconv.Atoi(arg)
+			if err != nil {
+				return cli.NewExitError(err.Error(), 1)
+			}
+
+			testIDs = append(testIDs, testID)
+		}
+	} else {
+		var rfmlIDMapping rainforest.TestIDMappings
+		rfmlIDMapping, err = api.GetRFMLIDs()
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+
+		for _, testIDMap := range rfmlIDMapping {
+			testID := testIDMap.ID
+			testIDs = append(testIDs, testID)
+		}
+	}
+
+	errorsChan := make(chan error)
+	testIDChan := make(chan int, len(testIDs))
+
+	var mappings rainforest.TestIDMappings
+	mappings, err = api.GetRFMLIDs()
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	for _, testID := range testIDs {
+		testIDChan <- testID
+	}
+	close(testIDChan)
+
+	for i := 0; i < rfmlDownloadConcurrency; i++ {
+		go downloadRFTestWorker(testIDChan, errorsChan, mappings)
+	}
+
+	for i := 0; i < len(testIDs); i++ {
+		if err := <-errorsChan; err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+	}
+
+	return nil
+}
+
+func downloadRFTestWorker(testIDChan chan int, errorsChan chan error, mappings rainforest.TestIDMappings) {
+	for testID := range testIDChan {
+		test, err := api.GetTest(testID)
+		if err != nil {
+			errorsChan <- err
+			return
+		}
+
+		test.UnmapBrowsers()
+		err = test.UnmarshalElements(mappings)
+		if err != nil {
+			errorsChan <- err
+			return
+		}
+
+		// TODO: Merge with RFML Writer branch to write RFML tests
+
+		// if err is nil, nothing will happen. If err is not nil, the program will end
+		errorsChan <- err
+	}
 }

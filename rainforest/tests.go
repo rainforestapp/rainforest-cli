@@ -16,8 +16,8 @@ type TestIDMap struct {
 // And has a set of functions defined to get map of one to the other.
 type TestIDMappings []TestIDMap
 
-// mapIDtoRFMLID creates a map from test IDs to RFML IDs
-func (s TestIDMappings) mapIDtoRFMLID() map[int]string {
+// MapIDtoRFMLID creates a map from test IDs to RFML IDs
+func (s TestIDMappings) MapIDtoRFMLID() map[int]string {
 	resultMap := make(map[int]string)
 	for _, mapping := range s {
 		resultMap[mapping.ID] = mapping.RFMLID
@@ -25,8 +25,8 @@ func (s TestIDMappings) mapIDtoRFMLID() map[int]string {
 	return resultMap
 }
 
-// mapRFMLIDtoID creates a map from RFML IDs to IDs
-func (s TestIDMappings) mapRFMLIDtoID() map[string]int {
+// MapRFMLIDtoID creates a map from RFML IDs to IDs
+func (s TestIDMappings) MapRFMLIDtoID() map[string]int {
 	resultMap := make(map[string]int)
 	for _, mapping := range s {
 		resultMap[mapping.RFMLID] = mapping.ID
@@ -103,7 +103,7 @@ func (t *RFTest) marshallElements(mappings TestIDMappings) error {
 		return nil
 	}
 	t.Elements = make([]testElement, len(t.Steps))
-	rfmlidToID := mappings.mapRFMLIDtoID()
+	rfmlidToID := mappings.MapRFMLIDtoID()
 	for i, step := range t.Steps {
 		switch castStep := step.(type) {
 		case RFTestStep:
@@ -129,7 +129,7 @@ func (t *RFTest) unmarshallElements(mappings TestIDMappings) error {
 		return nil
 	}
 	t.Steps = make([]interface{}, len(t.Elements))
-	idToRFMLID := mappings.mapIDtoRFMLID()
+	idToRFMLID := mappings.MapIDtoRFMLID()
 
 	for i, element := range t.Elements {
 		switch element.Type {
@@ -151,12 +151,15 @@ func (t *RFTest) unmarshallElements(mappings TestIDMappings) error {
 // PrepareToUploadFromRFML uses different helper methods to prepare struct for API upload
 func (t *RFTest) PrepareToUploadFromRFML(mappings TestIDMappings) error {
 	t.Source = "rainforest-cli"
+	if t.StartURI == "" {
+		t.StartURI = "/"
+	}
 	t.mapBrowsers()
 	err := t.marshallElements(mappings)
 	if err != nil {
 		return err
 	}
-	testID, ok := mappings.mapRFMLIDtoID()[t.RFMLID]
+	testID, ok := mappings.MapRFMLIDtoID()[t.RFMLID]
 	if ok {
 		t.TestID = testID
 	}
@@ -216,7 +219,7 @@ func (c *Client) DeleteTestByRFMLID(testRFMLID string) error {
 	if err != nil {
 		return err
 	}
-	rfmlMap := testMappings.mapRFMLIDtoID()
+	rfmlMap := testMappings.MapRFMLIDtoID()
 	testID, ok := rfmlMap[testRFMLID]
 	if !ok {
 		return fmt.Errorf("RFML ID: %v doesn't exist in Rainforest", testRFMLID)

@@ -34,6 +34,9 @@ var (
 	tabularBatchSize = 50
 	// Concurrent connections when uploading CSV rows
 	tabularConcurrency = 1
+
+	// Concurrent connections when uploading RFML files
+	rfmlUploadConcurrency = 4
 )
 
 // notImplemented is a placholder function for actions that are not yet implemented.

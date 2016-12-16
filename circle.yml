@@ -22,6 +22,8 @@ dependencies:
     - cd $BUILD && glide install
   cache_directories:
     - "~/download"
+  post:
+    - cd $BUILD && rm -f ./equinox.key
 
 test:
   override:

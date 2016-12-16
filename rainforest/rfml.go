@@ -171,7 +171,11 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 	}
 
 	if test.SiteID != 0 {
-		writer.WriteString("# site_id: " + strconv.Itoa(test.SiteID) + "\n")
+		_, err = writer.WriteString("# site_id: " + strconv.Itoa(test.SiteID) + "\n")
+
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(test.Tags) > 0 {
@@ -197,7 +201,11 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 	}
 
 	if test.Description != "" {
-		writer.WriteString("# " + strings.Replace(test.Description, "\n", "\n# ", -1))
+		_, err = writer.WriteString("# " + strings.Replace(test.Description, "\n", "\n# ", -1))
+
+		if err != nil {
+			return err
+		}
 	}
 
 	firstStepProcessed := false
@@ -226,7 +234,11 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 			stepText = stepText + "- " + embeddedTest.RFMLID
 		}
 
-		writer.WriteString("\n" + stepText + "\n")
+		_, err = writer.WriteString("\n" + stepText + "\n")
+
+		if err != nil {
+			return err
+		}
 	}
 
 	// Writes buffered data to the underlying io.Writer

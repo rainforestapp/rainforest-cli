@@ -1,6 +1,10 @@
 package rainforest
 
-import "strconv"
+import (
+	"fmt"
+	"net/http"
+	"strconv"
+)
 
 // Resource interface is a standardized way of looking at the types returned from the resources
 // list API. It treats every resource as a pair of ID and description of entity under this ID.
@@ -36,10 +40,40 @@ func (c *Client) GetFolders() ([]Folder, error) {
 
 	// Send request and process response
 	var folderResp []Folder
-	_, err = c.Do(req, &folderResp)
+	var res *http.Response
+	res, err = c.Do(req, &folderResp)
 	if err != nil {
 		return nil, err
 	}
+
+	totalPagesHeader := res.Header.Get("X-Total-Pages")
+	if totalPagesHeader == "" {
+		return nil, fmt.Errorf("Missing X-Total-Pages header in HTTP Response")
+	}
+
+	totalPages, err := strconv.Atoi(totalPagesHeader)
+	if err != nil {
+		return nil, err
+	}
+
+	if totalPages > 1 {
+		for i := 1; i < totalPages; i++ {
+			page := strconv.Itoa(i + 1)
+			req, err = c.NewRequest("GET", "folders?page_size=100&page="+page, nil)
+			if err != nil {
+				return nil, err
+			}
+
+			var extraFoldersResp []Folder
+			res, err = c.Do(req, &extraFoldersResp)
+			if err != nil {
+				return nil, err
+			}
+
+			folderResp = append(folderResp, extraFoldersResp...)
+		}
+	}
+
 	return folderResp, nil
 }
 

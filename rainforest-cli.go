@@ -14,6 +14,9 @@ import (
 const (
 	// Version of the app in SemVer
 	version = "2.0.0"
+
+	// This is the default spec folder for RFML tests
+	defaultSpecFolder = "./spec/rainforest"
 )
 
 var (
@@ -197,12 +200,12 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "test-folder",
-					Value:  "./spec/rainforest/",
+					Value:  defaultSpecFolder,
 					Usage:  "`PATH` at which to create new test.",
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
 			},
-			Action: notImplemented,
+			Action: newRFMLTest,
 		},
 		{
 			Name:      "validate",

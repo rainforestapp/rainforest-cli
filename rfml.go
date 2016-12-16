@@ -11,6 +11,7 @@ import (
 
 	"github.com/gyuho/goraph"
 	"github.com/rainforestapp/rainforest-cli/rainforest"
+	"github.com/satori/go.uuid"
 	"github.com/urfave/cli"
 )
 
@@ -94,13 +95,15 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 	var parsedTests []parsedTest
 	dependencyGraph := goraph.NewGraph()
 	for _, filePath := range fileList {
-		f, err := os.Open(filePath)
+		var f *os.File
+		f, err = os.Open(filePath)
 		if err != nil {
 			return err
 		}
 		defer f.Close()
 		rfmlReader := rainforest.NewRFMLReader(f)
-		pTest, err := rfmlReader.ReadAll()
+		var pTest *rainforest.RFTest
+		pTest, err = rfmlReader.ReadAll()
 		if err != nil {
 			validationErrors = append(validationErrors, fileParseError{filePath, err})
 		} else {
@@ -123,7 +126,8 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 	// check for embedded tests id validity
 	// start with pulling the external test ids to validate against them as well
 	if api.ClientToken != "" {
-		externalTests, err := api.GetRFMLIDs()
+		var externalTests rainforest.TestIDMappings
+		externalTests, err = api.GetRFMLIDs()
 		if err != nil {
 			return err
 		}
@@ -174,6 +178,96 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 	}
 
 	log.Print("All files are valid!")
+	return nil
+}
+
+func newRFMLTest(c cliContext) error {
+	testDirectory := c.String("test-folder")
+
+	// first just make sure we are dealing with directory
+	absTestDirectory, err := filepath.Abs(testDirectory)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	dirStat, err := os.Stat(absTestDirectory)
+	if os.IsNotExist(err) {
+		log.Printf("Creating test directory: %v", absTestDirectory)
+		os.MkdirAll(absTestDirectory, os.ModePerm)
+	} else {
+		if !dirStat.IsDir() {
+			errStr := fmt.Sprintf("%v should be a directory", absTestDirectory)
+			return cli.NewExitError(errStr, 1)
+		}
+	}
+
+	fileName := c.Args().First()
+	title := fileName
+
+	if fileName == "" {
+		fileName = "Unnamed Test.rfml"
+		title = "Unnamed Test"
+	} else if strings.HasSuffix(fileName, ".rfml") {
+		title = strings.TrimSuffix(title, ".rfml")
+	} else {
+		fileName = fileName + ".rfml"
+	}
+
+	filePath := filepath.Join(absTestDirectory, fileName)
+
+	// Make sure that the file is unique
+	basePath := strings.TrimSuffix(filePath, ".rfml")
+	fileIdentifier := 0
+	var identStr string
+	for {
+		if fileIdentifier == 0 {
+			identStr = ""
+		} else {
+			identStr = fmt.Sprintf(" (%v)", strconv.Itoa(fileIdentifier))
+		}
+
+		testPath := basePath + identStr + ".rfml"
+
+		_, err = os.Stat(testPath)
+		if !os.IsNotExist(err) {
+			fileIdentifier = fileIdentifier + 1
+		} else {
+			filePath = testPath
+			break
+		}
+	}
+
+	test := rainforest.RFTest{
+		RFMLID:   uuid.NewV4().String(),
+		Title:    title,
+		StartURI: "/",
+		Tags:     []string{"foo", "bar"},
+		Browsers: []string{"chrome", "firefox"},
+		Steps: []interface{}{
+			rainforest.RFTestStep{
+				Action:   "This is a step action.",
+				Response: "This is a step question?",
+				Redirect: true,
+			},
+			rainforest.RFTestStep{
+				Action:   "This is another step action.",
+				Response: "This is another step question?",
+				Redirect: true,
+			},
+		},
+	}
+
+	f, err := os.Create(filePath)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	writer := rainforest.NewRFMLWriter(f)
+	err = writer.WriteRFMLTest(&test)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
 	return nil
 }
 

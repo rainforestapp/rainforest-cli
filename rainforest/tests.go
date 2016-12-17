@@ -207,6 +207,7 @@ func (c *Client) GetTest(testID int) (*RFTest, error) {
 		return nil, err
 	}
 
+	testResp.TestID = testID
 	return &testResp, nil
 }
 

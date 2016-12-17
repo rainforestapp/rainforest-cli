@@ -88,10 +88,10 @@ func (t *RFTest) UnmapBrowsers() {
 	if len(t.BrowsersMap) == 0 {
 		return
 	}
-	t.Browsers = make([]string, len(t.BrowsersMap))
-	for i, browserMap := range t.BrowsersMap {
+
+	for _, browserMap := range t.BrowsersMap {
 		if browserMap["state"] == "enabled" {
-			t.Browsers[i] = browserMap["name"]
+			t.Browsers = append(t.Browsers, browserMap["name"])
 		}
 	}
 }

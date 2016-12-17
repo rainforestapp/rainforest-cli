@@ -406,17 +406,22 @@ func downloadRFML(c cliContext) error {
 			paddedTestID := fmt.Sprintf("%010d", test.TestID)
 			sanitizedTitle := strings.TrimSpace(test.Title)
 			fileName := fmt.Sprintf("%v_%v.rfml", paddedTestID, sanitizedTitle)
+			rfmlFilePath := filepath.Join(absTestDirectory, fileName)
 
 			var file *os.File
-			file, err = os.Create(filepath.Join(absTestDirectory, fileName))
+			file, err = os.Create(rfmlFilePath)
 			if err != nil {
 				return err
 			}
 
 			writer := rainforest.NewRFMLWriter(file)
-			writer.WriteRFMLTest(test)
-
+			err = writer.WriteRFMLTest(test)
 			file.Close()
+			if err != nil {
+				return err
+			}
+
+			log.Printf("Downloaded RFML test to %v", rfmlFilePath)
 		}
 	}
 

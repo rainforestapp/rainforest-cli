@@ -38,7 +38,7 @@ func NewRFMLReader(r io.Reader) *RFMLReader {
 }
 
 // ReadAll parses whole RFML file using RFML version specified by Version parameter of reader
-// and returns reulting RFTest
+// and returns resulting RFTest
 func (r *RFMLReader) ReadAll() (*RFTest, error) {
 	parsedRFTest := &RFTest{}
 	// Set up a new scanner to read in data line by line
@@ -137,4 +137,115 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 		return parsedRFTest, &parseError{1, "RFML ID is required for .rfml files, specify it using #!"}
 	}
 	return parsedRFTest, nil
+}
+
+// RFMLWriter writes a RFML formatted test to a given file.
+type RFMLWriter struct {
+	w *bufio.Writer
+	// Version sets the RFML spec version
+	Version int
+}
+
+// NewRFMLWriter returns RFML writer based on passed io.Writer - typically a RFML file.
+func NewRFMLWriter(w io.Writer) *RFMLWriter {
+	return &RFMLWriter{
+		w:       bufio.NewWriter(w),
+		Version: 1,
+	}
+}
+
+// WriteRFMLTest writes a given RFTest to its writer in the given RFML version.
+func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
+	writer := r.w
+	headerTemplate := `#! %v
+# title: %v
+# start_uri: %v
+`
+
+	header := fmt.Sprintf(headerTemplate, test.RFMLID, test.Title, test.StartURI)
+	_, err := writer.WriteString(header)
+
+	if err != nil {
+		return err
+	}
+
+	if test.SiteID != 0 {
+		_, err = writer.WriteString("# site_id: " + strconv.Itoa(test.SiteID) + "\n")
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(test.Tags) > 0 {
+		tags := strings.Join(test.Tags, ", ")
+		tagsHeader := fmt.Sprintf("# tags: %v\n", tags)
+
+		_, err = writer.WriteString(tagsHeader)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(test.Browsers) > 0 {
+		browsers := strings.Join(test.Browsers, ", ")
+		browsersHeader := fmt.Sprintf("# browsers: %v\n", browsers)
+
+		_, err = writer.WriteString(browsersHeader)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if test.Description != "" {
+		_, err = writer.WriteString("# " + strings.Replace(test.Description, "\n", "\n# ", -1))
+
+		if err != nil {
+			return err
+		}
+	}
+
+	firstStepProcessed := false
+	processStep := func(idx int, step RFTestStep) string {
+		stepText := ""
+		if idx > 0 && firstStepProcessed == false {
+			stepText = stepText + fmt.Sprintf("# redirect: %v\n", step.Redirect)
+		}
+		action := strings.Replace(step.Action, "\n", " ", -1)
+		response := strings.Replace(step.Response, "\n", " ", -1)
+		firstStepProcessed = true
+
+		return stepText + action + "\n" + response
+	}
+
+	for idx, step := range test.Steps {
+		var stepText string
+		switch step.(type) {
+		case RFTestStep:
+			stepText = processStep(idx, step.(RFTestStep))
+		case RFEmbeddedTest:
+			embeddedTest := step.(RFEmbeddedTest)
+			if idx > 0 {
+				stepText = "# redirect: " + strconv.FormatBool(embeddedTest.Redirect) + "\n"
+			}
+			stepText = stepText + "- " + embeddedTest.RFMLID
+		}
+
+		_, err = writer.WriteString("\n" + stepText + "\n")
+
+		if err != nil {
+			return err
+		}
+	}
+
+	// Writes buffered data to the underlying io.Writer
+	err = writer.Flush()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -1,5 +1,5 @@
-hash: 0c77622bb7c9aa42c353d3871da70955106b98e01ed2a68ae4ab3d2b98d9e715
-updated: 2016-12-13T12:52:30.231314657Z
+hash: 63a917cb7f7ae271ea6734143ed5b594449576ad2e488ec18141a74cda921657
+updated: 2016-12-12T16:36:24.561573408-08:00
 imports:
 - name: github.com/gyuho/goraph
   version: d460590d53a91b1f29347ca9b01d1e8c158cbeb2
@@ -7,6 +7,8 @@ imports:
   version: d6bea18f789704b5f83375793155289da36a3c7f
 - name: github.com/olekukonko/tablewriter
   version: daf2955e742cf123959884fdff4685aa79b63135
+- name: github.com/satori/go.uuid
+  version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/urfave/cli
   version: 4205e9c4ee9672a8df5bb4fe486a8aa07e1e4037
 testImports: []

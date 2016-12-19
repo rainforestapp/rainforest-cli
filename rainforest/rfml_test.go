@@ -9,6 +9,29 @@ import (
 	"testing"
 )
 
+func TestReadAll(t *testing.T) {
+	r := strings.NewReader(`#! my_rfml_id
+# title: my title
+# start_uri: /testing
+
+First action
+First question?
+
+Second action
+Second question?`)
+	reader := NewRFMLReader(r)
+
+	rfTest, err := reader.ReadAll()
+
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if len(rfTest.Steps) != 2 {
+		t.Fatalf("Wrong number of steps. Expected 2, got %v", len(rfTest.Steps))
+	}
+}
+
 func TestWriteRFMLTest(t *testing.T) {
 	var buffer bytes.Buffer
 	writer := NewRFMLWriter(&buffer)

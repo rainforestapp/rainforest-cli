@@ -30,6 +30,18 @@ Second question?`)
 	if len(rfTest.Steps) != 2 {
 		t.Fatalf("Wrong number of steps. Expected 2, got %v", len(rfTest.Steps))
 	}
+
+	if rfTest.RFMLID != "my_rfml_id" {
+		t.Errorf("Incorrect RFML ID. Want \"my_rfml_id\", Got \"%v\"", rfTest.RFMLID)
+	}
+
+	if rfTest.Title != "my title" {
+		t.Errorf("Incorrect title. Want \"my title\", Got \"%v\"", rfTest.Title)
+	}
+
+	if rfTest.StartURI != "/testing" {
+		t.Errorf("Incorrect start_uri. Want \"/testing\", Got \"%v\"", rfTest.StartURI)
+	}
 }
 
 func TestWriteRFMLTest(t *testing.T) {

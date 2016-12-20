@@ -3,6 +3,7 @@ machine:
     GOPATH: "$HOME/.go_workspace"
     BUILD: "$GOPATH/src/github.com/rainforestapp/rainforest-cli"
     GODIST: "go1.7.3.linux-amd64.tar.gz"
+    EQUINOX_KEY_PATH: "$BUILD/equinox.key"
   post:
     - mkdir -p download
     - test -e download/$GODIST || curl -o download/$GODIST https://storage.googleapis.com/golang/$GODIST
@@ -56,7 +57,7 @@ deployment:
     owner: rainforestapp
     commands:
       - cd ~/download && curl -O https://bin.equinox.io/c/mBWdkfai63v/release-tool-stable-linux-amd64.zip
-      - unzip release-tool-stable-linux-amd64.zip -d /usr/local/bin
-      - cd $BUILD && echo $EQUINOX_KEY > ./equinox.key
-      - equinox release --version=${CIRCLE_SHA1:0:8} --platforms="darwin_amd64 linux_amd64" --signing-key=equinox.key --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel dev -- -ldflags "-X main.releaseChannel=dev -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
-      - cd $BUILD && rm -f ./equinox.key
+      - sudo unzip ~/download/release-tool-stable-linux-amd64.zip -d /usr/local/bin
+      - echo $EQUINOX_KEY > $EQUINOX_KEY_PATH
+      - equinox release --version=${CIRCLE_SHA1:0:8} --platforms="darwin_amd64 linux_amd64" --signing-key=$EQUINOX_KEY_PATH --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel dev -- -ldflags "-X main.releaseChannel=dev -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
+      - rm -f $EQUINOX_KEY_PATH

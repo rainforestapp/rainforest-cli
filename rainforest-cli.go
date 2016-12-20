@@ -37,6 +37,9 @@ var (
 	tabularBatchSize = 50
 	// Concurrent connections when uploading CSV rows
 	tabularConcurrency = 1
+
+	// Concurrent connections when uploading RFML files
+	rfmlUploadConcurrency = 4
 )
 
 // notImplemented is a placholder function for actions that are not yet implemented.
@@ -235,8 +238,12 @@ func main() {
 					Usage:  "`PATH` where to look for a tests to upload.",
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
+				cli.BoolFlag{
+					Name:  "synchronous-upload",
+					Usage: "uploads your test in a synchronous manner i.e. not using concurrency.",
+				},
 			},
-			Action: notImplemented,
+			Action: uploadRFML,
 		},
 		{
 			Name:        "rm",

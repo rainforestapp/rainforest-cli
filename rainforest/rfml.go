@@ -33,7 +33,7 @@ func NewRFMLReader(r io.Reader) *RFMLReader {
 	return &RFMLReader{
 		r:               bufio.NewReader(r),
 		Version:         1,
-		RedirectDefault: false,
+		RedirectDefault: true,
 	}
 }
 
@@ -51,6 +51,9 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 		lineNum++
 		line := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(line, "#!") {
+			if parsedRFTest.RFMLID != "" {
+				return parsedRFTest, &parseError{lineNum, "Only one RFML ID may be specified"}
+			}
 			// Handle shebang
 			parsedRFTest.RFMLID = strings.TrimSpace(line[2:])
 		} else if strings.HasPrefix(line, "#") {
@@ -94,11 +97,11 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 					currStepRedirect = redirect
 				default:
 					// If it doesn't match known key add it to description
-					parsedRFTest.Description += content + "\n"
+					parsedRFTest.Description += strings.TrimSpace(content) + "\n"
 				}
 			} else {
 				// If it'a a hashed line without key-value pair add it as a comment
-				parsedRFTest.Description += content + "\n"
+				parsedRFTest.Description += strings.TrimSpace(content) + "\n"
 			}
 		} else {
 			// Handle non prefixed lines
@@ -133,10 +136,20 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 			}
 		}
 	}
+
+	// Check if parsing stopped before adding a step
+	if len(currStep) == 1 {
+		return parsedRFTest, &parseError{lineNum, "Must have a corresponding question with your action."}
+	}
+
+	if len(currStep) == 2 {
+		parsedStep := RFTestStep{currStep[0], currStep[1], currStepRedirect}
+		parsedRFTest.Steps = append(parsedRFTest.Steps, parsedStep)
+	}
+
 	if parsedRFTest.RFMLID == "" {
 		return parsedRFTest, &parseError{1, "RFML ID is required for .rfml files, specify it using #!"}
 	}
-	parsedRFTest.mapBrowsers()
 	return parsedRFTest, nil
 }
 

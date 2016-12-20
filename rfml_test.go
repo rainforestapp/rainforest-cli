@@ -10,6 +10,7 @@ import (
 
 func TestNewRFMLTest(t *testing.T) {
 	context := new(fakeContext)
+	testDefaultSpecFolder := "testing/" + defaultSpecFolder
 
 	/*
 	   Declare reusable variables
@@ -54,7 +55,7 @@ func TestNewRFMLTest(t *testing.T) {
 	   No flags or args and spec folder doesn't exist
 	*/
 	context.mappings = map[string]interface{}{
-		"test-folder": defaultSpecFolder,
+		"test-folder": testDefaultSpecFolder,
 	}
 
 	err = newRFMLTest(context)
@@ -62,14 +63,14 @@ func TestNewRFMLTest(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	expectedRFMLPath = filepath.Join(defaultSpecFolder, "Unnamed Test.rfml")
+	expectedRFMLPath = filepath.Join(testDefaultSpecFolder, "Unnamed Test.rfml")
 	testExpectation(expectedRFMLPath, "Unnamed Test")
-	removeSpecFolder(defaultSpecFolder)
+	removeSpecFolder("./testing")
 
 	/*
 	   No flags or args and spec folder does exist
 	*/
-	err = os.MkdirAll(defaultSpecFolder, os.ModePerm)
+	err = os.MkdirAll(testDefaultSpecFolder, os.ModePerm)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -80,7 +81,7 @@ func TestNewRFMLTest(t *testing.T) {
 	}
 
 	testExpectation(expectedRFMLPath, "Unnamed Test")
-	removeSpecFolder(defaultSpecFolder)
+	removeSpecFolder("./testing")
 
 	/*
 	   Test folder given
@@ -109,7 +110,7 @@ func TestNewRFMLTest(t *testing.T) {
 	   Filename argument given
 	*/
 	context.mappings = map[string]interface{}{
-		"test-folder": defaultSpecFolder,
+		"test-folder": testDefaultSpecFolder,
 	}
 
 	context.args = []string{"my_file_name.rfml"}
@@ -119,9 +120,9 @@ func TestNewRFMLTest(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	expectedRFMLPath = filepath.Join(defaultSpecFolder, "my_file_name.rfml")
+	expectedRFMLPath = filepath.Join(testDefaultSpecFolder, "my_file_name.rfml")
 	testExpectation(expectedRFMLPath, "my_file_name")
-	removeSpecFolder(defaultSpecFolder)
+	removeSpecFolder("./testing")
 
 	/*
 	   Title argument given
@@ -133,9 +134,9 @@ func TestNewRFMLTest(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	expectedRFMLPath = filepath.Join(defaultSpecFolder, "my_test_title.rfml")
+	expectedRFMLPath = filepath.Join(testDefaultSpecFolder, "my_test_title.rfml")
 	testExpectation(expectedRFMLPath, "my_test_title")
-	removeSpecFolder(defaultSpecFolder)
+	removeSpecFolder("./testing")
 
 	/*
 	   Test folder flag is actually a file
@@ -171,15 +172,15 @@ func TestNewRFMLTest(t *testing.T) {
 	   RFML file already exists
 	*/
 	context.mappings = map[string]interface{}{
-		"test-folder": defaultSpecFolder,
+		"test-folder": testDefaultSpecFolder,
 	}
 
-	err = os.MkdirAll(defaultSpecFolder, os.ModePerm)
+	err = os.MkdirAll(testDefaultSpecFolder, os.ModePerm)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 
-	existingRFMLPath := filepath.Join(defaultSpecFolder, "Unnamed Test.rfml")
+	existingRFMLPath := filepath.Join(testDefaultSpecFolder, "Unnamed Test.rfml")
 	file, err = os.Create(existingRFMLPath)
 	file.Close()
 	if err != nil {
@@ -188,15 +189,15 @@ func TestNewRFMLTest(t *testing.T) {
 
 	err = newRFMLTest(context)
 	if err != nil {
-		removeSpecFolder(defaultSpecFolder)
+		removeSpecFolder("./testing")
 		t.Fatal(err.Error())
 	}
 
-	expectedRFMLPath = filepath.Join(defaultSpecFolder, "Unnamed Test (1).rfml")
+	expectedRFMLPath = filepath.Join(testDefaultSpecFolder, "Unnamed Test (1).rfml")
 	_, err = os.Stat(expectedRFMLPath)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	os.RemoveAll(defaultSpecFolder)
+	removeSpecFolder("./testing")
 }

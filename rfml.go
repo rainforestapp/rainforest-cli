@@ -301,3 +301,203 @@ func deleteRFML(c cliContext) error {
 	}
 	return nil
 }
+
+// uploadRFML is a wrapper around test creating/updating functions
+func uploadRFML(c cliContext) error {
+	if c.Bool("synchronous-upload") {
+		rfmlUploadConcurrency = 1
+	}
+	if path := c.Args().First(); path != "" {
+		err := uploadSingleRFMLFile(path)
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+		return nil
+	}
+	err := uploadRFMLFilesInDirectory(c.String("test-folder"))
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	return nil
+}
+
+// uploadSingleRFMLFile uploads RFML file syntax by
+// trying to parse the file and sending any parse errors to the caller
+func uploadSingleRFMLFile(filePath string) error {
+	// Validate first before uploading
+	err := validateSingleRFMLFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	rfmlReader := rainforest.NewRFMLReader(f)
+	parsedTest, err := rfmlReader.ReadAll()
+	if err != nil {
+		return fileParseError{filePath, err}
+	}
+
+	// Check if the test already exists in RF so we can decide between updating and creating new one
+	mappings, err := api.GetRFMLIDs()
+	if err != nil {
+		return err
+	}
+	err = parsedTest.PrepareToUploadFromRFML(mappings)
+	if err != nil {
+		return err
+	}
+	if parsedTest.TestID == 0 {
+		// Create new test
+		log.Printf("Creating new test: %v", parsedTest.RFMLID)
+		err = api.CreateTest(parsedTest)
+		if err != nil {
+			return err
+		}
+		log.Printf("Created new test: %v", parsedTest.RFMLID)
+		return nil
+	}
+
+	// Or update the old one
+	log.Printf("Updating existing test: %v", parsedTest.RFMLID)
+	err = api.UpdateTest(parsedTest)
+	if err != nil {
+		return err
+	}
+	log.Printf("Updated test: %v", parsedTest.RFMLID)
+	return nil
+}
+
+func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
+	// Validate files first
+	err := validateRFMLFilesInDirectory(rfmlDirectory)
+	if err != nil {
+		return err
+	}
+
+	// walk through the specifed directory (also subdirs) and pick the .rfml files
+	var fileList []string
+	err = filepath.Walk(rfmlDirectory, func(path string, f os.FileInfo, err error) error {
+		if strings.Contains(path, ".rfml") {
+			fileList = append(fileList, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// This will be used over and over again
+	mappings, err := api.GetRFMLIDs()
+	if err != nil {
+		return err
+	}
+	rfmlidToID := mappings.MapRFMLIDtoID()
+	var parsedTests []*rainforest.RFTest
+	var newTests []*rainforest.RFTest
+
+	for _, filePath := range fileList {
+		f, err := os.Open(filePath)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		rfmlReader := rainforest.NewRFMLReader(f)
+		pTest, err := rfmlReader.ReadAll()
+		if err != nil {
+			return err
+		}
+		parsedTests = append(parsedTests, pTest)
+		// Check if it's a new test or an existing one, because they need different treatment
+		// to ensure we first add new ones and have IDs for potential embedds
+		if _, ok := rfmlidToID[pTest.RFMLID]; !ok {
+			newTests = append(newTests, pTest)
+		}
+	}
+	// chan to gather errors from workers
+	errorsChan := make(chan error)
+
+	// prepare empty tests to upload, we will fill the steps later on in case there are some
+	// dependiences between them, we want all of the IDs in place
+	testsToCreate := make(chan *rainforest.RFTest, len(newTests))
+	for _, newTest := range newTests {
+		emptyTest := rainforest.RFTest{
+			RFMLID:      newTest.RFMLID,
+			Description: newTest.Description,
+			Title:       newTest.Title,
+		}
+		err = emptyTest.PrepareToUploadFromRFML(mappings)
+		if err != nil {
+			return err
+		}
+		testsToCreate <- &emptyTest
+	}
+	close(testsToCreate)
+
+	// spawn workers to create the tests
+	for i := 0; i < rfmlUploadConcurrency; i++ {
+		go testCreationWorker(api, testsToCreate, errorsChan)
+	}
+
+	// Read out the workers results
+	for i := 0; i < len(newTests); i++ {
+		if err := <-errorsChan; err != nil {
+			return err
+		}
+	}
+
+	// Refresh the mappings so we have all of the new tests
+	mappings, err = api.GetRFMLIDs()
+	if err != nil {
+		return err
+	}
+
+	// And here we update all of the tests
+	testsToUpdate := make(chan *rainforest.RFTest, len(parsedTests))
+	for _, testToUpdate := range parsedTests {
+		testToUpdate.PrepareToUploadFromRFML(mappings)
+		testsToUpdate <- testToUpdate
+	}
+	close(testsToUpdate)
+
+	// spawn workers to create the tests
+	for i := 0; i < rfmlUploadConcurrency; i++ {
+		go testUpdateWorker(api, testsToUpdate, errorsChan)
+	}
+
+	// Read out the workers results
+	for i := 0; i < len(parsedTests); i++ {
+		if err := <-errorsChan; err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func testCreationWorker(api *rainforest.Client,
+	testsToCreate <-chan *rainforest.RFTest, errorsChan chan<- error) {
+	for test := range testsToCreate {
+		log.Printf("Creating new test: %v", test.RFMLID)
+		error := api.CreateTest(test)
+		if error == nil {
+			log.Printf("Created new test: %v", test.RFMLID)
+		}
+		errorsChan <- error
+	}
+}
+
+func testUpdateWorker(api *rainforest.Client,
+	testsToUpdate <-chan *rainforest.RFTest, errorsChan chan<- error) {
+	for test := range testsToUpdate {
+		log.Printf("Updating existing test: %v", test.RFMLID)
+		error := api.UpdateTest(test)
+		if error == nil {
+			log.Printf("Updated existing test: %v", test.RFMLID)
+		}
+		errorsChan <- error
+	}
+}

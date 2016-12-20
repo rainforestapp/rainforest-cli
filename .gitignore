@@ -3,6 +3,7 @@
 *.csv
 *.xml
 spec
+testing
 
 rainforest-cli
 /vendor

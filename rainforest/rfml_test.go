@@ -4,10 +4,130 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
 )
+
+func TestReadAll(t *testing.T) {
+	expectedSteps := []interface{}{
+		RFTestStep{
+			Action:   "First Action",
+			Response: "First Question?",
+			Redirect: true,
+		},
+		RFTestStep{
+			Action:   "Second Action",
+			Response: "Second Question?",
+			Redirect: true,
+		},
+		RFEmbeddedTest{
+			RFMLID:   "embedded_id",
+			Redirect: true,
+		},
+	}
+
+	expectedTestVals := RFTest{
+		RFMLID:   "my_rfml_id",
+		Title:    "my_title",
+		StartURI: "/testing",
+		SiteID:   12345,
+		Tags:     []string{"foo", "bar"},
+		Browsers: []string{"chrome", "firefox"},
+		Steps:    expectedSteps,
+	}
+
+	testText := fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+# site_id: %v
+# tags: %v
+# browsers: %v
+
+%v
+%v
+
+%v
+%v
+
+- %v`,
+		expectedTestVals.RFMLID,
+		expectedTestVals.Title,
+		expectedTestVals.StartURI,
+		expectedTestVals.SiteID,
+		strings.Join(expectedTestVals.Tags, ", "),
+		strings.Join(expectedTestVals.Browsers, ", "),
+		expectedSteps[0].(RFTestStep).Action,
+		expectedSteps[0].(RFTestStep).Response,
+		expectedSteps[1].(RFTestStep).Action,
+		expectedSteps[1].(RFTestStep).Response,
+		expectedSteps[2].(RFEmbeddedTest).RFMLID,
+	)
+
+	r := strings.NewReader(testText)
+	reader := NewRFMLReader(r)
+	rfTest, err := reader.ReadAll()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if !reflect.DeepEqual(*rfTest, expectedTestVals) {
+		t.Errorf("Incorrect values for RFTest.\nGot %#v\nWant %#v", rfTest, expectedTestVals)
+	}
+
+	// Two RFML IDs
+	testText = fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+#! another_rfml_id
+
+%v
+%v`,
+		expectedTestVals.RFMLID,
+		expectedTestVals.Title,
+		expectedTestVals.StartURI,
+		expectedSteps[0].(RFTestStep).Action,
+		expectedSteps[0].(RFTestStep).Response,
+	)
+
+	r = strings.NewReader(testText)
+	reader = NewRFMLReader(r)
+	_, err = reader.ReadAll()
+	if err == nil {
+		t.Fatal("Expected an error from ReadAll")
+	} else if !strings.Contains(err.Error(), "line 4") {
+		t.Errorf("Wrong line reported. Expected 4. Returned error: %v", err.Error())
+	}
+
+	// Comment with a colon
+	expectedComment := "this_should: be a comment"
+	testText = fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+# %v
+
+%v
+%v`,
+		expectedTestVals.RFMLID,
+		expectedTestVals.Title,
+		expectedTestVals.StartURI,
+		expectedComment,
+		expectedSteps[0].(RFTestStep).Action,
+		expectedSteps[0].(RFTestStep).Response,
+	)
+
+	r = strings.NewReader(testText)
+	reader = NewRFMLReader(r)
+	rfTest, err = reader.ReadAll()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if !strings.Contains(rfTest.Description, expectedComment) {
+		t.Errorf("Description not found. Expected \"%v\". Description: %v", expectedComment, rfTest.Description)
+	}
+}
 
 func TestWriteRFMLTest(t *testing.T) {
 	var buffer bytes.Buffer

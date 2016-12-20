@@ -37,7 +37,8 @@ var (
 	tabularBatchSize = 50
 	// Concurrent connections when uploading CSV rows
 	tabularConcurrency = 1
-
+	// Maximum concurrent connections with Rainforest server
+	rfmlDownloadConcurrency = 4
 	// Concurrent connections when uploading RFML files
 	rfmlUploadConcurrency = 4
 )
@@ -285,7 +286,9 @@ func main() {
 					Usage: "download your tests without extracting the steps of an embedded test.",
 				},
 			},
-			Action: notImplemented,
+			Action: func(c *cli.Context) error {
+				return downloadRFML(c, api)
+			},
 		},
 		{
 			Name:        "csv-upload",

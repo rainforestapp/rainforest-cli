@@ -184,21 +184,9 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 func newRFMLTest(c cliContext) error {
 	testDirectory := c.String("test-folder")
 
-	// first just make sure we are dealing with directory
-	absTestDirectory, err := filepath.Abs(testDirectory)
+	absTestDirectory, err := prepareTestDirectory(testDirectory)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
-	}
-
-	dirStat, err := os.Stat(absTestDirectory)
-	if os.IsNotExist(err) {
-		log.Printf("Creating test directory: %v", absTestDirectory)
-		os.MkdirAll(absTestDirectory, os.ModePerm)
-	} else {
-		if !dirStat.IsDir() {
-			errStr := fmt.Sprintf("%v should be a directory", absTestDirectory)
-			return cli.NewExitError(errStr, 1)
-		}
 	}
 
 	fileName := c.Args().First()
@@ -398,13 +386,15 @@ func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
 	var newTests []*rainforest.RFTest
 
 	for _, filePath := range fileList {
-		f, err := os.Open(filePath)
+		var f *os.File
+		f, err = os.Open(filePath)
 		if err != nil {
 			return err
 		}
 		defer f.Close()
 		rfmlReader := rainforest.NewRFMLReader(f)
-		pTest, err := rfmlReader.ReadAll()
+		var pTest *rainforest.RFTest
+		pTest, err = rfmlReader.ReadAll()
 		if err != nil {
 			return err
 		}
@@ -442,7 +432,7 @@ func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
 
 	// Read out the workers results
 	for i := 0; i < len(newTests); i++ {
-		if err := <-errorsChan; err != nil {
+		if err = <-errorsChan; err != nil {
 			return err
 		}
 	}
@@ -474,6 +464,124 @@ func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
 	}
 
 	return nil
+}
+
+type rfmlAPI interface {
+	GetRFMLIDs() (rainforest.TestIDMappings, error)
+	GetTest(int) (*rainforest.RFTest, error)
+}
+
+func downloadRFML(c cliContext, client rfmlAPI) error {
+	testDirectory := c.String("test-folder")
+	absTestDirectory, err := prepareTestDirectory(testDirectory)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	var mappings rainforest.TestIDMappings
+	mappings, err = client.GetRFMLIDs()
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	var testIDs []int
+	if len(c.Args()) > 0 {
+		var testID int
+		for _, arg := range c.Args() {
+			testID, err = strconv.Atoi(arg)
+			if err != nil {
+				return cli.NewExitError(err.Error(), 1)
+			}
+
+			testIDs = append(testIDs, testID)
+		}
+	} else {
+		for _, testIDMap := range mappings {
+			testID := testIDMap.ID
+			testIDs = append(testIDs, testID)
+		}
+	}
+
+	errorsChan := make(chan error)
+	testIDChan := make(chan int, len(testIDs))
+	testChan := make(chan *rainforest.RFTest, len(testIDs))
+
+	for _, testID := range testIDs {
+		testIDChan <- testID
+	}
+	close(testIDChan)
+
+	for i := 0; i < rfmlDownloadConcurrency; i++ {
+		go downloadRFTestWorker(testIDChan, errorsChan, testChan, client)
+	}
+
+	for i := 0; i < len(testIDs); i++ {
+		select {
+		case err = <-errorsChan:
+			return err
+		case test := <-testChan:
+			err = test.PrepareToWriteAsRFML(mappings)
+			if err != nil {
+				return err
+			}
+
+			paddedTestID := fmt.Sprintf("%010d", test.TestID)
+			sanitizedTitle := strings.TrimSpace(test.Title)
+			fileName := fmt.Sprintf("%v_%v.rfml", paddedTestID, sanitizedTitle)
+			rfmlFilePath := filepath.Join(absTestDirectory, fileName)
+
+			var file *os.File
+			file, err = os.Create(rfmlFilePath)
+			if err != nil {
+				return err
+			}
+
+			writer := rainforest.NewRFMLWriter(file)
+			err = writer.WriteRFMLTest(test)
+			file.Close()
+			if err != nil {
+				return err
+			}
+
+			log.Printf("Downloaded RFML test to %v", rfmlFilePath)
+		}
+	}
+
+	return nil
+}
+
+func downloadRFTestWorker(testIDChan chan int, errorsChan chan error, testChan chan *rainforest.RFTest, client rfmlAPI) {
+	for testID := range testIDChan {
+		test, err := client.GetTest(testID)
+		if err != nil {
+			errorsChan <- err
+			return
+		}
+		testChan <- test
+	}
+}
+
+/*
+	Helper Functions
+*/
+
+func prepareTestDirectory(testDir string) (string, error) {
+	absTestDirectory, err := filepath.Abs(testDir)
+	if err != nil {
+		return "", err
+	}
+
+	dirStat, err := os.Stat(absTestDirectory)
+	if os.IsNotExist(err) {
+		log.Printf("Creating test directory: %v", absTestDirectory)
+		os.MkdirAll(absTestDirectory, os.ModePerm)
+	} else {
+		if !dirStat.IsDir() {
+			return "", fmt.Errorf("%v should be a directory", absTestDirectory)
+		}
+	}
+
+	return absTestDirectory, nil
 }
 
 func testCreationWorker(api *rainforest.Client,

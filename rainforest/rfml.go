@@ -214,7 +214,7 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 	}
 
 	if test.Description != "" {
-		_, err = writer.WriteString("# " + strings.Replace(test.Description, "\n", "\n# ", -1))
+		_, err = writer.WriteString("# " + strings.Replace(test.Description, "\n", "\n# ", -1) + "\n")
 
 		if err != nil {
 			return err

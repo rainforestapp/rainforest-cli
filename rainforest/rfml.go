@@ -97,11 +97,11 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 					currStepRedirect = redirect
 				default:
 					// If it doesn't match known key add it to description
-					parsedRFTest.Description += content + "\n"
+					parsedRFTest.Description += strings.TrimSpace(content) + "\n"
 				}
 			} else {
 				// If it'a a hashed line without key-value pair add it as a comment
-				parsedRFTest.Description += content + "\n"
+				parsedRFTest.Description += strings.TrimSpace(content) + "\n"
 			}
 		} else {
 			// Handle non prefixed lines

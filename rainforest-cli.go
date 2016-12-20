@@ -286,7 +286,9 @@ func main() {
 					Usage: "download your tests without extracting the steps of an embedded test.",
 				},
 			},
-			Action: downloadRFML,
+			Action: func(c *cli.Context) error {
+				return downloadRFML(c, api)
+			},
 		},
 		{
 			Name:        "csv-upload",

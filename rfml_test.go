@@ -1,11 +1,15 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/rainforestapp/rainforest-cli/rainforest"
 )
 
 func TestNewRFMLTest(t *testing.T) {
@@ -40,14 +44,7 @@ func TestNewRFMLTest(t *testing.T) {
 		rfmlText = string(contents)
 
 		if !strings.Contains(rfmlText, title) {
-			t.Error("Expected title \"Unnamed Test\" to appear in RFML test")
-		}
-	}
-
-	removeSpecFolder := func(f string) {
-		err = os.RemoveAll(f)
-		if err != nil {
-			t.Fatal(err.Error())
+			t.Errorf("Expected title \"%v\" to appear in RFML test", title)
 		}
 	}
 
@@ -65,7 +62,10 @@ func TestNewRFMLTest(t *testing.T) {
 
 	expectedRFMLPath = filepath.Join(testDefaultSpecFolder, "Unnamed Test.rfml")
 	testExpectation(expectedRFMLPath, "Unnamed Test")
-	removeSpecFolder("./testing")
+	err = os.RemoveAll("./testing")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 
 	/*
 	   No flags or args and spec folder does exist
@@ -81,7 +81,10 @@ func TestNewRFMLTest(t *testing.T) {
 	}
 
 	testExpectation(expectedRFMLPath, "Unnamed Test")
-	removeSpecFolder("./testing")
+	err = os.RemoveAll("./testing")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 
 	/*
 	   Test folder given
@@ -98,13 +101,19 @@ func TestNewRFMLTest(t *testing.T) {
 
 	err = newRFMLTest(context)
 	if err != nil {
-		removeSpecFolder(specFolder)
+		err = os.RemoveAll(specFolder)
+		if err != nil {
+			t.Fatal(err.Error())
+		}
 		t.Fatal(err)
 	}
 
 	expectedRFMLPath = filepath.Join(specFolder, "Unnamed Test.rfml")
 	testExpectation(expectedRFMLPath, "Unnamed Test")
-	removeSpecFolder(specFolder)
+	err = os.RemoveAll(specFolder)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 
 	/*
 	   Filename argument given
@@ -122,7 +131,10 @@ func TestNewRFMLTest(t *testing.T) {
 
 	expectedRFMLPath = filepath.Join(testDefaultSpecFolder, "my_file_name.rfml")
 	testExpectation(expectedRFMLPath, "my_file_name")
-	removeSpecFolder("./testing")
+	err = os.RemoveAll("./testing")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 
 	/*
 	   Title argument given
@@ -136,7 +148,10 @@ func TestNewRFMLTest(t *testing.T) {
 
 	expectedRFMLPath = filepath.Join(testDefaultSpecFolder, "my_test_title.rfml")
 	testExpectation(expectedRFMLPath, "my_test_title")
-	removeSpecFolder("./testing")
+	err = os.RemoveAll("./testing")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 
 	/*
 	   Test folder flag is actually a file
@@ -150,7 +165,10 @@ func TestNewRFMLTest(t *testing.T) {
 	dummyFilePath := filepath.Join(dummyFolder, "dummy_file")
 	file, err = os.Create(dummyFilePath)
 	if err != nil {
-		removeSpecFolder(dummyFolder)
+		err = os.RemoveAll(dummyFolder)
+		if err != nil {
+			t.Fatal(err.Error())
+		}
 		t.Fatal(err)
 	}
 
@@ -189,7 +207,10 @@ func TestNewRFMLTest(t *testing.T) {
 
 	err = newRFMLTest(context)
 	if err != nil {
-		removeSpecFolder("./testing")
+		err = os.RemoveAll("./testing")
+		if err != nil {
+			t.Fatal(err.Error())
+		}
 		t.Fatal(err.Error())
 	}
 
@@ -199,5 +220,88 @@ func TestNewRFMLTest(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	removeSpecFolder("./testing")
+	err = os.RemoveAll("./testing")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+}
+
+type testRfmlAPI struct {
+	mappings     rainforest.TestIDMappings
+	testMappings map[int]rainforest.RFTest
+}
+
+func (t *testRfmlAPI) GetRFMLIDs() (rainforest.TestIDMappings, error) {
+	return t.mappings, nil
+}
+
+func (t *testRfmlAPI) GetTest(testID int) (*rainforest.RFTest, error) {
+	test, ok := t.testMappings[testID]
+	if !ok {
+		return nil, errors.New("Test ID not found")
+	}
+	return &test, nil
+}
+
+func TestDownloadRFML(t *testing.T) {
+	context := new(fakeContext)
+	testAPI := new(testRfmlAPI)
+	testDefaultSpecFolder := "testing/" + defaultSpecFolder
+
+	testID := 112233
+	rfmlID := "rfml_test_id"
+	title := "My Test Title"
+
+	rfTest := rainforest.RFTest{
+		TestID: testID,
+		RFMLID: rfmlID,
+		Title:  title,
+	}
+
+	testAPI.mappings = rainforest.TestIDMappings{{ID: testID, RFMLID: rfmlID}}
+	testAPI.testMappings = map[int]rainforest.RFTest{
+		testID: rfTest,
+	}
+
+	context.mappings = map[string]interface{}{
+		"test-folder": testDefaultSpecFolder,
+	}
+
+	err := downloadRFML(context, testAPI)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	paddedTestID := fmt.Sprintf("%010d", testID)
+	sanitizedTitle := strings.TrimSpace(title)
+	expectedFileName := fmt.Sprintf("%v_%v.rfml", paddedTestID, sanitizedTitle)
+	expectedRFMLPath := filepath.Join(testDefaultSpecFolder, expectedFileName)
+
+	_, err = os.Stat(expectedRFMLPath)
+	if os.IsNotExist(err) {
+		t.Errorf("Expected RFML test does not exist: %v", expectedRFMLPath)
+		return
+	}
+
+	var contents []byte
+	contents, err = ioutil.ReadFile(expectedRFMLPath)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	rfmlText := string(contents)
+
+	if !strings.Contains(rfmlText, title) {
+		t.Errorf("Expected title \"%v\" to appear in RFML test", title)
+	}
+
+	if !strings.Contains(rfmlText, rfmlID) {
+		t.Errorf("Expected RFML ID \"%v\" to appear in RFML test", rfmlID)
+	}
+
+	err = os.RemoveAll("./testing")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 }

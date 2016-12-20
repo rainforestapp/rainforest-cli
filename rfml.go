@@ -386,13 +386,15 @@ func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
 	var newTests []*rainforest.RFTest
 
 	for _, filePath := range fileList {
-		f, err := os.Open(filePath)
+		var f *os.File
+		f, err = os.Open(filePath)
 		if err != nil {
 			return err
 		}
 		defer f.Close()
 		rfmlReader := rainforest.NewRFMLReader(f)
-		pTest, err := rfmlReader.ReadAll()
+		var pTest *rainforest.RFTest
+		pTest, err = rfmlReader.ReadAll()
 		if err != nil {
 			return err
 		}
@@ -430,7 +432,7 @@ func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
 
 	// Read out the workers results
 	for i := 0; i < len(newTests); i++ {
-		if err := <-errorsChan; err != nil {
+		if err = <-errorsChan; err != nil {
 			return err
 		}
 	}
@@ -464,7 +466,12 @@ func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
 	return nil
 }
 
-func downloadRFML(c cliContext) error {
+type rfmlAPI interface {
+	GetRFMLIDs() (rainforest.TestIDMappings, error)
+	GetTest(int) (*rainforest.RFTest, error)
+}
+
+func downloadRFML(c cliContext, client rfmlAPI) error {
 	testDirectory := c.String("test-folder")
 	absTestDirectory, err := prepareTestDirectory(testDirectory)
 	if err != nil {
@@ -472,7 +479,7 @@ func downloadRFML(c cliContext) error {
 	}
 
 	var mappings rainforest.TestIDMappings
-	mappings, err = api.GetRFMLIDs()
+	mappings, err = client.GetRFMLIDs()
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -505,7 +512,7 @@ func downloadRFML(c cliContext) error {
 	close(testIDChan)
 
 	for i := 0; i < rfmlDownloadConcurrency; i++ {
-		go downloadRFTestWorker(testIDChan, errorsChan, testChan)
+		go downloadRFTestWorker(testIDChan, errorsChan, testChan, client)
 	}
 
 	for i := 0; i < len(testIDs); i++ {
@@ -543,9 +550,9 @@ func downloadRFML(c cliContext) error {
 	return nil
 }
 
-func downloadRFTestWorker(testIDChan chan int, errorsChan chan error, testChan chan *rainforest.RFTest) {
+func downloadRFTestWorker(testIDChan chan int, errorsChan chan error, testChan chan *rainforest.RFTest, client rfmlAPI) {
 	for testID := range testIDChan {
-		test, err := api.GetTest(testID)
+		test, err := client.GetTest(testID)
 		if err != nil {
 			errorsChan <- err
 			return

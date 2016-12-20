@@ -241,8 +241,6 @@ func newRFMLTest(c cliContext) error {
 		RFMLID:   uuid.NewV4().String(),
 		Title:    title,
 		StartURI: "/",
-		Tags:     []string{"foo", "bar"},
-		Browsers: []string{"chrome", "firefox"},
 		Steps: []interface{}{
 			rainforest.RFTestStep{
 				Action:   "This is a step action.",

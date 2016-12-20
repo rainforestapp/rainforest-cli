@@ -14,6 +14,8 @@ import (
 const (
 	// Version of the app in SemVer
 	version = "2.0.0-alpha.2"
+	// This is the default spec folder for RFML tests
+	defaultSpecFolder = "./spec/rainforest"
 )
 
 var (
@@ -38,6 +40,10 @@ var (
 	tabularBatchSize = 50
 	// Concurrent connections when uploading CSV rows
 	tabularConcurrency = 1
+	// Maximum concurrent connections with Rainforest server
+	rfmlDownloadConcurrency = 4
+	// Concurrent connections when uploading RFML files
+	rfmlUploadConcurrency = 4
 )
 
 // notImplemented is a placholder function for actions that are not yet implemented.
@@ -219,18 +225,19 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "test-folder",
-					Value:  "./spec/rainforest/",
+					Value:  defaultSpecFolder,
 					Usage:  "`PATH` at which to create new test.",
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
 			},
-			Action: notImplemented,
+			Action: newRFMLTest,
 		},
 		{
 			Name:      "validate",
 			Usage:     "Validate your RFML tests",
-			ArgsUsage: " ",
-			Description: "Validate your tests for syntax and correct RFML ids for embedded tests. " +
+			ArgsUsage: "[path to RFML file]",
+			Description: "Validate your test for syntax. " +
+				"If no filepath is given it validates all RFML tests and performs additional checks for RFML ID validity and more. " +
 				"If API token is set it'll validate your tests against server data as well.",
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -240,7 +247,7 @@ func main() {
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
 			},
-			Action: notImplemented,
+			Action: validateRFML,
 		},
 		{
 			Name:      "upload",
@@ -255,15 +262,19 @@ func main() {
 					Usage:  "`PATH` where to look for a tests to upload.",
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
+				cli.BoolFlag{
+					Name:  "synchronous-upload",
+					Usage: "uploads your test in a synchronous manner i.e. not using concurrency.",
+				},
 			},
-			Action: notImplemented,
+			Action: uploadRFML,
 		},
 		{
 			Name:        "rm",
 			Usage:       "Remove an RFML test locally and remotely",
 			ArgsUsage:   "[path to RFML file]",
 			Description: "Remove RFML file and remove test from Rainforest test suite.",
-			Action:      notImplemented,
+			Action:      deleteRFML,
 		},
 		{
 			Name: "download",
@@ -298,7 +309,9 @@ func main() {
 					Usage: "download your tests without extracting the steps of an embedded test.",
 				},
 			},
-			Action: notImplemented,
+			Action: func(c *cli.Context) error {
+				return downloadRFML(c, api)
+			},
 		},
 		{
 			Name:        "csv-upload",

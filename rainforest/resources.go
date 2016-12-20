@@ -56,22 +56,20 @@ func (c *Client) GetFolders() ([]Folder, error) {
 		return nil, err
 	}
 
-	if totalPages > 1 {
-		for i := 1; i < totalPages; i++ {
-			page := strconv.Itoa(i + 1)
-			req, err = c.NewRequest("GET", "folders?page_size=100&page="+page, nil)
-			if err != nil {
-				return nil, err
-			}
-
-			var extraFoldersResp []Folder
-			res, err = c.Do(req, &extraFoldersResp)
-			if err != nil {
-				return nil, err
-			}
-
-			folderResp = append(folderResp, extraFoldersResp...)
+	for i := 1; i < totalPages; i++ {
+		page := strconv.Itoa(i + 1)
+		req, err = c.NewRequest("GET", "folders?page_size=100&page="+page, nil)
+		if err != nil {
+			return nil, err
 		}
+
+		var extraFoldersResp []Folder
+		res, err = c.Do(req, &extraFoldersResp)
+		if err != nil {
+			return nil, err
+		}
+
+		folderResp = append(folderResp, extraFoldersResp...)
 	}
 
 	return folderResp, nil

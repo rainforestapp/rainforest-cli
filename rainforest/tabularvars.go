@@ -9,14 +9,14 @@ import (
 // Generator is a type representing generators which can be used as variables in RF tests.
 // They can be builtin or uploaded by customer as a tabular variable.
 type Generator struct {
-	ID           int               `json:"id,omitempty"`
-	Name         string            `json:"name,omitempty"`
-	CreatedAt time.Time         `json:"created_at,omitempty"`
-	Description  string            `json:"description,omitempty"`
-	Type         string            `json:"generator_type,omitempty"`
-	SingleUse    bool              `json:"single_use,omitempty"`
-	Columns      []GeneratorColumn `json:"columns,omitempty"`
-	RowCount     int               `json:"row_count,omitempty"`
+	ID          int               `json:"id,omitempty"`
+	Name        string            `json:"name,omitempty"`
+	CreatedAt   time.Time         `json:"created_at,omitempty"`
+	Description string            `json:"description,omitempty"`
+	Type        string            `json:"generator_type,omitempty"`
+	SingleUse   bool              `json:"single_use,omitempty"`
+	Columns     []GeneratorColumn `json:"columns,omitempty"`
+	RowCount    int               `json:"row_count,omitempty"`
 }
 
 // GetID returns the Generator name
@@ -31,9 +31,9 @@ func (g Generator) GetDescription() string {
 
 // GeneratorColumn is a type of column in a generator
 type GeneratorColumn struct {
-	ID           int       `json:"id,omitempty"`
+	ID        int       `json:"id,omitempty"`
 	CreatedAt time.Time `json:"created_at,omitempty"`
-	Name         string    `json:"name,omitempty"`
+	Name      string    `json:"name,omitempty"`
 }
 
 // GeneratorRelatedTests is a type which holds tests where the generator has been used

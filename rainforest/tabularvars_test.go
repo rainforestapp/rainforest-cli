@@ -29,23 +29,23 @@ func TestGetGenerators(t *testing.T) {
 	out, _ := client.GetGenerators()
 
 	want := []Generator{{
-		ID:           1337,
-		Name:         "foo",
-		CreationDate: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
-		Description:  "bar",
-		Type:         "tabular",
-		SingleUse:    false,
-		RowCount:     42,
+		ID:          1337,
+		Name:        "foo",
+		CreatedAt:   time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
+		Description: "bar",
+		Type:        "tabular",
+		SingleUse:   false,
+		RowCount:    42,
 		Columns: []GeneratorColumn{
 			{
-				ID:           30225,
-				Name:         "username",
-				CreationDate: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
+				ID:        30225,
+				Name:      "username",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 			{
-				ID:           30226,
-				Name:         "password",
-				CreationDate: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
+				ID:        30226,
+				Name:      "password",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 		},
 	}}
@@ -104,23 +104,23 @@ func TestCreateTabularVar(t *testing.T) {
 
 	newGenerator, _ := client.CreateTabularVar("foo", "bar", []string{"baz", "wut"}, false)
 	want := &Generator{
-		ID:           1337,
-		Name:         "foo",
-		CreationDate: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
-		Description:  "bar",
-		Type:         "tabular",
-		SingleUse:    false,
-		RowCount:     0,
+		ID:          1337,
+		Name:        "foo",
+		CreatedAt:   time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
+		Description: "bar",
+		Type:        "tabular",
+		SingleUse:   false,
+		RowCount:    0,
 		Columns: []GeneratorColumn{
 			{
-				ID:           30225,
-				Name:         "baz",
-				CreationDate: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
+				ID:        30225,
+				Name:      "baz",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 			{
-				ID:           30226,
-				Name:         "wut",
-				CreationDate: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
+				ID:        30226,
+				Name:      "wut",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 		},
 	}
@@ -159,14 +159,14 @@ func TestAddGeneratorRows(t *testing.T) {
 		ID: genID,
 		Columns: []GeneratorColumn{
 			{
-				ID:           123,
-				Name:         "qwe",
-				CreationDate: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
+				ID:        123,
+				Name:      "qwe",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 			{
-				ID:           456,
-				Name:         "asd",
-				CreationDate: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
+				ID:        456,
+				Name:      "asd",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 		},
 	}
@@ -206,14 +206,14 @@ func TestAddGeneratorRowsFromTable(t *testing.T) {
 		ID: genID,
 		Columns: []GeneratorColumn{
 			{
-				ID:           123,
-				Name:         "qwe",
-				CreationDate: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
+				ID:        123,
+				Name:      "qwe",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 			{
-				ID:           456,
-				Name:         "asd",
-				CreationDate: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
+				ID:        456,
+				Name:      "asd",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 		},
 	}

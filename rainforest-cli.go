@@ -39,6 +39,8 @@ var (
 	tabularConcurrency = 1
 	// Maximum concurrent connections with Rainforest server
 	rfmlDownloadConcurrency = 4
+	// Concurrent connections when uploading RFML files
+	rfmlUploadConcurrency = 4
 )
 
 // notImplemented is a placholder function for actions that are not yet implemented.
@@ -236,6 +238,10 @@ func main() {
 					Value:  "./spec/rainforest/",
 					Usage:  "`PATH` where to look for a tests to upload.",
 					EnvVar: "RAINFOREST_TEST_FOLDER",
+				},
+				cli.BoolFlag{
+					Name:  "synchronous-upload",
+					Usage: "uploads your test in a synchronous manner i.e. not using concurrency.",
 				},
 			},
 			Action: uploadRFML,

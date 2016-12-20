@@ -513,8 +513,7 @@ func downloadRFML(c cliContext) error {
 		case err = <-errorsChan:
 			return err
 		case test := <-testChan:
-			test.UnmapBrowsers()
-			err = test.UnmarshalElements(mappings)
+			err = test.PrepareToWriteAsRFML(mappings)
 			if err != nil {
 				return err
 			}
@@ -562,7 +561,7 @@ func downloadRFTestWorker(testIDChan chan int, errorsChan chan error, testChan c
 func prepareTestDirectory(testDir string) (string, error) {
 	absTestDirectory, err := filepath.Abs(testDir)
 	if err != nil {
-		return "", cli.NewExitError(err.Error(), 1)
+		return "", err
 	}
 
 	dirStat, err := os.Stat(absTestDirectory)

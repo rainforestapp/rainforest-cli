@@ -82,8 +82,8 @@ func (t *RFTest) mapBrowsers() {
 	}
 }
 
-// UnmapBrowsers parses browsers from the API format to internal go one
-func (t *RFTest) UnmapBrowsers() {
+// unmapBrowsers parses browsers from the API format to internal go one
+func (t *RFTest) unmapBrowsers() {
 	// if there are no browsers skip unmapping
 	if len(t.BrowsersMap) == 0 {
 		return
@@ -123,8 +123,8 @@ func (t *RFTest) marshallElements(mappings TestIDMappings) error {
 	return nil
 }
 
-// UnmarshalElements converts API elements format into RFML go structs
-func (t *RFTest) UnmarshalElements(mappings TestIDMappings) error {
+// unmarshalElements converts API elements format into RFML go structs
+func (t *RFTest) unmarshalElements(mappings TestIDMappings) error {
 	if len(t.Elements) == 0 {
 		return nil
 	}
@@ -163,6 +163,16 @@ func (t *RFTest) PrepareToUploadFromRFML(mappings TestIDMappings) error {
 	if ok {
 		t.TestID = testID
 	}
+	return nil
+}
+
+// PrepareToWriteAsRFML uses different helper methods to prepare struct for translation to RFML
+func (t *RFTest) PrepareToWriteAsRFML(mappings TestIDMappings) error {
+	err := t.unmarshalElements(mappings)
+	if err != nil {
+		return err
+	}
+	t.unmapBrowsers()
 	return nil
 }
 

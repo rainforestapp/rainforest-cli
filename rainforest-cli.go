@@ -46,13 +46,6 @@ var (
 	rfmlUploadConcurrency = 4
 )
 
-// notImplemented is a placholder function for actions that are not yet implemented.
-// In the current iteration of cli.
-func notImplemented(c *cli.Context) error {
-	fmt.Println("Not yet implemented. Check it out soon!")
-	return nil
-}
-
 // cliContext is an interface providing context of running application
 // i.e. command line options and flags. One of the types that provides the interface is
 // cli.Context, the other is fakeCLIContext which is used for testing.

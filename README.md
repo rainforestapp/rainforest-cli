@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/rainforestapp/rainforest-cli.png?branch=master)](https://travis-ci.org/rainforestapp/rainforest-cli)
 
-[![Gem Version](https://badge.fury.io/rb/rainforest-cli.svg)](https://badge.fury.io/rb/rainforest-cli)
+<!-- TODO: Update this
+[![Gem Version](https://badge.fury.io/rb/rainforest-cli.svg)](https://badge.fury.io/rb/rainforest-cli) -->
 
 # Rainforest-cli
 
@@ -10,49 +11,48 @@ This is the easiest way to integrate Rainforest with your deploy scripts or CI s
 
 ## Installation
 
-You can install rainforest-cli with the [gem](https://rubygems.org/) utility.
+Follow the directions on our [download page](https://dl.equinox.io/rainforest_qa/rainforest-cli/stable).
 
-```bash
-gem install rainforest-cli
-```
-
-Alternatively, you can add to your Gemfile if you're in a ruby project. This is *not recommended* for most users. The reason being that we update this gem frequently and you usually want to ensure you have the latest version.
-
-```ruby
-gem "rainforest-cli", require: false
-```
+The CLI will check for updates and automatically update itself on every use unless the
+`--skip-update` global flag is given.
 
 ## Basic Usage
-To use the cli client, you'll need your API token from a test settings page from inside [Rainforest](https://app.rainforestqa.com/).
+To use the cli client, you'll need your API token from your [integrations settings page](https://app.rainforestqa.com/settings/integrations).
 
-You can either pass the token with `--token YOUR_TOKEN_HERE` CLI option, or put it in the `RAINFOREST_API_TOKEN` environment variable.
+In order to access your account from the CLI, set the `RAINFOREST_API_TOKEN` environment variable
+to your API token. Alternatively, you may pass your token with the global `--token` flag.
+
+CLI Commands are formatted as follows:
+```bash
+rainforest [global flags] <command> [arguments] [command-specific-flags]
+```
 
 ## Options
 
 #### Running Tests
 
-Run all tests.
+Run all tests in the foreground and report.
 
 ```bash
 rainforest run all
 ```
 
-Run all in the foreground and report.
+Run all your tests in the background and exit the process immediately.
 
 ```bash
-rainforest run all --fg
+rainforest run all --bg
 ```
 
 Run all tests with tag 'run-me' and abort previous in-progress runs.
 
 ```bash
-rainforest run --tag run-me --fg --conflict abort
+rainforest run --tag run-me --conflict abort
 ```
 
-Run all in the foreground and generate a junit xml report.
+Run all tests and generate a junit xml report.
 
 ```bash
-rainforest run all --fg --junit-file rainforest.xml
+rainforest run all --junit-file results.xml
 ```
 
 #### Creating and Managing Tests
@@ -104,16 +104,22 @@ Remove RFML file and remove test from Rainforest test suite.
 rainforest rm /path/to/test/file.rfml
 ```
 
-Export all tests from Rainforest
+Download all tests from Rainforest
 
 ```bash
-rainforest export
+rainforest download
 ```
 
-Export tests filtered by tags, site, and smart folder
+Download tests filtered by tags, site, and smart folder
 
 ```bash
-rainforest export --tag foo --tag bar --site-id 123 --folder 456
+rainforest download --tag foo --tag bar --site-id 123 --folder 456
+```
+
+Download specific tests based on their id on the Rainforest dashboard
+
+```bash
+rainforest download 33445 11232 1337
 ```
 
 #### Viewing Account Specific Information
@@ -142,19 +148,20 @@ rainforest report <run-id> --junit-file rainforest.xml
 
 Upload a CSV to create a new tabular variables.
 ```bash
-rainforest csv-upload --import-variable-csv-file PATH/TO/CSV.csv --import-variable-name my_variable
+rainforest csv-upload PATH/TO/CSV.csv --import-variable-name my_variable
 ```
 
 Upload a CSV to update an existing tabular variables.
 ```bash
-rainforest csv-upload --import-variable-csv-file PATH/TO/CSV.csv --import-variable-name my_variable --overwrite-variable
+rainforest csv-upload PATH/TO/CSV.csv --import-variable-name my_variable --overwrite-variable
 ```
 
 ## Options
 
-### General
+### Global
 
 - `--token <your-rainforest-token>` - supply your token (get it from any tests API tab), if not set in `RAINFOREST_API_TOKEN` environment variable
+- `skip-update` - Do not automatically check for CLI updates.
 
 ### Writing Tests
 Rainforest Tests written using RFML have the following format
@@ -236,8 +243,8 @@ steps of an embedded test.
 - `--junit-file` - Create a junit xml report file with the specified name.  Must be run in foreground mode, or with the report command. Uses the rainforest
 api to construct a junit report.  This is useful to track tests in CI such as Jenkins or Bamboo.
 - `--run-id` - Only used with the report command.  Specify a past rainforest run by ID number to generate a report for.
-- `--import-variable-csv-file /path/to/csv/file.csv` - Use with `run` and `--import-variable-name` to upload new tabular variable values before your run to specify the path to your CSV file. You may also use this with the `csv-upload` command to update your variable before a run.
-- `--import-variable-name NAME` - Use with `run` and `--import-variable-csv-file` to upload new tabular variable values before your run to specify the name of your tabular variable. You may also use this with the `csv-upload` command to update your variable before a run.
+- `--import-variable-csv-file /path/to/csv/file.csv` - Use with `run` and `--import-variable-name` to upload new tabular variable values before your run to specify the path to your CSV file.
+- `--import-variable-name NAME` - Use with `run` and `--import-variable-csv-file` to upload new tabular variable values before your run to specify the name of your tabular variable. You may also use this with the `csv-upload` command to update your variable without starting a run.
 - `--single-use` - Use with `run` or `csv-upload` to flag your variable upload as `single-use`. See `--import-variable-csv-file` and `--import-variable-name` options as well.
 
 ###Site-ID
@@ -291,18 +298,6 @@ Use with rainforest export to export your tests without extracting the steps of 
 ###Test-folder
 Use with rainforest [new, upload, export]. If this option is not provided, rainforest-cli will, in the case of 'new' create a directory, or in the case of 'upload' and 'export' use the directory, at the default path ./spec/rainforest/.
 <pre>--test-folder /path/to/directory</pre>
-
-#### Specifying Test IDs
-Any integers input as arguments in the command line arguments are treated as
-test IDs taken from the Rainforest dashboard. ie:
-
-`rainforest run --token $TOKEN 1232 3212` - will export only tests
-1232 and 3212. The `export` and `run` commands and are otherwise ignored.
-
-All other argument types should be specified as seen above.
-
-
-More detailed info on options can be [found here](https://github.com/rainforestapp/rainforest-cli/blob/master/lib/rainforest_cli/options.rb#L23-L74).
 
 ## Support
 

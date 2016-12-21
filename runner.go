@@ -56,7 +56,7 @@ func startRun(c cliContext) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
-	log.Printf("Run %v has been created...\n", runStatus.ID)
+	log.Printf("Run %v has been created.", runStatus.ID)
 
 	// if background flag is enabled we'll skip monitoring run status
 	if c.Bool("bg") {

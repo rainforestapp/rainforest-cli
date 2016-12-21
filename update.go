@@ -12,9 +12,9 @@ const equinoxAppID = "app_carcVJmQBRm"
 // publicKey is a ECDSA key used to sign the cli binaries
 var publicKey = []byte(`
 -----BEGIN ECDSA PUBLIC KEY-----
-MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEx6zFT0U3/w2adaGXOijiCQtS6KGa+qcj
-HInaiMIY0svw+x9bpoFQhP4FrN9UGxctBh66bUGWcgvKACv4G9vXu4JL54BcTt3E
-KaCtgoR++i4p7H6EPn/A06QYyFCCW4QA
+MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEoTjUnZL6bSXdEV9LKD+0zNekogPp8lwf
+8s/auLQXwCHFii7fH8bLwSW+4a9+eF8bWo8FYk4pfSo3WT5DUqGl9qHcnv22MMCK
+eiFH+GffIMk09RFqkcMh5rIPu3ykm5V8
 -----END ECDSA PUBLIC KEY-----
 `)
 

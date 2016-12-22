@@ -12,8 +12,26 @@ import (
 	"github.com/urfave/cli"
 )
 
-// startRun starts a new Rainforest run & depending on passed flags monitors its execution
+type runnerAPI interface {
+	CreateRun(params rainforest.RunParams) (*rainforest.RunStatus, error)
+	CreateTemporaryEnvironment(string) (*rainforest.Environment, error)
+}
+
+type runner struct {
+	client runnerAPI
+}
+
 func startRun(c cliContext) error {
+	r := newRunner()
+	return r.startRun(c)
+}
+
+func newRunner() *runner {
+	return &runner{client: api}
+}
+
+// startRun starts a new Rainforest run & depending on passed flags monitors its execution
+func (r *runner) startRun(c cliContext) error {
 	// First check if we even want to crate new run or just monitor the existing one.
 	if runIDStr := c.String("reattach"); runIDStr != "" {
 		runID, err := strconv.Atoi(runIDStr)
@@ -23,7 +41,7 @@ func startRun(c cliContext) error {
 		return monitorRunStatus(c, runID)
 	}
 
-	params, err := makeRunParams(c)
+	params, err := r.makeRunParams(c)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -53,7 +71,7 @@ func startRun(c cliContext) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
-	runStatus, err := api.CreateRun(params)
+	runStatus, err := r.client.CreateRun(params)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -127,7 +145,7 @@ func updateRunStatus(c cliContext, runID int, t *time.Ticker, resChan chan statu
 
 // makeRunParams parses and validates command line arguments + options
 // and makes RunParams struct out of them
-func makeRunParams(c cliContext) (rainforest.RunParams, error) {
+func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
 	var err error
 
 	var smartFolderID int
@@ -173,7 +191,14 @@ func makeRunParams(c cliContext) (rainforest.RunParams, error) {
 			return rainforest.RunParams{}, errors.New("custom URL scheme must be http or https")
 		}
 
-		environmentID, err = api.CreateTemporaryEnvironment(customURL.String())
+		var environment *rainforest.Environment
+		environment, err = r.client.CreateTemporaryEnvironment(customURL.String())
+		if err != nil {
+			return rainforest.RunParams{}, err
+		}
+
+		log.Printf("Created temporary environment with name %v", environment.Name)
+		environmentID = environment.ID
 	} else if s := c.String("environment-id"); s != "" {
 		environmentID, err = strconv.Atoi(c.String("environment-id"))
 		if err != nil {

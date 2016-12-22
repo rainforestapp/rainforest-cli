@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -56,6 +57,17 @@ func TestNewRequest(t *testing.T) {
 	}
 	if req.Body != nil {
 		t.Fatalf("constructed request contains a non-nil Body")
+	}
+
+	// Should not make any HTTP requests without a token
+	var err error
+	client = NewClient("")
+	req, err = client.NewRequest("GET", "/", nil)
+
+	if err == nil {
+		t.Error("Expected an error")
+	} else if !strings.Contains(err.Error(), "Please provide your API Token") {
+		t.Errorf("Expected error for missing API token, got \"%v\"", err.Error())
 	}
 }
 

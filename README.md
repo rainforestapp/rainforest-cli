@@ -16,6 +16,8 @@ Follow the directions on our [download page](https://dl.equinox.io/rainforest_qa
 The CLI will check for updates and automatically update itself on every use unless the
 `--skip-update` global flag is given.
 
+For migration directions from 1.x, please read our [migration guide](./migration.md).
+
 ## Basic Usage
 To use the cli client, you'll need your API token from your [integrations settings page](https://app.rainforestqa.com/settings/integrations).
 

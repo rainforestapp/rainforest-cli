@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"log"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -161,7 +162,19 @@ func makeRunParams(c cliContext) (rainforest.RunParams, error) {
 	description := c.String("description")
 
 	var environmentID int
-	if s := c.String("environment-id"); s != "" {
+	if s := c.String("custom-url"); s != "" {
+		var customURL *url.URL
+		customURL, err = url.Parse(s)
+		if err != nil {
+			return rainforest.RunParams{}, err
+		}
+
+		if (customURL.Scheme != "http") && (customURL.Scheme != "https") {
+			return rainforest.RunParams{}, errors.New("custom URL scheme must be http or https")
+		}
+
+		environmentID, err = api.CreateTemporaryEnvironment(customURL.String())
+	} else if s := c.String("environment-id"); s != "" {
 		environmentID, err = strconv.Atoi(c.String("environment-id"))
 		if err != nil {
 			return rainforest.RunParams{}, err

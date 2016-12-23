@@ -3,8 +3,11 @@ package rainforest
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 )
+
+const uploadableRegex = `{{ *file\.(download|screenshot)\(([^\)]+)\) *}}`
 
 // TestIDMap is a type representing RF tests that contain the test definitions.
 type TestIDMap struct {
@@ -176,11 +179,40 @@ func (t *RFTest) PrepareToWriteAsRFML(mappings TestIDMappings) error {
 	return nil
 }
 
+func (t *RFTest) hasUploadableFiles() bool {
+	for _, step := range t.Steps {
+		s, ok := step.(RFTestStep)
+		if ok && s.hasUploadableFiles() {
+			return true
+		}
+	}
+
+	return false
+}
+
 // RFTestStep contains single Rainforest step
 type RFTestStep struct {
 	Action   string
 	Response string
 	Redirect bool
+}
+
+func (s *RFTestStep) hasUploadableFiles() bool {
+	return len(s.uploadablesInAction()) > 0 || len(s.uploadablesInResponse()) > 0
+}
+
+func (s *RFTestStep) uploadablesInAction() [][]string {
+	return findUploadables(s.Action)
+}
+
+func (s *RFTestStep) uploadablesInResponse() [][]string {
+	return findUploadables(s.Response)
+}
+
+func findUploadables(s string) [][]string {
+	// Shouldn't fail compilation unless uploadableRegex is incorrect
+	reg := regexp.MustCompile(uploadableRegex)
+	return reg.FindAllStringSubmatch(s, -1)
 }
 
 // RFEmbeddedTest contains an embedded test details

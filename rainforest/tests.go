@@ -1,10 +1,15 @@
 package rainforest
 
 import (
+	"crypto/md5"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 const uploadableRegex = `{{ *file\.(download|screenshot)\(([^\)]+)\) *}}`
@@ -302,10 +307,80 @@ func (c *Client) CreateTest(test *RFTest) error {
 	return nil
 }
 
+func isFileUploaded(data []byte, uploadedFiles []UploadedFile) bool {
+	sum := md5.Sum(data)
+	digest := string(sum[:])
+	for _, uploadedFile := range uploadedFiles {
+		if uploadedFile.Digest == digest {
+			return true
+		}
+	}
+	return false
+}
+
 // UpdateTest updates existing test on RF, requires RFTest struct to be prepared to upload using helpers
 func (c *Client) UpdateTest(test *RFTest) error {
 	if test.TestID == 0 {
 		return errors.New("Couldn't update the test TestID not specified in RFTest")
+	}
+
+	if test.hasUploadableFiles() {
+		uploadedFiles, err := c.getUploadedFiles(test.TestID)
+		if err != nil {
+			return err
+		}
+
+		digestToFileMap := map[string]UploadedFile{}
+		for _, uploadedFile := range uploadedFiles {
+			digestToFileMap[uploadedFile.Digest] = uploadedFile
+		}
+
+		for _, step := range test.Steps {
+			s, ok := step.(RFTestStep)
+			if ok && s.hasUploadableFiles() {
+				if matches := s.uploadablesInAction(); len(matches) > 0 {
+					for _, match := range matches {
+						var filePath string
+						filePath, err = filepath.Abs(match[2])
+						if err != nil {
+							return err
+						}
+
+						var file *os.File
+						file, err = os.Open(filePath)
+						if err != nil {
+							return err
+						}
+
+						data, err := ioutil.ReadAll(file)
+						if err != nil {
+							return err
+						}
+
+						checksum := md5.Sum(data)
+						uploadedFile, ok := digestToFileMap[string(checksum[:])]
+						if !ok {
+							// TODO
+							// File has not been uploaded before
+							// Upload to RF
+							// Add to the mapping
+							// Upload to AWS
+						}
+
+						sig := uploadedFile.Digest[0:6]
+						var replacement string
+						stepVar := match[1]
+						if stepVar == "screenshot" {
+							replacement = fmt.Sprintf("{{ file.screenshot(%v, %v) }}", uploadedFile.ID, sig)
+						} else if stepVar == "download" {
+							replacement = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", uploadedFile.ID, sig, filepath.Base(filePath))
+						}
+
+						s.Action = strings.Replace(s.Action, match[0], replacement, 1)
+					}
+				}
+			}
+		}
 	}
 
 	// Prepare request

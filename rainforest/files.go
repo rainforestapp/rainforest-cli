@@ -24,10 +24,10 @@ type UploadedFile struct {
 	Name      string `json:"name"`
 }
 
-// GetUploadedFiles returns information for all all files uploaded to the
+// getUploadedFiles returns information for all all files uploaded to the
 // given test before.
-func (c *Client) GetUploadedFiles(fileID int) ([]UploadedFile, error) {
-	req, err := c.NewRequest("GET", "tests/"+strconv.Itoa(fileID)+"/files", nil)
+func (c *Client) getUploadedFiles(testID int) ([]UploadedFile, error) {
+	req, err := c.NewRequest("GET", "tests/"+strconv.Itoa(testID)+"/files", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (c *Client) CreateTestFile(testID int, file *os.File, fileContents []byte) 
 	return awsFileInfo, err
 }
 
-// UploadTestFile is a function that uploads the actual file contents to AWS
+// UploadTestFile is a function that uploads the file contents to AWS
 func (c *Client) UploadTestFile(fileName string, fileContents []byte, awsFileInfo *AWSFileInfo) error {
 	req, err := awsFileInfo.MultipartFormRequest(fileName, fileContents)
 

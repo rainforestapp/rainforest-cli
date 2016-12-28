@@ -358,13 +358,27 @@ func (c *Client) UpdateTest(test *RFTest) error {
 						}
 
 						checksum := md5.Sum(data)
-						uploadedFile, ok := digestToFileMap[string(checksum[:])]
+						fileDigest := string(checksum[:])
+						uploadedFile, ok := digestToFileMap[fileDigest]
 						if !ok {
-							// TODO
 							// File has not been uploaded before
 							// Upload to RF
-							// Add to the mapping
+							awsFileInfo, err := c.createTestFile(test.TestID, file, data)
+							if err != nil {
+								return err
+							}
 							// Upload to AWS
+							err = c.uploadTestFile(filepath.Base(filePath), data, awsFileInfo)
+							if err != nil {
+								return err
+							}
+							uploadedFile = UploadedFile{
+								ID:        awsFileInfo.FileID,
+								Signature: awsFileInfo.FileSignature,
+								Digest:    fileDigest,
+							}
+							// Add to the mappings for future reference
+							digestToFileMap[fileDigest] = uploadedFile
 						}
 
 						sig := uploadedFile.Digest[0:6]

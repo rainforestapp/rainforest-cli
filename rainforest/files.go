@@ -85,12 +85,11 @@ func (aws *AWSFileInfo) multipartFormRequest(fileName string, fileContents []byt
 // createTestFile creates a UploadedFile resource by sending file information to
 // Rainforest. This information is used for uploading the file contents to AWS.
 func (c *Client) createTestFile(testID int, file *os.File, fileContents []byte) (*AWSFileInfo, error) {
-	awsFileInfo := &AWSFileInfo{}
 	fileName := file.Name()
 	fileInfo, err := file.Stat()
 
 	if err != nil {
-		return awsFileInfo, err
+		return &AWSFileInfo{}, err
 	}
 
 	md5CheckSum := md5.Sum(fileContents)
@@ -106,9 +105,10 @@ func (c *Client) createTestFile(testID int, file *os.File, fileContents []byte) 
 	url := "tests/" + strconv.Itoa(testID) + "/files"
 	req, err := c.NewRequest("POST", url, body)
 	if err != nil {
-		return awsFileInfo, err
+		return &AWSFileInfo{}, err
 	}
 
+	awsFileInfo := &AWSFileInfo{}
 	_, err = c.Do(req, awsFileInfo)
 	return awsFileInfo, err
 }

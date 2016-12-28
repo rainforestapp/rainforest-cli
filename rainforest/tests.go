@@ -203,21 +203,45 @@ type RFTestStep struct {
 }
 
 func (s *RFTestStep) hasUploadableFiles() bool {
-	return len(s.uploadablesInAction()) > 0 || len(s.uploadablesInResponse()) > 0
+	return len(s.embeddedFilesInAction()) > 0 || len(s.embeddedFilesInResponse()) > 0
 }
 
-func (s *RFTestStep) uploadablesInAction() [][]string {
-	return findUploadables(s.Action)
+func (s *RFTestStep) embeddedFilesInAction() []embeddedFile {
+	return findEmbeddedFiles(s.Action)
 }
 
-func (s *RFTestStep) uploadablesInResponse() [][]string {
-	return findUploadables(s.Response)
+func (s *RFTestStep) embeddedFilesInResponse() []embeddedFile {
+	return findEmbeddedFiles(s.Response)
 }
 
-func findUploadables(s string) [][]string {
+// uploadable contains the information of an embedded step variables
+type embeddedFile struct {
+	// text is the entire step variable text. eg: "{{ file.screenshot(path/to/file) }}"
+	text string
+	// the step variable used. Either "screenshot" or "download"
+	stepVar string
+	// the path argument to the step variable
+	path string
+}
+
+// findEmbeddedFiles looks through a string and parses out embedded step variables
+// and returns a slice of uploadables
+func findEmbeddedFiles(s string) []embeddedFile {
 	// Shouldn't fail compilation unless uploadableRegex is incorrect
 	reg := regexp.MustCompile(uploadableRegex)
-	return reg.FindAllStringSubmatch(s, -1)
+	matches := reg.FindAllStringSubmatch(s, -1)
+
+	uploadables := make([]embeddedFile, len(matches))
+
+	for idx, match := range matches {
+		uploadables[idx] = embeddedFile{
+			text:    match[0],
+			stepVar: match[1],
+			path:    match[2],
+		}
+	}
+
+	return uploadables
 }
 
 // RFEmbeddedTest contains an embedded test details
@@ -335,62 +359,80 @@ func (c *Client) UpdateTest(test *RFTest) error {
 			digestToFileMap[uploadedFile.Digest] = uploadedFile
 		}
 
+		replaceEmbeddedFilePaths := func(text string, embeddedFiles []embeddedFile) (string, error) {
+			out := text
+			for _, embed := range embeddedFiles {
+				var filePath string
+				filePath, err = filepath.Abs(embed.path)
+				if err != nil {
+					return "", err
+				}
+
+				var file *os.File
+				file, err = os.Open(filePath)
+				if err != nil {
+					return "", err
+				}
+
+				var data []byte
+				data, err = ioutil.ReadAll(file)
+				if err != nil {
+					return "", err
+				}
+
+				checksum := md5.Sum(data)
+				fileDigest := string(checksum[:])
+				uploadedFile, ok := digestToFileMap[fileDigest]
+				if !ok {
+					// File has not been uploaded before
+					// Upload to RF
+					var awsFileInfo *AWSFileInfo
+					awsFileInfo, err = c.createTestFile(test.TestID, file, data)
+					if err != nil {
+						return "", err
+					}
+					// Upload to AWS
+					err = c.uploadTestFile(filepath.Base(filePath), data, awsFileInfo)
+					if err != nil {
+						return "", err
+					}
+					uploadedFile = UploadedFile{
+						ID:        awsFileInfo.FileID,
+						Signature: awsFileInfo.FileSignature,
+						Digest:    fileDigest,
+					}
+					// Add to the mappings for future reference
+					digestToFileMap[fileDigest] = uploadedFile
+				}
+
+				sig := uploadedFile.Digest[0:6]
+				var replacement string
+				if embed.stepVar == "screenshot" {
+					replacement = fmt.Sprintf("{{ file.screenshot(%v, %v) }}", uploadedFile.ID, sig)
+				} else if embed.stepVar == "download" {
+					replacement = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", uploadedFile.ID, sig, filepath.Base(filePath))
+				}
+
+				out = strings.Replace(out, embed.text, replacement, 1)
+			}
+
+			return out, nil
+		}
+
 		for _, step := range test.Steps {
 			s, ok := step.(RFTestStep)
 			if ok && s.hasUploadableFiles() {
-				if matches := s.uploadablesInAction(); len(matches) > 0 {
-					for _, match := range matches {
-						var filePath string
-						filePath, err = filepath.Abs(match[2])
-						if err != nil {
-							return err
-						}
+				if embeddedFiles := s.embeddedFilesInAction(); len(embeddedFiles) > 0 {
+					s.Action, err = replaceEmbeddedFilePaths(s.Action, embeddedFiles)
+					if err != nil {
+						return err
+					}
+				}
 
-						var file *os.File
-						file, err = os.Open(filePath)
-						if err != nil {
-							return err
-						}
-
-						data, err := ioutil.ReadAll(file)
-						if err != nil {
-							return err
-						}
-
-						checksum := md5.Sum(data)
-						fileDigest := string(checksum[:])
-						uploadedFile, ok := digestToFileMap[fileDigest]
-						if !ok {
-							// File has not been uploaded before
-							// Upload to RF
-							awsFileInfo, err := c.createTestFile(test.TestID, file, data)
-							if err != nil {
-								return err
-							}
-							// Upload to AWS
-							err = c.uploadTestFile(filepath.Base(filePath), data, awsFileInfo)
-							if err != nil {
-								return err
-							}
-							uploadedFile = UploadedFile{
-								ID:        awsFileInfo.FileID,
-								Signature: awsFileInfo.FileSignature,
-								Digest:    fileDigest,
-							}
-							// Add to the mappings for future reference
-							digestToFileMap[fileDigest] = uploadedFile
-						}
-
-						sig := uploadedFile.Digest[0:6]
-						var replacement string
-						stepVar := match[1]
-						if stepVar == "screenshot" {
-							replacement = fmt.Sprintf("{{ file.screenshot(%v, %v) }}", uploadedFile.ID, sig)
-						} else if stepVar == "download" {
-							replacement = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", uploadedFile.ID, sig, filepath.Base(filePath))
-						}
-
-						s.Action = strings.Replace(s.Action, match[0], replacement, 1)
+				if embeddedFiles := s.embeddedFilesInResponse(); len(embeddedFiles) > 0 {
+					s.Response, err = replaceEmbeddedFilePaths(s.Response, embeddedFiles)
+					if err != nil {
+						return err
 					}
 				}
 			}

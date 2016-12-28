@@ -2,10 +2,12 @@ package rainforest
 
 import (
 	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -362,8 +364,17 @@ func (c *Client) UpdateTest(test *RFTest) error {
 		replaceEmbeddedFilePaths := func(text string, embeddedFiles []embeddedFile) (string, error) {
 			out := text
 			for _, embed := range embeddedFiles {
-				var filePath string
-				filePath, err = filepath.Abs(embed.path)
+				filePath := embed.path
+				if strings.HasPrefix(filePath, "~/") {
+					var usr *user.User
+					usr, err = user.Current()
+					if err != nil {
+						return "", err
+					}
+					filePath = filepath.Join(usr.HomeDir, filePath[2:])
+				}
+
+				filePath, err = filepath.Abs(filePath)
 				if err != nil {
 					return "", err
 				}
@@ -381,7 +392,7 @@ func (c *Client) UpdateTest(test *RFTest) error {
 				}
 
 				checksum := md5.Sum(data)
-				fileDigest := string(checksum[:])
+				fileDigest := hex.EncodeToString(checksum[:])
 				uploadedFileInfo, ok := digestToFileMap[fileDigest]
 				if !ok {
 					// File has not been uploaded before
@@ -419,7 +430,7 @@ func (c *Client) UpdateTest(test *RFTest) error {
 			return out, nil
 		}
 
-		for _, step := range test.Steps {
+		for idx, step := range test.Steps {
 			s, ok := step.(RFTestStep)
 			if ok && s.hasUploadableFiles() {
 				if embeddedFiles := s.embeddedFilesInAction(); len(embeddedFiles) > 0 {
@@ -436,7 +447,15 @@ func (c *Client) UpdateTest(test *RFTest) error {
 					}
 				}
 			}
+			test.Steps[idx] = s
 		}
+
+		// TODO: Find a way to remove this
+		mappings, err := c.GetRFMLIDs()
+		if err != nil {
+			return err
+		}
+		test.PrepareToUploadFromRFML(mappings)
 	}
 
 	// Prepare request

@@ -50,9 +50,9 @@ type AWSFileInfo struct {
 	Signature     string `json:"aws_signature"`
 }
 
-// MultipartFormRequest creates a http.Request containing the required body for
+// multipartFormRequest creates a http.Request containing the required body for
 // uploading a file to AWS given the values stored in the receiving AWSFileInfo struct.
-func (aws *AWSFileInfo) MultipartFormRequest(fileName string, fileContents []byte) (*http.Request, error) {
+func (aws *AWSFileInfo) multipartFormRequest(fileName string, fileContents []byte) (*http.Request, error) {
 	var req *http.Request
 	fileExt := filepath.Ext(fileName)
 
@@ -82,9 +82,9 @@ func (aws *AWSFileInfo) MultipartFormRequest(fileName string, fileContents []byt
 	return req, nil
 }
 
-// CreateTestFile creates a UploadedFile resource by sending file information to
-// Rainforest. This information is used for uploading the actual file to AWS.
-func (c *Client) CreateTestFile(testID int, file *os.File, fileContents []byte) (*AWSFileInfo, error) {
+// createTestFile creates a UploadedFile resource by sending file information to
+// Rainforest. This information is used for uploading the file contents to AWS.
+func (c *Client) createTestFile(testID int, file *os.File, fileContents []byte) (*AWSFileInfo, error) {
 	awsFileInfo := &AWSFileInfo{}
 	fileName := file.Name()
 	fileInfo, err := file.Stat()
@@ -113,9 +113,9 @@ func (c *Client) CreateTestFile(testID int, file *os.File, fileContents []byte) 
 	return awsFileInfo, err
 }
 
-// UploadTestFile is a function that uploads the file contents to AWS
-func (c *Client) UploadTestFile(fileName string, fileContents []byte, awsFileInfo *AWSFileInfo) error {
-	req, err := awsFileInfo.MultipartFormRequest(fileName, fileContents)
+// uploadTestFile is a function that uploads the file contents to AWS
+func (c *Client) uploadTestFile(fileName string, fileContents []byte, awsFileInfo *AWSFileInfo) error {
+	req, err := awsFileInfo.multipartFormRequest(fileName, fileContents)
 
 	var resp *http.Response
 	resp, err = c.client.Do(req)

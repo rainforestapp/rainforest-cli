@@ -37,7 +37,7 @@ func TestGetUploadedFiles(t *testing.T) {
 		enc.Encode(files)
 	})
 
-	out, _ := client.GetUploadedFiles(testID)
+	out, _ := client.getUploadedFiles(testID)
 
 	if !reflect.DeepEqual(files, out) {
 		t.Errorf("Response expected = %v, actual %v", files, out)
@@ -63,7 +63,7 @@ func TestMultipartFormRequest(t *testing.T) {
 	fileName := "my_file.txt"
 	fileContents := []byte("This is in my file")
 
-	req, err := aws.MultipartFormRequest(fileName, fileContents)
+	req, err := aws.multipartFormRequest(fileName, fileContents)
 
 	if err != nil {
 		t.Error(err.Error())
@@ -187,11 +187,11 @@ func TestCreateTestFile(t *testing.T) {
 		enc.Encode(awsInfo)
 	})
 
-	out, err := client.CreateTestFile(testID, file, fileContents)
+	out, err := client.createTestFile(testID, file, fileContents)
 
 	if err != nil {
 		t.Error(err.Error())
 	} else if !reflect.DeepEqual(*out, awsInfo) {
-		t.Errorf("Unexpected response from CreateTestFile.\nActual: %#v\nExpected: %#v", *out, awsInfo)
+		t.Errorf("Unexpected response from createTestFile.\nActual: %#v\nExpected: %#v", *out, awsInfo)
 	}
 }

@@ -331,11 +331,11 @@ func (c *Client) CreateTest(test *RFTest) error {
 	return nil
 }
 
-func isFileUploaded(data []byte, uploadedFiles []UploadedFile) bool {
+func isFileUploaded(data []byte, uploadedFiles []uploadedFile) bool {
 	sum := md5.Sum(data)
 	digest := string(sum[:])
-	for _, uploadedFile := range uploadedFiles {
-		if uploadedFile.Digest == digest {
+	for _, f := range uploadedFiles {
+		if f.Digest == digest {
 			return true
 		}
 	}
@@ -354,9 +354,9 @@ func (c *Client) UpdateTest(test *RFTest) error {
 			return err
 		}
 
-		digestToFileMap := map[string]UploadedFile{}
-		for _, uploadedFile := range uploadedFiles {
-			digestToFileMap[uploadedFile.Digest] = uploadedFile
+		digestToFileMap := map[string]uploadedFile{}
+		for _, f := range uploadedFiles {
+			digestToFileMap[f.Digest] = f
 		}
 
 		replaceEmbeddedFilePaths := func(text string, embeddedFiles []embeddedFile) (string, error) {
@@ -382,35 +382,35 @@ func (c *Client) UpdateTest(test *RFTest) error {
 
 				checksum := md5.Sum(data)
 				fileDigest := string(checksum[:])
-				uploadedFile, ok := digestToFileMap[fileDigest]
+				uploadedFileInfo, ok := digestToFileMap[fileDigest]
 				if !ok {
 					// File has not been uploaded before
 					// Upload to RF
-					var awsFileInfo *AWSFileInfo
-					awsFileInfo, err = c.createTestFile(test.TestID, file, data)
+					var awsInfo *awsFileInfo
+					awsInfo, err = c.createTestFile(test.TestID, file, data)
 					if err != nil {
 						return "", err
 					}
 					// Upload to AWS
-					err = c.uploadTestFile(filepath.Base(filePath), data, awsFileInfo)
+					err = c.uploadTestFile(filepath.Base(filePath), data, awsInfo)
 					if err != nil {
 						return "", err
 					}
-					uploadedFile = UploadedFile{
-						ID:        awsFileInfo.FileID,
-						Signature: awsFileInfo.FileSignature,
+					uploadedFileInfo = uploadedFile{
+						ID:        awsInfo.FileID,
+						Signature: awsInfo.FileSignature,
 						Digest:    fileDigest,
 					}
 					// Add to the mappings for future reference
-					digestToFileMap[fileDigest] = uploadedFile
+					digestToFileMap[fileDigest] = uploadedFileInfo
 				}
 
-				sig := uploadedFile.Digest[0:6]
+				sig := uploadedFileInfo.Digest[0:6]
 				var replacement string
 				if embed.stepVar == "screenshot" {
-					replacement = fmt.Sprintf("{{ file.screenshot(%v, %v) }}", uploadedFile.ID, sig)
+					replacement = fmt.Sprintf("{{ file.screenshot(%v, %v) }}", uploadedFileInfo.ID, sig)
 				} else if embed.stepVar == "download" {
-					replacement = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", uploadedFile.ID, sig, filepath.Base(filePath))
+					replacement = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", uploadedFileInfo.ID, sig, filepath.Base(filePath))
 				}
 
 				out = strings.Replace(out, embed.text, replacement, 1)

@@ -416,7 +416,7 @@ func (c *Client) UpdateTest(test *RFTest) error {
 					digestToFileMap[fileDigest] = uploadedFileInfo
 				}
 
-				sig := uploadedFileInfo.Digest[0:6]
+				sig := uploadedFileInfo.Signature[0:6]
 				var replacement string
 				if embed.stepVar == "screenshot" {
 					replacement = fmt.Sprintf("{{ file.screenshot(%v, %v) }}", uploadedFileInfo.ID, sig)

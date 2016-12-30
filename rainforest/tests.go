@@ -1,7 +1,6 @@
 package rainforest
 
 import (
-	"crypto/md5"
 	"errors"
 	"fmt"
 	"regexp"
@@ -323,17 +322,6 @@ func (c *Client) CreateTest(test *RFTest) error {
 		return err
 	}
 	return nil
-}
-
-func isFileUploaded(data []byte, uploadedFiles []uploadedFile) bool {
-	sum := md5.Sum(data)
-	digest := string(sum[:])
-	for _, f := range uploadedFiles {
-		if f.Digest == digest {
-			return true
-		}
-	}
-	return false
 }
 
 // UpdateTest updates existing test on RF, requires RFTest struct to be prepared to upload using helpers

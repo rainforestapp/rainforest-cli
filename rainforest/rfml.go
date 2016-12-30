@@ -275,7 +275,7 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 // to the format {{ file.screenshot(FILE_ID, FILE_SIGNATURE) }}.
 func (c *Client) ParseEmbeddedFiles(test *RFTest) error {
 	if test.TestID == 0 {
-		return fmt.Errorf("Cannot upload embedded files without a primary ID.")
+		return fmt.Errorf("Cannot parse embedded files without a test ID.")
 	}
 
 	uploadedFiles, err := c.getUploadedFiles(test.TestID)

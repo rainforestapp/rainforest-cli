@@ -326,6 +326,7 @@ func uploadSingleRFMLFile(filePath string) error {
 	if err != nil {
 		return fileParseError{filePath, err}
 	}
+	parsedTest.RFMLPath = filePath
 
 	// Check if the test already exists in RF so we can decide between updating and creating new one
 	mappings, err := api.GetRFMLIDs()
@@ -432,6 +433,7 @@ func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
 		if err != nil {
 			return err
 		}
+		pTest.RFMLPath = filePath
 		parsedTests = append(parsedTests, pTest)
 		// Check if it's a new test or an existing one, because they need different treatment
 		// to ensure we first add new ones and have IDs for potential embedds

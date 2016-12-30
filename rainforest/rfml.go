@@ -299,6 +299,11 @@ func (c *Client) ParseEmbeddedFiles(test *RFTest) error {
 					return "", err
 				}
 				filePath = filepath.Join(usr.HomeDir, filePath[2:])
+			} else if test.RFMLPath == "" {
+				return "", fmt.Errorf("Cannot parse relative file path %v for RFML test %v. RFMLPath field cannot be blank.", filePath, test.RFMLID)
+			} else {
+				rfmlDirectory := filepath.Dir(test.RFMLPath)
+				filePath = filepath.Join(rfmlDirectory, filePath)
 			}
 
 			filePath, err = filepath.Abs(filePath)

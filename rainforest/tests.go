@@ -53,6 +53,9 @@ type RFTest struct {
 	Browsers []string      `json:"-"`
 	Steps    []interface{} `json:"-"`
 	TestID   int           `json:"-"`
+	// RFMLPath is a helper field for keeping track of the filepath to the
+	// test's RFML file.
+	RFMLPath string `json:"-"`
 }
 
 // testElement is one of the helpers to construct the proper JSON test sturcture

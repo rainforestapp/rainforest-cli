@@ -319,6 +319,7 @@ func (c *Client) ParseEmbeddedFiles(test *RFTest) error {
 
 			var data []byte
 			data, err = ioutil.ReadAll(file)
+			defer file.Close()
 			if err != nil {
 				return "", err
 			}
@@ -326,6 +327,7 @@ func (c *Client) ParseEmbeddedFiles(test *RFTest) error {
 			checksum := md5.Sum(data)
 			fileDigest := hex.EncodeToString(checksum[:])
 			uploadedFileInfo, ok := digestToFileMap[fileDigest]
+			// TODO: Check mime type as well
 			if !ok {
 				// File has not been uploaded before
 				// Upload to RF
@@ -335,7 +337,7 @@ func (c *Client) ParseEmbeddedFiles(test *RFTest) error {
 					return "", err
 				}
 				// Upload to AWS
-				err = c.uploadTestFile(filepath.Base(filePath), data, awsInfo)
+				err = c.uploadEmbeddedFile(filepath.Base(filePath), data, awsInfo)
 				if err != nil {
 					return "", err
 				}

@@ -113,9 +113,12 @@ func (c *Client) createTestFile(testID int, file *os.File, fileContents []byte) 
 	return awsInfo, err
 }
 
-// uploadTestFile is a function that uploads the file contents to AWS
-func (c *Client) uploadTestFile(fileName string, fileContents []byte, awsInfo *awsFileInfo) error {
+// uploadEmbeddedFile is a function that uploads the given embedded file's contents to AWS
+func (c *Client) uploadEmbeddedFile(fileName string, fileContents []byte, awsInfo *awsFileInfo) error {
 	req, err := awsInfo.multipartFormRequest(fileName, fileContents)
+	if err != nil {
+		return err
+	}
 
 	var resp *http.Response
 	resp, err = c.client.Do(req)

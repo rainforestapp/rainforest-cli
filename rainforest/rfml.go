@@ -2,8 +2,14 @@ package rainforest
 
 import (
 	"bufio"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
+	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -259,6 +265,112 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ParseEmbeddedFiles replaces file step variable paths with values expected
+// by Rainforest. eg: {{ file.screenshot(my_screenshot.gif) }} would be translated
+// to the format {{ file.screenshot(FILE_ID, FILE_SIGNATURE) }}.
+func (c *Client) ParseEmbeddedFiles(test *RFTest) error {
+	uploadedFiles, err := c.getUploadedFiles(test.TestID)
+	if err != nil {
+		return err
+	}
+
+	digestToFileMap := map[string]uploadedFile{}
+	for _, f := range uploadedFiles {
+		digestToFileMap[f.Digest] = f
+	}
+
+	replaceEmbeddedFilePaths := func(text string, embeddedFiles []embeddedFile) (string, error) {
+		out := text
+		for _, embed := range embeddedFiles {
+			filePath := embed.path
+			if strings.HasPrefix(filePath, "~/") {
+				var usr *user.User
+				usr, err = user.Current()
+				if err != nil {
+					return "", err
+				}
+				filePath = filepath.Join(usr.HomeDir, filePath[2:])
+			}
+
+			filePath, err = filepath.Abs(filePath)
+			if err != nil {
+				return "", err
+			}
+
+			var file *os.File
+			file, err = os.Open(filePath)
+			if err != nil {
+				return "", err
+			}
+
+			var data []byte
+			data, err = ioutil.ReadAll(file)
+			if err != nil {
+				return "", err
+			}
+
+			checksum := md5.Sum(data)
+			fileDigest := hex.EncodeToString(checksum[:])
+			uploadedFileInfo, ok := digestToFileMap[fileDigest]
+			if !ok {
+				// File has not been uploaded before
+				// Upload to RF
+				var awsInfo *awsFileInfo
+				awsInfo, err = c.createTestFile(test.TestID, file, data)
+				if err != nil {
+					return "", err
+				}
+				// Upload to AWS
+				err = c.uploadTestFile(filepath.Base(filePath), data, awsInfo)
+				if err != nil {
+					return "", err
+				}
+				uploadedFileInfo = uploadedFile{
+					ID:        awsInfo.FileID,
+					Signature: awsInfo.FileSignature,
+					Digest:    fileDigest,
+				}
+				// Add to the mappings for future reference
+				digestToFileMap[fileDigest] = uploadedFileInfo
+			}
+
+			sig := uploadedFileInfo.Signature[0:6]
+			var replacement string
+			if embed.stepVar == "screenshot" {
+				replacement = fmt.Sprintf("{{ file.screenshot(%v, %v) }}", uploadedFileInfo.ID, sig)
+			} else if embed.stepVar == "download" {
+				replacement = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", uploadedFileInfo.ID, sig, filepath.Base(filePath))
+			}
+
+			out = strings.Replace(out, embed.text, replacement, 1)
+		}
+
+		return out, nil
+	}
+
+	for idx, step := range test.Steps {
+		s, ok := step.(RFTestStep)
+		if ok && s.hasUploadableFiles() {
+			if embeddedFiles := s.embeddedFilesInAction(); len(embeddedFiles) > 0 {
+				s.Action, err = replaceEmbeddedFilePaths(s.Action, embeddedFiles)
+				if err != nil {
+					return err
+				}
+			}
+
+			if embeddedFiles := s.embeddedFilesInResponse(); len(embeddedFiles) > 0 {
+				s.Response, err = replaceEmbeddedFilePaths(s.Response, embeddedFiles)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		test.Steps[idx] = s
 	}
 
 	return nil

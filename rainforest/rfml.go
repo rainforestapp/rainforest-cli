@@ -274,6 +274,10 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 // by Rainforest. eg: {{ file.screenshot(my_screenshot.gif) }} would be translated
 // to the format {{ file.screenshot(FILE_ID, FILE_SIGNATURE) }}.
 func (c *Client) ParseEmbeddedFiles(test *RFTest) error {
+	if test.TestID == 0 {
+		return fmt.Errorf("Cannot upload embedded files without a primary ID.")
+	}
+
 	uploadedFiles, err := c.getUploadedFiles(test.TestID)
 	if err != nil {
 		return err

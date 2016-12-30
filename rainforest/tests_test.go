@@ -47,7 +47,7 @@ func TestHasUploadableFiles(t *testing.T) {
 			},
 		},
 	}
-	if test.hasUploadableFiles() {
+	if test.HasUploadableFiles() {
 		t.Error("Test has no uploadable files")
 	}
 
@@ -58,7 +58,7 @@ func TestHasUploadableFiles(t *testing.T) {
 			Response: "nothing",
 		},
 	}
-	if !test.hasUploadableFiles() {
+	if !test.HasUploadableFiles() {
 		t.Error("Test has uploadable files")
 	}
 
@@ -69,7 +69,7 @@ func TestHasUploadableFiles(t *testing.T) {
 			Response: "nothing",
 		},
 	}
-	if !test.hasUploadableFiles() {
+	if !test.HasUploadableFiles() {
 		t.Error("Test has uploadable files")
 	}
 
@@ -80,7 +80,7 @@ func TestHasUploadableFiles(t *testing.T) {
 			Response: "nothing",
 		},
 	}
-	if test.hasUploadableFiles() {
+	if test.HasUploadableFiles() {
 		t.Error("Test should not have any uploadable files without an argument")
 	}
 }

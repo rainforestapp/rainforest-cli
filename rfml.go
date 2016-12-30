@@ -447,8 +447,9 @@ func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
 	testsToCreate := make(chan *rainforest.RFTest, len(newTests))
 	for _, newTest := range newTests {
 		emptyTest := rainforest.RFTest{
-			RFMLID: newTest.RFMLID,
-			Title:  newTest.Title,
+			RFMLID:      newTest.RFMLID,
+			Description: newTest.Description,
+			Title:       newTest.Title,
 		}
 		err = emptyTest.PrepareToUploadFromRFML(mappings)
 		if err != nil {

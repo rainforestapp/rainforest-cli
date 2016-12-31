@@ -518,7 +518,7 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 	for i := 0; i < len(testIDs); i++ {
 		select {
 		case err = <-errorsChan:
-			return err
+			return cli.NewExitError(err.Error(), 1)
 		case test := <-testChan:
 			err = test.PrepareToWriteAsRFML(mappings)
 			if err != nil {

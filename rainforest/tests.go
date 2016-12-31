@@ -36,15 +36,15 @@ func (s TestIDMappings) MapRFMLIDtoID() map[string]int {
 
 // RFTest is a struct representing the Rainforest Test with its settings and steps
 type RFTest struct {
-	RFMLID      string              `json:"rfml_id"`
-	Source      string              `json:"source"`
-	Title       string              `json:"title,omitempty"`
-	StartURI    string              `json:"start_uri,omitempty"`
-	SiteID      int                 `json:"site_id,omitempty"`
-	Description string              `json:"description,omitempty"`
-	Tags        []string            `json:"tags,omitempty"`
-	BrowsersMap []map[string]string `json:"browsers,omitempty"`
-	Elements    []testElement       `json:"elements,omitempty"`
+	RFMLID      string                   `json:"rfml_id"`
+	Source      string                   `json:"source"`
+	Title       string                   `json:"title,omitempty"`
+	StartURI    string                   `json:"start_uri,omitempty"`
+	SiteID      int                      `json:"site_id,omitempty"`
+	Description string                   `json:"description,omitempty"`
+	Tags        []string                 `json:"tags,omitempty"`
+	BrowsersMap []map[string]interface{} `json:"browsers,omitempty"`
+	Elements    []testElement            `json:"elements,omitempty"`
 
 	// Browsers, Steps and TestID are helper fields
 	Browsers []string      `json:"-"`
@@ -72,9 +72,9 @@ func (t *RFTest) mapBrowsers() {
 	if len(t.Browsers) == 0 {
 		return
 	}
-	t.BrowsersMap = make([]map[string]string, len(t.Browsers))
+	t.BrowsersMap = make([]map[string]interface{}, len(t.Browsers))
 	for i, browser := range t.Browsers {
-		mappedBrowser := map[string]string{
+		mappedBrowser := map[string]interface{}{
 			"state": "enabled",
 			"name":  browser,
 		}
@@ -91,7 +91,7 @@ func (t *RFTest) unmapBrowsers() {
 
 	for _, browserMap := range t.BrowsersMap {
 		if browserMap["state"] == "enabled" {
-			t.Browsers = append(t.Browsers, browserMap["name"])
+			t.Browsers = append(t.Browsers, browserMap["name"].(string))
 		}
 	}
 }

@@ -468,18 +468,13 @@ func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
 
 type rfmlAPI interface {
 	GetRFMLIDs() (rainforest.TestIDMappings, error)
+	GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, error)
 	GetTest(int) (*rainforest.RFTest, error)
 }
 
 func downloadRFML(c cliContext, client rfmlAPI) error {
 	testDirectory := c.String("test-folder")
 	absTestDirectory, err := prepareTestDirectory(testDirectory)
-	if err != nil {
-		return cli.NewExitError(err.Error(), 1)
-	}
-
-	var mappings rainforest.TestIDMappings
-	mappings, err = client.GetRFMLIDs()
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -496,8 +491,17 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 			testIDs = append(testIDs, testID)
 		}
 	} else {
-		for _, testIDMap := range mappings {
-			testID := testIDMap.ID
+		var tests []rainforest.RFTest
+		filters := rainforest.RFTestFilters{
+			Tags: c.StringSlice("tag"),
+		}
+		tests, err = client.GetTests(&filters)
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+
+		for _, t := range tests {
+			testID := t.TestID
 			testIDs = append(testIDs, testID)
 		}
 	}
@@ -513,6 +517,12 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 
 	for i := 0; i < rfmlDownloadConcurrency; i++ {
 		go downloadRFTestWorker(testIDChan, errorsChan, testChan, client)
+	}
+
+	var mappings rainforest.TestIDMappings
+	mappings, err = client.GetRFMLIDs()
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
 	}
 
 	for i := 0; i < len(testIDs); i++ {

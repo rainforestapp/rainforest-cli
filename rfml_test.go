@@ -227,8 +227,9 @@ func TestNewRFMLTest(t *testing.T) {
 }
 
 type testRfmlAPI struct {
-	mappings     rainforest.TestIDMappings
-	testMappings map[int]rainforest.RFTest
+	mappings rainforest.TestIDMappings
+	// testMappings map[int]rainforest.RFTest
+	tests []rainforest.RFTest
 }
 
 func (t *testRfmlAPI) GetRFMLIDs() (rainforest.TestIDMappings, error) {
@@ -236,17 +237,32 @@ func (t *testRfmlAPI) GetRFMLIDs() (rainforest.TestIDMappings, error) {
 }
 
 func (t *testRfmlAPI) GetTest(testID int) (*rainforest.RFTest, error) {
-	test, ok := t.testMappings[testID]
-	if !ok {
-		return nil, errors.New("Test ID not found")
+	for _, test := range t.tests {
+		if test.TestID == testID {
+			return &test, nil
+		}
 	}
-	return &test, nil
+	return nil, errors.New("Test ID not found")
+}
+
+func (t *testRfmlAPI) GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, error) {
+	return t.tests, nil
 }
 
 func TestDownloadRFML(t *testing.T) {
 	context := new(fakeContext)
 	testAPI := new(testRfmlAPI)
 	testDefaultSpecFolder := "testing/" + defaultSpecFolder
+
+	defer func() {
+		_, err := os.Stat("./testing")
+		if !os.IsNotExist(err) {
+			err = os.RemoveAll("./testing")
+			if err != nil {
+				t.Fatal(err.Error())
+			}
+		}
+	}()
 
 	testID := 112233
 	rfmlID := "rfml_test_id"
@@ -259,9 +275,7 @@ func TestDownloadRFML(t *testing.T) {
 	}
 
 	testAPI.mappings = rainforest.TestIDMappings{{ID: testID, RFMLID: rfmlID}}
-	testAPI.testMappings = map[int]rainforest.RFTest{
-		testID: rfTest,
-	}
+	testAPI.tests = []rainforest.RFTest{rfTest}
 
 	context.mappings = map[string]interface{}{
 		"test-folder": testDefaultSpecFolder,
@@ -279,15 +293,13 @@ func TestDownloadRFML(t *testing.T) {
 
 	_, err = os.Stat(expectedRFMLPath)
 	if os.IsNotExist(err) {
-		t.Errorf("Expected RFML test does not exist: %v", expectedRFMLPath)
-		return
+		t.Fatalf("Expected RFML test does not exist: %v", expectedRFMLPath)
 	}
 
 	var contents []byte
 	contents, err = ioutil.ReadFile(expectedRFMLPath)
 	if err != nil {
-		t.Error(err.Error())
-		return
+		t.Fatalf(err.Error())
 	}
 
 	rfmlText := string(contents)
@@ -298,10 +310,5 @@ func TestDownloadRFML(t *testing.T) {
 
 	if !strings.Contains(rfmlText, rfmlID) {
 		t.Errorf("Expected RFML ID \"%v\" to appear in RFML test", rfmlID)
-	}
-
-	err = os.RemoveAll("./testing")
-	if err != nil {
-		t.Fatal(err.Error())
 	}
 }

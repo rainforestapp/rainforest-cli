@@ -290,7 +290,7 @@ func main() {
 					Name:  "tag",
 					Usage: "filter tests by `TAG`. Can be used multiple times for filtering by multiple tags.",
 				},
-				cli.StringFlag{
+				cli.IntFlag{
 					Name:  "site, site-id",
 					Usage: "filter tests by a specific site. You can see a list of your `SITE-ID`s with sites command.",
 				},

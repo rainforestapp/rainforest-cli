@@ -192,12 +192,14 @@ type RFEmbeddedTest struct {
 
 // RFTestFilters are used to filter tests retrieved from the Rainforest API
 type RFTestFilters struct {
-	Tags []string
+	Tags   []string
+	SiteID int
 }
 
 func (f *RFTestFilters) toQuery() string {
-	v := url.Values{
-		"tags": f.Tags,
+	v := url.Values{"tags": f.Tags}
+	if f.SiteID > 0 {
+		v.Add("site_id", strconv.Itoa(f.SiteID))
 	}
 
 	return v.Encode()

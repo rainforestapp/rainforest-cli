@@ -493,6 +493,10 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 		filters := rainforest.RFTestFilters{
 			Tags: c.StringSlice("tag"),
 		}
+		if c.Int("site-id") > 0 {
+			filters.SiteID = c.Int("site-id")
+		}
+
 		tests, err = client.GetTests(&filters)
 		if err != nil {
 			return cli.NewExitError(err.Error(), 1)
@@ -597,9 +601,6 @@ func testCreationWorker(api *rainforest.Client,
 	for test := range testsToCreate {
 		log.Printf("Creating new test: %v", test.RFMLID)
 		error := api.CreateTest(test)
-		if error == nil {
-			log.Printf("Created new test: %v", test.RFMLID)
-		}
 		errorsChan <- error
 	}
 }
@@ -609,9 +610,6 @@ func testUpdateWorker(api *rainforest.Client,
 	for test := range testsToUpdate {
 		log.Printf("Updating existing test: %v", test.RFMLID)
 		error := api.UpdateTest(test)
-		if error == nil {
-			log.Printf("Updated existing test: %v", test.RFMLID)
-		}
 		errorsChan <- error
 	}
 }

@@ -338,7 +338,6 @@ func uploadSingleRFMLFile(filePath string) error {
 	}
 	if parsedTest.TestID == 0 {
 		// Create new test
-		log.Printf("Creating new test: %v", parsedTest.RFMLID)
 		err = api.CreateTest(parsedTest)
 		if err != nil {
 			return err
@@ -348,7 +347,6 @@ func uploadSingleRFMLFile(filePath string) error {
 	}
 
 	// Or update the old one
-	log.Printf("Updating existing test: %v", parsedTest.RFMLID)
 	err = api.UpdateTest(parsedTest)
 	if err != nil {
 		return err

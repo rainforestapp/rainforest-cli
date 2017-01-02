@@ -3,6 +3,7 @@ package rainforest
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"strconv"
 )
 
@@ -15,56 +16,6 @@ type TestIDMap struct {
 // TestIDMappings is a slice of all the mapping pairs.
 // And has a set of functions defined to get map of one to the other.
 type TestIDMappings []TestIDMap
-
-// RFTest is a struct representing the Rainforest Test with its settings and steps
-type RFTest struct {
-	RFMLID      string                   `json:"rfml_id"`
-	Source      string                   `json:"source"`
-	Title       string                   `json:"title,omitempty"`
-	StartURI    string                   `json:"start_uri,omitempty"`
-	SiteID      int                      `json:"site_id,omitempty"`
-	Description string                   `json:"description,omitempty"`
-	Tags        []string                 `json:"tags,omitempty"`
-	BrowsersMap []map[string]interface{} `json:"browsers,omitempty"`
-	Elements    []testElement            `json:"elements,omitempty"`
-
-	// Browsers, Steps and TestID are helper fields
-	Browsers []string      `json:"-"`
-	Steps    []interface{} `json:"-"`
-	TestID   int           `json:"id"`
-}
-
-// testElement is one of the helpers to construct the proper JSON test sturcture
-type testElement struct {
-	Redirect bool               `json:"redirection"`
-	Type     string             `json:"type"`
-	Details  testElementDetails `json:"element"`
-}
-
-// testElementDetails is one of the helpers to construct the proper JSON test sturcture
-type testElementDetails struct {
-	ID       int    `json:"id,omitempty"`
-	Action   string `json:"action,omitempty"`
-	Response string `json:"response,omitempty"`
-}
-
-// RFTestStep contains single Rainforest step
-type RFTestStep struct {
-	Action   string
-	Response string
-	Redirect bool
-}
-
-// RFEmbeddedTest contains an embedded test details
-type RFEmbeddedTest struct {
-	RFMLID   string
-	Redirect bool
-}
-
-// RFTestFilters are used to filter tests retrieved from the Rainforest API
-type RFTestFilters struct {
-	Tags []string `json:"tags"`
-}
 
 // MapIDtoRFMLID creates a map from test IDs to RFML IDs
 func (s TestIDMappings) MapIDtoRFMLID() map[int]string {
@@ -82,6 +33,24 @@ func (s TestIDMappings) MapRFMLIDtoID() map[string]int {
 		resultMap[mapping.RFMLID] = mapping.ID
 	}
 	return resultMap
+}
+
+// RFTest is a struct representing the Rainforest Test with its settings and steps
+type RFTest struct {
+	RFMLID      string                   `json:"rfml_id"`
+	Source      string                   `json:"source"`
+	Title       string                   `json:"title,omitempty"`
+	StartURI    string                   `json:"start_uri,omitempty"`
+	SiteID      int                      `json:"site_id,omitempty"`
+	Description string                   `json:"description,omitempty"`
+	Tags        []string                 `json:"tags,omitempty"`
+	BrowsersMap []map[string]interface{} `json:"browsers,omitempty"`
+	Elements    []testElement            `json:"elements,omitempty"`
+
+	// Browsers, Steps and TestID are helper fields
+	Browsers []string      `json:"-"`
+	Steps    []interface{} `json:"-"`
+	TestID   int           `json:"id"`
 }
 
 // mapBrowsers fills the browsers field with format recognized by the API
@@ -194,6 +163,46 @@ func (t *RFTest) PrepareToWriteAsRFML(mappings TestIDMappings) error {
 	return nil
 }
 
+// testElement is one of the helpers to construct the proper JSON test sturcture
+type testElement struct {
+	Redirect bool               `json:"redirection"`
+	Type     string             `json:"type"`
+	Details  testElementDetails `json:"element"`
+}
+
+// testElementDetails is one of the helpers to construct the proper JSON test sturcture
+type testElementDetails struct {
+	ID       int    `json:"id,omitempty"`
+	Action   string `json:"action,omitempty"`
+	Response string `json:"response,omitempty"`
+}
+
+// RFTestStep contains single Rainforest step
+type RFTestStep struct {
+	Action   string
+	Response string
+	Redirect bool
+}
+
+// RFEmbeddedTest contains an embedded test details
+type RFEmbeddedTest struct {
+	RFMLID   string
+	Redirect bool
+}
+
+// RFTestFilters are used to filter tests retrieved from the Rainforest API
+type RFTestFilters struct {
+	Tags []string
+}
+
+func (f *RFTestFilters) toQuery() string {
+	v := url.Values{
+		"tags": f.Tags,
+	}
+
+	return v.Encode()
+}
+
 // GetRFMLIDs returns all tests IDs and RFML IDs to properly map tests to their IDs
 // for uploading and deleting.
 func (c *Client) GetRFMLIDs() (TestIDMappings, error) {
@@ -214,7 +223,8 @@ func (c *Client) GetRFMLIDs() (TestIDMappings, error) {
 
 // GetTests returns all tests that are optionally filtered by RFTestFilters
 func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
-	req, err := c.NewRequest("GET", "tests", params)
+	testsURL := "tests?" + params.toQuery()
+	req, err := c.NewRequest("GET", testsURL, nil)
 	if err != nil {
 		return nil, err
 	}

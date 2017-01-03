@@ -26,7 +26,7 @@ to your API token. Alternatively, you may pass your token with the global `--tok
 
 CLI Commands are formatted as follows:
 ```bash
-rainforest [global flags] <command> [arguments] [command-specific-flags]
+rainforest [global flags] <command> [command-specific-flags] [arguments]
 ```
 
 ## Options
@@ -150,12 +150,12 @@ rainforest report <run-id> --junit-file rainforest.xml
 
 Upload a CSV to create a new tabular variables.
 ```bash
-rainforest csv-upload PATH/TO/CSV.csv --import-variable-name my_variable
+rainforest csv-upload --import-variable-name my_variable PATH/TO/CSV.csv
 ```
 
 Upload a CSV to update an existing tabular variables.
 ```bash
-rainforest csv-upload PATH/TO/CSV.csv --import-variable-name my_variable --overwrite-variable
+rainforest csv-upload --import-variable-name my_variable --overwrite-variable PATH/TO/CSV.csv
 ```
 
 ## Options
@@ -163,7 +163,7 @@ rainforest csv-upload PATH/TO/CSV.csv --import-variable-name my_variable --overw
 ### Global
 
 - `--token <your-rainforest-token>` - supply your token (get it from any tests API tab), if not set in `RAINFOREST_API_TOKEN` environment variable
-- `skip-update` - Do not automatically check for CLI updates.
+- `--skip-update` - Do not automatically check for CLI updates.
 
 ### Writing Tests
 Rainforest Tests written using RFML have the following format
@@ -233,10 +233,10 @@ Popular command line options are:
 - `--folder ID` - filter tests in specified folder.
 - `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
 - `--conflict OPTION` - use the `abort` option to abort any runs in progress in the same environment as your new run. use the `abort-all` option to abort all runs in progress.
-- `--bg` - creates a run in the background - rainforest-cli will not return immediately. Does not use if you want to make the build pass / fail dependent on rainforest results.
+- `--bg` - creates a run in the background and rainforest-cli exits immediately after. Do not use if you want rainforest-cli to track your run and exit with an error code upon run failure (ie: using Rainforest in your CI environment).
 - `--crowd [default|on_premise_crowd]` - select your crowd of testers for clients with on premise testers. For more information, contact us at help@rainforestqa.com.
 - `--wait RUN_ID` - wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.
-- `--fail-fast` - fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Does not work with `--bg`.
+- `--fail-fast` - fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Has no effect with `--bg`.
 - `--custom-url` - use a custom url for this run to use an ad-hoc QA environment on all tests. You will need to specify a `site_id` too for this to work. Note that we will be creating a new environment for your account for this particular run.
 - `--git-trigger` - only trigger a run when the last commit (for a git repo in the current working directory) has contains `@rainforest` and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged `checkout`. This over-rides `--tag` and any tests specified. If no `@rainforest` is detected it will exit 0.
 - `--description "CI automatic run"` - add an arbitrary description for the run.

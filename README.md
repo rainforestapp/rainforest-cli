@@ -1,7 +1,4 @@
-[![Build Status](https://travis-ci.org/rainforestapp/rainforest-cli.png?branch=master)](https://travis-ci.org/rainforestapp/rainforest-cli)
-
-<!-- TODO: Update this
-[![Gem Version](https://badge.fury.io/rb/rainforest-cli.svg)](https://badge.fury.io/rb/rainforest-cli) -->
+[![CircleCI](https://circleci.com/gh/rainforestapp/rainforest-cli.svg?style=shield)](https://circleci.com/gh/rainforestapp/rainforest-cli)
 
 # Rainforest-cli
 

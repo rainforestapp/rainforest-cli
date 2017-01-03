@@ -1,6 +1,4 @@
-[![Build Status](https://travis-ci.org/rainforestapp/rainforest-cli.png?branch=master)](https://travis-ci.org/rainforestapp/rainforest-cli)
-
-[![Gem Version](https://badge.fury.io/rb/rainforest-cli.svg)](https://badge.fury.io/rb/rainforest-cli)
+[![CircleCI](https://circleci.com/gh/rainforestapp/rainforest-cli.svg?style=shield)](https://circleci.com/gh/rainforestapp/rainforest-cli)
 
 # Rainforest-cli
 
@@ -10,49 +8,50 @@ This is the easiest way to integrate Rainforest with your deploy scripts or CI s
 
 ## Installation
 
-You can install rainforest-cli with the [gem](https://rubygems.org/) utility.
+Follow the directions on our [download page](https://dl.equinox.io/rainforest_qa/rainforest-cli/stable).
 
-```bash
-gem install rainforest-cli
-```
+The CLI will check for updates and automatically update itself on every use unless the
+`--skip-update` global flag is given.
 
-Alternatively, you can add to your Gemfile if you're in a ruby project. This is *not recommended* for most users. The reason being that we update this gem frequently and you usually want to ensure you have the latest version.
-
-```ruby
-gem "rainforest-cli", require: false
-```
+For migration directions from 1.x, please read our [migration guide](./migration.md).
 
 ## Basic Usage
-To use the cli client, you'll need your API token from a test settings page from inside [Rainforest](https://app.rainforestqa.com/).
+To use the cli client, you'll need your API token from your [integrations settings page](https://app.rainforestqa.com/settings/integrations).
 
-You can either pass the token with `--token YOUR_TOKEN_HERE` CLI option, or put it in the `RAINFOREST_API_TOKEN` environment variable.
+In order to access your account from the CLI, set the `RAINFOREST_API_TOKEN` environment variable
+to your API token. Alternatively, you may pass your token with the global `--token` flag.
+
+CLI Commands are formatted as follows:
+```bash
+rainforest [global flags] <command> [command-specific-flags] [arguments]
+```
 
 ## Options
 
 #### Running Tests
 
-Run all tests.
+Run all tests in the foreground and report.
 
 ```bash
 rainforest run all
 ```
 
-Run all in the foreground and report.
+Run all your tests in the background and exit the process immediately.
 
 ```bash
-rainforest run all --fg
+rainforest run all --bg
 ```
 
 Run all tests with tag 'run-me' and abort previous in-progress runs.
 
 ```bash
-rainforest run --tag run-me --fg --conflict abort
+rainforest run --tag run-me --conflict abort
 ```
 
-Run all in the foreground and generate a junit xml report.
+Run all tests and generate a junit xml report.
 
 ```bash
-rainforest run all --fg --junit-file rainforest.xml
+rainforest run all --junit-file results.xml
 ```
 
 #### Creating and Managing Tests
@@ -104,16 +103,22 @@ Remove RFML file and remove test from Rainforest test suite.
 rainforest rm /path/to/test/file.rfml
 ```
 
-Export all tests from Rainforest
+Download all tests from Rainforest
 
 ```bash
-rainforest export
+rainforest download
 ```
 
-Export tests filtered by tags, site, and smart folder
+Download tests filtered by tags, site, and smart folder
 
 ```bash
-rainforest export --tag foo --tag bar --site-id 123 --folder 456
+rainforest download --tag foo --tag bar --site-id 123 --folder 456
+```
+
+Download specific tests based on their id on the Rainforest dashboard
+
+```bash
+rainforest download 33445 11232 1337
 ```
 
 #### Viewing Account Specific Information
@@ -142,19 +147,20 @@ rainforest report <run-id> --junit-file rainforest.xml
 
 Upload a CSV to create a new tabular variables.
 ```bash
-rainforest csv-upload --import-variable-csv-file PATH/TO/CSV.csv --import-variable-name my_variable
+rainforest csv-upload --import-variable-name my_variable PATH/TO/CSV.csv
 ```
 
 Upload a CSV to update an existing tabular variables.
 ```bash
-rainforest csv-upload --import-variable-csv-file PATH/TO/CSV.csv --import-variable-name my_variable --overwrite-variable
+rainforest csv-upload --import-variable-name my_variable --overwrite-variable PATH/TO/CSV.csv
 ```
 
 ## Options
 
-### General
+### Global
 
 - `--token <your-rainforest-token>` - supply your token (get it from any tests API tab), if not set in `RAINFOREST_API_TOKEN` environment variable
+- `--skip-update` - Do not automatically check for CLI updates.
 
 ### Writing Tests
 Rainforest Tests written using RFML have the following format
@@ -224,10 +230,11 @@ Popular command line options are:
 - `--folder ID` - filter tests in specified folder.
 - `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
 - `--conflict OPTION` - use the `abort` option to abort any runs in progress in the same environment as your new run. use the `abort-all` option to abort all runs in progress.
-- `--fg` - results in the foreground - rainforest-cli will not return until the run is complete. This is what you want to make the build pass / fail dependent on rainforest results
+- `--bg` - creates a run in the background and rainforest-cli exits immediately after. Do not use if you want rainforest-cli to track your run and exit with an error code upon run failure (ie: using Rainforest in your CI environment).
+- `--crowd [default|on_premise_crowd]` - select your crowd of testers for clients with on premise testers. For more information, contact us at help@rainforestqa.com.
 - `--wait RUN_ID` - wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.
-- `--fail-fast` - fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Use with `--fg`.
-- `--custom-url` - use a custom url for this run. Example use case: an ad-hoc QA environment with [Fourchette](https://github.com/rainforestapp/fourchette). You will need to specify a `site_id` too for this to work. Note that we will be creating a new environment for this particular run.
+- `--fail-fast` - fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Has no effect with `--bg`.
+- `--custom-url` - use a custom url for this run to use an ad-hoc QA environment on all tests. You will need to specify a `site_id` too for this to work. Note that we will be creating a new environment for your account for this particular run.
 - `--git-trigger` - only trigger a run when the last commit (for a git repo in the current working directory) has contains `@rainforest` and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged `checkout`. This over-rides `--tag` and any tests specified. If no `@rainforest` is detected it will exit 0.
 - `--description "CI automatic run"` - add an arbitrary description for the run.
 - `--embed-tests` - Use with `rainforest export` to export your tests without extracting the
@@ -236,73 +243,9 @@ steps of an embedded test.
 - `--junit-file` - Create a junit xml report file with the specified name.  Must be run in foreground mode, or with the report command. Uses the rainforest
 api to construct a junit report.  This is useful to track tests in CI such as Jenkins or Bamboo.
 - `--run-id` - Only used with the report command.  Specify a past rainforest run by ID number to generate a report for.
-- `--import-variable-csv-file /path/to/csv/file.csv` - Use with `run` and `--import-variable-name` to upload new tabular variable values before your run to specify the path to your CSV file. You may also use this with the `csv-upload` command to update your variable before a run.
-- `--import-variable-name NAME` - Use with `run` and `--import-variable-csv-file` to upload new tabular variable values before your run to specify the name of your tabular variable. You may also use this with the `csv-upload` command to update your variable before a run.
+- `--import-variable-csv-file /path/to/csv/file.csv` - Use with `run` and `--import-variable-name` to upload new tabular variable values before your run to specify the path to your CSV file.
+- `--import-variable-name NAME` - Use with `run` and `--import-variable-csv-file` to upload new tabular variable values before your run to specify the name of your tabular variable. You may also use this with the `csv-upload` command to update your variable without starting a run.
 - `--single-use` - Use with `run` or `csv-upload` to flag your variable upload as `single-use`. See `--import-variable-csv-file` and `--import-variable-name` options as well.
-
-###Site-ID
-Only run tests for a specific site. Get in touch with us for help on getting that you site id if you are unable to.
-
-<pre>--site-id <b>ID</b></pre>
-
-###Folder-ID
-Run tests in specified folder.
-<pre>--folder <b>ID</b></pre>
-
-###Environment-ID
-run your tests using this environment. Otherwise it will use your default environment
-<pre>--environment-id <b>ID</b></pre>
-
-###Crowd
-<pre>--crowd [<b>default</b>|<b>on_premise_crowd</b>]</pre>
-
-###Conflict
-Use the abort option to abort any runs in progress in the same environment as your new run. use the abort-all option to abort all runs in progress.
-<pre>--conflict <b>option</b></pre> </pre>
-
-###Foreground
-Results in the foreground - rainforest-cli will not return until the run is complete. This is what you want to make the build pass / fail dependent on rainforest results
-<pre>--fg</pre>
-
-###Wait
-Wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.
-<pre>--wait <b>RUN_ID</b></pre>
-
-###Fail-fast
-fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Use with --fg.
-<pre>--fail-fast</pre>
-###Custom URL
-
-use a custom url for this run. Example use case: an ad-hoc QA environment with Fourchette. You will need to specify a site_id too for this to work. Note that we will be creating a new environment for this particular run.
-<pre>--custom-url</pre>
-
-###Git-trigger
-only trigger a run when the last commit (for a git repo in the current working directory) has contains @rainforest and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged checkout. This over-rides --tag and any tests specified. If no @rainforest is detected it will exit 0.
-<pre>--git-trigger</pre>
-
-###Description "CI automatic run"
-add an arbitrary description for the run.
-<pre>--description "CI automatic run"</pre>
-
-###Embed-tests
-Use with rainforest export to export your tests without extracting the steps of an embedded test.
-<pre>--embed-tests</pre>
-
-###Test-folder
-Use with rainforest [new, upload, export]. If this option is not provided, rainforest-cli will, in the case of 'new' create a directory, or in the case of 'upload' and 'export' use the directory, at the default path ./spec/rainforest/.
-<pre>--test-folder /path/to/directory</pre>
-
-#### Specifying Test IDs
-Any integers input as arguments in the command line arguments are treated as
-test IDs taken from the Rainforest dashboard. ie:
-
-`rainforest run --token $TOKEN 1232 3212` - will export only tests
-1232 and 3212. The `export` and `run` commands and are otherwise ignored.
-
-All other argument types should be specified as seen above.
-
-
-More detailed info on options can be [found here](https://github.com/rainforestapp/rainforest-cli/blob/master/lib/rainforest_cli/options.rb#L23-L74).
 
 ## Support
 

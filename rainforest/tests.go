@@ -190,7 +190,7 @@ type RFEmbeddedTest struct {
 	Redirect bool
 }
 
-// RFTestFilters are used to filter tests retrieved from the Rainforest API
+// RFTestFilters are used to translate test filters to proper API parameters
 type RFTestFilters struct {
 	Tags          []string
 	SiteID        int

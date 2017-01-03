@@ -37,6 +37,7 @@ func (s TestIDMappings) MapRFMLIDtoID() map[string]int {
 
 // RFTest is a struct representing the Rainforest Test with its settings and steps
 type RFTest struct {
+	TestID      int                      `json:"id"`
 	RFMLID      string                   `json:"rfml_id"`
 	Source      string                   `json:"source"`
 	Title       string                   `json:"title,omitempty"`
@@ -47,10 +48,23 @@ type RFTest struct {
 	BrowsersMap []map[string]interface{} `json:"browsers,omitempty"`
 	Elements    []testElement            `json:"elements,omitempty"`
 
-	// Browsers, Steps and TestID are helper fields
+	// Browsers and Steps are helper fields
 	Browsers []string      `json:"-"`
 	Steps    []interface{} `json:"-"`
-	TestID   int           `json:"id"`
+}
+
+// testElement is one of the helpers to construct the proper JSON test sturcture
+type testElement struct {
+	Redirect bool               `json:"redirection"`
+	Type     string             `json:"type"`
+	Details  testElementDetails `json:"element"`
+}
+
+// testElementDetails is one of the helpers to construct the proper JSON test sturcture
+type testElementDetails struct {
+	ID       int    `json:"id,omitempty"`
+	Action   string `json:"action,omitempty"`
+	Response string `json:"response,omitempty"`
 }
 
 // mapBrowsers fills the browsers field with format recognized by the API
@@ -163,20 +177,6 @@ func (t *RFTest) PrepareToWriteAsRFML(mappings TestIDMappings) error {
 	return nil
 }
 
-// testElement is one of the helpers to construct the proper JSON test sturcture
-type testElement struct {
-	Redirect bool               `json:"redirection"`
-	Type     string             `json:"type"`
-	Details  testElementDetails `json:"element"`
-}
-
-// testElementDetails is one of the helpers to construct the proper JSON test sturcture
-type testElementDetails struct {
-	ID       int    `json:"id,omitempty"`
-	Action   string `json:"action,omitempty"`
-	Response string `json:"response,omitempty"`
-}
-
 // RFTestStep contains single Rainforest step
 type RFTestStep struct {
 	Action   string
@@ -192,14 +192,18 @@ type RFEmbeddedTest struct {
 
 // RFTestFilters are used to filter tests retrieved from the Rainforest API
 type RFTestFilters struct {
-	Tags   []string
-	SiteID int
+	Tags          []string
+	SiteID        int
+	SmartFolderID int
 }
 
 func (f *RFTestFilters) toQuery() string {
 	v := url.Values{"tags": f.Tags}
 	if f.SiteID > 0 {
 		v.Add("site_id", strconv.Itoa(f.SiteID))
+	}
+	if f.SmartFolderID > 0 {
+		v.Add("smart_folder_id", strconv.Itoa(f.SmartFolderID))
 	}
 
 	return v.Encode()

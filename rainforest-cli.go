@@ -294,8 +294,8 @@ func main() {
 					Name:  "site, site-id",
 					Usage: "filter tests by a specific site. You can see a list of your `SITE-ID`s with sites command.",
 				},
-				cli.StringFlag{
-					Name:  "folder",
+				cli.IntFlag{
+					Name:  "folder, folder-id",
 					Usage: "filter tests by a specific folder. You can see a list of your `FOLDER-ID`s with folders command.",
 				},
 				cli.StringFlag{

@@ -2,8 +2,15 @@ package rainforest
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -276,5 +283,181 @@ func TestWriteRFMLTest(t *testing.T) {
 		t.Error("Expected step text not found in writer output.")
 		t.Logf("Output:\n%v", output)
 		t.Logf("Expected:\n%v", expectedStepText)
+	}
+}
+
+func TestParseEmbeddedFiles(t *testing.T) {
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	testDir := filepath.Join(pwd, "./test")
+
+	existingScreenshotPath := "./assets/screenshot1.png"
+	newScreenshotPath := "./assets/screenshot2.png"
+	existingDownloadPath := "./existing.txt"
+	newDownloadPath := "./new.txt"
+
+	test := RFTest{
+		TestID: 5678,
+		Steps: []interface{}{
+			RFTestStep{
+				Action:   fmt.Sprintf("Embedding an existing screenshot {{file.screenshot(%v)}}", existingScreenshotPath),
+				Response: fmt.Sprintf("Embedding a new screenshot {{ file.screenshot(%v) }}", newScreenshotPath),
+			},
+			RFTestStep{
+				Action:   fmt.Sprintf("Embedded an existing download {{ file.download(%v)}}", existingDownloadPath),
+				Response: fmt.Sprintf("Embedded a new download {{file.download(%v) }}", newDownloadPath),
+			},
+		},
+		// Test does not exist, but this path is used to find the relative path to the
+		// embedded files in the action and response.
+		RFMLPath: filepath.Join(testDir, "./fake_test.rfml"),
+	}
+
+	// Save existing screenshot digest
+	var file *os.File
+	file, err = os.Open(filepath.Join(testDir, existingScreenshotPath))
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	var contents []byte
+	contents, err = ioutil.ReadAll(file)
+	file.Close()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	checksum := md5.Sum(contents)
+	screenshotDigest := hex.EncodeToString(checksum[:])
+
+	// Create existing downloaded file and save digest
+	existingDownloadFile, err := os.Create(filepath.Join(testDir, existingDownloadPath))
+	defer os.Remove(existingDownloadFile.Name())
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	contents = []byte("This has already been uploaded!")
+	_, err = existingDownloadFile.Write(contents)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	existingDownloadFile.Close()
+
+	checksum = md5.Sum(contents)
+	downloadDigest := hex.EncodeToString(checksum[:])
+
+	// Create new downloaded file
+	newDownloadFile, err := os.Create(filepath.Join(testDir, newDownloadPath))
+	defer os.Remove(newDownloadFile.Name())
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	newDownloadFile.WriteString("This has not yet been uploaded!")
+	newDownloadFile.Close()
+
+	// Values retrieved from Rainforest API
+	existingScreenshotID := 1234
+	existingScreenshotSignature := "existing_screenshot_signature"
+	newScreenshotID := 4567
+	newScreenshotSignature := "new_screenshot_signature"
+
+	existingDownloadID := 4321
+	existingDownloadSignature := "existing_download_signature"
+	newDownloadID := 7654
+	newDownloadSignature := "new_download_signature"
+
+	// Set up fake AWS server for uploads
+	awsTestServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Response does not matter - just that the upload succeeded
+		if r.Method != "POST" {
+			t.Fatal("Unexpected request method to AWS")
+			w.WriteHeader(http.StatusCreated)
+		}
+	}))
+	defer awsTestServer.Close()
+	awsURL := awsTestServer.URL
+
+	setup()
+	defer cleanup()
+
+	// Set up fake Rainforest server for GET and POST to /tests/:id/files
+	mux.HandleFunc(fmt.Sprintf("/tests/%v/files", test.TestID), func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		switch r.Method {
+		case "GET":
+			files := []uploadedFile{
+				{ID: existingScreenshotID, Digest: screenshotDigest, Signature: existingScreenshotSignature},
+				{ID: existingDownloadID, Digest: downloadDigest, Signature: existingDownloadSignature},
+			}
+			json.NewEncoder(w).Encode(files)
+
+		case "POST":
+			var reqBody []byte
+			reqBody, err = ioutil.ReadAll(r.Body)
+			if err != nil {
+				t.Fatal(err.Error())
+			}
+
+			var awsInfo awsFileInfo
+			if bytes.Contains(reqBody, []byte(filepath.Base(newScreenshotPath))) {
+				awsInfo = awsFileInfo{
+					FileID:        newScreenshotID,
+					FileSignature: newScreenshotSignature,
+					URL:           awsURL,
+					Key:           "key",
+					AccessID:      "accessId",
+					Policy:        "abc123",
+					ACL:           "private",
+					Signature:     "signature",
+				}
+			} else if bytes.Contains(reqBody, []byte(filepath.Base(newDownloadPath))) {
+				awsInfo = awsFileInfo{
+					FileID:        newDownloadID,
+					FileSignature: newDownloadSignature,
+					URL:           awsURL,
+					Key:           "key",
+					AccessID:      "accessId",
+					Policy:        "abc123",
+					ACL:           "private",
+					Signature:     "signature",
+				}
+			}
+
+			json.NewEncoder(w).Encode(awsInfo)
+		}
+	})
+
+	err = client.ParseEmbeddedFiles(&test)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	// Check screenshot values
+	step := test.Steps[0].(RFTestStep)
+	expectedStr := fmt.Sprintf("{{ file.screenshot(%v, %v) }}", existingScreenshotID, existingScreenshotSignature[0:6])
+	if !strings.Contains(step.Action, expectedStr) {
+		t.Errorf("Expected to find %v in %v", expectedStr, step.Action)
+	}
+
+	expectedStr = fmt.Sprintf("{{ file.screenshot(%v, %v) }}", newScreenshotID, newScreenshotSignature[0:6])
+	if !strings.Contains(step.Response, expectedStr) {
+		t.Errorf("Expected to find %v in %v", expectedStr, step.Response)
+	}
+
+	// Check download values
+	step = test.Steps[1].(RFTestStep)
+	expectedStr = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", existingDownloadID,
+		existingDownloadSignature[0:6], filepath.Base(existingDownloadPath))
+	if !strings.Contains(step.Action, expectedStr) {
+		t.Errorf("Expected to find %v in %v", expectedStr, step.Action)
+	}
+
+	expectedStr = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", newDownloadID, newDownloadSignature[0:6],
+		filepath.Base(newDownloadPath))
+	if !strings.Contains(step.Response, expectedStr) {
+		t.Errorf("Expected to find %v in %v", expectedStr, step.Response)
 	}
 }

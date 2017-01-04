@@ -3,8 +3,11 @@ package rainforest
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 )
+
+const uploadableRegex = `{{ *file\.(download|screenshot)\(([^\)]+)\) *}}`
 
 // TestIDMap is a type representing RF tests that contain the test definitions.
 type TestIDMap struct {
@@ -50,6 +53,9 @@ type RFTest struct {
 	Browsers []string      `json:"-"`
 	Steps    []interface{} `json:"-"`
 	TestID   int           `json:"-"`
+	// RFMLPath is a helper field for keeping track of the filepath to the
+	// test's RFML file.
+	RFMLPath string `json:"-"`
 }
 
 // testElement is one of the helpers to construct the proper JSON test sturcture
@@ -159,10 +165,6 @@ func (t *RFTest) PrepareToUploadFromRFML(mappings TestIDMappings) error {
 	if err != nil {
 		return err
 	}
-	testID, ok := mappings.MapRFMLIDtoID()[t.RFMLID]
-	if ok {
-		t.TestID = testID
-	}
 	return nil
 }
 
@@ -176,11 +178,66 @@ func (t *RFTest) PrepareToWriteAsRFML(mappings TestIDMappings) error {
 	return nil
 }
 
+// HasUploadableFiles returns true if test has embedded files in the format {{ file.screenshot(path/to/file) }}
+// or {{ file.download(path/to/file) }}. It returns false otherwise.
+func (t *RFTest) HasUploadableFiles() bool {
+	for _, step := range t.Steps {
+		s, ok := step.(RFTestStep)
+		if ok && s.hasUploadableFiles() {
+			return true
+		}
+	}
+
+	return false
+}
+
 // RFTestStep contains single Rainforest step
 type RFTestStep struct {
 	Action   string
 	Response string
 	Redirect bool
+}
+
+func (s *RFTestStep) hasUploadableFiles() bool {
+	return len(s.embeddedFilesInAction()) > 0 || len(s.embeddedFilesInResponse()) > 0
+}
+
+func (s *RFTestStep) embeddedFilesInAction() []embeddedFile {
+	return findEmbeddedFiles(s.Action)
+}
+
+func (s *RFTestStep) embeddedFilesInResponse() []embeddedFile {
+	return findEmbeddedFiles(s.Response)
+}
+
+// uploadable contains the information of an embedded step variables
+type embeddedFile struct {
+	// text is the entire step variable text. eg: "{{ file.screenshot(path/to/file) }}"
+	text string
+	// the step variable used. Either "screenshot" or "download"
+	stepVar string
+	// the path argument to the step variable
+	path string
+}
+
+// findEmbeddedFiles looks through a string and parses out embedded step variables
+// and returns a slice of uploadables
+func findEmbeddedFiles(s string) []embeddedFile {
+	// Shouldn't fail compilation unless uploadableRegex is incorrect
+	reg := regexp.MustCompile(uploadableRegex)
+	matches := reg.FindAllStringSubmatch(s, -1)
+
+	uploadables := make([]embeddedFile, len(matches))
+
+	for idx, match := range matches {
+		uploadables[idx] = embeddedFile{
+			text:    match[0],
+			stepVar: match[1],
+			path:    match[2],
+		}
+	}
+
+	return uploadables
 }
 
 // RFEmbeddedTest contains an embedded test details

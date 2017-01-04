@@ -23,7 +23,7 @@ func TestGetUploadedFiles(t *testing.T) {
 	const reqMethod = "GET"
 	const testID = 1337
 
-	files := []UploadedFile{
+	files := []uploadedFile{
 		{ID: 123, Signature: "file_sig1", Digest: "digest1"},
 		{ID: 456, Signature: "file_sig2", Digest: "digest2"},
 	}
@@ -37,7 +37,7 @@ func TestGetUploadedFiles(t *testing.T) {
 		enc.Encode(files)
 	})
 
-	out, _ := client.GetUploadedFiles(testID)
+	out, _ := client.getUploadedFiles(testID)
 
 	if !reflect.DeepEqual(files, out) {
 		t.Errorf("Response expected = %v, actual %v", files, out)
@@ -51,7 +51,7 @@ func TestMultipartFormRequest(t *testing.T) {
 	Policy := "policy"
 	Signature := "signature"
 
-	aws := AWSFileInfo{
+	aws := awsFileInfo{
 		URL:       "https://f.rainforestqa.com/stuff",
 		Key:       Key,
 		AccessID:  AccessID,
@@ -63,7 +63,7 @@ func TestMultipartFormRequest(t *testing.T) {
 	fileName := "my_file.txt"
 	fileContents := []byte("This is in my file")
 
-	req, err := aws.MultipartFormRequest(fileName, fileContents)
+	req, err := aws.multipartFormRequest(fileName, fileContents)
 
 	if err != nil {
 		t.Error(err.Error())
@@ -147,7 +147,7 @@ func TestCreateTestFile(t *testing.T) {
 
 	url := fmt.Sprintf("/tests/%v/files", testID)
 
-	awsInfo := AWSFileInfo{
+	awsInfo := awsFileInfo{
 		FileID:        1234,
 		FileSignature: "file signature",
 		URL:           "https://f.rainforestqa.com/stuff",
@@ -158,7 +158,7 @@ func TestCreateTestFile(t *testing.T) {
 		Signature:     "signature",
 	}
 
-	expectedRequestBody := UploadedFile{
+	expectedRequestBody := uploadedFile{
 		MimeType: mime.TypeByExtension(fileExt),
 		Size:     int64(len(fileContents)),
 		Name:     fileName,
@@ -172,7 +172,7 @@ func TestCreateTestFile(t *testing.T) {
 
 		defer r.Body.Close()
 
-		out := &UploadedFile{}
+		out := &uploadedFile{}
 		err = json.NewDecoder(r.Body).Decode(out)
 
 		if err != nil {
@@ -187,11 +187,11 @@ func TestCreateTestFile(t *testing.T) {
 		enc.Encode(awsInfo)
 	})
 
-	out, err := client.CreateTestFile(testID, file, fileContents)
+	out, err := client.createTestFile(testID, file, fileContents)
 
 	if err != nil {
 		t.Error(err.Error())
 	} else if !reflect.DeepEqual(*out, awsInfo) {
-		t.Errorf("Unexpected response from CreateTestFile.\nActual: %#v\nExpected: %#v", *out, awsInfo)
+		t.Errorf("Unexpected response from createTestFile.\nActual: %#v\nExpected: %#v", *out, awsInfo)
 	}
 }

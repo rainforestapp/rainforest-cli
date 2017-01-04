@@ -74,3 +74,54 @@ func TestGetTests(t *testing.T) {
 		t.Error(err.Error())
 	}
 }
+
+func TestHasUploadableFiles(t *testing.T) {
+	// No uploadables
+	test := RFTest{
+		Steps: []interface{}{
+			RFTestStep{
+				Action:   "nothing here",
+				Response: "or here",
+			},
+			RFEmbeddedTest{
+				RFMLID: "definitely_nothing_here",
+			},
+		},
+	}
+	if test.HasUploadableFiles() {
+		t.Error("Test has no uploadable files")
+	}
+
+	// With file download
+	test.Steps = []interface{}{
+		RFTestStep{
+			Action:   "{{ file.download(./my/path) }}",
+			Response: "nothing",
+		},
+	}
+	if !test.HasUploadableFiles() {
+		t.Error("Test has uploadable files")
+	}
+
+	// With screenshot
+	test.Steps = []interface{}{
+		RFTestStep{
+			Action:   "{{ file.screenshot(./my/path) }}",
+			Response: "nothing",
+		},
+	}
+	if !test.HasUploadableFiles() {
+		t.Error("Test has uploadable files")
+	}
+
+	// With missing argument
+	test.Steps = []interface{}{
+		RFTestStep{
+			Action:   "{{ file.download }}",
+			Response: "nothing",
+		},
+	}
+	if test.HasUploadableFiles() {
+		t.Error("Test should not have any uploadable files without an argument")
+	}
+}

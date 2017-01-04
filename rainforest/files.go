@@ -14,8 +14,8 @@ import (
 	"strconv"
 )
 
-// UploadedFile represents a file that has been uploaded to Rainforest
-type UploadedFile struct {
+// uploadedFile represents a file that has been uploaded to Rainforest
+type uploadedFile struct {
 	ID        int    `json:"id"`
 	Signature string `json:"signature"`
 	Digest    string `json:"digest"`
@@ -24,22 +24,22 @@ type UploadedFile struct {
 	Name      string `json:"name"`
 }
 
-// GetUploadedFiles returns information for all all files uploaded to the
+// getUploadedFiles returns information for all all files uploaded to the
 // given test before.
-func (c *Client) GetUploadedFiles(fileID int) ([]UploadedFile, error) {
-	req, err := c.NewRequest("GET", "tests/"+strconv.Itoa(fileID)+"/files", nil)
+func (c *Client) getUploadedFiles(testID int) ([]uploadedFile, error) {
+	req, err := c.NewRequest("GET", "tests/"+strconv.Itoa(testID)+"/files", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var fileResp []UploadedFile
+	var fileResp []uploadedFile
 	_, err = c.Do(req, &fileResp)
 	return fileResp, err
 }
 
-// AWSFileInfo represents the response when uploading new file data to Rainforest.
+// awsFileInfo represents the response when uploading new file data to Rainforest.
 // It contains information used to upload data the file to AWS.
-type AWSFileInfo struct {
+type awsFileInfo struct {
 	FileID        int    `json:"file_id"`
 	FileSignature string `json:"file_signature"`
 	URL           string `json:"aws_url"`
@@ -50,9 +50,9 @@ type AWSFileInfo struct {
 	Signature     string `json:"aws_signature"`
 }
 
-// MultipartFormRequest creates a http.Request containing the required body for
-// uploading a file to AWS given the values stored in the receiving AWSFileInfo struct.
-func (aws *AWSFileInfo) MultipartFormRequest(fileName string, fileContents []byte) (*http.Request, error) {
+// multipartFormRequest creates a http.Request containing the required body for
+// uploading a file to AWS given the values stored in the receiving awsFileInfo struct.
+func (aws *awsFileInfo) multipartFormRequest(fileName string, fileContents []byte) (*http.Request, error) {
 	var req *http.Request
 	fileExt := filepath.Ext(fileName)
 
@@ -82,21 +82,20 @@ func (aws *AWSFileInfo) MultipartFormRequest(fileName string, fileContents []byt
 	return req, nil
 }
 
-// CreateTestFile creates a UploadedFile resource by sending file information to
-// Rainforest. This information is used for uploading the actual file to AWS.
-func (c *Client) CreateTestFile(testID int, file *os.File, fileContents []byte) (*AWSFileInfo, error) {
-	awsFileInfo := &AWSFileInfo{}
+// createTestFile creates a uploadedFile resource by sending file information to
+// Rainforest. This information is used for uploading the file contents to AWS.
+func (c *Client) createTestFile(testID int, file *os.File, fileContents []byte) (*awsFileInfo, error) {
 	fileName := file.Name()
 	fileInfo, err := file.Stat()
 
 	if err != nil {
-		return awsFileInfo, err
+		return &awsFileInfo{}, err
 	}
 
 	md5CheckSum := md5.Sum(fileContents)
 	hexDigest := hex.EncodeToString(md5CheckSum[:16])
 
-	body := UploadedFile{
+	body := uploadedFile{
 		MimeType: mime.TypeByExtension(filepath.Ext(fileName)),
 		Size:     fileInfo.Size(),
 		Name:     fileName,
@@ -106,16 +105,20 @@ func (c *Client) CreateTestFile(testID int, file *os.File, fileContents []byte) 
 	url := "tests/" + strconv.Itoa(testID) + "/files"
 	req, err := c.NewRequest("POST", url, body)
 	if err != nil {
-		return awsFileInfo, err
+		return &awsFileInfo{}, err
 	}
 
-	_, err = c.Do(req, awsFileInfo)
-	return awsFileInfo, err
+	awsInfo := &awsFileInfo{}
+	_, err = c.Do(req, awsInfo)
+	return awsInfo, err
 }
 
-// UploadTestFile is a function that uploads the actual file contents to AWS
-func (c *Client) UploadTestFile(fileName string, fileContents []byte, awsFileInfo *AWSFileInfo) error {
-	req, err := awsFileInfo.MultipartFormRequest(fileName, fileContents)
+// uploadEmbeddedFile is a function that uploads the given embedded file's contents to AWS
+func (c *Client) uploadEmbeddedFile(fileName string, fileContents []byte, awsInfo *awsFileInfo) error {
+	req, err := awsInfo.multipartFormRequest(fileName, fileContents)
+	if err != nil {
+		return err
+	}
 
 	var resp *http.Response
 	resp, err = c.client.Do(req)

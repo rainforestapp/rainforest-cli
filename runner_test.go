@@ -66,7 +66,21 @@ func TestExpandStringSlice(t *testing.T) {
 	}
 }
 
+type fakeRunnerClient struct {
+	environment rainforest.Environment
+}
+
+func (r *fakeRunnerClient) CreateTemporaryEnvironment(s string) (*rainforest.Environment, error) {
+	return &r.environment, nil
+}
+
+func (r *fakeRunnerClient) CreateRun(p rainforest.RunParams) (*rainforest.RunStatus, error) {
+	return nil, nil
+}
+
 func TestMakeRunParams(t *testing.T) {
+	fakeEnvID := 445566
+
 	var testCases = []struct {
 		mappings map[string]interface{}
 		args     cli.Args
@@ -101,11 +115,23 @@ func TestMakeRunParams(t *testing.T) {
 				Tests:         []int{12, 34, 56, 78},
 			},
 		},
+		{
+			mappings: map[string]interface{}{
+				"custom-url": "https://www.rainforestqa.com",
+			},
+			args: cli.Args{},
+			expected: rainforest.RunParams{
+				EnvironmentID: fakeEnvID,
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
 		c := newFakeContext(testCase.mappings, testCase.args)
-		res, err := makeRunParams(c)
+		r := newRunner()
+		fakeEnv := rainforest.Environment{ID: fakeEnvID, Name: "the foo environment"}
+		r.client = &fakeRunnerClient{environment: fakeEnv}
+		res, err := r.makeRunParams(c)
 
 		if err != nil {
 			t.Errorf("Error trying to create params: %v", err)

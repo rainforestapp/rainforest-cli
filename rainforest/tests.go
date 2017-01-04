@@ -3,6 +3,7 @@ package rainforest
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
 )
@@ -39,20 +40,20 @@ func (s TestIDMappings) MapRFMLIDtoID() map[string]int {
 
 // RFTest is a struct representing the Rainforest Test with its settings and steps
 type RFTest struct {
-	RFMLID      string              `json:"rfml_id"`
-	Source      string              `json:"source"`
-	Title       string              `json:"title,omitempty"`
-	StartURI    string              `json:"start_uri,omitempty"`
-	SiteID      int                 `json:"site_id,omitempty"`
-	Description string              `json:"description,omitempty"`
-	Tags        []string            `json:"tags,omitempty"`
-	BrowsersMap []map[string]string `json:"browsers,omitempty"`
-	Elements    []testElement       `json:"elements,omitempty"`
+	TestID      int                      `json:"id"`
+	RFMLID      string                   `json:"rfml_id"`
+	Source      string                   `json:"source"`
+	Title       string                   `json:"title,omitempty"`
+	StartURI    string                   `json:"start_uri,omitempty"`
+	SiteID      int                      `json:"site_id,omitempty"`
+	Description string                   `json:"description,omitempty"`
+	Tags        []string                 `json:"tags,omitempty"`
+	BrowsersMap []map[string]interface{} `json:"browsers,omitempty"`
+	Elements    []testElement            `json:"elements,omitempty"`
 
-	// Browsers, Steps and TestID are helper fields
+	// Browsers and Steps are helper fields
 	Browsers []string      `json:"-"`
 	Steps    []interface{} `json:"-"`
-	TestID   int           `json:"-"`
 	// RFMLPath is a helper field for keeping track of the filepath to the
 	// test's RFML file.
 	RFMLPath string `json:"-"`
@@ -78,9 +79,9 @@ func (t *RFTest) mapBrowsers() {
 	if len(t.Browsers) == 0 {
 		return
 	}
-	t.BrowsersMap = make([]map[string]string, len(t.Browsers))
+	t.BrowsersMap = make([]map[string]interface{}, len(t.Browsers))
 	for i, browser := range t.Browsers {
-		mappedBrowser := map[string]string{
+		mappedBrowser := map[string]interface{}{
 			"state": "enabled",
 			"name":  browser,
 		}
@@ -97,7 +98,7 @@ func (t *RFTest) unmapBrowsers() {
 
 	for _, browserMap := range t.BrowsersMap {
 		if browserMap["state"] == "enabled" {
-			t.Browsers = append(t.Browsers, browserMap["name"])
+			t.Browsers = append(t.Browsers, browserMap["name"].(string))
 		}
 	}
 }
@@ -246,6 +247,25 @@ type RFEmbeddedTest struct {
 	Redirect bool
 }
 
+// RFTestFilters are used to translate test filters to a proper query string
+type RFTestFilters struct {
+	Tags          []string
+	SiteID        int
+	SmartFolderID int
+}
+
+func (f *RFTestFilters) toQuery() string {
+	v := url.Values{"tags": f.Tags}
+	if f.SiteID > 0 {
+		v.Add("site_id", strconv.Itoa(f.SiteID))
+	}
+	if f.SmartFolderID > 0 {
+		v.Add("smart_folder_id", strconv.Itoa(f.SmartFolderID))
+	}
+
+	return v.Encode()
+}
+
 // GetRFMLIDs returns all tests IDs and RFML IDs to properly map tests to their IDs
 // for uploading and deleting.
 func (c *Client) GetRFMLIDs() (TestIDMappings, error) {
@@ -261,6 +281,23 @@ func (c *Client) GetRFMLIDs() (TestIDMappings, error) {
 	if err != nil {
 		return nil, err
 	}
+	return testResp, nil
+}
+
+// GetTests returns all tests that are optionally filtered by RFTestFilters
+func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
+	testsURL := "tests?" + params.toQuery()
+	req, err := c.NewRequest("GET", testsURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var testResp []RFTest
+	_, err = c.Do(req, &testResp)
+	if err != nil {
+		return nil, err
+	}
+
 	return testResp, nil
 }
 

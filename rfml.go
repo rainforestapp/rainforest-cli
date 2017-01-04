@@ -388,7 +388,6 @@ func uploadSingleRFMLFile(filePath string) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Updated steps for test: %v", parsedTest.RFMLID)
 	return nil
 }
 
@@ -522,18 +521,13 @@ func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
 
 type rfmlAPI interface {
 	GetRFMLIDs() (rainforest.TestIDMappings, error)
+	GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, error)
 	GetTest(int) (*rainforest.RFTest, error)
 }
 
 func downloadRFML(c cliContext, client rfmlAPI) error {
 	testDirectory := c.String("test-folder")
 	absTestDirectory, err := prepareTestDirectory(testDirectory)
-	if err != nil {
-		return cli.NewExitError(err.Error(), 1)
-	}
-
-	var mappings rainforest.TestIDMappings
-	mappings, err = client.GetRFMLIDs()
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -550,8 +544,24 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 			testIDs = append(testIDs, testID)
 		}
 	} else {
-		for _, testIDMap := range mappings {
-			testID := testIDMap.ID
+		var tests []rainforest.RFTest
+		filters := rainforest.RFTestFilters{
+			Tags: c.StringSlice("tag"),
+		}
+		if c.Int("site-id") > 0 {
+			filters.SiteID = c.Int("site-id")
+		}
+		if c.Int("folder-id") > 0 {
+			filters.SmartFolderID = c.Int("folder-id")
+		}
+
+		tests, err = client.GetTests(&filters)
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+
+		for _, t := range tests {
+			testID := t.TestID
 			testIDs = append(testIDs, testID)
 		}
 	}
@@ -569,10 +579,16 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 		go downloadRFTestWorker(testIDChan, errorsChan, testChan, client)
 	}
 
+	var mappings rainforest.TestIDMappings
+	mappings, err = client.GetRFMLIDs()
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
 	for i := 0; i < len(testIDs); i++ {
 		select {
 		case err = <-errorsChan:
-			return err
+			return cli.NewExitError(err.Error(), 1)
 		case test := <-testChan:
 			err = test.PrepareToWriteAsRFML(mappings)
 			if err != nil {
@@ -643,9 +659,6 @@ func testCreationWorker(api *rainforest.Client,
 	for test := range testsToCreate {
 		log.Printf("Creating new test: %v", test.RFMLID)
 		err := api.CreateTest(test)
-		if err == nil {
-			log.Printf("Created new test: %v", test.RFMLID)
-		}
 		errorsChan <- err
 	}
 }
@@ -654,10 +667,7 @@ func testUpdateWorker(api *rainforest.Client,
 	testsToUpdate <-chan *rainforest.RFTest, errorsChan chan<- error) {
 	for test := range testsToUpdate {
 		log.Printf("Updating existing test: %v", test.RFMLID)
-		error := api.UpdateTest(test)
-		if error == nil {
-			log.Printf("Updated existing test: %v", test.RFMLID)
-		}
-		errorsChan <- error
+		err := api.UpdateTest(test)
+		errorsChan <- err
 	}
 }

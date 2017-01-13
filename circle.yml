@@ -37,6 +37,8 @@ deployment:
       - sudo unzip ~/download/release-tool-stable-linux-amd64.zip -d /usr/local/bin
       - echo -e $EQUINOX_KEY > $EQUINOX_KEY_PATH
       - equinox release --version=${CIRCLE_TAG:1} --platforms="darwin_amd64 linux_amd64 darwin_386 linux_386 windows_amd64 windows_386" --signing-key=$EQUINOX_KEY_PATH --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel stable -- -ldflags "-X main.releaseChannel=stable -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
+      - equinox publish --token=$EQUINOX_ACC_TOKEN --app=$EQUINOX_APP_ID --channel beta --version=${CIRCLE_TAG:1}
+      - equinox publish --token=$EQUINOX_ACC_TOKEN --app=$EQUINOX_APP_ID --channel dev --version=${CIRCLE_TAG:1}
       - rm -f $EQUINOX_KEY_PATH
 
   beta:
@@ -47,6 +49,7 @@ deployment:
       - sudo unzip ~/download/release-tool-stable-linux-amd64.zip -d /usr/local/bin
       - echo -e $EQUINOX_KEY > $EQUINOX_KEY_PATH
       - equinox release --version=${CIRCLE_TAG:1} --platforms="darwin_amd64 linux_amd64 darwin_386 linux_386 windows_amd64 windows_386" --signing-key=$EQUINOX_KEY_PATH --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel beta -- -ldflags "-X main.releaseChannel=beta -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
+      - equinox publish --token=$EQUINOX_ACC_TOKEN --app=$EQUINOX_APP_ID --channel dev --version=${CIRCLE_TAG:1}
       - rm -f $EQUINOX_KEY_PATH
 
   dev:

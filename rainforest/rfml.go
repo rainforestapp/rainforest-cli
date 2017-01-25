@@ -381,8 +381,8 @@ func (c *Client) ParseEmbeddedFiles(test *RFTest) error {
 					return err
 				}
 			}
+			test.Steps[idx] = s
 		}
-		test.Steps[idx] = s
 	}
 
 	return nil

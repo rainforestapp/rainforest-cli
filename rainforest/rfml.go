@@ -60,8 +60,9 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 			if parsedRFTest.RFMLID != "" {
 				return parsedRFTest, &parseError{lineNum, "Only one RFML ID may be specified"}
 			}
-			// Handle shebang
-			parsedRFTest.RFMLID = strings.TrimSpace(line[2:])
+			// Trim shebang and then take only first part of id before any spaces
+			rfmlIDLine := strings.TrimSpace(line[2:])
+			parsedRFTest.RFMLID = strings.Split(rfmlIDLine, " ")[0]
 		} else if strings.HasPrefix(line, "#") {
 			// Handle hashed lines
 			content := line[1:]

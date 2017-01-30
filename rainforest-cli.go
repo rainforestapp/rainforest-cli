@@ -396,9 +396,13 @@ func shuffleFlags(originalArgs []string) []string {
 	// then filter out global flags and put them into separate array than the rest of arg
 	for i := 1; i < len(originalArgs); i++ {
 		option := originalArgs[i]
-		if (option == "--token" || option == "-t") && originalArgs[i+1][:1] != "-" {
-			globalOptions = append(globalOptions, originalArgs[i:i+2]...)
-			i++
+		if option == "--token" || option == "-t" {
+			if i+1 < len(originalArgs) && originalArgs[i+1][:1] != "-" {
+				globalOptions = append(globalOptions, originalArgs[i:i+2]...)
+				i++
+			} else {
+				log.Fatalln("No token specified with --token flag")
+			}
 		} else if option == "--skip-update" {
 			globalOptions = append(globalOptions, option)
 		} else {

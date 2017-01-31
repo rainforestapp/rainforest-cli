@@ -1,6 +1,42 @@
 package main
 
-import "github.com/urfave/cli"
+import (
+	"reflect"
+	"testing"
+
+	"github.com/urfave/cli"
+)
+
+func TestShuffleFlags(t *testing.T) {
+	var testCases = []struct {
+		testArgs []string
+		want     []string
+	}{
+		{
+			testArgs: []string{"./rainforest", "--token", "foobar", "run", "--tags", "tag,bag"},
+			want:     []string{"./rainforest", "--token", "foobar", "run", "--tags", "tag,bag"},
+		},
+		{
+			testArgs: []string{"./rainforest", "run", "--tags", "tag,bag", "--token", "foobar"},
+			want:     []string{"./rainforest", "--token", "foobar", "run", "--tags", "tag,bag"},
+		},
+		{
+			testArgs: []string{"./rainforest", "run", "--tags", "tag,bag", "--token", "foobar", "--site", "123"},
+			want:     []string{"./rainforest", "--token", "foobar", "run", "--tags", "tag,bag", "--site", "123"},
+		},
+		{
+			testArgs: []string{"./rainforest", "--skip-update", "run", "--tags", "tag,bag", "--token", "foobar", "--site", "123"},
+			want:     []string{"./rainforest", "--skip-update", "--token", "foobar", "run", "--tags", "tag,bag", "--site", "123"},
+		},
+	}
+
+	for _, tCase := range testCases {
+		got := shuffleFlags(tCase.testArgs)
+		if !reflect.DeepEqual(tCase.want, got) {
+			t.Errorf("shuffleFlags returned %+v, want %+v", got, tCase.want)
+		}
+	}
+}
 
 // fakeContext is a helper for testing the cli interfacing functions
 type fakeContext struct {

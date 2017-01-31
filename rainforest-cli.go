@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.0.0-alpha.3"
+	version = "2.0.0-alpha.4"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -382,5 +382,37 @@ func main() {
 		},
 	}
 
-	app.Run(os.Args)
+	app.Run(shuffleFlags(os.Args))
+}
+
+// shuffleFlags moves global flags to the beginning of args array (where they are supposed to be),
+// so they are picked up by the cli package, even though they are supplied as a command argument.
+// might not be needed if upstream makes this change as well
+func shuffleFlags(originalArgs []string) []string {
+	globalOptions := []string{}
+	rest := []string{}
+
+	// We need to skip the filename as its arg[0] that's why iteration starts at 1
+	// then filter out global flags and put them into separate array than the rest of arg
+	for i := 1; i < len(originalArgs); i++ {
+		option := originalArgs[i]
+		if option == "--token" || option == "-t" {
+			if i+1 < len(originalArgs) && originalArgs[i+1][:1] != "-" {
+				globalOptions = append(globalOptions, originalArgs[i:i+2]...)
+				i++
+			} else {
+				log.Fatalln("No token specified with --token flag")
+			}
+		} else if option == "--skip-update" {
+			globalOptions = append(globalOptions, option)
+		} else {
+			rest = append(rest, option)
+		}
+	}
+
+	shuffledFlags := []string{originalArgs[0]}
+	shuffledFlags = append(shuffledFlags, globalOptions...)
+	shuffledFlags = append(shuffledFlags, rest...)
+
+	return shuffledFlags
 }

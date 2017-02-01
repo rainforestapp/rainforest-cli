@@ -357,21 +357,21 @@ func main() {
 			Name:  "sites",
 			Usage: "Lists available sites",
 			Action: func(c *cli.Context) error {
-				return printSites(c, api)
+				return printSites(api)
 			},
 		},
 		{
 			Name:  "folders",
 			Usage: "Lists available folders",
 			Action: func(c *cli.Context) error {
-				return printFolders(c, api)
+				return printFolders(api)
 			},
 		},
 		{
 			Name:  "browsers",
 			Usage: "Lists available browsers",
 			Action: func(c *cli.Context) error {
-				return printBrowsers(c, api)
+				return printBrowsers(api)
 			},
 		},
 		{

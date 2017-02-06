@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 1.12.0 - 6th February 2017
+- Add category column to list of sites when using the `sites` command.
+
 ## 1.11.0 - 4th November 2016
 - Add `--single-use` flag for CSV uploads. (17a19694a788365beb59e634bd7286c86528484b, @epaulet)
 

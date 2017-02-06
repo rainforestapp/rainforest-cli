@@ -26,6 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rainforest', '~> 2.1', '>= 2.1.0'
   spec.add_dependency 'http-exceptions', '~> 0.0', '>= 0.0.4'
   spec.add_dependency 'builder', '~> 3.2'
+  spec.add_dependency 'terminal-table', '1.7.3'
   spec.add_development_dependency 'bundler', '~> 1.3'
   spec.add_development_dependency 'rake', '~> 10.4', '>= 10.4.2'
 end

@@ -1,7 +1,12 @@
 # Rainforest CLI Changelog
 
+## 1.12.1 - 7th February 2017
+- Check columns returned from API before uploading rows when creating generators.
+(458fdf5bf3ba28588dfb48d1253192ba477ac7ae, @epaulet)
+
 ## 1.12.0 - 6th February 2017
 - Add category column to list of sites when using the `sites` command.
+(11c24c3484a587b7305dcf279872fa5e5be02b5a, @epaulet)
 
 ## 1.11.0 - 4th November 2016
 - Add `--single-use` flag for CSV uploads. (17a19694a788365beb59e634bd7286c86528484b, @epaulet)

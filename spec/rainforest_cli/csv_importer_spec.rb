@@ -69,6 +69,14 @@ describe RainforestCli::CSVImporter do
 
     it_behaves_like 'it properly uploads variables'
 
+    context 'the API returns the columns in a variable order' do
+      before do
+        success_response['columns'] = success_response['columns'].reverse
+      end
+
+      it_behaves_like 'it properly uploads variables'
+    end
+
     context 'tabular variable with given name already exists' do
       let(:existing_generators) do
         [

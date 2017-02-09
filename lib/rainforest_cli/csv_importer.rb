@@ -24,10 +24,10 @@ module RainforestCli
       end
 
       # Create the generator
-      columns = rows.shift.map do |column|
-        column.downcase.strip.gsub(/\s/, '_')
+      column_names = rows.shift.map do |col_name|
+        col_name.downcase.strip.gsub(/\s/, '_')
       end
-      raise 'Invalid schema in CSV. You must include headers in first row.' if !columns
+      raise 'Invalid schema in CSV. You must include headers in first row.' if !column_names
 
       if @overwrite_variable
         puts 'Checking for existing tabular variables.'
@@ -44,13 +44,13 @@ module RainforestCli
       puts 'Creating new tabular variable'
       response = http_client.post(
         '/generators',
-        { name: @generator_name, description: @generator_name, columns: columns, single_use: @single_use },
+        { name: @generator_name, description: @generator_name, columns: column_names, single_use: @single_use },
         { retries_on_failures: true }
       )
       raise "Error creating tabular variable: #{response['error']}" if response['error']
       puts "\t[OK]"
 
-      columns = response['columns']
+      columns = sort_columns(column_names, response['columns'])
       generator_id = response['id']
       data = rows.map { |row| row_data(columns, row) }
 
@@ -69,6 +69,12 @@ module RainforestCli
         p.increment
       end
       puts 'Upload complete.'
+    end
+
+    def sort_columns(ordered_column_names, columns)
+      ordered_column_names.map do |col_name|
+        columns.find { |col| col['name'] == col_name }
+      end
     end
 
     private

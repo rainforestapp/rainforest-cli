@@ -54,6 +54,12 @@ Run all tests and generate a junit xml report.
 rainforest run all --junit-file results.xml
 ```
 
+Run individual tests in the foreground and report.
+
+```bash
+rainforest run <test_id1> <test_id2>
+```
+
 #### Creating and Managing Tests
 
 Create new Rainforest test in RFML format (Rainforest Markup Language).

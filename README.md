@@ -246,7 +246,7 @@ Run tests in specified folder.
 <pre>--folder <b>ID</b></pre>
 
 ###Environment-ID
-run your tests using this environment. Otherwise it will use your default environment
+Run your tests using this environment. Otherwise it will use your default environment
 <pre>--environment-id <b>ID</b></pre>
 
 ###Crowd
@@ -265,19 +265,19 @@ Wait for an existing run to finish instead of starting a new one, and exit with 
 <pre>--wait <b>RUN_ID</b></pre>
 
 ###Fail-fast
-fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Use with --fg.
+Fail the build (by exiting with a status of zero) as soon as the first failed result comes in. If you don't pass this rainforest will wait until 100% of the run is complete before failing your build. Note, this _only_ fails your buil - it does not abort your rainforest run. Use with --fg.
 <pre>--fail-fast</pre>
-###Custom URL
 
-use a custom url for this run. Example use case: an ad-hoc QA environment with Fourchette. You will need to specify a site_id too for this to work. Note that we will be creating a new environment for this particular run.
+###Custom URL
+Use a custom url for this run. Example use case: an ad-hoc QA environment with Fourchette. You will need to specify a site_id too for this to work. Note that we will be creating a new environment for this particular run.
 <pre>--custom-url</pre>
 
 ###Git-trigger
-only trigger a run when the last commit (for a git repo in the current working directory) has contains @rainforest and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged checkout. This over-rides --tag and any tests specified. If no @rainforest is detected it will exit 0.
+Only trigger a run when the last commit (for a git repo in the current working directory) has contains @rainforest and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged checkout. This over-rides --tag and any tests specified. If no @rainforest is detected it will exit 0.
 <pre>--git-trigger</pre>
 
 ###Description "CI automatic run"
-add an arbitrary description for the run.
+Add an arbitrary description for the run.
 <pre>--description "CI automatic run"</pre>
 
 ###Embed-tests

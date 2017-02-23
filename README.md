@@ -265,7 +265,7 @@ Wait for an existing run to finish instead of starting a new one, and exit with 
 <pre>--wait <b>RUN_ID</b></pre>
 
 ###Fail-fast
-Fail the build (by exiting with a status of zero) as soon as the first failed result comes in. If you don't pass this rainforest will wait until 100% of the run is complete before failing your build. Note, this _only_ fails your buil - it does not abort your rainforest run. Use with --fg.
+Fail the build (by exiting with a status of zero) as soon as a test is confirmed failed. If you don't pass this ``rainforest`` will wait until 100% of the run is complete before failing your build. Note, this _only_ fails your build - this does not abort your rainforest run. Use with --fg.
 <pre>--fail-fast</pre>
 
 ###Custom URL

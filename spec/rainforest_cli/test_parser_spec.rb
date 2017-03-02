@@ -12,8 +12,7 @@ describe RainforestCli::TestParser do
     end
 
     describe '#process' do
-      let(:parsed_test) { subject.process }
-      let(:parsed_step) { parsed_test.steps.first }
+      let(:parsed_test) { described_class.new(file_name).process }
 
       describe 'parsing comments' do
         it 'properly identifies comments' do
@@ -28,7 +27,18 @@ describe RainforestCli::TestParser do
         end
 
         it 'properly parses step metadata' do
+          parsed_step = parsed_test.steps.first
           expect(parsed_step.redirect).to eq('false')
+        end
+      end
+
+      describe 'errors' do
+        context 'no title' do
+          let(:file_name) { './spec/validation-examples/parse_errors/no_title.rfml' }
+
+          specify do
+            expect(parsed_test.errors[:title]).to_not be_nil
+          end
         end
       end
     end

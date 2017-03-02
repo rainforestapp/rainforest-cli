@@ -5,9 +5,12 @@ module RainforestCli::TestParser
   require 'rainforest_cli/test_parser/step'
   require 'rainforest_cli/test_parser/embedded_test'
 
-  class Error < Struct.new(:line, :reason)
+  class Error < Struct.new(:location, :reason)
     def to_s
-      "Line #{line}: #{reason}"
+      case location
+      when Integer then "Line #{location}: #{reason}"
+      when Symbol, String then "Field #{location}: #{reason}"
+      end
     end
   end
 
@@ -98,7 +101,14 @@ module RainforestCli::TestParser
       end
 
       if @test.rfml_id == nil
-        @test.errors[0] = Error.new(0, 'Missing RFML ID. Please start a line #! followed by a unique id.')
+        @test.errors[:rfml_id] = Error.new(:rfml_id, 'Missing RFML ID. Please start a line #! followed by a unique id.')
+      end
+
+      if @test.title.nil? || @test.title.empty?
+        @test.errors[:title] = Error.new(
+          :title,
+          'Missing Title for test. Please start a line with "# title: " and specify your test title.',
+        )
       end
 
       return @test

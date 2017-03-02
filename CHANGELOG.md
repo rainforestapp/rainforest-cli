@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 1.12.3 - 24th February 2017
+- Validate RFML tests for a title.
+(beb439a3d2c12f618d6b4b00a3a08f1e37bbbe7a, @epaulet)
+
 ## 1.12.2 - 23rd February 2017
 - Default `start_uri` attribute to "/" if omitted from RFML test.
 (ec6049407ec635b7f7bc4f8da516ccddad2b78b3, @epaulet)

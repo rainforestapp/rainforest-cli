@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 1.12.2 - 23rd February 2017
+- Default `start_uri` attribute to "/" if omitted from RFML test.
+(ec6049407ec635b7f7bc4f8da516ccddad2b78b3, @epaulet)
+
 ## 1.12.1 - 7th February 2017
 - Check columns returned from API before uploading rows when creating generators.
 (458fdf5bf3ba28588dfb48d1253192ba477ac7ae, @epaulet)

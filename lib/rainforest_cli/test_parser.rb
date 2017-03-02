@@ -19,6 +19,7 @@ module RainforestCli::TestParser
 
       @test = Test.new
       @test.file_name = File.expand_path(file_name)
+      @test.start_uri = '/'
       @test.description = ''
       @test.steps = []
       @test.errors = {}

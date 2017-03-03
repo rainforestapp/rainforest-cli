@@ -167,7 +167,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 	}
 
 	if parsedRFTest.Title == "" {
-		return parsedRFTest, &parseError{"# title", "Title is required for .rfml files. Specify it using \"# title\" followed by your test's title."}
+		return parsedRFTest, &parseError{"# title", "Title is required for .rfml files. Specify it using \"# title: \" followed by your test's title."}
 	}
 
 	return parsedRFTest, nil

@@ -1,6 +1,10 @@
 # Rainforest CLI Changelog
 
-## 1.12.3 - 24th February 2017
+## 1.12.4 - 4th March 2017
+- Lower threads used in HTTP requests to 4 for more stability.
+(ce01a1defa8b9a5e523af0bc5797a5eef365e4e1, @epaulet)
+
+## 1.12.3 - 3rd March 2017
 - Validate RFML tests for a title.
 (beb439a3d2c12f618d6b4b00a3a08f1e37bbbe7a, @epaulet)
 

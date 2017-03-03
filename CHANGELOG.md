@@ -1,6 +1,6 @@
 # Rainforest CLI Changelog
 
-## 1.12.3 - 24th February 2017
+## 1.12.3 - 3rd March 2017
 - Validate RFML tests for a title.
 (beb439a3d2c12f618d6b4b00a3a08f1e37bbbe7a, @epaulet)
 

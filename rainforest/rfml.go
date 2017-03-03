@@ -26,12 +26,18 @@ type RFMLReader struct {
 
 // parseError is a custom error implementing error interface for reporting RFML parsing errors.
 type parseError struct {
-	line   int
-	reason string
+	location string
+	reason   string
 }
 
 func (e *parseError) Error() string {
-	return fmt.Sprintf("RFML parsing error in line %v: %v", e.line, e.reason)
+	if _, err := strconv.Atoi(e.location); err == nil {
+		// location is a line number
+		return fmt.Sprintf("RFML parsing error in line %v: %v", e.location, e.reason)
+	} else {
+		// location is a field
+		return fmt.Sprintf("RFML parsing error for test field \"%v\": %v", e.location, e.reason)
+	}
 }
 
 // NewRFMLReader returns RFML parser based on passed io.Reader - typically a RFML file.
@@ -55,10 +61,12 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 	currStepRedirect := r.RedirectDefault
 	for scanner.Scan() {
 		lineNum++
+		lineNumStr := strconv.Itoa(lineNum)
+
 		line := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(line, "#!") {
 			if parsedRFTest.RFMLID != "" {
-				return parsedRFTest, &parseError{lineNum, "Only one RFML ID may be specified"}
+				return parsedRFTest, &parseError{lineNumStr, "Only one RFML ID may be specified"}
 			}
 			// Trim shebang and then take only first part of id before any spaces
 			rfmlIDLine := strings.TrimSpace(line[2:])
@@ -79,7 +87,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 				case "site_id":
 					siteID, err := strconv.Atoi(value)
 					if err != nil {
-						return parsedRFTest, &parseError{lineNum, "Site ID must be a valid integer"}
+						return parsedRFTest, &parseError{lineNumStr, "Site ID must be a valid integer"}
 					}
 					parsedRFTest.SiteID = siteID
 				case "tags":
@@ -99,7 +107,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 				case "redirect":
 					redirect, err := strconv.ParseBool(value)
 					if err != nil {
-						return parsedRFTest, &parseError{lineNum, "Redirect value must be a valid boolean"}
+						return parsedRFTest, &parseError{lineNumStr, "Redirect value must be a valid boolean"}
 					}
 					currStepRedirect = redirect
 				default:
@@ -128,7 +136,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 				if strings.Contains(line, "?") {
 					currStep = append(currStep, line)
 				} else {
-					return parsedRFTest, &parseError{lineNum, "Each step must contain a question, with a `?`"}
+					return parsedRFTest, &parseError{lineNumStr, "Each step must contain a question, with a `?`"}
 				}
 			case 2:
 				if line == "" {
@@ -138,7 +146,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 					currStep = make([]string, 0, 2)
 					currStepRedirect = r.RedirectDefault
 				} else {
-					return parsedRFTest, &parseError{lineNum, "Steps must be separated with empty lines"}
+					return parsedRFTest, &parseError{lineNumStr, "Steps must be separated with empty lines"}
 				}
 			}
 		}
@@ -146,7 +154,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 
 	// Check if parsing stopped before adding a step
 	if len(currStep) == 1 {
-		return parsedRFTest, &parseError{lineNum, "Must have a corresponding question with your action."}
+		return parsedRFTest, &parseError{strconv.Itoa(lineNum), "Must have a corresponding question with your action."}
 	}
 
 	if len(currStep) == 2 {
@@ -155,8 +163,13 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 	}
 
 	if parsedRFTest.RFMLID == "" {
-		return parsedRFTest, &parseError{1, "RFML ID is required for .rfml files, specify it using #!"}
+		return parsedRFTest, &parseError{"#!", "RFML ID is required for .rfml files. Specify it using #! followed by a unique RFML ID"}
 	}
+
+	if parsedRFTest.Title == "" {
+		return parsedRFTest, &parseError{"# title", "Title is required for .rfml files. Specify it using \"# title\" followed by your test's title."}
+	}
+
 	return parsedRFTest, nil
 }
 

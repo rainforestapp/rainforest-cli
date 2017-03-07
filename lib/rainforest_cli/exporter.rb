@@ -81,16 +81,19 @@ class RainforestCli::Exporter
   end
 
   def get_header(test)
-    browsers = test['browsers'].map { |b| b['name'] if b['state'] == 'enabled' }.compact
-    <<-EOF
+    header = <<-EOF
 #! #{test['rfml_id']}
 # title: #{test['title']}
 # start_uri: #{test['start_uri']}
-# tags: #{test['tags'].join(", ")}
-# browsers: #{browsers.join(", ")}
-#
-
+# site_id: #{test['site_id']}
     EOF
+
+    header += "# tags: #{test['tags'].join(', ')}\n" if test['tags'].any?
+
+    browsers = test['browsers'].map { |b| b['name'] if b['state'] == 'enabled' }.compact
+    header += "# browsers: #{browsers.join(', ')}\n" if browsers.any?
+    header += "\n"
+    header
   end
 
   def http_client

@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 1.12.5 - 7th March 2017
+- Include site ID for exported tests.
+(1816af9406013ac7594765822f73066adf332cf1, @epaulet)
+
 ## 1.12.4 - 4th March 2017
 - Lower threads used in HTTP requests to 4 for more stability.
 (ce01a1defa8b9a5e523af0bc5797a5eef365e4e1, @epaulet)

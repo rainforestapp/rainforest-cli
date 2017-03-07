@@ -80,11 +80,13 @@ describe RainforestCli::Exporter do
       ]
     end
     let(:single_test_id) { 123 }
+    let(:single_test_site_id) { 987 }
     let(:single_test) do
       {
         'id' => single_test_id,
         'title' => 'Test title',
         'start_uri' => '/uri',
+        'site_id' => single_test_site_id,
         'tags' => ['foo', 'bar'],
         'browsers' => [
           { 'name' => 'chrome', 'state' => 'enabled' },
@@ -121,12 +123,18 @@ describe RainforestCli::Exporter do
       expect(file).to_not include("- #{embedded_rfml_id}")
     end
 
-    it 'print enabled browsers only' do
+    it 'prints enabled browsers only' do
       subject.export
-      comments = file[0]
-      expect(comments).to include('chrome')
-      expect(comments).to include('safari')
-      expect(comments).to_not include('firefox')
+      meta_data = file[0]
+      expect(meta_data).to include('chrome')
+      expect(meta_data).to include('safari')
+      expect(meta_data).to_not include('firefox')
+    end
+
+    it 'prints site id' do
+      subject.export
+      meta_data = file[0]
+      expect(meta_data).to include("# site_id: #{single_test_site_id}")
     end
 
     context 'action and/or question contain newlines' do

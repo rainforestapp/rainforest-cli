@@ -596,7 +596,7 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 			}
 
 			paddedTestID := fmt.Sprintf("%010d", test.TestID)
-			sanitizedTitle := strings.TrimSpace(test.Title)
+			sanitizedTitle := sanitizeTestTitle(test.Title)
 			fileName := fmt.Sprintf("%v_%v.rfml", paddedTestID, sanitizedTitle)
 			rfmlFilePath := filepath.Join(absTestDirectory, fileName)
 
@@ -652,6 +652,12 @@ func prepareTestDirectory(testDir string) (string, error) {
 	}
 
 	return absTestDirectory, nil
+}
+
+func sanitizeTestTitle(title string) string {
+	title = strings.TrimSpace(title)
+	title = strings.Replace(title, " ", "_", -1)
+	return strings.Replace(title, string(filepath.Separator), "_", -1)
 }
 
 func testCreationWorker(api *rainforest.Client,

@@ -276,7 +276,7 @@ func main() {
 			Usage:     "Download your remote Rainforest tests to RFML",
 			ArgsUsage: "[test IDs]",
 			Description: "Download your remote tests from Rainforest to RFML. " +
-				"You need to specify list of test IDs or download all tests by default. " +
+				"You may specify list of test IDs or download all tests by default. " +
 				"Alternatively you can use one of the filtering options.",
 			Flags: []cli.Flag{
 				cli.StringSliceFlag{

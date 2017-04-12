@@ -592,7 +592,7 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 		case test := <-testChan:
 			err = test.PrepareToWriteAsRFML(mappings)
 			if err != nil {
-				return err
+				return cli.NewExitError(err.Error(), 1)
 			}
 
 			paddedTestID := fmt.Sprintf("%010d", test.TestID)
@@ -603,14 +603,14 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 			var file *os.File
 			file, err = os.Create(rfmlFilePath)
 			if err != nil {
-				return err
+				return cli.NewExitError(err.Error(), 1)
 			}
 
 			writer := rainforest.NewRFMLWriter(file)
 			err = writer.WriteRFMLTest(test)
 			file.Close()
 			if err != nil {
-				return err
+				return cli.NewExitError(err.Error(), 1)
 			}
 
 			log.Printf("Downloaded RFML test to %v", rfmlFilePath)

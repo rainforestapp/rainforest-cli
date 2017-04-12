@@ -34,6 +34,9 @@ type Client struct {
 
 	// Client token used for authenticating requests made to the RF
 	ClientToken string
+
+	// Save HTTP Response Headers
+	LastResponseHeaders http.Header
 }
 
 // NewClient constructs a new rainforest API Client. As a parameter takes client token
@@ -50,7 +53,7 @@ func NewClient(token string) *Client {
 		baseURL, _ = url.Parse(currentBaseURL)
 	}
 
-	return &Client{client: http.DefaultClient, BaseURL: baseURL, ClientToken: token}
+	return &Client{client: http.DefaultClient, BaseURL: baseURL, ClientToken: token, LastResponseHeaders: http.Header{}}
 }
 
 // NewRequest creates an API request. Provided url will be resolved using ResolveReference,
@@ -148,6 +151,8 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 	if out != nil {
 		err = json.NewDecoder(res.Body).Decode(out)
 	}
+
+	c.LastResponseHeaders = res.Header
 
 	return res, err
 }

@@ -592,25 +592,25 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 		case test := <-testChan:
 			err = test.PrepareToWriteAsRFML(mappings)
 			if err != nil {
-				return err
+				return cli.NewExitError(err.Error(), 1)
 			}
 
 			paddedTestID := fmt.Sprintf("%010d", test.TestID)
-			sanitizedTitle := strings.TrimSpace(test.Title)
+			sanitizedTitle := sanitizeTestTitle(test.Title)
 			fileName := fmt.Sprintf("%v_%v.rfml", paddedTestID, sanitizedTitle)
 			rfmlFilePath := filepath.Join(absTestDirectory, fileName)
 
 			var file *os.File
 			file, err = os.Create(rfmlFilePath)
 			if err != nil {
-				return err
+				return cli.NewExitError(err.Error(), 1)
 			}
 
 			writer := rainforest.NewRFMLWriter(file)
 			err = writer.WriteRFMLTest(test)
 			file.Close()
 			if err != nil {
-				return err
+				return cli.NewExitError(err.Error(), 1)
 			}
 
 			log.Printf("Downloaded RFML test to %v", rfmlFilePath)
@@ -652,6 +652,11 @@ func prepareTestDirectory(testDir string) (string, error) {
 	}
 
 	return absTestDirectory, nil
+}
+
+func sanitizeTestTitle(title string) string {
+	title = strings.TrimSpace(title)
+	return strings.Replace(title, string(filepath.Separator), "_", -1)
 }
 
 func testCreationWorker(api *rainforest.Client,

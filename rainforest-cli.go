@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.0.0"
+	version = "2.0.1"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -276,7 +276,7 @@ func main() {
 			Usage:     "Download your remote Rainforest tests to RFML",
 			ArgsUsage: "[test IDs]",
 			Description: "Download your remote tests from Rainforest to RFML. " +
-				"You need to specify list of test IDs to download or use keyword 'all'. " +
+				"You may specify list of test IDs or download all tests by default. " +
 				"Alternatively you can use one of the filtering options.",
 			Flags: []cli.Flag{
 				cli.StringSliceFlag{

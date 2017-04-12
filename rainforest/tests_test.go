@@ -42,13 +42,14 @@ func TestGetTests(t *testing.T) {
 
 	// Empty query
 	rfFilters := RFTestFilters{}
-	expectedQuery := url.Values{}
+	expectedQuery := url.Values{"page": []string{"1"}, "page_size": []string{"50"}}
 	mux.HandleFunc("/tests", func(w http.ResponseWriter, r *http.Request) {
 		receivedQuery := r.URL.Query()
 		if !reflect.DeepEqual(expectedQuery, receivedQuery) {
 			t.Errorf("Unexpected query sent to Rainforest API. Got %v, want %v", receivedQuery, expectedQuery)
 		}
 
+		w.Header().Add("X-Total-Pages", "1")
 		w.Write([]byte("[]"))
 	})
 
@@ -64,10 +65,46 @@ func TestGetTests(t *testing.T) {
 		SmartFolderID: 321,
 	}
 	expectedQuery = url.Values{
+		"page":            []string{"1"},
+		"page_size":       []string{"50"},
 		"tags":            rfFilters.Tags,
 		"site_id":         []string{strconv.Itoa(rfFilters.SiteID)},
 		"smart_folder_id": []string{strconv.Itoa(rfFilters.SmartFolderID)},
 	}
+
+	_, err = client.GetTests(&rfFilters)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	// Multiple pages of tests
+	cleanup()
+	setup()
+
+	currentPage := 1
+	totalPages := 5
+	mux.HandleFunc("/tests", func(w http.ResponseWriter, r *http.Request) {
+		if currentPage > totalPages {
+			t.Errorf("Page size received is greater than total pages: %v", currentPage)
+		}
+
+		receivedQuery := r.URL.Query()
+		if receivedPageSize := receivedQuery.Get("page_size"); receivedPageSize != "50" {
+			t.Errorf("Unexpected page size query: %v", receivedPageSize)
+		}
+
+		if receivedPage := receivedQuery.Get("page"); receivedPage != strconv.Itoa(currentPage) {
+			t.Errorf("Expected page received. Expected %v, Got %v", currentPage, receivedPage)
+		}
+
+		currentPage++
+
+		w.Header().Add("X-Total-Pages", "1")
+		w.Write([]byte("[]"))
+	})
+
+	rfFilters = RFTestFilters{}
+	expectedQuery = url.Values{"page": []string{"1"}, "page_size": []string{"50"}}
 
 	_, err = client.GetTests(&rfFilters)
 	if err != nil {

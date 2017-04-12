@@ -314,6 +314,10 @@ func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
 		tests = append(tests, testResp...)
 
 		totalPagesHeader := c.LastResponseHeaders.Get("X-Total-Pages")
+		if totalPagesHeader == "" {
+			return nil, fmt.Errorf("Rainforest API error: Total pages header missing from response")
+		}
+
 		totalPages, err := strconv.Atoi(totalPagesHeader)
 		if err != nil {
 			return nil, err

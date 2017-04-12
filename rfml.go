@@ -656,7 +656,6 @@ func prepareTestDirectory(testDir string) (string, error) {
 
 func sanitizeTestTitle(title string) string {
 	title = strings.TrimSpace(title)
-	title = strings.Replace(title, " ", "_", -1)
 	return strings.Replace(title, string(filepath.Separator), "_", -1)
 }
 

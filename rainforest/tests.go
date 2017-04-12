@@ -255,6 +255,8 @@ type RFTestFilters struct {
 }
 
 func (f *RFTestFilters) toQuery() string {
+	// Empty slices are ignored by the Encode function, so no need to check for
+	// presence here.
 	v := url.Values{"tags": f.Tags}
 	if f.SiteID > 0 {
 		v.Add("site_id", strconv.Itoa(f.SiteID))
@@ -286,19 +288,47 @@ func (c *Client) GetRFMLIDs() (TestIDMappings, error) {
 
 // GetTests returns all tests that are optionally filtered by RFTestFilters
 func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
-	testsURL := "tests?" + params.toQuery()
-	req, err := c.NewRequest("GET", testsURL, nil)
-	if err != nil {
-		return nil, err
-	}
+	tests := []RFTest{}
+	page := 1
 
-	var testResp []RFTest
-	_, err = c.Do(req, &testResp)
-	if err != nil {
-		return nil, err
-	}
+	for {
+		testsURL := "tests?page_size=50&page=" + strconv.Itoa(page)
 
-	return testResp, nil
+		queryString := params.toQuery()
+		if queryString != "" {
+			testsURL = testsURL + "&" + queryString
+		}
+
+		req, err := c.NewRequest("GET", testsURL, nil)
+
+		if err != nil {
+			return nil, err
+		}
+
+		var testResp []RFTest
+		_, err = c.Do(req, &testResp)
+		if err != nil {
+			return nil, err
+		}
+
+		tests = append(tests, testResp...)
+
+		totalPagesHeader := c.LastResponseHeaders.Get("X-Total-Pages")
+		if totalPagesHeader == "" {
+			return nil, fmt.Errorf("Rainforest API error: Total pages header missing from response")
+		}
+
+		totalPages, err := strconv.Atoi(totalPagesHeader)
+		if err != nil {
+			return nil, err
+		}
+
+		if page == totalPages {
+			return tests, nil
+		} else {
+			page++
+		}
+	}
 }
 
 // GetTest gets a test from RF specified by the given test ID

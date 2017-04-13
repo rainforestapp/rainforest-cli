@@ -2,9 +2,9 @@
 
 # Rainforest-cli
 
-A command line interface to interact with RainforestQA.
+A command line interface to interact with [Rainforest QA](https://www.rainforestqa.com/).
 
-This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation](http://support.rainforestqa.com/hc/en-us/articles/205876128-Continuous-Integration) on the subject.
+This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation](https://intercom.help/rainforest/developer-tools/cli-docs/rainforest-cli-for-continuous-integration) on the subject.
 
 ## Installation
 

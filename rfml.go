@@ -654,9 +654,20 @@ func prepareTestDirectory(testDir string) (string, error) {
 	return absTestDirectory, nil
 }
 
+var illegalFilenameStrs = []string{"\\", "/", ":", "<", ">", "\"", "|", "?", "*", " "}
+
 func sanitizeTestTitle(title string) string {
 	title = strings.TrimSpace(title)
-	return strings.Replace(title, string(filepath.Separator), "_", -1)
+	title = strings.ToLower(title)
+
+	replacerList := make([]string, len(illegalFilenameStrs)*2)
+	for idx, illegalStr := range illegalFilenameStrs {
+		replacerList[idx*2] = illegalStr
+		replacerList[idx*2+1] = "_"
+	}
+
+	r := strings.NewReplacer(replacerList...)
+	return r.Replace(title)
 }
 
 func testCreationWorker(api *rainforest.Client,

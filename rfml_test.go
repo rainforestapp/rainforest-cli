@@ -287,13 +287,19 @@ func TestDownloadRFML(t *testing.T) {
 	}
 
 	paddedTestID := fmt.Sprintf("%010d", testID)
-	sanitizedTitle := strings.TrimSpace(title)
+	sanitizedTitle := "my_test_title"
 	expectedFileName := fmt.Sprintf("%v_%v.rfml", paddedTestID, sanitizedTitle)
 	expectedRFMLPath := filepath.Join(testDefaultSpecFolder, expectedFileName)
 
-	_, err = os.Stat(expectedRFMLPath)
+	fileInfo, err := os.Stat(expectedRFMLPath)
 	if os.IsNotExist(err) {
 		t.Fatalf("Expected RFML test does not exist: %v", expectedRFMLPath)
+	}
+
+	if fileInfo.Name() != expectedFileName {
+		t.Errorf("Expected RFML file path %v, got %v", expectedRFMLPath, fileInfo.Name())
+	} else if err != nil {
+		t.Fatalf(err.Error())
 	}
 
 	var contents []byte
@@ -310,5 +316,15 @@ func TestDownloadRFML(t *testing.T) {
 
 	if !strings.Contains(rfmlText, rfmlID) {
 		t.Errorf("Expected RFML ID \"%v\" to appear in RFML test", rfmlID)
+	}
+}
+
+func TestSanitizeTestTitle(t *testing.T) {
+	illegalTitle := "Foo\\foo/\\foo:foo <foo>foo\"Foo|fOO?foo|*foo foo "
+	sanitizedTitle := sanitizeTestTitle(illegalTitle)
+	expectedSanitizedTitle := "foo_foo__foo_foo__foo_foo_foo_foo_foo__foo_foo"
+
+	if sanitizedTitle != expectedSanitizedTitle {
+		t.Errorf("Expected sanitized title to be %v, got %v", expectedSanitizedTitle, sanitizedTitle)
 	}
 }

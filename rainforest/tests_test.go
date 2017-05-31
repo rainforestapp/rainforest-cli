@@ -2,6 +2,8 @@ package rainforest
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -160,5 +162,54 @@ func TestHasUploadableFiles(t *testing.T) {
 	}
 	if test.HasUploadableFiles() {
 		t.Error("Test should not have any uploadable files without an argument")
+	}
+}
+
+func TestUpdateTest(t *testing.T) {
+	setup()
+	defer cleanup()
+
+	var expectedReceivedTest RFTest
+
+	mux.HandleFunc("/tests/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "PUT" {
+			t.Errorf("Incorrect HTTP method - expected PUT, got %v", r.Method)
+			return
+		}
+
+		data, err := ioutil.ReadAll(r.Body)
+		fmt.Println(string(data))
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+		}
+
+		receivedTest := RFTest{}
+		json.Unmarshal(data, &receivedTest)
+
+		if !reflect.DeepEqual(receivedTest, expectedReceivedTest) {
+			t.Errorf("Unexpected test data received.\nExpected: %#v\nGot: %#v", expectedReceivedTest, receivedTest)
+		}
+	})
+
+	rfTest := RFTest{
+		TestID:   123,
+		RFMLID:   "an_rfml_id",
+		Title:    "a title",
+		StartURI: "/",
+	}
+
+	expectedReceivedTest = RFTest{
+		TestID:   123,
+		RFMLID:   "an_rfml_id",
+		Title:    "a title",
+		StartURI: "/",
+		Browsers: []string{},
+		Tags:     []string{},
+	}
+
+	err := client.UpdateTest(&rfTest)
+	if err != nil {
+		t.Error(err.Error())
 	}
 }

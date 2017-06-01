@@ -176,6 +176,37 @@ func TestReadAll(t *testing.T) {
 	} else if !strings.Contains(err.Error(), "# title") {
 		t.Errorf("Wrong error reported. Expected error for title field. Returned error: %v", err.Error())
 	}
+
+	// Empty browser and tag list
+	testText = fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+# browsers:
+# tags:
+
+%v
+%v`,
+		validTestValues.RFMLID,
+		validTestValues.Title,
+		validTestValues.StartURI,
+		validSteps[0].(RFTestStep).Action,
+		validSteps[0].(RFTestStep).Response,
+	)
+
+	r = strings.NewReader(testText)
+	reader = NewRFMLReader(r)
+	rfTest, err = reader.ReadAll()
+	if err != nil {
+		t.Fatalf("Unexpected error from ReadAll: %v", err.Error())
+	}
+
+	if browserCount := len(rfTest.Browsers); browserCount != 0 {
+		t.Fatalf("Unexpected browsers, expected 0, got %v: %v", browserCount, rfTest.Browsers)
+	}
+
+	if tagCount := len(rfTest.Tags); tagCount != 0 {
+		t.Fatalf("Unexpected tags, expected 0, got %v: %v", tagCount, rfTest.Tags)
+	}
 }
 
 func TestWriteRFMLTest(t *testing.T) {

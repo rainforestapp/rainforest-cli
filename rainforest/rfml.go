@@ -91,6 +91,12 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 					}
 					parsedRFTest.SiteID = siteID
 				case "tags":
+					// If you split the empty string instead, you will get: []string{""}
+					if len(value) == 0 {
+						parsedRFTest.Tags = []string{}
+						continue
+					}
+
 					splitTags := strings.Split(value, ",")
 					strippedTags := make([]string, len(splitTags))
 					for i, tag := range splitTags {
@@ -98,6 +104,12 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 					}
 					parsedRFTest.Tags = strippedTags
 				case "browsers":
+					// If you split the empty string instead, you will get: []string{""}
+					if len(value) == 0 {
+						parsedRFTest.Browsers = []string{}
+						continue
+					}
+
 					splitBrowsers := strings.Split(value, ",")
 					strippedBrowsers := make([]string, len(splitBrowsers))
 					for i, tag := range splitBrowsers {

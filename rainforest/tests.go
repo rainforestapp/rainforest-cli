@@ -47,8 +47,8 @@ type RFTest struct {
 	StartURI    string                   `json:"start_uri"`
 	SiteID      int                      `json:"site_id,omitempty"`
 	Description string                   `json:"description,omitempty"`
-	Tags        []string                 `json:"tags,omitempty"`
-	BrowsersMap []map[string]interface{} `json:"browsers,omitempty"`
+	Tags        []string                 `json:"tags"`
+	BrowsersMap []map[string]interface{} `json:"browsers"`
 	Elements    []testElement            `json:"elements,omitempty"`
 
 	// Browsers and Steps are helper fields
@@ -75,10 +75,6 @@ type testElementDetails struct {
 
 // mapBrowsers fills the browsers field with format recognized by the API
 func (t *RFTest) mapBrowsers() {
-	// if there are no browsers skip mapping
-	if len(t.Browsers) == 0 {
-		return
-	}
 	t.BrowsersMap = make([]map[string]interface{}, len(t.Browsers))
 	for i, browser := range t.Browsers {
 		mappedBrowser := map[string]interface{}{
@@ -91,11 +87,7 @@ func (t *RFTest) mapBrowsers() {
 
 // unmapBrowsers parses browsers from the API format to internal go one
 func (t *RFTest) unmapBrowsers() {
-	// if there are no browsers skip unmapping
-	if len(t.BrowsersMap) == 0 {
-		return
-	}
-
+	t.Browsers = []string{}
 	for _, browserMap := range t.BrowsersMap {
 		if browserMap["state"] == "enabled" {
 			t.Browsers = append(t.Browsers, browserMap["name"].(string))
@@ -161,6 +153,12 @@ func (t *RFTest) PrepareToUploadFromRFML(mappings TestIDMappings) error {
 	if t.StartURI == "" {
 		t.StartURI = "/"
 	}
+
+	// prevent []string(nil) as a value for Tags
+	if len(t.Tags) == 0 {
+		t.Tags = []string{}
+	}
+
 	t.mapBrowsers()
 	err := t.marshallElements(mappings)
 	if err != nil {

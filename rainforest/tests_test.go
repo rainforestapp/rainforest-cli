@@ -2,10 +2,12 @@ package rainforest
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -160,5 +162,123 @@ func TestHasUploadableFiles(t *testing.T) {
 	}
 	if test.HasUploadableFiles() {
 		t.Error("Test should not have any uploadable files without an argument")
+	}
+}
+
+func TestUpdateTest(t *testing.T) {
+	// Test just the required attributes
+	rfTest := RFTest{
+		TestID:   123,
+		RFMLID:   "an_rfml_id",
+		Title:    "a title",
+		StartURI: "/",
+	}
+	rfTest.PrepareToUploadFromRFML(TestIDMappings{})
+
+	setup()
+	defer cleanup()
+
+	var data []byte
+	var err error
+	var bodyStr string
+	mux.HandleFunc("/tests/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "PUT" {
+			t.Errorf("Incorrect HTTP method - expected PUT, got %v", r.Method)
+			return
+		}
+
+		data, err = ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+		}
+
+		bodyStr = string(data)
+		if !strings.Contains(bodyStr, "\"id\":123") {
+			t.Errorf("Correct test ID not received. Got: %v", bodyStr)
+		} else if !strings.Contains(bodyStr, "\"rfml_id\":\"an_rfml_id\"") {
+			t.Errorf("Unexpected RFML ID received. Expected: \"an_rfml_id\", Got: %v", bodyStr)
+		} else if !strings.Contains(bodyStr, "\"title\":\"a title\"") {
+			t.Errorf("Unexpected title received. Expected: \"a title\", Got:%v", bodyStr)
+		} else if !strings.Contains(bodyStr, "\"start_uri\":\"/\"") {
+			t.Errorf("Unexpected start URI received. Expected: \"/\", Got:%v", bodyStr)
+		} else if !strings.Contains(bodyStr, "\"browsers\":[]") {
+			t.Errorf("Unexpected browsers parameter received. Got:%v", bodyStr)
+		} else if !strings.Contains(bodyStr, "\"tags\":[]") {
+			t.Errorf("Unexpected tags parameter received. Got:%v", bodyStr)
+		}
+	})
+
+	err = client.UpdateTest(&rfTest)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	// // With extra attributes
+	rfTest.Browsers = []string{"chrome", "firefox"}
+	rfTest.Tags = []string{"foo", "bar"}
+	rfTest.mapBrowsers()
+
+	cleanup()
+	setup()
+
+	mux.HandleFunc("/tests/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "PUT" {
+			t.Errorf("Incorrect HTTP method - expected PUT, got %v", r.Method)
+			return
+		}
+
+		var data []byte
+		data, err = ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+		}
+		bodyStr = string(data)
+
+		if !strings.Contains(bodyStr, "\"name\":\"chrome\"") || !strings.Contains(bodyStr, "\"name\":\"firefox\"") {
+			t.Errorf("Unexpected browsers received. Expected: \"chrome\", \"firefox\", Got:%v", bodyStr)
+		} else if !strings.Contains(bodyStr, "\"tags\":[\"foo\",\"bar\"]") {
+			t.Errorf("Unexpected browsers received. Expected: \"foo\", \"bar\", Got:%v", bodyStr)
+		}
+	})
+
+	err = client.UpdateTest(&rfTest)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	// Empty browsers and tags list
+	rfTest.Browsers = []string{}
+	rfTest.Tags = []string{}
+	rfTest.mapBrowsers()
+
+	cleanup()
+	setup()
+
+	mux.HandleFunc("/tests/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "PUT" {
+			t.Errorf("Incorrect HTTP method - expected PUT, got %v", r.Method)
+			return
+		}
+
+		var data []byte
+		data, err = ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+		}
+		bodyStr = string(data)
+
+		if !strings.Contains(bodyStr, "\"browsers\":[]") {
+			t.Errorf("Unexpected browsers received. Expected: [], Got: %v", bodyStr)
+		} else if !strings.Contains(bodyStr, "\"tags\":[]") {
+			t.Errorf("Unexpected tags received. Expected: [], Got: %v", bodyStr)
+		}
+	})
+
+	err = client.UpdateTest(&rfTest)
+	if err != nil {
+		t.Error(err.Error())
 	}
 }

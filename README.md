@@ -211,7 +211,8 @@ Optional Fields:
 site IDs with the `sites` command. Sites can be configured at
 https://app.rainforestqa.com/settings/sites.
 - `BROWSER IDS` - Comma separated list of browsers for this test. You can reference
-your available browsers with the `browsers` command.
+your available browsers with the `browsers` command. If left empty or omitted,
+your test will default to using your account's default browsers.
 - `TAGS` - Comma separated list of your desired tags for this test.
 - `OTHER COMMENTS` - Any comments you'd like to save to this test. All lines beginning with
 `#` will be ignored by Rainforest unless they begin with a supported data field,

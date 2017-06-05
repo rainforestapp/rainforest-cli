@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -369,19 +370,25 @@ func TestParseEmbeddedFiles(t *testing.T) {
 
 	existingScreenshotPath := "./assets/screenshot1.png"
 	newScreenshotPath := "./assets/screenshot2.png"
+	nonexistentScreenshotPath := "./foo"
 	existingDownloadPath := "./existing.txt"
 	newDownloadPath := "./new.txt"
+	nonexistentFilePath := "./bar"
 
 	test := RFTest{
 		TestID: 5678,
 		Steps: []interface{}{
 			RFTestStep{
 				Action:   fmt.Sprintf("Embedding an existing screenshot {{file.screenshot(%v)}}", existingScreenshotPath),
-				Response: fmt.Sprintf("Embedding a new screenshot {{ file.screenshot(%v) }}", newScreenshotPath),
+				Response: fmt.Sprintf("Embedded an existing download {{ file.download(%v)}}", existingDownloadPath),
 			},
 			RFTestStep{
-				Action:   fmt.Sprintf("Embedded an existing download {{ file.download(%v)}}", existingDownloadPath),
+				Action:   fmt.Sprintf("Embedding a new screenshot {{ file.screenshot(%v) }}", newScreenshotPath),
 				Response: fmt.Sprintf("Embedded a new download {{file.download(%v) }}", newDownloadPath),
+			},
+			RFTestStep{
+				Action:   fmt.Sprintf("Embedding a non-existent screenshot {{  file.screenshot(%v) }}", nonexistentScreenshotPath),
+				Response: fmt.Sprintf("Embedding a non-existent download {{ file.download(%v)  }}", nonexistentFilePath),
 			},
 		},
 		// Test does not exist, but this path is used to find the relative path to the
@@ -503,6 +510,10 @@ func TestParseEmbeddedFiles(t *testing.T) {
 		}
 	})
 
+	out := &bytes.Buffer{}
+	log.SetOutput(out)
+	defer log.SetOutput(os.Stdout)
+
 	err = client.ParseEmbeddedFiles(&test)
 	if err != nil {
 		t.Fatal(err.Error())
@@ -515,15 +526,15 @@ func TestParseEmbeddedFiles(t *testing.T) {
 		t.Errorf("Expected to find %v in %v", expectedStr, step.Action)
 	}
 
-	expectedStr = fmt.Sprintf("{{ file.screenshot(%v, %v) }}", newScreenshotID, newScreenshotSignature[0:6])
+	expectedStr = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", existingDownloadID,
+		existingDownloadSignature[0:6], filepath.Base(existingDownloadPath))
 	if !strings.Contains(step.Response, expectedStr) {
 		t.Errorf("Expected to find %v in %v", expectedStr, step.Response)
 	}
 
 	// Check download values
 	step = test.Steps[1].(RFTestStep)
-	expectedStr = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", existingDownloadID,
-		existingDownloadSignature[0:6], filepath.Base(existingDownloadPath))
+	expectedStr = fmt.Sprintf("{{ file.screenshot(%v, %v) }}", newScreenshotID, newScreenshotSignature[0:6])
 	if !strings.Contains(step.Action, expectedStr) {
 		t.Errorf("Expected to find %v in %v", expectedStr, step.Action)
 	}
@@ -532,5 +543,21 @@ func TestParseEmbeddedFiles(t *testing.T) {
 		filepath.Base(newDownloadPath))
 	if !strings.Contains(step.Response, expectedStr) {
 		t.Errorf("Expected to find %v in %v", expectedStr, step.Response)
+	}
+
+	// Check for logger warning for nonexistent files
+	logs := out.String()
+	// -- File download error
+	absPath := filepath.Join(testDir, nonexistentFilePath)
+	expectedError := fmt.Sprintf("Error for test: %v\n\tNo such file exists: %v", test.RFMLPath, absPath)
+	if !strings.Contains(logs, expectedError) {
+		t.Errorf("Expecting nonexistent file error for %v. Got: %v", test.RFMLPath, logs)
+	}
+
+	// -- Screenshot error
+	absPath = filepath.Join(testDir, nonexistentScreenshotPath)
+	expectedError = fmt.Sprintf("Error for test: %v\n\tNo such file exists: %v", test.RFMLPath, absPath)
+	if !strings.Contains(logs, expectedError) {
+		t.Errorf("Expecting nonexistent file error for %v. Got: %v", test.RFMLPath, logs)
 	}
 }

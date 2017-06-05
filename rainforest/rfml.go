@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -339,7 +340,11 @@ func (c *Client) ParseEmbeddedFiles(test *RFTest) error {
 
 			var file *os.File
 			file, err = os.Open(filePath)
-			if err != nil {
+
+			if os.IsNotExist(err) {
+				log.Printf("Error for test: %v\n\tNo such file exists: %v\n", test.RFMLPath, filePath)
+				continue
+			} else if err != nil {
 				return "", err
 			}
 

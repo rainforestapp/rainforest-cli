@@ -1,11 +1,17 @@
 # Rainforest CLI Changelog
 
-## 2.0.3
+## 2.0.4
+- Log errors when attempting to upload tests with embedded files that do not
+exist locally, but upload the test anyway. This behavior is backwards compatible
+with versions 1.X.
+(52cf356f6d4a1d4359537e53923949facd5d5c08, @epaulet)
+
+## 2.0.3 - 2 Jun 2017
 - You may now either omit the browsers attribute or leave the browser list
 empty to set the default browsers for a test as none.
 (49d48abf5b6c3591f6998622a34884426d9526a1, @epaulet)
 
-## 2.0.2
+## 2.0.2 - 2nd May 2017
 - Replace illegal file path characters when creating RFML files.
 (175c98e6568a909cd9a000a8381768d7189aa25a, @epaulet)
 

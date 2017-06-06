@@ -1,6 +1,6 @@
 # Rainforest CLI Changelog
 
-## 2.0.4
+## 2.0.4 - 5 Jun 2017
 - Log errors when attempting to upload tests with embedded files that do not
 exist locally, but upload the test anyway. This behavior is backwards compatible
 with versions 1.X.

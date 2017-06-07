@@ -65,6 +65,7 @@ func TestGetTests(t *testing.T) {
 		Tags:          []string{"foo", "bar"},
 		SiteID:        123,
 		SmartFolderID: 321,
+		RunGroupID:    145,
 	}
 	expectedQuery = url.Values{
 		"page":            []string{"1"},
@@ -72,6 +73,7 @@ func TestGetTests(t *testing.T) {
 		"tags":            rfFilters.Tags,
 		"site_id":         []string{strconv.Itoa(rfFilters.SiteID)},
 		"smart_folder_id": []string{strconv.Itoa(rfFilters.SmartFolderID)},
+		"run_group_id":    []string{strconv.Itoa(rfFilters.RunGroupID)},
 	}
 
 	_, err = client.GetTests(&rfFilters)

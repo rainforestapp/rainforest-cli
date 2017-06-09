@@ -156,14 +156,6 @@ func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
 		}
 	}
 
-	var runGroupID int
-	if s := c.String("run-group"); s != "" {
-		runGroupID, err = strconv.Atoi(c.String("run-group"))
-		if err != nil {
-			return rainforest.RunParams{}, err
-		}
-	}
-
 	var siteID int
 	if s := c.String("site"); s != "" {
 		siteID, err = strconv.Atoi(c.String("site"))
@@ -244,7 +236,6 @@ func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
 		Browsers:      expandedBrowsers,
 		Description:   description,
 		EnvironmentID: environmentID,
-		RunGroupID:    runGroupID,
 	}, nil
 }
 

@@ -127,6 +127,10 @@ func main() {
 				"Alternatively you can use one of the filtering options.",
 			ArgsUsage: "[test IDs]",
 			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name: "run-group",
+					Usage: "filter tests by a specific run group.",
+				},
 				cli.StringSliceFlag{
 					Name:  "tag",
 					Usage: "filter tests by `TAG`. Can be used multiple times for filtering by multiple tags.",

@@ -250,6 +250,7 @@ type RFTestFilters struct {
 	Tags          []string
 	SiteID        int
 	SmartFolderID int
+	RunGroupID	  int
 }
 
 func (f *RFTestFilters) toQuery() string {
@@ -261,6 +262,9 @@ func (f *RFTestFilters) toQuery() string {
 	}
 	if f.SmartFolderID > 0 {
 		v.Add("smart_folder_id", strconv.Itoa(f.SmartFolderID))
+	}
+	if f.RunGroupID > 0 {
+		v.Add("run_group_id", strconv.Itoa(f.RunGroupID))
 	}
 
 	return v.Encode()

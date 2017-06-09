@@ -157,8 +157,8 @@ func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
 	}
 
 	var runGroupID int
-	if s := c.String("run-group"); s != "" {
-		runGroupID, err = strconv.Atoi(c.String("run-group"))
+	if s := c.String("run-group-id"); s != "" {
+		runGroupID, err = strconv.Atoi(c.String("run-group-id"))
 		if err != nil {
 			return rainforest.RunParams{}, err
 		}

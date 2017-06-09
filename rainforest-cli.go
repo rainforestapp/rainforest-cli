@@ -132,7 +132,7 @@ func main() {
 					Usage: "filter tests by `TAG`. Can be used multiple times for filtering by multiple tags.",
 				},
 				cli.StringFlag{
-					Name:  "run-group-id, run-group",
+					Name:  "run-group-id",
 					Usage: "filter tests by a specific run group. You can see a list of your `RUN-GROUP-ID`s with run-groups command.",
 				},
 				cli.StringFlag{

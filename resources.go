@@ -29,6 +29,23 @@ type resourceAPI interface {
 	GetFolders() ([]rainforest.Folder, error)
 	GetBrowsers() ([]rainforest.Browser, error)
 	GetSites() ([]rainforest.Site, error)
+	GetRunGroups() ([]rainforest.RunGroup, error)
+}
+
+func printRunGroups(api resourceAPI) error {
+
+	runGroups, err := api.GetRunGroups()
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	rows := make([][]string, len(runGroups))
+	for i, rungrp := range runGroups {
+		rows[i] = []string{strconv.Itoa(rungrp.ID), rungrp.Title}
+	}
+
+	printResourceTable([]string{"Run Group ID", "Run Group Name"}, rows)
+	return nil
 }
 
 // printFolders fetches and prints out the available folders from the API

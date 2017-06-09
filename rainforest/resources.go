@@ -86,6 +86,27 @@ func (c *Client) GetBrowsers() ([]Browser, error) {
 	return browsersResp.AvailableBrowsers, nil
 }
 
+type RunGroup struct {
+	ID    int    `json:"id"`
+	Title string `json:"title"`
+}
+
+func (c *Client) GetRunGroups() ([]RunGroup, error) {
+	// Prepare request
+	req, err := c.NewRequest("GET", "run_groups", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Send request and process response
+	var runGroupResp []RunGroup
+	_, err = c.Do(req, &runGroupResp)
+	if err != nil {
+		return nil, err
+	}
+	return runGroupResp, nil
+}
+
 // Site type represents a single site returned by the API call for a list of sites
 type Site struct {
 	ID       int    `json:"id"`

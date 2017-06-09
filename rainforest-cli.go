@@ -132,6 +132,10 @@ func main() {
 					Usage: "filter tests by `TAG`. Can be used multiple times for filtering by multiple tags.",
 				},
 				cli.StringFlag{
+					Name:  "run-group-id, run-group",
+					Usage: "filter tests by a specific run group. You can see a list of your `RUN-GROUP-ID`s with run-groups command.",
+				},
+				cli.StringFlag{
 					Name:  "site, site-id",
 					Usage: "filter tests by a specific site. You can see a list of your `SITE-ID`s with sites command.",
 				},
@@ -358,6 +362,13 @@ func main() {
 			Usage: "Lists available sites",
 			Action: func(c *cli.Context) error {
 				return printSites(api)
+			},
+		},
+		{
+			Name:  "run-groups",
+			Usage: "Lists available run groups",
+			Action: func(c *cliContext) error {
+				return printRunGroups(api)
 			},
 		},
 		{

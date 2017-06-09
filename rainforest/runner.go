@@ -14,6 +14,7 @@ type RunParams struct {
 	Browsers      []string    `json:"browsers,omitempty"`
 	Description   string      `json:"description,omitempty"`
 	EnvironmentID int         `json:"environment_id,omitempty"`
+	RunGroupID 	  int 		  `json:"run_group_id,omitempty"`
 }
 
 // RunStatus represents a status of a RF run in progress.

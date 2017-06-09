@@ -153,8 +153,8 @@ func validateRFMLFilesInDirectory(rfmlDirectory string) error {
 					}
 					validationErrors = append(validationErrors, fileParseError{pTest.filePath, err})
 				} else {
-					pNode := dependencyGraph.GetNode(goraph.StringID(pTest.content.RFMLID))
-					eNode := dependencyGraph.GetNode(goraph.StringID(embeddedTest.RFMLID))
+					pNode, _ := dependencyGraph.GetNode(goraph.StringID(pTest.content.RFMLID))
+					eNode, _ := dependencyGraph.GetNode(goraph.StringID(embeddedTest.RFMLID))
 					dependencyGraph.AddEdge(pNode.ID(), eNode.ID(), 1)
 				}
 			}

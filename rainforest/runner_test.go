@@ -14,7 +14,7 @@ func TestCreateRun(t *testing.T) {
 	defer cleanup()
 
 	const reqMethod = "POST"
-	runParams := RunParams{Tags: []string{"foo", "bar"}, SiteID: 125}
+	runParams := RunParams{Tags: []string{"foo", "bar"}, SiteID: 125, RunGroupID: 14}
 
 	mux.HandleFunc("/runs", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != reqMethod {
@@ -24,7 +24,7 @@ func TestCreateRun(t *testing.T) {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(r.Body)
 		s := strings.TrimSpace(buf.String())
-		if wantedBody := `{"tags":["foo","bar"],"site_id":125}`; s != wantedBody {
+		if wantedBody := `{"tags":["foo","bar"],"site_id":125,"run_group_id":14}`; s != wantedBody {
 			t.Errorf("Request body = %v, want %v", s, wantedBody)
 		}
 		fmt.Fprint(w, `{"id": 123, "state":"in_progress"}`)

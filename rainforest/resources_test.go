@@ -112,3 +112,25 @@ func TestGetSites(t *testing.T) {
 		t.Errorf("Response out = %v, want %v", out, want)
 	}
 }
+
+func TestGetRunGroups(t *testing.T) {
+	setup()
+	defer cleanup()
+
+	const reqMethod = "GET"
+
+	mux.HandleFunc("/run_groups", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != reqMethod {
+			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+		}
+		fmt.Fprint(w, `[{"id": 3457, "title": "Star"}, {"id": 289, "title": "Trek"}]`)
+	})
+
+	out, _ := client.GetRunGroups()
+
+	want := []RunGroup{{ID: 3457, Title: "Star"}, {ID: 289, Title: "Trek"}}
+
+	if !reflect.DeepEqual(out, want) {
+		t.Errorf("Response out = %v, want %v", out, want)
+	}
+}

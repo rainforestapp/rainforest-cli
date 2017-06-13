@@ -1,11 +1,15 @@
 package rainforest
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -132,5 +136,38 @@ func TestGetRunGroups(t *testing.T) {
 
 	if !reflect.DeepEqual(out, want) {
 		t.Errorf("Response out = %v, want %v", out, want)
+	}
+}
+
+func TestRunGroupDetailsPrint(t *testing.T) {
+	rgd := RunGroupDetails{
+		ID:    6678,
+		Title: "Main run group",
+		Environment: struct {
+			Name string `json:"name"`
+		}{
+			Name: "staging",
+		},
+	}
+
+	originalStdOut := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	os.Stdout = w
+
+	rgd.Print()
+	w.Close()
+	os.Stdout = originalStdOut
+
+	buf := bytes.Buffer{}
+	_, err = io.Copy(&buf, r)
+
+	output := buf.String()
+	expectedNameStr := "Name: Main run group"
+	if !strings.Contains(output, expectedNameStr) {
+		t.Errorf("Run group name was not printed properly.\nExpected: %v\nTo be included in: %v", expectedNameStr, output)
 	}
 }

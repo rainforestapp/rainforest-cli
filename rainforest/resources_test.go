@@ -152,28 +152,10 @@ func TestRunGroupDetailsPrint(t *testing.T) {
 		RerouteGeo: "usa",
 	}
 
-	originalStdOut := os.Stdout
-	defer func() {
-		os.Stdout = originalStdOut
-	}()
-
-	r, w, err := os.Pipe()
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
-	os.Stdout = w
-
-	rgd.Print()
-	w.Close()
-
-	buf := bytes.Buffer{}
-	_, err = io.Copy(&buf, r)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
-	output := buf.String()
+	output, _ := captureStdOut(func() error {
+		rgd.Print()
+		return nil
+	})
 	expectedNameStr := "Name: Main run group"
 	if !strings.Contains(output, expectedNameStr) {
 		t.Errorf("Run group name was not printed properly.\nExpected: %v\nto be included in: %v", expectedNameStr, output)
@@ -219,24 +201,39 @@ func TestRunGroupDetailsPrint(t *testing.T) {
 		},
 	}
 
-	r, w, err = os.Pipe()
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
-	os.Stdout = w
-	rgd.Print()
-	w.Close()
-
-	buf = bytes.Buffer{}
-	_, err = io.Copy(&buf, r)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
-	output = buf.String()
+	output, _ = captureStdOut(func() error {
+		rgd.Print()
+		return nil
+	})
 	expectedScheduleStr := "Schedule: tuesday, friday @ 12:00"
 	if !strings.Contains(output, expectedScheduleStr) {
 		t.Errorf("Run group schedule was not printed properly.\nExpected: %v\nto be included in: %v", expectedScheduleStr, output)
 	}
+}
+
+func captureStdOut(fn func() error) (string, error) {
+	r, w, err := os.Pipe()
+	if err != nil {
+		return "", err
+	}
+
+	originalStdOut := os.Stdout
+	os.Stdout = w
+	defer func() {
+		w.Close()
+		os.Stdout = originalStdOut
+	}()
+
+	err = fn()
+	if err != nil {
+		return "", err
+	}
+
+	buf := bytes.Buffer{}
+	_, err = io.Copy(&buf, r)
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }

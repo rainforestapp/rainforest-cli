@@ -148,9 +148,15 @@ func TestRunGroupDetailsPrint(t *testing.T) {
 		}{
 			Name: "staging",
 		},
+		Crowd:      "default",
+		RerouteGeo: "usa",
 	}
 
 	originalStdOut := os.Stdout
+	defer func() {
+		os.Stdout = originalStdOut
+	}()
+
 	r, w, err := os.Pipe()
 	if err != nil {
 		t.Fatal(err.Error())
@@ -160,14 +166,77 @@ func TestRunGroupDetailsPrint(t *testing.T) {
 
 	rgd.Print()
 	w.Close()
-	os.Stdout = originalStdOut
 
 	buf := bytes.Buffer{}
 	_, err = io.Copy(&buf, r)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 
 	output := buf.String()
 	expectedNameStr := "Name: Main run group"
 	if !strings.Contains(output, expectedNameStr) {
-		t.Errorf("Run group name was not printed properly.\nExpected: %v\nTo be included in: %v", expectedNameStr, output)
+		t.Errorf("Run group name was not printed properly.\nExpected: %v\nto be included in: %v", expectedNameStr, output)
+	}
+
+	expectedEnvStr := "Environment: staging"
+	if !strings.Contains(output, expectedEnvStr) {
+		t.Errorf("Run group environment was not printed properly.\nExpected: %v\nto be included in: %v", expectedEnvStr, output)
+	}
+
+	expectecCrowdStr := "Tester Crowd: default"
+	if !strings.Contains(output, expectecCrowdStr) {
+		t.Errorf("Run group tester crowd was not printed properly.\nExpected: %v\nto be included in: %v", expectecCrowdStr, output)
+	}
+
+	expectedLocationStr := "Location: usa"
+	if !strings.Contains(output, expectedLocationStr) {
+		t.Errorf("Run group location was not printed properly.\nExpected: %v\nto be included in: %v", expectedLocationStr, output)
+	}
+
+	if strings.Contains(output, "Schedule:") {
+		t.Error("Run group schedule found in output when schedule does not exist")
+	}
+
+	rgd.Schedule = struct {
+		RepeatRules []struct {
+			Day  string `json:"day"`
+			Time string `json:"time"`
+		} `json:"repeat_rules"`
+	}{
+		RepeatRules: []struct {
+			Day  string `json:"day"`
+			Time string `json:"time"`
+		}{
+			{
+				Day:  "tuesday",
+				Time: "12:00",
+			},
+			{
+				Day:  "friday",
+				Time: "12:00",
+			},
+		},
+	}
+
+	r, w, err = os.Pipe()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	os.Stdout = w
+	rgd.Print()
+	w.Close()
+
+	buf = bytes.Buffer{}
+	_, err = io.Copy(&buf, r)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	output = buf.String()
+	expectedScheduleStr := "Schedule: tuesday, friday @ 12:00"
+	if !strings.Contains(output, expectedScheduleStr) {
+		t.Errorf("Run group schedule was not printed properly.\nExpected: %v\nto be included in: %v", expectedScheduleStr, output)
 	}
 }

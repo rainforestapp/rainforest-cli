@@ -220,7 +220,6 @@ func captureStdOut(fn func() error) (string, error) {
 	originalStdOut := os.Stdout
 	os.Stdout = w
 	defer func() {
-		w.Close()
 		os.Stdout = originalStdOut
 	}()
 
@@ -228,6 +227,8 @@ func captureStdOut(fn func() error) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	w.Close()
 
 	buf := bytes.Buffer{}
 	_, err = io.Copy(&buf, r)

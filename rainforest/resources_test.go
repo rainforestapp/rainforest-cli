@@ -152,7 +152,7 @@ func TestRunGroupDetailsPrint(t *testing.T) {
 		RerouteGeo: "usa",
 	}
 
-	output, _ := captureStdOut(func() error {
+	output, _ := captureStdout(func() error {
 		rgd.Print()
 		return nil
 	})
@@ -201,7 +201,7 @@ func TestRunGroupDetailsPrint(t *testing.T) {
 		},
 	}
 
-	output, _ = captureStdOut(func() error {
+	output, _ = captureStdout(func() error {
 		rgd.Print()
 		return nil
 	})
@@ -211,7 +211,7 @@ func TestRunGroupDetailsPrint(t *testing.T) {
 	}
 }
 
-func captureStdOut(fn func() error) (string, error) {
+func captureStdout(fn func() error) (string, error) {
 	r, w, err := os.Pipe()
 	if err != nil {
 		return "", err

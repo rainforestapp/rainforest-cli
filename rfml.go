@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -656,20 +657,13 @@ func prepareTestDirectory(testDir string) (string, error) {
 	return absTestDirectory, nil
 }
 
-var illegalFilenameStrs = []string{"\\", "/", ":", "<", ">", "\"", "|", "?", "*", " "}
-
 func sanitizeTestTitle(title string) string {
 	title = strings.TrimSpace(title)
 	title = strings.ToLower(title)
 
-	replacerList := make([]string, len(illegalFilenameStrs)*2)
-	for idx, illegalStr := range illegalFilenameStrs {
-		replacerList[idx*2] = illegalStr
-		replacerList[idx*2+1] = "_"
-	}
-
-	r := strings.NewReplacer(replacerList...)
-	return r.Replace(title)
+	// replace all non-alphanumeric characters with an underscore
+	rep := regexp.MustCompile(`[^[[:alnum:]]`)
+	return rep.ReplaceAllLiteralString(title, "_")
 }
 
 func testCreationWorker(api *rainforest.Client,

@@ -320,9 +320,9 @@ func TestDownloadRFML(t *testing.T) {
 }
 
 func TestSanitizeTestTitle(t *testing.T) {
-	illegalTitle := "Foo\\foo/\\foo:foo <foo>foo\"Foo|fOO?foo|*foo foo "
+	illegalTitle := "Foo\\foo123/\\foo:(foo <foo>foo\"Foo|456fOO?foo|*foo foo& "
 	sanitizedTitle := sanitizeTestTitle(illegalTitle)
-	expectedSanitizedTitle := "foo_foo__foo_foo__foo_foo_foo_foo_foo__foo_foo"
+	expectedSanitizedTitle := "foo_foo123__foo__foo__foo_foo_foo_456foo_foo__foo_foo_"
 
 	if sanitizedTitle != expectedSanitizedTitle {
 		t.Errorf("Expected sanitized title to be %v, got %v", expectedSanitizedTitle, sanitizedTitle)

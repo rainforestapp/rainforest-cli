@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 // Folder type represents a single folder returned by the API call for a list of folders
@@ -105,6 +106,60 @@ func (c *Client) GetRunGroups() ([]RunGroup, error) {
 		return nil, err
 	}
 	return runGroupResp, nil
+}
+
+type RunGroupDetails struct {
+	ID          int    `json:"id"`
+	Title       string `json:"title"`
+	Environment struct {
+		Name string `json:"name"`
+	} `json:"environment"`
+	Crowd      string `json:"crowd"`
+	RerouteGeo string `json:"reroute_geo"`
+	Schedule   struct {
+		RepeatRules []struct {
+			Day  string `json:"day"`
+			Time string `json:"time"`
+		} `json:"repeat_rules"`
+	} `json:"schedule"`
+}
+
+func (rgd *RunGroupDetails) Print() {
+	fmt.Printf(`Details for Run Group #%v:
+Name: %v
+Environment: %v
+Tester Crowd: %v
+Location: %v
+`,
+		rgd.ID, rgd.Title, rgd.Environment.Name, rgd.Crowd, rgd.RerouteGeo)
+	sched := rgd.Schedule
+
+	if daysQuantity := len(sched.RepeatRules); daysQuantity > 0 {
+		scheduledTime := sched.RepeatRules[0].Time
+
+		days := make([]string, daysQuantity)
+		for i, sr := range sched.RepeatRules {
+			days[i] = sr.Day
+		}
+
+		daysStr := strings.Join(days, ", ")
+		fmt.Printf("Schedule: %v @ %v\n", daysStr, scheduledTime)
+	}
+}
+
+func (c *Client) GetRunGroupDetails(runGroupID int) (*RunGroupDetails, error) {
+	req, err := c.NewRequest("GET", "run_groups/"+strconv.Itoa(runGroupID), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var details RunGroupDetails
+	_, err = c.Do(req, &details)
+	if err != nil {
+		return nil, err
+	}
+
+	return &details, nil
 }
 
 // Site type represents a single site returned by the API call for a list of sites

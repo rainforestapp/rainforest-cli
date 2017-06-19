@@ -372,6 +372,11 @@ func main() {
 			},
 		},
 		{
+			Name:   "run-group",
+			Usage:  "Lists available run groups",
+			Action: printRunGroupDetails,
+		},
+		{
 			Name:  "folders",
 			Usage: "Lists available folders",
 			Action: func(c *cli.Context) error {

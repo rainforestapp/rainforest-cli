@@ -646,6 +646,8 @@ func prepareTestDirectory(testDir string) (string, error) {
 	if os.IsNotExist(err) {
 		log.Printf("Creating test directory: %v", absTestDirectory)
 		os.MkdirAll(absTestDirectory, os.ModePerm)
+	} else if err != nil {
+		return "", err
 	} else {
 		if !dirStat.IsDir() {
 			return "", fmt.Errorf("%v should be a directory", absTestDirectory)

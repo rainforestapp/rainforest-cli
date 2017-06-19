@@ -1,5 +1,12 @@
 # Rainforest CLI Changelog
 
+## 2.1.0 - 19 Jun 2017
+- Added run group support for future run group feature.
+(86a4573db19cb2b5aef7a53c765d0121be60520f, @sondhayni-rfqa)
+(21e9fda469a23f40a9b208e8660b4b2b80d00c86, @epaulet)
+- Replace all non-alphanumeric characters with underscores when creating RFML
+files. (21e9fda469a23f40a9b208e8660b4b2b80d00c86, @epaulet)
+
 ## 2.0.4 - 5 Jun 2017
 - Log errors when attempting to upload tests with embedded files that do not
 exist locally, but upload the test anyway. This behavior is backwards compatible

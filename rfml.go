@@ -665,8 +665,8 @@ func sanitizeTestTitle(title string) string {
 	rep := regexp.MustCompile(`[^[[:alnum:]]+`)
 	title = rep.ReplaceAllLiteralString(title, "_")
 
-	if len(title) > 20 {
-		return title[:20]
+	if len(title) > 30 {
+		return title[:30]
 	}
 
 	return title

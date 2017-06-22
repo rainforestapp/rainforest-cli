@@ -1,5 +1,10 @@
 # Rainforest CLI Changelog
 
+## 2.1.1 - 22 Jun 2017
+- Changed default file name when downloading RFML tests:
+  - Do not use sequences of multiple underscores in file name.
+  - Do not use more than 30 characters from a test's title in file name.
+
 ## 2.1.0 - 19 Jun 2017
 - Added run group support for future run group feature.
 (86a4573db19cb2b5aef7a53c765d0121be60520f, @sondhayni-rfqa)

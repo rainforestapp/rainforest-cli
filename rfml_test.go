@@ -329,10 +329,10 @@ func TestSanitizeTestTitle(t *testing.T) {
 		t.Errorf("Expected sanitized title to be %v, got %v", expectedSanitizedTitle, sanitizedTitle)
 	}
 
-	// Test that it truncates strings with more than 20 characters
-	longTitle := strings.Repeat("abc", 7) // 21 characters
+	// Test that it truncates strings with more than 30 characters
+	longTitle := strings.Repeat("abc", 11) // 33 characters
 	sanitizedTitle = sanitizeTestTitle(longTitle)
-	expectedSanitizedTitle = strings.Repeat("abc", 6) + "ab" // 20 characters
+	expectedSanitizedTitle = strings.Repeat("abc", 10) // 30 characters
 
 	if sanitizedTitle != expectedSanitizedTitle {
 		t.Errorf("Expected sanitized title to be %v, got %v", expectedSanitizedTitle, sanitizedTitle)

@@ -323,16 +323,16 @@ func TestSanitizeTestTitle(t *testing.T) {
 	// Test that it replaces non-alphanumeric characters with underscores
 	illegalTitle := `Foo\123|*&bar `
 	sanitizedTitle := sanitizeTestTitle(illegalTitle)
-	expectedSanitizedTitle := "foo_123___bar"
+	expectedSanitizedTitle := "foo_123_bar"
 
 	if sanitizedTitle != expectedSanitizedTitle {
 		t.Errorf("Expected sanitized title to be %v, got %v", expectedSanitizedTitle, sanitizedTitle)
 	}
 
-	// Test that it truncates strings with more than 16 characters
-	longTitle := strings.Repeat("abc", 6) // 18 characters
+	// Test that it truncates strings with more than 20 characters
+	longTitle := strings.Repeat("abc", 7) // 21 characters
 	sanitizedTitle = sanitizeTestTitle(longTitle)
-	expectedSanitizedTitle = strings.Repeat("abc", 5) + "a" // 16 characters
+	expectedSanitizedTitle = strings.Repeat("abc", 6) + "ab" // 20 characters
 
 	if sanitizedTitle != expectedSanitizedTitle {
 		t.Errorf("Expected sanitized title to be %v, got %v", expectedSanitizedTitle, sanitizedTitle)

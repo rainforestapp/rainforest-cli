@@ -661,12 +661,12 @@ func sanitizeTestTitle(title string) string {
 	title = strings.TrimSpace(title)
 	title = strings.ToLower(title)
 
-	// replace all non-alphanumeric characters with an underscore
-	rep := regexp.MustCompile(`[^[[:alnum:]]`)
+	// replace all non-alphanumeric character sequences with an underscore
+	rep := regexp.MustCompile(`[^[[:alnum:]]+`)
 	title = rep.ReplaceAllLiteralString(title, "_")
 
-	if len(title) > 16 {
-		return title[:16]
+	if len(title) > 20 {
+		return title[:20]
 	}
 
 	return title

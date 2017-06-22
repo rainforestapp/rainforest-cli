@@ -320,9 +320,19 @@ func TestDownloadRFML(t *testing.T) {
 }
 
 func TestSanitizeTestTitle(t *testing.T) {
-	illegalTitle := "Foo\\foo123/\\foo:(foo <foo>foo\"Foo|456fOO?foo|*foo foo& "
+	// Test that it replaces non-alphanumeric characters with underscores
+	illegalTitle := `Foo\123|*&bar `
 	sanitizedTitle := sanitizeTestTitle(illegalTitle)
-	expectedSanitizedTitle := "foo_foo123__foo__foo__foo_foo_foo_456foo_foo__foo_foo_"
+	expectedSanitizedTitle := "foo_123___bar"
+
+	if sanitizedTitle != expectedSanitizedTitle {
+		t.Errorf("Expected sanitized title to be %v, got %v", expectedSanitizedTitle, sanitizedTitle)
+	}
+
+	// Test that it truncates strings with more than 16 characters
+	longTitle := strings.Repeat("abc", 6) // 18 characters
+	sanitizedTitle = sanitizeTestTitle(longTitle)
+	expectedSanitizedTitle = strings.Repeat("abc", 5) + "a" // 16 characters
 
 	if sanitizedTitle != expectedSanitizedTitle {
 		t.Errorf("Expected sanitized title to be %v, got %v", expectedSanitizedTitle, sanitizedTitle)

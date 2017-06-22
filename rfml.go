@@ -663,7 +663,13 @@ func sanitizeTestTitle(title string) string {
 
 	// replace all non-alphanumeric characters with an underscore
 	rep := regexp.MustCompile(`[^[[:alnum:]]`)
-	return rep.ReplaceAllLiteralString(title, "_")
+	title = rep.ReplaceAllLiteralString(title, "_")
+
+	if len(title) > 16 {
+		return title[:16]
+	}
+
+	return title
 }
 
 func testCreationWorker(api *rainforest.Client,

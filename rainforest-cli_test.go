@@ -1,9 +1,12 @@
 package main
 
 import (
+	"net/url"
 	"reflect"
+	"strings"
 	"testing"
 
+	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
 
@@ -25,6 +28,10 @@ func TestShuffleFlags(t *testing.T) {
 			want:     []string{"./rainforest", "--token", "foobar", "run", "--tags", "tag,bag", "--site", "123"},
 		},
 		{
+			testArgs: []string{"./rainforest", "run", "--tags", "tag,bag", "--token", "foobar", "--site", "123", "--debug"},
+			want:     []string{"./rainforest", "--token", "foobar", "--debug", "run", "--tags", "tag,bag", "--site", "123"},
+		},
+		{
 			testArgs: []string{"./rainforest", "--skip-update", "run", "--tags", "tag,bag", "--token", "foobar", "--site", "123"},
 			want:     []string{"./rainforest", "--skip-update", "--token", "foobar", "run", "--tags", "tag,bag", "--site", "123"},
 		},
@@ -36,6 +43,63 @@ func TestShuffleFlags(t *testing.T) {
 			t.Errorf("shuffleFlags returned %+v, want %+v", got, tCase.want)
 		}
 	}
+}
+
+func TestDebugFlag(t *testing.T) {
+
+	testCases := []struct {
+		mappings map[string]interface{}
+		args     []string
+		runID    int
+		debug    bool
+		tag      string
+		token    string
+		method   string
+	}{
+		{
+			mappings: map[string]interface{}{
+				"token":  "testToken123",
+				"debug":  true,
+				"run-id": 564,
+				"tag":    "star",
+			},
+			args:   []string{"rainforest", "--token", "testToken123", "--debug", "run", "--tag", "star"},
+			runID:  564,
+			debug:  true,
+			tag:    "star",
+			token:  "testToken123",
+			method: "GET",
+		},
+		{
+			mappings: map[string]interface{}{
+				"token":  "testToken123",
+				"debug":  false,
+				"run-id": 4335,
+				"tag":    "star",
+			},
+			args:   []string{"rainforest", "--token", "testToken123", "run", "--tag", "star"},
+			runID:  4335,
+			debug:  false,
+			tag:    "star",
+			token:  "testToken123",
+			method: "POST",
+		},
+	}
+
+	for _, testCase := range testCases {
+		c := newFakeContext(testCase.mappings, testCase.args)
+		client := rainforest.NewClient(testCase.token, c.Bool("debug"))
+		client.BaseURL, _ = url.Parse("https://example.org")
+
+		req, _ := client.NewRequest(testCase.method, "/", nil)
+		client.Do(req, nil)
+
+		checkString := strings.Join(testCase.args, " ")
+		if out := strings.Contains(checkString, "debug"); out != client.DebugFlag {
+			t.Errorf("It is %+v that the --debug flag was in the command line arguments. However, the value was actually %+v.", out, client.DebugFlag)
+		}
+	}
+
 }
 
 // fakeContext is a helper for testing the cli interfacing functions

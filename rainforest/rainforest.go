@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -37,11 +38,14 @@ type Client struct {
 
 	// Save HTTP Response Headers
 	LastResponseHeaders http.Header
+
+	// Set debug flag to decide whether to return headers or not
+	DebugFlag bool
 }
 
 // NewClient constructs a new rainforest API Client. As a parameter takes client token
 // which is used for authentication and is available in the rainforest web app.
-func NewClient(token string) *Client {
+func NewClient(token string, debug bool) *Client {
 	var baseURL *url.URL
 	var err error
 	if envURL := os.Getenv("RAINFOREST_API_URL"); envURL != "" {
@@ -53,7 +57,7 @@ func NewClient(token string) *Client {
 		baseURL, _ = url.Parse(currentBaseURL)
 	}
 
-	return &Client{client: http.DefaultClient, BaseURL: baseURL, ClientToken: token, LastResponseHeaders: http.Header{}}
+	return &Client{client: http.DefaultClient, BaseURL: baseURL, ClientToken: token, LastResponseHeaders: http.Header{}, DebugFlag: debug}
 }
 
 // NewRequest creates an API request. Provided url will be resolved using ResolveReference,
@@ -133,6 +137,10 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 		return nil, err
 	}
 
+	if c.DebugFlag {
+		fmt.Print("Trying ", res.Request.URL, "...")
+	}
+
 	// Close the body after we're done with it, to allow connection reuse.
 	defer func() {
 		io.Copy(ioutil.Discard, res.Body)
@@ -154,5 +162,18 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 
 	c.LastResponseHeaders = res.Header
 
+	if c.DebugFlag {
+		fmt.Println("connected")
+		printRequestHeaders(res)
+	}
+
 	return res, err
+}
+
+func printRequestHeaders(res *http.Response) {
+	fmt.Println(res.Request.Method, res.Request.Proto)
+	fmt.Println("User Agent:", res.Request.UserAgent())
+	fmt.Println("Host:", res.Request.Host)
+	fmt.Println("")
+
 }

@@ -26,7 +26,7 @@ func setup() {
 	mux = http.NewServeMux()
 	fakeServer = httptest.NewServer(mux)
 
-	client = NewClient("testToken123")
+	client = NewClient("testToken123", false)
 	url, _ := url.Parse(fakeServer.URL)
 	client.BaseURL = url
 }
@@ -38,7 +38,7 @@ func cleanup() {
 
 func TestNewClient(t *testing.T) {
 	token := "testToken123"
-	client = NewClient(token)
+	client = NewClient(token, false)
 	if out := client.ClientToken; client.ClientToken != token {
 		t.Errorf("NewClient didn't set proper token %+v, want %+v", out, token)
 	}
@@ -46,7 +46,7 @@ func TestNewClient(t *testing.T) {
 
 func TestNewRequest(t *testing.T) {
 	token := "testToken123"
-	client = NewClient(token)
+	client = NewClient(token, false)
 	client.BaseURL, _ = url.Parse("https://example.org")
 	req, _ := client.NewRequest("GET", "test", nil)
 	if out := req.Header.Get(authTokenHeader); out != token {
@@ -61,7 +61,7 @@ func TestNewRequest(t *testing.T) {
 
 	// Should not make any HTTP requests without a token
 	var err error
-	client = NewClient("")
+	client = NewClient("", false)
 	req, err = client.NewRequest("GET", "/", nil)
 
 	if err == nil {

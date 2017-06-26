@@ -68,6 +68,7 @@ func (l *logWriter) Write(p []byte) (int, error) {
 
 // main is an entry point of the app. It sets up the new cli app, and defines the API.
 func main() {
+
 	updateFinishedChan := make(chan struct{})
 	app := cli.NewApp()
 	app.Usage = "Rainforest QA CLI - https://www.rainforestqa.com/"
@@ -86,7 +87,7 @@ func main() {
 	app.Before = func(c *cli.Context) error {
 		go autoUpdate(c, updateFinishedChan)
 
-		api = rainforest.NewClient(c.String("token"))
+		api = rainforest.NewClient(c.String("token"), c.Bool("debug"))
 
 		// Set the User-Agent that will be used for api calls
 		if build != "" {
@@ -113,6 +114,10 @@ func main() {
 		cli.BoolFlag{
 			Name:  "skip-update",
 			Usage: "Used to disable auto-updating of the cli",
+		},
+		cli.BoolFlag{
+			Name:  "debug",
+			Usage: "output http request header information for debug purposes.",
 		},
 	}
 
@@ -404,6 +409,8 @@ func shuffleFlags(originalArgs []string) []string {
 				log.Fatalln("No token specified with --token flag")
 			}
 		} else if option == "--skip-update" {
+			globalOptions = append(globalOptions, option)
+		} else if option == "--debug" {
 			globalOptions = append(globalOptions, option)
 		} else {
 			rest = append(rest, option)

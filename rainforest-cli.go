@@ -68,7 +68,6 @@ func (l *logWriter) Write(p []byte) (int, error) {
 
 // main is an entry point of the app. It sets up the new cli app, and defines the API.
 func main() {
-
 	updateFinishedChan := make(chan struct{})
 	app := cli.NewApp()
 	app.Usage = "Rainforest QA CLI - https://www.rainforestqa.com/"
@@ -117,7 +116,7 @@ func main() {
 		},
 		cli.BoolFlag{
 			Name:  "debug",
-			Usage: "output http request header information for debug purposes.",
+			Usage: "Output http request header information for debug purposes",
 		},
 	}
 

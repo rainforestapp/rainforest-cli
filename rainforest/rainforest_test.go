@@ -10,6 +10,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/urfave/cli"
 )
 
 var (
@@ -135,5 +137,76 @@ func TestDo(t *testing.T) {
 	want := testJSON{"foobar"}
 	if !reflect.DeepEqual(out, want) {
 		t.Errorf("Response out = %v, want %v", out, want)
+	}
+}
+
+type fakeContext struct {
+	mappings map[string]interface{}
+	args     cli.Args
+}
+
+func (f fakeContext) Bool(s string) bool {
+	val, ok := f.mappings[s].(bool)
+
+	if ok {
+		return val
+	}
+	return false
+}
+
+func TestNewClientWithDebug(t *testing.T) {
+	testCases := []struct {
+		mappings map[string]interface{}
+		args     []string
+		runID    int
+		debug    bool
+		tag      string
+		token    string
+		method   string
+	}{
+		{
+			mappings: map[string]interface{}{
+				"token":  "testToken123",
+				"debug":  true,
+				"run-id": 564,
+				"tag":    "star",
+			},
+			args:   []string{"rainforest", "--token", "testToken123", "--debug", "run", "--tag", "star"},
+			runID:  564,
+			debug:  true,
+			tag:    "star",
+			token:  "testToken123",
+			method: "GET",
+		},
+		{
+			mappings: map[string]interface{}{
+				"token":  "testToken123",
+				"debug":  false,
+				"run-id": 4335,
+				"tag":    "star",
+			},
+			args:   []string{"rainforest", "--token", "testToken123", "run", "--tag", "star"},
+			runID:  4335,
+			debug:  false,
+			tag:    "star",
+			token:  "testToken123",
+			method: "POST",
+		},
+	}
+
+	for _, testCase := range testCases {
+		c := fakeContext{mappings: testCase.mappings, args: testCase.args}
+		client := NewClient(testCase.token, c.Bool("debug"))
+		client.BaseURL, _ = url.Parse("https://example.org")
+		req, _ := client.NewRequest(testCase.method, "/", nil)
+		if out := req.URL; out.String() != "https://example.org/" {
+			t.Errorf("NewRequest didn't set proper URL %+v, want %+v", out, "https://example.org/")
+		}
+		client.Do(req, nil)
+
+		checkString := strings.Join(testCase.args, " ")
+		if out := strings.Contains(checkString, "debug"); out != client.DebugFlag {
+			t.Errorf("It is %+v that the --debug flag was in the command line arguments. However, the value was actually %+v.", out, client.DebugFlag)
+		}
 	}
 }

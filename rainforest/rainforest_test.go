@@ -10,8 +10,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-
-	"github.com/urfave/cli"
 )
 
 var (
@@ -140,20 +138,6 @@ func TestDo(t *testing.T) {
 	}
 }
 
-type fakeContext struct {
-	mappings map[string]interface{}
-	args     cli.Args
-}
-
-func (f fakeContext) Bool(s string) bool {
-	val, ok := f.mappings[s].(bool)
-
-	if ok {
-		return val
-	}
-	return false
-}
-
 func TestNewClientWithDebug(t *testing.T) {
 	testCases := []struct {
 		mappings map[string]interface{}
@@ -195,8 +179,7 @@ func TestNewClientWithDebug(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		c := fakeContext{mappings: testCase.mappings, args: testCase.args}
-		client := NewClient(testCase.token, c.Bool("debug"))
+		client := NewClient(testCase.token, testCase.debug)
 		client.BaseURL, _ = url.Parse("https://example.org")
 		req, _ := client.NewRequest(testCase.method, "/", nil)
 		if out := req.URL; out.String() != "https://example.org/" {

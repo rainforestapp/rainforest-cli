@@ -140,21 +140,14 @@ func TestDo(t *testing.T) {
 
 func TestNewClientWithDebug(t *testing.T) {
 	testCases := []struct {
-		mappings map[string]interface{}
-		args     []string
-		runID    int
-		debug    bool
-		tag      string
-		token    string
-		method   string
+		args   []string
+		runID  int
+		debug  bool
+		tag    string
+		token  string
+		method string
 	}{
 		{
-			mappings: map[string]interface{}{
-				"token":  "testToken123",
-				"debug":  true,
-				"run-id": 564,
-				"tag":    "star",
-			},
 			args:   []string{"rainforest", "--token", "testToken123", "--debug", "run", "--tag", "star"},
 			runID:  564,
 			debug:  true,
@@ -163,12 +156,6 @@ func TestNewClientWithDebug(t *testing.T) {
 			method: "GET",
 		},
 		{
-			mappings: map[string]interface{}{
-				"token":  "testToken123",
-				"debug":  false,
-				"run-id": 4335,
-				"tag":    "star",
-			},
 			args:   []string{"rainforest", "--token", "testToken123", "run", "--tag", "star"},
 			runID:  4335,
 			debug:  false,

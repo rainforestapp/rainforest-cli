@@ -86,7 +86,7 @@ func main() {
 	app.Before = func(c *cli.Context) error {
 		go autoUpdate(c, updateFinishedChan)
 
-		api = rainforest.NewClient(c.String("token"))
+		api = rainforest.NewClient(c.String("token"), c.Bool("debug"))
 
 		// Set the User-Agent that will be used for api calls
 		if build != "" {
@@ -113,6 +113,10 @@ func main() {
 		cli.BoolFlag{
 			Name:  "skip-update",
 			Usage: "Used to disable auto-updating of the cli",
+		},
+		cli.BoolFlag{
+			Name:  "debug",
+			Usage: "Output http request header information for debug purposes",
 		},
 	}
 
@@ -420,6 +424,8 @@ func shuffleFlags(originalArgs []string) []string {
 				log.Fatalln("No token specified with --token flag")
 			}
 		} else if option == "--skip-update" {
+			globalOptions = append(globalOptions, option)
+		} else if option == "--debug" {
 			globalOptions = append(globalOptions, option)
 		} else {
 			rest = append(rest, option)

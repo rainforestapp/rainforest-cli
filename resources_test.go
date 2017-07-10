@@ -32,9 +32,10 @@ func TestPrintResourceTable(t *testing.T) {
 }
 
 type testResourceAPI struct {
-	Folders  []rainforest.Folder
-	Browsers []rainforest.Browser
-	Sites    []rainforest.Site
+	Folders   []rainforest.Folder
+	Browsers  []rainforest.Browser
+	Sites     []rainforest.Site
+	RunGroups []rainforest.RunGroup
 }
 
 func (api testResourceAPI) GetFolders() ([]rainforest.Folder, error) {
@@ -47,6 +48,10 @@ func (api testResourceAPI) GetBrowsers() ([]rainforest.Browser, error) {
 
 func (api testResourceAPI) GetSites() ([]rainforest.Site, error) {
 	return api.Sites, nil
+}
+
+func (api testResourceAPI) GetRunGroups() ([]rainforest.RunGroup, error) {
+	return api.RunGroups, nil
 }
 
 func TestPrintFolders(t *testing.T) {
@@ -106,4 +111,23 @@ func TestPrintSites(t *testing.T) {
 	regexMatchOut(`\| +123 +\| +My favorite site +\| +Site +\|`, t)
 	regexMatchOut(`\| +456 +\| +My favorite app URL +\| +iOS +\|`, t)
 	regexMatchOut(`\| +789 +\| +Site with unknown platform +\| +unknown_platform +\|`, t)
+}
+
+func TestPrintRunGroups(t *testing.T) {
+	tablesOut = &bytes.Buffer{}
+	defer func() {
+		tablesOut = os.Stdout
+	}()
+
+	testAPI := testResourceAPI{
+		RunGroups: []rainforest.RunGroup{
+			{ID: 59, Title: "Run Group Race"},
+			{ID: 245, Title: "Run Group Marathon"},
+		},
+	}
+
+	printRunGroups(testAPI)
+	regexMatchOut(`\| +RUN GROUP ID +\| +RUN GROUP NAME +\|`, t)
+	regexMatchOut(`\| +59 +\| +Run Group Race +\|`, t)
+	regexMatchOut(`\| +245 +\| +Run Group Marathon +\|`, t)
 }

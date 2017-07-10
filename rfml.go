@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -645,6 +646,8 @@ func prepareTestDirectory(testDir string) (string, error) {
 	if os.IsNotExist(err) {
 		log.Printf("Creating test directory: %v", absTestDirectory)
 		os.MkdirAll(absTestDirectory, os.ModePerm)
+	} else if err != nil {
+		return "", err
 	} else {
 		if !dirStat.IsDir() {
 			return "", fmt.Errorf("%v should be a directory", absTestDirectory)
@@ -654,20 +657,19 @@ func prepareTestDirectory(testDir string) (string, error) {
 	return absTestDirectory, nil
 }
 
-var illegalFilenameStrs = []string{"\\", "/", ":", "<", ">", "\"", "|", "?", "*", " "}
-
 func sanitizeTestTitle(title string) string {
 	title = strings.TrimSpace(title)
 	title = strings.ToLower(title)
 
-	replacerList := make([]string, len(illegalFilenameStrs)*2)
-	for idx, illegalStr := range illegalFilenameStrs {
-		replacerList[idx*2] = illegalStr
-		replacerList[idx*2+1] = "_"
+	// replace all non-alphanumeric character sequences with an underscore
+	rep := regexp.MustCompile(`[^[[:alnum:]]+`)
+	title = rep.ReplaceAllLiteralString(title, "_")
+
+	if len(title) > 30 {
+		return title[:30]
 	}
 
-	r := strings.NewReplacer(replacerList...)
-	return r.Replace(title)
+	return title
 }
 
 func testCreationWorker(api *rainforest.Client,

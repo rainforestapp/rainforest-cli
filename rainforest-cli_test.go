@@ -27,6 +27,9 @@ func TestShuffleFlags(t *testing.T) {
 		{
 			testArgs: []string{"./rainforest", "run", "--tags", "tag,bag", "--token", "foobar", "--site", "123", "--debug"},
 			want:     []string{"./rainforest", "--token", "foobar", "--debug", "run", "--tags", "tag,bag", "--site", "123"},
+    },
+			testArgs: []string{"./rainforest", "run", "--tags", "tag,bag", "--token", "foobar", "--site", "123", "--run-group-id", "255"},
+			want:     []string{"./rainforest", "--token", "foobar", "run", "--tags", "tag,bag", "--site", "123", "--run-group-id", "255"},
 		},
 		{
 			testArgs: []string{"./rainforest", "--skip-update", "run", "--tags", "tag,bag", "--token", "foobar", "--site", "123"},

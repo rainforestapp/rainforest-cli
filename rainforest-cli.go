@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.0.4"
+	version = "2.1.1"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -134,6 +134,10 @@ func main() {
 				cli.StringSliceFlag{
 					Name:  "tag",
 					Usage: "filter tests by `TAG`. Can be used multiple times for filtering by multiple tags.",
+				},
+				cli.StringFlag{
+					Name:  "run-group-id",
+					Usage: "filter tests by a specific run group. You can see a list of your `RUN-GROUP-ID`s with run-groups command.",
 				},
 				cli.StringFlag{
 					Name:  "site, site-id",
@@ -363,6 +367,18 @@ func main() {
 			Action: func(c *cli.Context) error {
 				return printSites(api)
 			},
+		},
+		{
+			Name:  "run-groups",
+			Usage: "Lists available run groups",
+			Action: func(c *cliContext) error {
+				return printRunGroups(api)
+			},
+		},
+		{
+			Name:   "run-group",
+			Usage:  "Lists available run groups",
+			Action: printRunGroupDetails,
 		},
 		{
 			Name:  "folders",

@@ -26,7 +26,7 @@ func setup() {
 	mux = http.NewServeMux()
 	fakeServer = httptest.NewServer(mux)
 
-	client = NewClient("testToken123")
+	client = NewClient("testToken123", false)
 	url, _ := url.Parse(fakeServer.URL)
 	client.BaseURL = url
 }
@@ -38,7 +38,7 @@ func cleanup() {
 
 func TestNewClient(t *testing.T) {
 	token := "testToken123"
-	client = NewClient(token)
+	client = NewClient(token, false)
 	if out := client.ClientToken; client.ClientToken != token {
 		t.Errorf("NewClient didn't set proper token %+v, want %+v", out, token)
 	}
@@ -46,7 +46,7 @@ func TestNewClient(t *testing.T) {
 
 func TestNewRequest(t *testing.T) {
 	token := "testToken123"
-	client = NewClient(token)
+	client = NewClient(token, false)
 	client.BaseURL, _ = url.Parse("https://example.org")
 	req, _ := client.NewRequest("GET", "test", nil)
 	if out := req.Header.Get(authTokenHeader); out != token {
@@ -61,7 +61,7 @@ func TestNewRequest(t *testing.T) {
 
 	// Should not make any HTTP requests without a token
 	var err error
-	client = NewClient("")
+	client = NewClient("", false)
 	req, err = client.NewRequest("GET", "/", nil)
 
 	if err == nil {
@@ -135,5 +135,48 @@ func TestDo(t *testing.T) {
 	want := testJSON{"foobar"}
 	if !reflect.DeepEqual(out, want) {
 		t.Errorf("Response out = %v, want %v", out, want)
+	}
+}
+
+func TestNewClientWithDebug(t *testing.T) {
+	testCases := []struct {
+		args   []string
+		runID  int
+		debug  bool
+		tag    string
+		token  string
+		method string
+	}{
+		{
+			args:   []string{"rainforest", "--token", "testToken123", "--debug", "run", "--tag", "star"},
+			runID:  564,
+			debug:  true,
+			tag:    "star",
+			token:  "testToken123",
+			method: "GET",
+		},
+		{
+			args:   []string{"rainforest", "--token", "testToken123", "run", "--tag", "star"},
+			runID:  4335,
+			debug:  false,
+			tag:    "star",
+			token:  "testToken123",
+			method: "POST",
+		},
+	}
+
+	for _, testCase := range testCases {
+		client := NewClient(testCase.token, testCase.debug)
+		client.BaseURL, _ = url.Parse("https://example.org")
+		req, _ := client.NewRequest(testCase.method, "/", nil)
+		if out := req.URL; out.String() != "https://example.org/" {
+			t.Errorf("NewRequest didn't set proper URL %+v, want %+v", out, "https://example.org/")
+		}
+		client.Do(req, nil)
+
+		checkString := strings.Join(testCase.args, " ")
+		if out := strings.Contains(checkString, "debug"); out != client.DebugFlag {
+			t.Errorf("It is %+v that the --debug flag was in the command line arguments. However, the value was actually %+v.", out, client.DebugFlag)
+		}
 	}
 }

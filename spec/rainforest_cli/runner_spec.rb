@@ -113,4 +113,61 @@ describe RainforestCli::Runner do
     end
   end
 
+  describe '#wait_for_run_completion' do
+    context 'run reaches final state' do
+      let(:run_id) { 123 }
+      let(:final_run_response) do
+        {
+          'id' => run_id,
+          'state' => state,
+          'result' => result,
+          'state_details' => {
+            'is_final_state' => true,
+          },
+        }
+      end
+
+      before do
+        allow_any_instance_of(RainforestCli::HttpClient).to receive(:get)
+        .with("/runs/#{run_id}", {}, retries_on_failures: true)
+        .and_return(final_run_response)
+      end
+
+      context 'run passes' do
+        let(:state) { 'complete' }
+        let(:result) { 'passed' }
+
+        it 'returns without exiting' do
+          expect { subject.wait_for_run_completion(run_id) }.to_not raise_error
+        end
+      end
+
+      context 'run fails' do
+        let(:state) { 'complete' }
+        let(:result) { 'failed' }
+
+        it 'exits 1' do
+          expect { subject.wait_for_run_completion(run_id) }.to raise_error(SystemExit)
+        end
+      end
+
+      context 'run encounters an error' do
+        let(:state) { 'error' }
+        let(:result) { 'no_result' }
+
+        it 'exits 1' do
+          expect { subject.wait_for_run_completion(run_id) }.to raise_error(SystemExit)
+        end
+      end
+
+      context 'run is aborted' do
+        let(:state) { 'aborted' }
+        let(:result) { 'no_result' }
+
+        it 'exits 1' do
+          expect { subject.wait_for_run_completion(run_id) }.to raise_error(SystemExit)
+        end
+      end
+    end
+  end
 end

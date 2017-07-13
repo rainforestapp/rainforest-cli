@@ -1,5 +1,10 @@
 # Rainforest CLI Changelog
 
+## 1.12.6 - 12th July 2017
+- Fixed an issue where the process was exiting with exit code 0 regardless of a
+run's final result when using the `--wait` flag.
+(6c851badfaaadeccfb18a0a20278810bbe2d5335, @epaulet)
+
 ## 1.12.5 - 7th March 2017
 - Include site ID for exported tests.
 (1816af9406013ac7594765822f73066adf332cf1, @epaulet)

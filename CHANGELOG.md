@@ -1,9 +1,15 @@
 # Rainforest CLI Changelog
 
+## 2.2.0 - 14 Jul 2017
+- Added a `--debug` flag to print out http headers.
+(a9bc9dde31124f1f37934c8e85c4bd11692a8f9c, @sondhayni-rfqa)
+
 ## 2.1.1 - 22 Jun 2017
 - Changed default file name when downloading RFML tests:
   - Do not use sequences of multiple underscores in file name.
+  (12f2dafa9cd62d489c4837055535fb45580b9ef8, @epaulet)
   - Do not use more than 30 characters from a test's title in file name.
+  (c2f1baeafff3f89eff3f32295f301f9be6211dda, @epaulet)
 
 ## 2.1.0 - 19 Jun 2017
 - Added run group support for future run group feature.
@@ -27,6 +33,7 @@ empty to set the default browsers for a test as none.
 - Replace illegal file path characters when creating RFML files.
 (175c98e6568a909cd9a000a8381768d7189aa25a, @epaulet)
 
-## 2.0.1 - 12th April 2017
+## 2.0.1 - 12th Apr 2017
 - Download all tests from test API and return proper errors.
 (726f2de5215d66eeb76aa530f76b4a8a59e76f71, @epaulet)
+

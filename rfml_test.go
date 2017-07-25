@@ -4,8 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+	"reflect"
+	"sort"
 	"strings"
 	"testing"
 
@@ -337,4 +340,193 @@ func TestSanitizeTestTitle(t *testing.T) {
 	if sanitizedTitle != expectedSanitizedTitle {
 		t.Errorf("Expected sanitized title to be %v, got %v", expectedSanitizedTitle, sanitizedTitle)
 	}
+}
+
+func TestReadRFMLFiles(t *testing.T) {
+	dir := setupTestRFMLDir()
+	defer os.RemoveAll(dir)
+
+	var testCases = []struct {
+		files     []string
+		tags      []string
+		wantFiles []string
+		wantError bool
+	}{
+		{
+			files:     []string{"a/a1.rfml"},
+			wantFiles: []string{"a/a1.rfml"},
+		},
+		{
+			files:     []string{"a/a1.rfml"},
+			tags:      []string{"bar"},
+			wantFiles: []string{},
+		},
+		{
+			files:     []string{"a"},
+			tags:      []string{"foo", "baz"},
+			wantFiles: []string{"a/a1.rfml"},
+		},
+		{
+			files:     []string{"a"},
+			tags:      []string{"foo", "bar"},
+			wantFiles: []string{"a/a1.rfml", "a/a3.rfml"},
+		},
+		{
+			files:     []string{"a", "a/a1.rfml", "b/b1.rfml"},
+			wantFiles: []string{"a/a1.rfml", "a/a2.rfml", "a/a3.rfml", "b/b1.rfml"},
+		},
+		{
+			files: []string{""},
+			wantFiles: []string{
+				"a/a1.rfml",
+				"a/a2.rfml",
+				"a/a3.rfml",
+				"b/b1.rfml",
+				"b/a/b2.rfml",
+				"b/b/b3.rfml",
+				"standalone.rfml",
+			},
+		},
+		{
+			files:     []string{""},
+			tags:      []string{"foo"},
+			wantFiles: []string{"a/a1.rfml", "b/b/b3.rfml"},
+		},
+		{
+			files:     []string{""},
+			tags:      []string{},
+			wantFiles: []string{},
+		},
+		{
+			files:     []string{"c"},
+			wantError: true,
+		},
+		{
+			// We want to just ignore bogus files, rather than error, so that
+			// shell expansions like foo/ab* still work
+			files:     []string{"a/a1.rfml", "a/bogus.rf"},
+			wantFiles: []string{"a/a1.rfml"},
+		},
+	}
+
+	for _, tc := range testCases {
+		fullFiles := []string{}
+		for _, f := range tc.files {
+			fullFiles = append(fullFiles, filepath.Join(dir, f))
+		}
+
+		pTests, err := readRFMLFiles(fullFiles, tc.tags)
+		if err != nil && !tc.wantError {
+			t.Error(err)
+			continue
+		} else if err == nil && tc.wantError {
+			t.Errorf("Expected error when reading %v", tc.files)
+			continue
+		}
+
+		gotFiles := []string{}
+		for _, p := range pTests {
+			gotFiles = append(gotFiles, p.filePath)
+		}
+		sort.Strings(gotFiles)
+
+		wantFiles := []string{}
+		for _, f := range tc.wantFiles {
+			wantFiles = append(wantFiles, filepath.Join(dir, f))
+		}
+		sort.Strings(wantFiles)
+
+		if !reflect.DeepEqual(wantFiles, gotFiles) {
+			t.Errorf("Unexpected files returned (want: %v, got: %v)", wantFiles, gotFiles)
+		}
+	}
+}
+
+func setupTestRFMLDir() string {
+	var rfmlTests = []struct {
+		path    string
+		content *rainforest.RFTest
+	}{
+		{
+			path: "a/a1.rfml",
+			content: &rainforest.RFTest{
+				RFMLID: "a1",
+				Tags:   []string{"foo"},
+			},
+		},
+		{
+			path: "a/a2.rfml",
+			content: &rainforest.RFTest{
+				RFMLID: "a2",
+			},
+		},
+		{
+			path: "a/a3.rfml",
+			content: &rainforest.RFTest{
+				RFMLID: "a3",
+				Tags:   []string{"bar"},
+			},
+		},
+		{
+			path: "b/b1.rfml",
+			content: &rainforest.RFTest{
+				RFMLID: "b1",
+			},
+		},
+		{
+			path: "b/a/b2.rfml",
+			content: &rainforest.RFTest{
+				RFMLID: "b2",
+			},
+		},
+		{
+			path: "b/b/b3.rfml",
+			content: &rainforest.RFTest{
+				RFMLID: "b3",
+				Tags:   []string{"foo"},
+			},
+		},
+		{
+			path: "standalone.rfml",
+			content: &rainforest.RFTest{
+				RFMLID: "standalone",
+			},
+		},
+		{
+			path: "a/bogus.rf",
+			content: &rainforest.RFTest{
+				RFMLID: "bogus",
+			},
+		},
+	}
+
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, subdir := range []string{"a", "b/a", "b/b"} {
+		err := os.MkdirAll(filepath.Join(dir, subdir), os.ModePerm)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	for i, test := range rfmlTests {
+		test.content.TestID = i
+		test.content.Title = test.content.RFMLID
+		p := filepath.Join(dir, test.path)
+		test.content.RFMLPath = p
+		f, err := os.Create(p)
+		if err != nil {
+			log.Fatal(err)
+		}
+		w := rainforest.NewRFMLWriter(f)
+		err = w.WriteRFMLTest(test.content)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return dir
 }

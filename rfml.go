@@ -22,6 +22,13 @@ type fileParseError struct {
 	parseError error
 }
 
+// parsedTest is a convenience type that includes a path to the RFML file and
+// the parsed contents.
+type parsedTest struct {
+	filePath string
+	content  *rainforest.RFTest
+}
+
 func (e fileParseError) Error() string {
 	return fmt.Sprintf("%v:%v", e.filePath, e.parseError.Error())
 }
@@ -36,11 +43,99 @@ func validateRFML(c cliContext) error {
 		}
 		return nil
 	}
-	err := validateRFMLFilesInDirectory(c.String("test-folder"))
+	tests, err := readRFMLFiles([]string{c.String("test-folder")}, nil)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	err = validateRFMLFiles(tests)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
 	return nil
+}
+
+// readRFMLFiles takes in a list of files and/or directories and a list of tags
+// and returns a list of the parsed tests, or an error if it is encountered. To
+// allow all tags, pass in nil for tags.
+func readRFMLFiles(files []string, tags []string) ([]parsedTest, error) {
+	fileList := []string{}
+	for _, file := range files {
+		stat, err := os.Stat(file)
+		if err != nil {
+			return nil, err
+		}
+		if !stat.IsDir() {
+			if strings.HasSuffix(file, ".rfml") {
+				fileList = append(fileList, file)
+				continue
+			} else {
+				log.Printf("%s is not a valid RFML file", file)
+				continue
+			}
+		}
+
+		// We have a directory, walk through and find RFML files
+		err = filepath.Walk(file, func(path string, f os.FileInfo, err error) error {
+			if strings.HasSuffix(path, ".rfml") {
+				fileList = append(fileList, path)
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	parsedTests := []parsedTest{}
+	seenPaths := map[string]bool{}
+	for _, filePath := range fileList {
+		// No dups!
+		if seenPaths[filePath] {
+			continue
+		}
+		seenPaths[filePath] = true
+		test, err := readRFMLFile(filePath)
+		if err != nil {
+			return nil, err
+		}
+		if tags == nil || anyMember(test.Tags, tags) {
+			parsedTests = append(parsedTests, parsedTest{filePath, test})
+		}
+	}
+	return parsedTests, nil
+}
+
+// anyMember is one of those things that would probably be in the stdlib if
+// there were generics. I hate golang sometimes. In any case, it returns true if
+// any of needles are in haystack. It's O(n*m), so only put small stuff in
+// there!
+func anyMember(haystack []string, needles []string) bool {
+	for _, n := range needles {
+		for _, h := range haystack {
+			if h == n {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func readRFMLFile(filePath string) (*rainforest.RFTest, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	rfmlReader := rainforest.NewRFMLReader(f)
+	var pTest *rainforest.RFTest
+	pTest, err = rfmlReader.ReadAll()
+	if err != nil {
+		return nil, err
+	} else {
+		return pTest, err
+	}
 }
 
 // validateSingleRFMLFile validates RFML file syntax by
@@ -63,54 +158,13 @@ func validateSingleRFMLFile(filePath string) error {
 	return nil
 }
 
-// validateRFMLFilesInDirectory validates RFML file syntax, embedded rfml ids,
-// checks for circular dependiences and all other cool things in the specified directory
-func validateRFMLFilesInDirectory(rfmlDirectory string) error {
-	// first just make sure we are dealing with directory
-	dirStat, err := os.Stat(rfmlDirectory)
-	if err != nil {
-		return err
-	}
-	if !dirStat.IsDir() {
-		return fmt.Errorf("%v should be a directory", rfmlDirectory)
-	}
-
-	// walk through the specifed directory (also subdirs) and pick the .rfml files
-	var fileList []string
-	err = filepath.Walk(rfmlDirectory, func(path string, f os.FileInfo, err error) error {
-		if strings.Contains(path, ".rfml") {
-			fileList = append(fileList, path)
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
+// validateRFMLFiles validates RFML file syntax, embedded rfml ids, checks for
+// circular dependiences and all other cool things in the specified directory
+func validateRFMLFiles(parsedTests []parsedTest) error {
 	// parse all of them files
-	type parsedTest struct {
-		filePath string
-		content  *rainforest.RFTest
-	}
 	var validationErrors []error
-	var parsedTests []parsedTest
+	var err error
 	dependencyGraph := goraph.NewGraph()
-	for _, filePath := range fileList {
-		var f *os.File
-		f, err = os.Open(filePath)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		rfmlReader := rainforest.NewRFMLReader(f)
-		var pTest *rainforest.RFTest
-		pTest, err = rfmlReader.ReadAll()
-		if err != nil {
-			validationErrors = append(validationErrors, fileParseError{filePath, err})
-		} else {
-			parsedTests = append(parsedTests, parsedTest{filePath, pTest})
-		}
-	}
 
 	// check for rfml_id uniqueness
 	rfmlIDToTest := make(map[string]parsedTest)
@@ -301,7 +355,11 @@ func uploadRFML(c cliContext) error {
 		}
 		return nil
 	}
-	err := uploadRFMLFilesInDirectory(c.String("test-folder"))
+	tests, err := readRFMLFiles([]string{c.String("test-folder")}, nil)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	err = uploadRFMLFiles(tests)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -392,53 +450,29 @@ func uploadSingleRFMLFile(filePath string) error {
 	return nil
 }
 
-func uploadRFMLFilesInDirectory(rfmlDirectory string) error {
-	// Validate files first
-	err := validateRFMLFilesInDirectory(rfmlDirectory)
+func uploadRFMLFiles(tests []parsedTest) error {
+	err := validateRFMLFiles(tests)
 	if err != nil {
 		return err
 	}
 
 	// walk through the specifed directory (also subdirs) and pick the .rfml files
-	var fileList []string
-	err = filepath.Walk(rfmlDirectory, func(path string, f os.FileInfo, err error) error {
-		if strings.Contains(path, ".rfml") {
-			fileList = append(fileList, path)
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
 	// This will be used over and over again
 	mappings, err := api.GetRFMLIDs()
 	if err != nil {
 		return err
 	}
 	rfmlidToID := mappings.MapRFMLIDtoID()
-	var parsedTests []*rainforest.RFTest
 	var newTests []*rainforest.RFTest
+	var parsedTests []*rainforest.RFTest
 
-	for _, filePath := range fileList {
-		var f *os.File
-		f, err = os.Open(filePath)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		rfmlReader := rainforest.NewRFMLReader(f)
-		var pTest *rainforest.RFTest
-		pTest, err = rfmlReader.ReadAll()
-		if err != nil {
-			return err
-		}
-		pTest.RFMLPath = filePath
-		parsedTests = append(parsedTests, pTest)
+	for _, pTest := range tests {
+		pTest.content.RFMLPath = pTest.filePath
+		parsedTests = append(parsedTests, pTest.content)
 		// Check if it's a new test or an existing one, because they need different treatment
 		// to ensure we first add new ones and have IDs for potential embedds
-		if _, ok := rfmlidToID[pTest.RFMLID]; !ok {
-			newTests = append(newTests, pTest)
+		if _, ok := rfmlidToID[pTest.content.RFMLID]; !ok {
+			newTests = append(newTests, pTest.content)
 		}
 	}
 	// chan to gather errors from workers

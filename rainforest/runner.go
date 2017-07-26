@@ -6,6 +6,7 @@ import "strconv"
 type RunParams struct {
 	// This can be eiter []int or string containing 'all'
 	Tests         interface{} `json:"tests,omitempty"`
+	RFMLIDs       []string    `json:"rfml_ids,omitempty"`
 	Tags          []string    `json:"tags,omitempty"`
 	SmartFolderID int         `json:"smart_folder_id,omitempty"`
 	SiteID        int         `json:"site_id,omitempty"`

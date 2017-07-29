@@ -15,6 +15,7 @@ import (
 type runnerAPI interface {
 	CreateRun(params rainforest.RunParams) (*rainforest.RunStatus, error)
 	CreateTemporaryEnvironment(string) (*rainforest.Environment, error)
+	rfmlAPI
 }
 
 type runner struct {
@@ -41,7 +42,16 @@ func (r *runner) startRun(c cliContext) error {
 		return monitorRunStatus(c, runID)
 	}
 
-	params, err := r.makeRunParams(c)
+	var localTests []parsedTest
+	var err error
+	if c.Bool("f") {
+		localTests, err = r.prepareLocalRun(c)
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+	}
+
+	params, err := r.makeRunParams(c, localTests)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -83,6 +93,21 @@ func (r *runner) startRun(c cliContext) error {
 	}
 
 	return monitorRunStatus(c, runStatus.ID)
+}
+
+func (r *runner) prepareLocalRun(c cliContext) ([]parsedTest, error) {
+	tags := getTags(c)
+	files := c.Args()
+	tests, err := readRFMLFiles(files, tags)
+	if err != nil {
+		return nil, err
+	}
+
+	err = uploadRFMLFiles(tests, r.client)
+	if err != nil {
+		return nil, err
+	}
+	return tests, nil
 }
 
 func monitorRunStatus(c cliContext, runID int) error {
@@ -145,11 +170,12 @@ func updateRunStatus(c cliContext, runID int, t *time.Ticker, resChan chan statu
 
 // makeRunParams parses and validates command line arguments + options
 // and makes RunParams struct out of them
-func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
+func (r *runner) makeRunParams(c cliContext, localTests []parsedTest) (rainforest.RunParams, error) {
 	var err error
+	localOnly := localTests != nil
 
 	var smartFolderID int
-	if s := c.String("folder"); s != "" {
+	if s := c.String("folder"); !localOnly && s != "" {
 		smartFolderID, err = strconv.Atoi(c.String("folder"))
 		if err != nil {
 			return rainforest.RunParams{}, err
@@ -157,7 +183,7 @@ func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
 	}
 
 	var runGroupID int
-	if s := c.String("run-group-id"); s != "" {
+	if s := c.String("run-group-id"); !localOnly && s != "" {
 		runGroupID, err = strconv.Atoi(c.String("run-group-id"))
 		if err != nil {
 			return rainforest.RunParams{}, err
@@ -214,10 +240,16 @@ func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
 		}
 	}
 
-	// Parse command argument as a list of test IDs
+	// Figure out test/RFML IDs
 	var testIDs interface{}
+	var rfmlIDs []string
 	testIDsArgs := c.Args()
-	if testIDsArgs.First() != "all" && testIDsArgs.First() != "" {
+
+	if localOnly {
+		for _, t := range localTests {
+			rfmlIDs = append(rfmlIDs, t.content.RFMLID)
+		}
+	} else if testIDsArgs.First() != "all" && testIDsArgs.First() != "" {
 		testIDs = []int{}
 		for _, arg := range testIDsArgs {
 			nextTestIDs, err := stringToIntSlice(arg)
@@ -230,13 +262,12 @@ func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
 		testIDs = "all"
 	}
 
-	// We get tags slice from arguments and then expand comma separated lists into separate entries
-	tags := c.StringSlice("tag")
-	expandedTags := expandStringSlice(tags)
+	tags := getTags(c)
 
 	return rainforest.RunParams{
 		Tests:         testIDs,
-		Tags:          expandedTags,
+		RFMLIDs:       rfmlIDs,
+		Tags:          tags,
 		SmartFolderID: smartFolderID,
 		SiteID:        siteID,
 		Crowd:         crowd,
@@ -263,6 +294,13 @@ func stringToIntSlice(s string) ([]int, error) {
 		slicedInt = append(slicedInt, newInt)
 	}
 	return slicedInt, nil
+}
+
+// getTags get tags from a CLI context. It supports expanding comma-separated
+// sublists.
+func getTags(c cliContext) []string {
+	tags := c.StringSlice("tag")
+	return expandStringSlice(tags)
 }
 
 // expandStringSlice takes a slice of strings and expands any comma separated sublists

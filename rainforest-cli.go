@@ -131,6 +131,10 @@ func main() {
 				"Alternatively you can use one of the filtering options.",
 			ArgsUsage: "[test IDs]",
 			Flags: []cli.Flag{
+				cli.BoolTFlag{
+					Name:  "f, files",
+					Usage: "only run local tests. Specify any number of files or folders to run as the last arguments.",
+				},
 				cli.StringSliceFlag{
 					Name:  "tag",
 					Usage: "filter tests by `TAG`. Can be used multiple times for filtering by multiple tags.",

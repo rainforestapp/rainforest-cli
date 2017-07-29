@@ -35,7 +35,7 @@ func (e fileParseError) Error() string {
 
 // validateRFML is a wrapper around two other validation functions
 // first one for the single file and the other for whole directory
-func validateRFML(c cliContext) error {
+func validateRFML(c cliContext, api rfmlAPI) error {
 	if path := c.Args().First(); path != "" {
 		err := validateSingleRFMLFile(path)
 		if err != nil {
@@ -47,7 +47,7 @@ func validateRFML(c cliContext) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
-	err = validateRFMLFiles(tests)
+	err = validateRFMLFiles(tests, api, false)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -158,9 +158,11 @@ func validateSingleRFMLFile(filePath string) error {
 	return nil
 }
 
+var validationFailureError = errors.New("Validation failed")
+
 // validateRFMLFiles validates RFML file syntax, embedded rfml ids, checks for
 // circular dependiences and all other cool things in the specified directory
-func validateRFMLFiles(parsedTests []parsedTest) error {
+func validateRFMLFiles(parsedTests []parsedTest, api rfmlAPI, localOnly bool) error {
 	// parse all of them files
 	var validationErrors []error
 	var err error
@@ -180,7 +182,7 @@ func validateRFMLFiles(parsedTests []parsedTest) error {
 
 	// check for embedded tests id validity
 	// start with pulling the external test ids to validate against them as well
-	if api.ClientToken != "" {
+	if !localOnly && api.ClientToken() != "" {
 		var externalTests rainforest.TestIDMappings
 		externalTests, err = api.GetRFMLIDs()
 		if err != nil {
@@ -201,7 +203,7 @@ func validateRFMLFiles(parsedTests []parsedTest) error {
 			if embeddedTest, ok := step.(rainforest.RFEmbeddedTest); ok {
 				// if so, check if its rfml id exists
 				if _, ok := rfmlIDToTest[embeddedTest.RFMLID]; !ok {
-					if api.ClientToken != "" {
+					if localOnly || api.ClientToken() != "" {
 						err = fmt.Errorf("step %v - embeddedTest RFML id %v not found", stepNum+1, embeddedTest.RFMLID)
 					} else {
 						err = fmt.Errorf("step %v - embeddedTest RFML id %v not found. Specify token_id to check against external tests", stepNum+1, embeddedTest.RFMLID)
@@ -229,7 +231,7 @@ func validateRFMLFiles(parsedTests []parsedTest) error {
 		for _, err := range validationErrors {
 			log.Print(err.Error())
 		}
-		return errors.New("Validation failed")
+		return validationFailureError
 	}
 
 	log.Print("All files are valid!")
@@ -344,7 +346,7 @@ func deleteRFML(c cliContext) error {
 }
 
 // uploadRFML is a wrapper around test creating/updating functions
-func uploadRFML(c cliContext) error {
+func uploadRFML(c cliContext, api rfmlAPI) error {
 	if c.Bool("synchronous-upload") {
 		rfmlUploadConcurrency = 1
 	}
@@ -359,7 +361,7 @@ func uploadRFML(c cliContext) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
-	err = uploadRFMLFiles(tests)
+	err = uploadRFMLFiles(tests, api)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -450,8 +452,8 @@ func uploadSingleRFMLFile(filePath string) error {
 	return nil
 }
 
-func uploadRFMLFiles(tests []parsedTest) error {
-	err := validateRFMLFiles(tests)
+func uploadRFMLFiles(tests []parsedTest, api rfmlAPI) error {
+	err := validateRFMLFiles(tests, api, false)
 	if err != nil {
 		return err
 	}
@@ -558,6 +560,10 @@ type rfmlAPI interface {
 	GetRFMLIDs() (rainforest.TestIDMappings, error)
 	GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, error)
 	GetTest(int) (*rainforest.RFTest, error)
+	CreateTest(*rainforest.RFTest) error
+	UpdateTest(*rainforest.RFTest) error
+	ParseEmbeddedFiles(*rainforest.RFTest) error
+	ClientToken() string
 }
 
 func downloadRFML(c cliContext, client rfmlAPI) error {
@@ -706,7 +712,7 @@ func sanitizeTestTitle(title string) string {
 	return title
 }
 
-func testCreationWorker(api *rainforest.Client,
+func testCreationWorker(api rfmlAPI,
 	testsToCreate <-chan *rainforest.RFTest, errorsChan chan<- error) {
 	for test := range testsToCreate {
 		log.Printf("Creating new test: %v", test.RFMLID)
@@ -715,7 +721,7 @@ func testCreationWorker(api *rainforest.Client,
 	}
 }
 
-func testUpdateWorker(api *rainforest.Client,
+func testUpdateWorker(api rfmlAPI,
 	testsToUpdate <-chan *rainforest.RFTest, errorsChan chan<- error) {
 	for test := range testsToUpdate {
 		log.Printf("Updating existing test: %v", test.RFMLID)

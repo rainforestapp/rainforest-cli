@@ -248,7 +248,9 @@ func main() {
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
 			},
-			Action: validateRFML,
+			Action: func(c *cli.Context) error {
+				return validateRFML(c, api)
+			},
 		},
 		{
 			Name:      "upload",
@@ -268,7 +270,9 @@ func main() {
 					Usage: "uploads your test in a synchronous manner i.e. not using concurrency.",
 				},
 			},
-			Action: uploadRFML,
+			Action: func(c *cli.Context) error {
+				return uploadRFML(c, api)
+			},
 		},
 		{
 			Name:        "rm",

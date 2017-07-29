@@ -252,6 +252,27 @@ func (t *testRfmlAPI) GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, 
 	return t.tests, nil
 }
 
+func (t *testRfmlAPI) ClientToken() string {
+	return "abc123"
+}
+
+var stub = errors.New("STUB")
+
+func (t *testRfmlAPI) CreateTest(_ *rainforest.RFTest) error {
+	// implement when needed
+	return stub
+}
+
+func (t *testRfmlAPI) UpdateTest(_ *rainforest.RFTest) error {
+	// implement when needed
+	return stub
+}
+
+func (t *testRfmlAPI) ParseEmbeddedFiles(_ *rainforest.RFTest) error {
+	// implement when needed
+	return stub
+}
+
 func TestDownloadRFML(t *testing.T) {
 	context := new(fakeContext)
 	testAPI := new(testRfmlAPI)
@@ -339,6 +360,55 @@ func TestSanitizeTestTitle(t *testing.T) {
 
 	if sanitizedTitle != expectedSanitizedTitle {
 		t.Errorf("Expected sanitized title to be %v, got %v", expectedSanitizedTitle, sanitizedTitle)
+	}
+}
+
+func TestValidateEmbedded(t *testing.T) {
+	t1 := rainforest.RFTest{
+		TestID: 1,
+		RFMLID: "1",
+	}
+	t2 := rainforest.RFTest{
+		TestID: 2,
+		RFMLID: "2",
+		Steps: []interface{}{
+			rainforest.RFEmbeddedTest{
+				RFMLID:   "1",
+				Redirect: true,
+			},
+		},
+	}
+
+	testAPI := new(testRfmlAPI)
+	testAPI.mappings = rainforest.TestIDMappings{
+		{ID: t1.TestID, RFMLID: t1.RFMLID},
+		{ID: t2.TestID, RFMLID: t2.RFMLID},
+	}
+
+	tests := []parsedTest{{filePath: "./2.rfml", content: &t2}}
+	var err error
+
+	// With API access, the validation should be fine
+	err = validateRFMLFiles(tests, testAPI, false)
+	if err != nil {
+		t.Error("Non-local validation failed:", err)
+	}
+
+	// With local-only and all embedded tests available, the validation should
+	// be fine
+	allTests := append(tests, parsedTest{filePath: "./1.rfml", content: &t1})
+	err = validateRFMLFiles(allTests, testAPI, true)
+	if err != nil {
+		t.Error("Local-only validation with all tests failed:", err)
+	}
+
+	// With local-only and embedded tests not available locally, the validation
+	// should fail
+	err = validateRFMLFiles(tests, testAPI, true)
+	if err == nil {
+		t.Error("Local-only validation should have failed but didn't")
+	} else if err != validationFailureError {
+		t.Error("Unexpected error for local-only validation:", err)
 	}
 }
 

@@ -327,9 +327,9 @@ func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
 
 		if page == totalPages {
 			return tests, nil
-		} else {
-			page++
 		}
+
+		page++
 	}
 }
 

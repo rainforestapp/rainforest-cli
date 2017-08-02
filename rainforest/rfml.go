@@ -35,10 +35,9 @@ func (e *parseError) Error() string {
 	if _, err := strconv.Atoi(e.location); err == nil {
 		// location is a line number
 		return fmt.Sprintf("RFML parsing error in line %v: %v", e.location, e.reason)
-	} else {
-		// location is a field
-		return fmt.Sprintf("RFML parsing error for test field \"%v\": %v", e.location, e.reason)
 	}
+	// location is a field
+	return fmt.Sprintf("RFML parsing error for test field \"%v\": %v", e.location, e.reason)
 }
 
 // NewRFMLReader returns RFML parser based on passed io.Reader - typically a RFML file.

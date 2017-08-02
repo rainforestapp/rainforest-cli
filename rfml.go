@@ -40,7 +40,7 @@ func validateRFML(c cliContext, api rfmlAPI) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
-	err = validateRFMLFiles(tests, api, false)
+	err = validateRFMLFiles(tests, false, api)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -156,7 +156,7 @@ var validationFailureError = errors.New("Validation failed")
 
 // validateRFMLFiles validates RFML file syntax, embedded rfml ids, checks for
 // circular dependiences and all other cool things in the specified directory
-func validateRFMLFiles(parsedTests []*rainforest.RFTest, api rfmlAPI, localOnly bool) error {
+func validateRFMLFiles(parsedTests []*rainforest.RFTest, localOnly bool, api rfmlAPI) error {
 	// parse all of them files
 	var validationErrors []error
 	var err error
@@ -355,7 +355,7 @@ func uploadRFML(c cliContext, api rfmlAPI) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
-	err = uploadRFMLFiles(tests, api)
+	err = uploadRFMLFiles(tests, false, api)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -446,8 +446,8 @@ func uploadSingleRFMLFile(filePath string) error {
 	return nil
 }
 
-func uploadRFMLFiles(tests []*rainforest.RFTest, api rfmlAPI) error {
-	err := validateRFMLFiles(tests, api, false)
+func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) error {
+	err := validateRFMLFiles(tests, localOnly, api)
 	if err != nil {
 		return err
 	}
@@ -463,7 +463,6 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, api rfmlAPI) error {
 	var parsedTests []*rainforest.RFTest
 
 	for _, pTest := range tests {
-		pTest.RFMLPath = pTest.RFMLPath
 		parsedTests = append(parsedTests, pTest)
 		// Check if it's a new test or an existing one, because they need different treatment
 		// to ensure we first add new ones and have IDs for potential embedds

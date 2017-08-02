@@ -391,7 +391,7 @@ func TestValidateEmbedded(t *testing.T) {
 	var err error
 
 	// With API access, the validation should be fine
-	err = validateRFMLFiles(tests, testAPI, false)
+	err = validateRFMLFiles(tests, false, testAPI)
 	if err != nil {
 		t.Error("Non-local validation failed:", err)
 	}
@@ -399,14 +399,14 @@ func TestValidateEmbedded(t *testing.T) {
 	// With local-only and all embedded tests available, the validation should
 	// be fine
 	allTests := append(tests, &t1)
-	err = validateRFMLFiles(allTests, testAPI, true)
+	err = validateRFMLFiles(allTests, true, testAPI)
 	if err != nil {
 		t.Error("Local-only validation with all tests failed:", err)
 	}
 
 	// With local-only and embedded tests not available locally, the validation
 	// should fail
-	err = validateRFMLFiles(tests, testAPI, true)
+	err = validateRFMLFiles(tests, true, testAPI)
 	if err == nil {
 		t.Error("Local-only validation should have failed but didn't")
 	} else if err != validationFailureError {

@@ -103,7 +103,7 @@ func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
 		return nil, err
 	}
 
-	err = uploadRFMLFiles(tests, r.client)
+	err = uploadRFMLFiles(tests, true, r.client)
 	if err != nil {
 		return nil, err
 	}

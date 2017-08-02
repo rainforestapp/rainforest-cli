@@ -52,7 +52,9 @@ func NewRFMLReader(r io.Reader) *RFMLReader {
 // ReadAll parses whole RFML file using RFML version specified by Version parameter of reader
 // and returns resulting RFTest
 func (r *RFMLReader) ReadAll() (*RFTest, error) {
-	parsedRFTest := &RFTest{}
+	parsedRFTest := &RFTest{
+		Execute: true, // we execute by default
+	}
 	// Set up a new scanner to read in data line by line
 	scanner := bufio.NewScanner(r.r)
 	lineNum := 0
@@ -122,6 +124,12 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 						return parsedRFTest, &parseError{lineNumStr, "Redirect value must be a valid boolean"}
 					}
 					currStepRedirect = redirect
+				case "execute":
+					execute, err := strconv.ParseBool(value)
+					if err != nil {
+						return parsedRFTest, &parseError{lineNumStr, "Execute value must be a valid boolean"}
+					}
+					parsedRFTest.Execute = execute
 				default:
 					// If it doesn't match known key add it to description
 					parsedRFTest.Description += strings.TrimSpace(content) + "\n"
@@ -240,6 +248,13 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 
 		_, err = writer.WriteString(browsersHeader)
 
+		if err != nil {
+			return err
+		}
+	}
+
+	if !test.Execute {
+		_, err = writer.WriteString("# execute: false\n")
 		if err != nil {
 			return err
 		}

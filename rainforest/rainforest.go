@@ -57,7 +57,13 @@ func NewClient(token string, debug bool) *Client {
 		baseURL, _ = url.Parse(currentBaseURL)
 	}
 
-	return &Client{client: http.DefaultClient, BaseURL: baseURL, clientToken: token, LastResponseHeaders: http.Header{}, DebugFlag: debug}
+	return &Client{
+		client:              http.DefaultClient,
+		BaseURL:             baseURL,
+		clientToken:         token,
+		LastResponseHeaders: http.Header{},
+		DebugFlag:           debug,
+	}
 }
 
 // ClientToken returns the API authentication token for the client.

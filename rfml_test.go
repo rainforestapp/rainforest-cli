@@ -522,52 +522,60 @@ func setupTestRFMLDir() string {
 		{
 			path: "a/a1.rfml",
 			content: &rainforest.RFTest{
-				RFMLID: "a1",
-				Tags:   []string{"foo"},
+				RFMLID:  "a1",
+				Tags:    []string{"foo"},
+				Execute: true,
 			},
 		},
 		{
 			path: "a/a2.rfml",
 			content: &rainforest.RFTest{
-				RFMLID: "a2",
+				RFMLID:  "a2",
+				Execute: true,
 			},
 		},
 		{
 			path: "a/a3.rfml",
 			content: &rainforest.RFTest{
-				RFMLID: "a3",
-				Tags:   []string{"bar"},
+				RFMLID:  "a3",
+				Tags:    []string{"bar"},
+				Execute: true,
 			},
 		},
 		{
 			path: "b/b1.rfml",
 			content: &rainforest.RFTest{
-				RFMLID: "b1",
+				RFMLID:  "b1",
+				Execute: true,
 			},
 		},
 		{
 			path: "b/a/b2.rfml",
 			content: &rainforest.RFTest{
-				RFMLID: "b2",
+				RFMLID:  "b2",
+				Execute: true,
 			},
 		},
 		{
 			path: "b/b/b3.rfml",
 			content: &rainforest.RFTest{
-				RFMLID: "b3",
-				Tags:   []string{"foo"},
+				RFMLID:  "b3",
+				Tags:    []string{"foo"},
+				Execute: false,
 			},
 		},
 		{
 			path: "standalone.rfml",
 			content: &rainforest.RFTest{
-				RFMLID: "standalone",
+				RFMLID:  "standalone",
+				Execute: true,
 			},
 		},
 		{
 			path: "a/bogus.rf",
 			content: &rainforest.RFTest{
-				RFMLID: "bogus",
+				RFMLID:  "bogus",
+				Execute: true,
 			},
 		},
 	}

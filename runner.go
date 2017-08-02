@@ -107,7 +107,15 @@ func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
 	if err != nil {
 		return nil, err
 	}
-	return tests, nil
+
+	testsToExecute := []*rainforest.RFTest{}
+	for _, test := range tests {
+		if test.Execute {
+			testsToExecute = append(testsToExecute, test)
+		}
+	}
+
+	return testsToExecute, nil
 }
 
 func monitorRunStatus(c cliContext, runID int) error {

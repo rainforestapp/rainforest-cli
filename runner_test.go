@@ -212,6 +212,7 @@ func TestStartLocalRun(t *testing.T) {
 	}
 
 	// Check that the right tests were requested for the run
+	want = []string{"a1", "a3"} // b3 is execute: false
 	got = client.runParams.RFMLIDs
 	sort.Strings(got)
 	if !reflect.DeepEqual(want, got) {

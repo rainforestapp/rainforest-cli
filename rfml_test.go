@@ -365,12 +365,14 @@ func TestSanitizeTestTitle(t *testing.T) {
 
 func TestValidateEmbedded(t *testing.T) {
 	t1 := rainforest.RFTest{
-		TestID: 1,
-		RFMLID: "1",
+		TestID:   1,
+		RFMLID:   "1",
+		RFMLPath: "./1.rfml",
 	}
 	t2 := rainforest.RFTest{
-		TestID: 2,
-		RFMLID: "2",
+		TestID:   2,
+		RFMLID:   "2",
+		RFMLPath: "./2.rfml",
 		Steps: []interface{}{
 			rainforest.RFEmbeddedTest{
 				RFMLID:   "1",
@@ -385,7 +387,7 @@ func TestValidateEmbedded(t *testing.T) {
 		{ID: t2.TestID, RFMLID: t2.RFMLID},
 	}
 
-	tests := []parsedTest{{filePath: "./2.rfml", content: &t2}}
+	tests := []*rainforest.RFTest{&t2}
 	var err error
 
 	// With API access, the validation should be fine
@@ -396,7 +398,7 @@ func TestValidateEmbedded(t *testing.T) {
 
 	// With local-only and all embedded tests available, the validation should
 	// be fine
-	allTests := append(tests, parsedTest{filePath: "./1.rfml", content: &t1})
+	allTests := append(tests, &t1)
 	err = validateRFMLFiles(allTests, testAPI, true)
 	if err != nil {
 		t.Error("Local-only validation with all tests failed:", err)
@@ -496,7 +498,7 @@ func TestReadRFMLFiles(t *testing.T) {
 
 		gotFiles := []string{}
 		for _, p := range pTests {
-			gotFiles = append(gotFiles, p.filePath)
+			gotFiles = append(gotFiles, p.RFMLPath)
 		}
 		sort.Strings(gotFiles)
 

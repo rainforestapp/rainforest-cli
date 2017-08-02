@@ -22,13 +22,6 @@ type fileParseError struct {
 	parseError error
 }
 
-// parsedTest is a convenience type that includes a path to the RFML file and
-// the parsed contents.
-type parsedTest struct {
-	filePath string
-	content  *rainforest.RFTest
-}
-
 func (e fileParseError) Error() string {
 	return fmt.Sprintf("%v:%v", e.filePath, e.parseError.Error())
 }
@@ -57,7 +50,7 @@ func validateRFML(c cliContext, api rfmlAPI) error {
 // readRFMLFiles takes in a list of files and/or directories and a list of tags
 // and returns a list of the parsed tests, or an error if it is encountered. To
 // allow all tags, pass in nil for tags.
-func readRFMLFiles(files []string, tags []string) ([]parsedTest, error) {
+func readRFMLFiles(files []string, tags []string) ([]*rainforest.RFTest, error) {
 	fileList := []string{}
 	for _, file := range files {
 		stat, err := os.Stat(file)
@@ -86,7 +79,7 @@ func readRFMLFiles(files []string, tags []string) ([]parsedTest, error) {
 		}
 	}
 
-	parsedTests := []parsedTest{}
+	tests := []*rainforest.RFTest{}
 	seenPaths := map[string]bool{}
 	for _, filePath := range fileList {
 		// No dups!
@@ -99,10 +92,10 @@ func readRFMLFiles(files []string, tags []string) ([]parsedTest, error) {
 			return nil, err
 		}
 		if tags == nil || anyMember(test.Tags, tags) {
-			parsedTests = append(parsedTests, parsedTest{filePath, test})
+			tests = append(tests, test)
 		}
 	}
-	return parsedTests, nil
+	return tests, nil
 }
 
 // anyMember is one of those things that would probably be in the stdlib if
@@ -133,9 +126,10 @@ func readRFMLFile(filePath string) (*rainforest.RFTest, error) {
 	pTest, err = rfmlReader.ReadAll()
 	if err != nil {
 		return nil, err
-	} else {
-		return pTest, err
 	}
+
+	pTest.RFMLPath = filePath
+	return pTest, err
 }
 
 // validateSingleRFMLFile validates RFML file syntax by
@@ -162,21 +156,21 @@ var validationFailureError = errors.New("Validation failed")
 
 // validateRFMLFiles validates RFML file syntax, embedded rfml ids, checks for
 // circular dependiences and all other cool things in the specified directory
-func validateRFMLFiles(parsedTests []parsedTest, api rfmlAPI, localOnly bool) error {
+func validateRFMLFiles(parsedTests []*rainforest.RFTest, api rfmlAPI, localOnly bool) error {
 	// parse all of them files
 	var validationErrors []error
 	var err error
 	dependencyGraph := goraph.NewGraph()
 
 	// check for rfml_id uniqueness
-	rfmlIDToTest := make(map[string]parsedTest)
+	rfmlIDToTest := make(map[string]*rainforest.RFTest)
 	for _, pTest := range parsedTests {
-		if conflictingTest, ok := rfmlIDToTest[pTest.content.RFMLID]; ok {
-			err = fmt.Errorf(" duplicate RFML id %v, also found in: %v", pTest.content.RFMLID, conflictingTest.filePath)
-			validationErrors = append(validationErrors, fileParseError{pTest.filePath, err})
+		if conflictingTest, ok := rfmlIDToTest[pTest.RFMLID]; ok {
+			err = fmt.Errorf(" duplicate RFML id %v, also found in: %v", pTest.RFMLID, conflictingTest.RFMLPath)
+			validationErrors = append(validationErrors, fileParseError{pTest.RFMLPath, err})
 		} else {
-			rfmlIDToTest[pTest.content.RFMLID] = pTest
-			dependencyGraph.AddNode(goraph.NewNode(pTest.content.RFMLID))
+			rfmlIDToTest[pTest.RFMLID] = pTest
+			dependencyGraph.AddNode(goraph.NewNode(pTest.RFMLID))
 		}
 	}
 
@@ -190,7 +184,7 @@ func validateRFMLFiles(parsedTests []parsedTest, api rfmlAPI, localOnly bool) er
 		}
 		for _, externalTest := range externalTests {
 			if _, ok := rfmlIDToTest[externalTest.RFMLID]; !ok {
-				rfmlIDToTest[externalTest.RFMLID] = parsedTest{"external", &rainforest.RFTest{}}
+				rfmlIDToTest[externalTest.RFMLID] = &rainforest.RFTest{}
 				dependencyGraph.AddNode(goraph.NewNode(externalTest.RFMLID))
 			}
 		}
@@ -198,7 +192,7 @@ func validateRFMLFiles(parsedTests []parsedTest, api rfmlAPI, localOnly bool) er
 	// go through all the tests
 	for _, pTest := range parsedTests {
 		// and steps...
-		for stepNum, step := range pTest.content.Steps {
+		for stepNum, step := range pTest.Steps {
 			// then check if it's embeddedTest
 			if embeddedTest, ok := step.(rainforest.RFEmbeddedTest); ok {
 				// if so, check if its rfml id exists
@@ -208,9 +202,9 @@ func validateRFMLFiles(parsedTests []parsedTest, api rfmlAPI, localOnly bool) er
 					} else {
 						err = fmt.Errorf("step %v - embeddedTest RFML id %v not found. Specify token_id to check against external tests", stepNum+1, embeddedTest.RFMLID)
 					}
-					validationErrors = append(validationErrors, fileParseError{pTest.filePath, err})
+					validationErrors = append(validationErrors, fileParseError{pTest.RFMLPath, err})
 				} else {
-					pNode := dependencyGraph.GetNode(goraph.StringID(pTest.content.RFMLID))
+					pNode := dependencyGraph.GetNode(goraph.StringID(pTest.RFMLID))
 					eNode := dependencyGraph.GetNode(goraph.StringID(embeddedTest.RFMLID))
 					dependencyGraph.AddEdge(pNode.ID(), eNode.ID(), 1)
 				}
@@ -452,7 +446,7 @@ func uploadSingleRFMLFile(filePath string) error {
 	return nil
 }
 
-func uploadRFMLFiles(tests []parsedTest, api rfmlAPI) error {
+func uploadRFMLFiles(tests []*rainforest.RFTest, api rfmlAPI) error {
 	err := validateRFMLFiles(tests, api, false)
 	if err != nil {
 		return err
@@ -469,12 +463,12 @@ func uploadRFMLFiles(tests []parsedTest, api rfmlAPI) error {
 	var parsedTests []*rainforest.RFTest
 
 	for _, pTest := range tests {
-		pTest.content.RFMLPath = pTest.filePath
-		parsedTests = append(parsedTests, pTest.content)
+		pTest.RFMLPath = pTest.RFMLPath
+		parsedTests = append(parsedTests, pTest)
 		// Check if it's a new test or an existing one, because they need different treatment
 		// to ensure we first add new ones and have IDs for potential embedds
-		if _, ok := rfmlidToID[pTest.content.RFMLID]; !ok {
-			newTests = append(newTests, pTest.content)
+		if _, ok := rfmlidToID[pTest.RFMLID]; !ok {
+			newTests = append(newTests, pTest)
 		}
 	}
 	// chan to gather errors from workers

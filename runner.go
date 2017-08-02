@@ -42,7 +42,7 @@ func (r *runner) startRun(c cliContext) error {
 		return monitorRunStatus(c, runID)
 	}
 
-	var localTests []parsedTest
+	var localTests []*rainforest.RFTest
 	var err error
 	if c.Bool("f") {
 		localTests, err = r.prepareLocalRun(c)
@@ -95,7 +95,7 @@ func (r *runner) startRun(c cliContext) error {
 	return monitorRunStatus(c, runStatus.ID)
 }
 
-func (r *runner) prepareLocalRun(c cliContext) ([]parsedTest, error) {
+func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
 	tags := getTags(c)
 	files := c.Args()
 	tests, err := readRFMLFiles(files, tags)
@@ -170,7 +170,7 @@ func updateRunStatus(c cliContext, runID int, t *time.Ticker, resChan chan statu
 
 // makeRunParams parses and validates command line arguments + options
 // and makes RunParams struct out of them
-func (r *runner) makeRunParams(c cliContext, localTests []parsedTest) (rainforest.RunParams, error) {
+func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (rainforest.RunParams, error) {
 	var err error
 	localOnly := localTests != nil
 
@@ -247,7 +247,7 @@ func (r *runner) makeRunParams(c cliContext, localTests []parsedTest) (rainfores
 
 	if localOnly {
 		for _, t := range localTests {
-			rfmlIDs = append(rfmlIDs, t.content.RFMLID)
+			rfmlIDs = append(rfmlIDs, t.RFMLID)
 		}
 	} else if testIDsArgs.First() != "all" && testIDsArgs.First() != "" {
 		testIDs = []int{}

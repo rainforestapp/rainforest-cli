@@ -420,7 +420,6 @@ func TestReadRFMLFiles(t *testing.T) {
 
 	var testCases = []struct {
 		files     []string
-		tags      []string
 		wantFiles []string
 		wantError bool
 	}{
@@ -429,19 +428,8 @@ func TestReadRFMLFiles(t *testing.T) {
 			wantFiles: []string{"a/a1.rfml"},
 		},
 		{
-			files:     []string{"a/a1.rfml"},
-			tags:      []string{"bar"},
-			wantFiles: []string{},
-		},
-		{
 			files:     []string{"a"},
-			tags:      []string{"foo", "baz"},
-			wantFiles: []string{"a/a1.rfml"},
-		},
-		{
-			files:     []string{"a"},
-			tags:      []string{"foo", "bar"},
-			wantFiles: []string{"a/a1.rfml", "a/a3.rfml"},
+			wantFiles: []string{"a/a1.rfml", "a/a2.rfml", "a/a3.rfml"},
 		},
 		{
 			files:     []string{"a", "a/a1.rfml", "b/b1.rfml"},
@@ -456,18 +444,10 @@ func TestReadRFMLFiles(t *testing.T) {
 				"b/b1.rfml",
 				"b/a/b2.rfml",
 				"b/b/b3.rfml",
+				"b/b/b4.rfml",
+				"b/b/b5.rfml",
 				"standalone.rfml",
 			},
-		},
-		{
-			files:     []string{""},
-			tags:      []string{"foo"},
-			wantFiles: []string{"a/a1.rfml", "b/b/b3.rfml"},
-		},
-		{
-			files:     []string{""},
-			tags:      []string{},
-			wantFiles: []string{},
 		},
 		{
 			files:     []string{"c"},
@@ -487,7 +467,7 @@ func TestReadRFMLFiles(t *testing.T) {
 			fullFiles = append(fullFiles, filepath.Join(dir, f))
 		}
 
-		pTests, err := readRFMLFiles(fullFiles, tc.tags)
+		pTests, err := readRFMLFiles(fullFiles)
 		if err != nil && !tc.wantError {
 			t.Error(err)
 			continue
@@ -523,8 +503,13 @@ func setupTestRFMLDir() string {
 			path: "a/a1.rfml",
 			content: &rainforest.RFTest{
 				RFMLID:  "a1",
-				Tags:    []string{"foo"},
+				Tags:    []string{"foo", "baz"},
 				Execute: true,
+				Steps: []interface{}{
+					rainforest.RFEmbeddedTest{
+						RFMLID: "b4",
+					},
+				},
 			},
 		},
 		{
@@ -562,6 +547,26 @@ func setupTestRFMLDir() string {
 				RFMLID:  "b3",
 				Tags:    []string{"foo"},
 				Execute: false,
+			},
+		},
+		{
+			path: "b/b/b4.rfml",
+			content: &rainforest.RFTest{
+				RFMLID:  "b4",
+				Tags:    []string{},
+				Execute: true,
+				Steps: []interface{}{
+					rainforest.RFEmbeddedTest{
+						RFMLID: "b5",
+					},
+				},
+			},
+		},
+		{
+			path: "b/b/b5.rfml",
+			content: &rainforest.RFTest{
+				RFMLID:  "b5",
+				Execute: true,
 			},
 		},
 		{

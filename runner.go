@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/url"
 	"strconv"
@@ -98,24 +99,81 @@ func (r *runner) startRun(c cliContext) error {
 func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
 	tags := getTags(c)
 	files := c.Args()
-	tests, err := readRFMLFiles(files, tags)
+	tests, err := readRFMLFiles(files)
 	if err != nil {
 		return nil, err
 	}
 
-	err = uploadRFMLFiles(tests, true, r.client)
+	uploads, err := filterUploadTests(tests, tags)
+	if err != nil {
+		return nil, err
+	}
+	err = uploadRFMLFiles(uploads, true, r.client)
 	if err != nil {
 		return nil, err
 	}
 
-	testsToExecute := []*rainforest.RFTest{}
+	return filterExecuteTests(tests, tags), nil
+}
+
+// filterUploadTests pre-filters tests for upload. The rule is: upload anything
+// with the tag *plus* anything that is depended on by a tagged test.
+func filterUploadTests(tests []*rainforest.RFTest, tags []string) ([]*rainforest.RFTest, error) {
+	testsByID := map[string]*rainforest.RFTest{}
 	for _, test := range tests {
-		if test.Execute {
-			testsToExecute = append(testsToExecute, test)
+		testsByID[test.RFMLID] = test
+	}
+
+	// Start with all the filtered tests
+	filteredTests := map[*rainforest.RFTest]bool{}
+	for _, test := range tests {
+		if anyMember(tags, test.Tags) {
+			filteredTests[test] = true
 		}
 	}
 
-	return testsToExecute, nil
+	// DFS for filtered tests + embeds
+	q := make([]*rainforest.RFTest, 0, len(filteredTests))
+	for t := range filteredTests {
+		q = append(q, t)
+	}
+	for len(q) > 0 {
+		t := q[len(q)-1]
+		q = q[:len(q)-1]
+		filteredTests[t] = true
+
+		for _, step := range t.Steps {
+			if embed, ok := step.(rainforest.RFEmbeddedTest); ok {
+				embeddedTest, ok := testsByID[embed.RFMLID]
+				if !ok {
+					return nil, fmt.Errorf("Could not find embedded test %v", embed.RFMLID)
+				}
+				if _, ok := filteredTests[embeddedTest]; !ok {
+					q = append(q, embeddedTest)
+				}
+			}
+		}
+	}
+
+	result := make([]*rainforest.RFTest, 0, len(filteredTests))
+	for t := range filteredTests {
+		result = append(result, t)
+	}
+
+	return result, nil
+}
+
+// filterExecuteTests filters for tests that should execute. The rule is: it
+// should execute if it's tagged properly *and* has Execute set to true.
+func filterExecuteTests(tests []*rainforest.RFTest, tags []string) []*rainforest.RFTest {
+	var result []*rainforest.RFTest
+	for _, test := range tests {
+		if test.Execute && anyMember(tags, test.Tags) {
+			result = append(result, test)
+		}
+	}
+
+	return result
 }
 
 func monitorRunStatus(c cliContext, runID int) error {

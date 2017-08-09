@@ -187,12 +187,11 @@ func TestStartLocalRun(t *testing.T) {
 		// There's less to stub with bg
 		"bg": true,
 	}
-	args := cli.Args{filepath.Join(rfmlDir, "a"), filepath.Join(rfmlDir, "b/b/b3.rfml")}
+	args := cli.Args{filepath.Join(rfmlDir, "a"), filepath.Join(rfmlDir, "b/b")}
 	c := newFakeContext(mappings, args)
 	r := newRunner()
 	fakeEnv := rainforest.Environment{ID: 123, Name: "the foo environment"}
 	client := &fakeRunnerClient{environment: fakeEnv}
-	// client.testIDMappings = idMappings
 	r.client = client
 
 	err := r.startRun(c)
@@ -200,8 +199,9 @@ func TestStartLocalRun(t *testing.T) {
 		t.Error("Error starting run:", err)
 	}
 
-	// Check that the right tests were uploaded
-	want := []string{"a1", "a3", "b3"}
+	// Check that the right tests were uploaded. a1 depends on b4 and b4 depends
+	// on b5, so b4 and b5 are uploaded even though they're not tagged properly.
+	want := []string{"a1", "a3", "b3", "b4", "b5"}
 	var got []string
 	for _, t := range client.createdTests {
 		got = append(got, t.RFMLID)

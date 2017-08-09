@@ -36,7 +36,7 @@ func validateRFML(c cliContext, api rfmlAPI) error {
 		}
 		return nil
 	}
-	tests, err := readRFMLFiles([]string{c.String("test-folder")}, nil)
+	tests, err := readRFMLFiles([]string{c.String("test-folder")})
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -50,7 +50,7 @@ func validateRFML(c cliContext, api rfmlAPI) error {
 // readRFMLFiles takes in a list of files and/or directories and a list of tags
 // and returns a list of the parsed tests, or an error if it is encountered. To
 // allow all tags, pass in nil for tags.
-func readRFMLFiles(files []string, tags []string) ([]*rainforest.RFTest, error) {
+func readRFMLFiles(files []string) ([]*rainforest.RFTest, error) {
 	fileList := []string{}
 	for _, file := range files {
 		stat, err := os.Stat(file)
@@ -91,9 +91,7 @@ func readRFMLFiles(files []string, tags []string) ([]*rainforest.RFTest, error) 
 		if err != nil {
 			return nil, err
 		}
-		if tags == nil || anyMember(test.Tags, tags) {
-			tests = append(tests, test)
-		}
+		tests = append(tests, test)
 	}
 	return tests, nil
 }
@@ -351,7 +349,7 @@ func uploadRFML(c cliContext, api rfmlAPI) error {
 		}
 		return nil
 	}
-	tests, err := readRFMLFiles([]string{c.String("test-folder")}, nil)
+	tests, err := readRFMLFiles([]string{c.String("test-folder")})
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}

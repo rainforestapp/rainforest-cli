@@ -184,6 +184,7 @@ func TestStartLocalRun(t *testing.T) {
 	testCases := []struct {
 		mappings    map[string]interface{}
 		args        cli.Args
+		wantError   bool
 		wantUpload  []string
 		wantExecute []string
 	}{
@@ -200,6 +201,14 @@ func TestStartLocalRun(t *testing.T) {
 			wantUpload: []string{"a1", "a3", "b3", "b4", "b5"},
 			// b3 is execute: false so we shouldn't run it
 			wantExecute: []string{"a1", "a3"},
+		},
+		{
+			mappings: map[string]interface{}{
+				"f":  true,
+				"bg": true,
+			},
+			args:      cli.Args{filepath.Join(rfmlDir, "a")},
+			wantError: true,
 		},
 		{
 
@@ -228,8 +237,10 @@ func TestStartLocalRun(t *testing.T) {
 		r.client = client
 
 		err := r.startRun(c)
-		if err != nil {
+		if !testCase.wantError && err != nil {
 			t.Error("Error starting run:", err)
+		} else if testCase.wantError && err == nil {
+			t.Errorf("Expected test to fail with args %v but it didn't", testCase.args)
 		}
 
 		var got []string

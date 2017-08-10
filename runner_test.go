@@ -213,10 +213,10 @@ func TestStartLocalRun(t *testing.T) {
 		{
 
 			mappings: map[string]interface{}{
-				"f":            true,
-				"bg":           true,
-				"execute":      []string{filepath.Join(rfmlDir, "b/b/b3.rfml")},
-				"dont-execute": []string{filepath.Join(rfmlDir, "a/a2.rfml")},
+				"f":             true,
+				"bg":            true,
+				"force-execute": []string{filepath.Join(rfmlDir, "b/b/b3.rfml")},
+				"exclude":       []string{filepath.Join(rfmlDir, "a/a2.rfml")},
 			},
 			args: cli.Args{
 				filepath.Join(rfmlDir, "a/a2.rfml"),

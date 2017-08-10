@@ -115,7 +115,7 @@ func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
 	}
 
 	forceExecute := map[string]bool{}
-	for _, path := range c.StringSlice("execute") {
+	for _, path := range c.StringSlice("force-execute") {
 		abs, err := filepath.Abs(path)
 		if err != nil {
 			log.Printf("%v is not a valid path", path)
@@ -125,7 +125,7 @@ func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
 	}
 
 	forceSkip := map[string]bool{}
-	for _, path := range c.StringSlice("dont-execute") {
+	for _, path := range c.StringSlice("exclude") {
 		abs, err := filepath.Abs(path)
 		if err != nil {
 			log.Printf("%v is not a valid path", path)

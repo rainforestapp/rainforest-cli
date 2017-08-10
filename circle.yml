@@ -53,7 +53,7 @@ deployment:
       - rm -f $EQUINOX_KEY_PATH
 
   dev:
-    branch: develop
+    branch: master
     owner: rainforestapp
     commands:
       - cd ~/download && curl -O https://bin.equinox.io/c/mBWdkfai63v/release-tool-stable-linux-amd64.zip

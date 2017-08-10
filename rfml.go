@@ -150,7 +150,7 @@ func validateSingleRFMLFile(filePath string) error {
 	return nil
 }
 
-var validationFailureError = errors.New("Validation failed")
+var errValidation = errors.New("Validation failed")
 
 // validateRFMLFiles validates RFML file syntax, embedded rfml ids, checks for
 // circular dependiences and all other cool things in the specified directory
@@ -223,7 +223,7 @@ func validateRFMLFiles(parsedTests []*rainforest.RFTest, localOnly bool, api rfm
 		for _, err := range validationErrors {
 			log.Print(err.Error())
 		}
-		return validationFailureError
+		return errValidation
 	}
 
 	log.Print("All files are valid!")

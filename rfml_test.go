@@ -256,21 +256,21 @@ func (t *testRfmlAPI) ClientToken() string {
 	return "abc123"
 }
 
-var stub = errors.New("STUB")
+var errStub = errors.New("STUB")
 
 func (t *testRfmlAPI) CreateTest(_ *rainforest.RFTest) error {
 	// implement when needed
-	return stub
+	return errStub
 }
 
 func (t *testRfmlAPI) UpdateTest(_ *rainforest.RFTest) error {
 	// implement when needed
-	return stub
+	return errStub
 }
 
 func (t *testRfmlAPI) ParseEmbeddedFiles(_ *rainforest.RFTest) error {
 	// implement when needed
-	return stub
+	return errStub
 }
 
 func TestDownloadRFML(t *testing.T) {
@@ -409,7 +409,7 @@ func TestValidateEmbedded(t *testing.T) {
 	err = validateRFMLFiles(tests, true, testAPI)
 	if err == nil {
 		t.Error("Local-only validation should have failed but didn't")
-	} else if err != validationFailureError {
+	} else if err != errValidation {
 		t.Error("Unexpected error for local-only validation:", err)
 	}
 }

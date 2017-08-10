@@ -93,6 +93,7 @@ type RunGroup struct {
 	Title string `json:"title"`
 }
 
+// GetRunGroups gets run groups from the API.
 func (c *Client) GetRunGroups() ([]RunGroup, error) {
 	// Prepare request
 	req, err := c.NewRequest("GET", "run_groups", nil)
@@ -150,6 +151,7 @@ Location: %v
 	}
 }
 
+// GetRunGroupDetails gets details for a run group from the API.
 func (c *Client) GetRunGroupDetails(runGroupID int) (*RunGroupDetails, error) {
 	req, err := c.NewRequest("GET", "run_groups/"+strconv.Itoa(runGroupID), nil)
 	if err != nil {

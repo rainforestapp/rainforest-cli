@@ -44,6 +44,7 @@ func TestReadAll(t *testing.T) {
 		Tags:     []string{"foo", "bar"},
 		Browsers: []string{"chrome", "firefox"},
 		Steps:    validSteps,
+		Execute:  true,
 	}
 
 	testText := fmt.Sprintf(`#! %v
@@ -110,6 +111,30 @@ func TestReadAll(t *testing.T) {
 
 	if !strings.Contains(rfTest.Description, expectedComment) {
 		t.Errorf("Description not found. Expected \"%v\". Description: %v", expectedComment, rfTest.Description)
+	}
+
+	// Non-executed test
+	testText = fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+# execute: false
+
+%v
+%v`,
+		validTestValues.RFMLID,
+		validTestValues.Title,
+		validTestValues.StartURI,
+		validSteps[0].(RFTestStep).Action,
+		validSteps[0].(RFTestStep).Response)
+	r = strings.NewReader(testText)
+	reader = NewRFMLReader(r)
+	rfTest, err = reader.ReadAll()
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if rfTest.Execute {
+		t.Errorf("`execute: false` was not parsed correctly")
 	}
 
 	// missing RFML ID
@@ -223,6 +248,7 @@ func TestWriteRFMLTest(t *testing.T) {
 		RFMLID:   rfmlID,
 		Title:    title,
 		StartURI: startURI,
+		Execute:  true,
 	}
 
 	getOutput := func() string {
@@ -250,7 +276,7 @@ func TestWriteRFMLTest(t *testing.T) {
 		}
 	}
 
-	mustNotHaves := []string{"site_id", "tags", "browsers"}
+	mustNotHaves := []string{"site_id", "tags", "browsers", "execute"}
 
 	for _, mustNotHave := range mustNotHaves {
 		if strings.Contains(output, mustNotHave) {
@@ -357,6 +383,15 @@ func TestWriteRFMLTest(t *testing.T) {
 		t.Error("Expected step text not found in writer output.")
 		t.Logf("Output:\n%v", output)
 		t.Logf("Expected:\n%v", expectedStepText)
+	}
+
+	// Test execute: false
+	buffer.Reset()
+	test.Execute = false
+	output = getOutput()
+	if !strings.Contains(output, "\n# execute: false") {
+		t.Error("execute: false not found in writer output.")
+		t.Logf("Output:\n%v", output)
 	}
 }
 

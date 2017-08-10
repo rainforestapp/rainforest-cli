@@ -2,8 +2,10 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -15,6 +17,7 @@ import (
 type runnerAPI interface {
 	CreateRun(params rainforest.RunParams) (*rainforest.RunStatus, error)
 	CreateTemporaryEnvironment(string) (*rainforest.Environment, error)
+	rfmlAPI
 }
 
 type runner struct {
@@ -41,7 +44,16 @@ func (r *runner) startRun(c cliContext) error {
 		return monitorRunStatus(c, runID)
 	}
 
-	params, err := r.makeRunParams(c)
+	var localTests []*rainforest.RFTest
+	var err error
+	if c.Bool("f") {
+		localTests, err = r.prepareLocalRun(c)
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+	}
+
+	params, err := r.makeRunParams(c, localTests)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -83,6 +95,110 @@ func (r *runner) startRun(c cliContext) error {
 	}
 
 	return monitorRunStatus(c, runStatus.ID)
+}
+
+func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
+	tags := getTags(c)
+	files := c.Args()
+	tests, err := readRFMLFiles(files)
+	if err != nil {
+		return nil, err
+	}
+
+	uploads, err := filterUploadTests(tests, tags)
+	if err != nil {
+		return nil, err
+	}
+	err = uploadRFMLFiles(uploads, true, r.client)
+	if err != nil {
+		return nil, err
+	}
+
+	forceExecute := map[string]bool{}
+	for _, path := range c.StringSlice("force-execute") {
+		abs, err := filepath.Abs(path)
+		if err != nil {
+			log.Printf("%v is not a valid path", path)
+			continue
+		}
+		forceExecute[abs] = true
+	}
+
+	forceSkip := map[string]bool{}
+	for _, path := range c.StringSlice("exclude") {
+		abs, err := filepath.Abs(path)
+		if err != nil {
+			log.Printf("%v is not a valid path", path)
+			continue
+		}
+		forceSkip[abs] = true
+	}
+	return filterExecuteTests(tests, tags, forceExecute, forceSkip), nil
+}
+
+// filterUploadTests pre-filters tests for upload. The rule is: upload anything
+// with the tag *plus* anything that is depended on by a tagged test.
+func filterUploadTests(tests []*rainforest.RFTest, tags []string) ([]*rainforest.RFTest, error) {
+	testsByID := map[string]*rainforest.RFTest{}
+	for _, test := range tests {
+		testsByID[test.RFMLID] = test
+	}
+
+	// DFS for filtered tests + embeds
+	includedTests := make(map[*rainforest.RFTest]bool)
+	var q []*rainforest.RFTest
+
+	// Start with tag-filtered tests
+	for _, test := range tests {
+		if tags == nil || anyMember(tags, test.Tags) {
+			q = append(q, test)
+		}
+	}
+	for len(q) > 0 {
+		t := q[len(q)-1]
+		q = q[:len(q)-1]
+		includedTests[t] = true
+
+		for _, step := range t.Steps {
+			if embed, ok := step.(rainforest.RFEmbeddedTest); ok {
+				embeddedTest, ok := testsByID[embed.RFMLID]
+				if !ok {
+					return nil, fmt.Errorf("Could not find embedded test %v", embed.RFMLID)
+				}
+				if _, ok := includedTests[embeddedTest]; !ok {
+					q = append(q, embeddedTest)
+				}
+			}
+		}
+	}
+
+	result := make([]*rainforest.RFTest, 0, len(includedTests))
+	for t := range includedTests {
+		result = append(result, t)
+	}
+
+	return result, nil
+}
+
+// filterExecuteTests filters for tests that should execute. The rules are: it
+// should execute if it's tagged properly *and* has Execute set to true (or is
+// in forceExecute) *and* isn't in forceSkip.
+func filterExecuteTests(tests []*rainforest.RFTest, tags []string, forceExecute, forceSkip map[string]bool) []*rainforest.RFTest {
+	var result []*rainforest.RFTest
+	for _, test := range tests {
+		path, err := filepath.Abs(test.RFMLPath)
+		if err != nil {
+			path = ""
+		}
+		if !forceSkip[path] &&
+			(test.Execute || forceExecute[path]) &&
+			(tags == nil || anyMember(tags, test.Tags)) {
+
+			result = append(result, test)
+		}
+	}
+
+	return result
 }
 
 func monitorRunStatus(c cliContext, runID int) error {
@@ -145,11 +261,12 @@ func updateRunStatus(c cliContext, runID int, t *time.Ticker, resChan chan statu
 
 // makeRunParams parses and validates command line arguments + options
 // and makes RunParams struct out of them
-func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
+func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (rainforest.RunParams, error) {
 	var err error
+	localOnly := localTests != nil
 
 	var smartFolderID int
-	if s := c.String("folder"); s != "" {
+	if s := c.String("folder"); !localOnly && s != "" {
 		smartFolderID, err = strconv.Atoi(c.String("folder"))
 		if err != nil {
 			return rainforest.RunParams{}, err
@@ -157,7 +274,7 @@ func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
 	}
 
 	var runGroupID int
-	if s := c.String("run-group-id"); s != "" {
+	if s := c.String("run-group-id"); !localOnly && s != "" {
 		runGroupID, err = strconv.Atoi(c.String("run-group-id"))
 		if err != nil {
 			return rainforest.RunParams{}, err
@@ -214,10 +331,16 @@ func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
 		}
 	}
 
-	// Parse command argument as a list of test IDs
+	// Figure out test/RFML IDs
 	var testIDs interface{}
+	var rfmlIDs []string
 	testIDsArgs := c.Args()
-	if testIDsArgs.First() != "all" && testIDsArgs.First() != "" {
+
+	if localOnly {
+		for _, t := range localTests {
+			rfmlIDs = append(rfmlIDs, t.RFMLID)
+		}
+	} else if testIDsArgs.First() != "all" && testIDsArgs.First() != "" {
 		testIDs = []int{}
 		for _, arg := range testIDsArgs {
 			nextTestIDs, err := stringToIntSlice(arg)
@@ -230,13 +353,12 @@ func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
 		testIDs = "all"
 	}
 
-	// We get tags slice from arguments and then expand comma separated lists into separate entries
-	tags := c.StringSlice("tag")
-	expandedTags := expandStringSlice(tags)
+	tags := getTags(c)
 
 	return rainforest.RunParams{
 		Tests:         testIDs,
-		Tags:          expandedTags,
+		RFMLIDs:       rfmlIDs,
+		Tags:          tags,
 		SmartFolderID: smartFolderID,
 		SiteID:        siteID,
 		Crowd:         crowd,
@@ -263,6 +385,13 @@ func stringToIntSlice(s string) ([]int, error) {
 		slicedInt = append(slicedInt, newInt)
 	}
 	return slicedInt, nil
+}
+
+// getTags get tags from a CLI context. It supports expanding comma-separated
+// sublists.
+func getTags(c cliContext) []string {
+	tags := c.StringSlice("tag")
+	return expandStringSlice(tags)
 }
 
 // expandStringSlice takes a slice of strings and expands any comma separated sublists

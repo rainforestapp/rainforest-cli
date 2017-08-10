@@ -33,14 +33,14 @@ type Client struct {
 	// String that will be set as an user agent with current library version appended to it
 	UserAgent string
 
-	// Client token used for authenticating requests made to the RF
-	ClientToken string
-
 	// Save HTTP Response Headers
 	LastResponseHeaders http.Header
 
 	//Set debug flag to decide whether to return headers or not
 	DebugFlag bool
+
+	// Client token used for authenticating requests made to the RF
+	clientToken string
 }
 
 // NewClient constructs a new rainforest API Client. As a parameter takes client token
@@ -57,7 +57,18 @@ func NewClient(token string, debug bool) *Client {
 		baseURL, _ = url.Parse(currentBaseURL)
 	}
 
-	return &Client{client: http.DefaultClient, BaseURL: baseURL, ClientToken: token, LastResponseHeaders: http.Header{}, DebugFlag: debug}
+	return &Client{
+		client:              http.DefaultClient,
+		BaseURL:             baseURL,
+		clientToken:         token,
+		LastResponseHeaders: http.Header{},
+		DebugFlag:           debug,
+	}
+}
+
+// ClientToken returns the API authentication token for the client.
+func (c *Client) ClientToken() string {
+	return c.clientToken
 }
 
 // NewRequest creates an API request. Provided url will be resolved using ResolveReference,
@@ -94,8 +105,8 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	}
 
 	// Set the auth token to the one specified in the client
-	if c.ClientToken != "" {
-		req.Header.Set(authTokenHeader, c.ClientToken)
+	if c.clientToken != "" {
+		req.Header.Set(authTokenHeader, c.clientToken)
 	} else {
 		return nil, errors.New("Please provide your API Token with the RAINFOREST_API_TOKEN environment variable or --token global flag.")
 	}

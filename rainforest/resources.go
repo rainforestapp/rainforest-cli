@@ -87,11 +87,13 @@ func (c *Client) GetBrowsers() ([]Browser, error) {
 	return browsersResp.AvailableBrowsers, nil
 }
 
+// RunGroup represents a single run group returned by the API.
 type RunGroup struct {
 	ID    int    `json:"id"`
 	Title string `json:"title"`
 }
 
+// GetRunGroups gets run groups from the API.
 func (c *Client) GetRunGroups() ([]RunGroup, error) {
 	// Prepare request
 	req, err := c.NewRequest("GET", "run_groups", nil)
@@ -108,6 +110,7 @@ func (c *Client) GetRunGroups() ([]RunGroup, error) {
 	return runGroupResp, nil
 }
 
+// RunGroupDetails shows the details for a particular run group.
 type RunGroupDetails struct {
 	ID          int    `json:"id"`
 	Title       string `json:"title"`
@@ -124,6 +127,7 @@ type RunGroupDetails struct {
 	} `json:"schedule"`
 }
 
+// Print prints out details for a particular run group.
 func (rgd *RunGroupDetails) Print() {
 	fmt.Printf(`Details for Run Group #%v:
 Name: %v
@@ -147,6 +151,7 @@ Location: %v
 	}
 }
 
+// GetRunGroupDetails gets details for a run group from the API.
 func (c *Client) GetRunGroupDetails(runGroupID int) (*RunGroupDetails, error) {
 	req, err := c.NewRequest("GET", "run_groups/"+strconv.Itoa(runGroupID), nil)
 	if err != nil {

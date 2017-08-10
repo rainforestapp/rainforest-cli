@@ -131,9 +131,21 @@ func main() {
 				"Alternatively you can use one of the filtering options.",
 			ArgsUsage: "[test IDs]",
 			Flags: []cli.Flag{
+				cli.BoolTFlag{
+					Name:  "f, files",
+					Usage: "run local tests specified by `FILES or FOLDERS`",
+				},
 				cli.StringSliceFlag{
 					Name:  "tag",
 					Usage: "filter tests by `TAG`. Can be used multiple times for filtering by multiple tags.",
+				},
+				cli.StringSliceFlag{
+					Name:  "exclude",
+					Usage: "Don't execute test specified by `FILE`. Can be used multiple times for specifying muliple files.",
+				},
+				cli.StringSliceFlag{
+					Name:  "force-execute",
+					Usage: "Execute test specified by `FILE` even if execute: false is specified. Can be used multiple times for specifying multiple files.",
 				},
 				cli.StringFlag{
 					Name:  "run-group-id",
@@ -248,7 +260,9 @@ func main() {
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
 			},
-			Action: validateRFML,
+			Action: func(c *cli.Context) error {
+				return validateRFML(c, api)
+			},
 		},
 		{
 			Name:      "upload",
@@ -268,7 +282,9 @@ func main() {
 					Usage: "uploads your test in a synchronous manner i.e. not using concurrency.",
 				},
 			},
-			Action: uploadRFML,
+			Action: func(c *cli.Context) error {
+				return uploadRFML(c, api)
+			},
 		},
 		{
 			Name:        "rm",
@@ -405,11 +421,13 @@ func main() {
 	app.Run(shuffleFlags(os.Args))
 }
 
-// shuffleFlags moves global flags to the beginning of args array (where they are supposed to be),
-// so they are picked up by the cli package, even though they are supplied as a command argument.
-// might not be needed if upstream makes this change as well
+// shuffleFlags moves global flags to the beginning of args array (where they
+// are supposed to be), so they are picked up by the cli package, even though
+// they are supplied as a command argument.  We also do a bit of hacking to
+// allow "multiple arguments" to -f.
 func shuffleFlags(originalArgs []string) []string {
 	globalOptions := []string{}
+	fnameArgs := []string{}
 	rest := []string{}
 
 	// We need to skip the filename as its arg[0] that's why iteration starts at 1
@@ -423,6 +441,15 @@ func shuffleFlags(originalArgs []string) []string {
 			} else {
 				log.Fatalln("No token specified with --token flag")
 			}
+
+		} else if option == "-f" || option == "--files" {
+			rest = append(rest, option)
+			i++
+			for originalArgs[i][0] != '-' {
+				fnameArgs = append(fnameArgs, originalArgs[i])
+				i++
+			}
+			i--
 		} else if option == "--skip-update" {
 			globalOptions = append(globalOptions, option)
 		} else if option == "--debug" {
@@ -435,6 +462,7 @@ func shuffleFlags(originalArgs []string) []string {
 	shuffledFlags := []string{originalArgs[0]}
 	shuffledFlags = append(shuffledFlags, globalOptions...)
 	shuffledFlags = append(shuffledFlags, rest...)
+	shuffledFlags = append(shuffledFlags, fnameArgs...)
 
 	return shuffledFlags
 }

@@ -57,6 +57,11 @@ type RFTest struct {
 	// RFMLPath is a helper field for keeping track of the filepath to the
 	// test's RFML file.
 	RFMLPath string `json:"-"`
+
+	// Execute is a non-API field that specifies whether the test should be
+	// executed or just uploaded (e.g. for embedded tests). It defaults to
+	// true when reading from RFML.
+	Execute bool `json:"-"`
 }
 
 // testElement is one of the helpers to construct the proper JSON test sturcture
@@ -312,6 +317,9 @@ func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
 		if err != nil {
 			return nil, err
 		}
+		for i := range testResp {
+			testResp[i].Execute = true
+		}
 
 		tests = append(tests, testResp...)
 
@@ -327,9 +335,9 @@ func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
 
 		if page == totalPages {
 			return tests, nil
-		} else {
-			page++
 		}
+
+		page++
 	}
 }
 
@@ -347,6 +355,7 @@ func (c *Client) GetTest(testID int) (*RFTest, error) {
 	}
 
 	testResp.TestID = testID
+	testResp.Execute = true
 	return &testResp, nil
 }
 

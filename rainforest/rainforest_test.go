@@ -39,7 +39,7 @@ func cleanup() {
 func TestNewClient(t *testing.T) {
 	token := "testToken123"
 	client = NewClient(token, false)
-	if out := client.ClientToken; client.ClientToken != token {
+	if out := client.ClientToken(); out != token {
 		t.Errorf("NewClient didn't set proper token %+v, want %+v", out, token)
 	}
 }

@@ -114,6 +114,70 @@ func TestGetTests(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+
+	// Test deserialization
+	cleanup()
+	setup()
+	mux.HandleFunc("/tests", func(w http.ResponseWriter, r *http.Request) {
+		test := []*RFTest{
+			{
+				TestID: 123,
+				RFMLID: "123",
+			},
+		}
+		b, err := json.Marshal(test)
+		if err != nil {
+			t.Fatal("Error marshalling test:", err)
+		}
+		w.Header().Add("X-Total-Pages", "1")
+		w.Write(b)
+	})
+
+	tests, err := client.GetTests(&RFTestFilters{})
+	if len(tests) != 1 {
+		t.Error("Invalid number of tests returned:", len(tests))
+	}
+
+	got := tests[0]
+	want := &RFTest{
+		TestID: 123,
+		RFMLID: "123",
+	}
+	if got.TestID != want.TestID || got.RFMLID != want.RFMLID {
+		t.Errorf("test (%v) deserialized incorrectly", got)
+	}
+	if !got.Execute {
+		t.Error("GetTests didn't set execute: true by default")
+	}
+}
+
+func TestGetTest(t *testing.T) {
+	setup()
+	defer cleanup()
+
+	mux.HandleFunc("/tests/123", func(w http.ResponseWriter, r *http.Request) {
+		test := &RFTest{
+			TestID: 123,
+			RFMLID: "123",
+			Title:  "A test",
+		}
+		b, err := json.Marshal(test)
+		if err != nil {
+			t.Fatal("Error marshalling test:", err)
+		}
+		w.Write(b)
+	})
+
+	test, err := client.GetTest(123)
+	if err != nil {
+		t.Error("Error fetching test:", err)
+	}
+	if test.TestID != 123 || test.RFMLID != "123" || test.Title != "A test" {
+		t.Errorf("test %v was unmarshalled incorrectly", test)
+	}
+	if !test.Execute {
+		t.Error("GetTest didn't set execute: true by default")
+	}
 }
 
 func TestHasUploadableFiles(t *testing.T) {

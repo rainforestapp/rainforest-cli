@@ -139,6 +139,14 @@ func main() {
 					Name:  "tag",
 					Usage: "filter tests by `TAG`. Can be used multiple times for filtering by multiple tags.",
 				},
+				cli.StringSliceFlag{
+					Name:  "dont-execute",
+					Usage: "Don't execute test specified by `FILE`. Can be used multiple times for specifying muliple files.",
+				},
+				cli.StringSliceFlag{
+					Name:  "execute",
+					Usage: "Execute test specified by `FILE` even if execute: false is specified.",
+				},
 				cli.StringFlag{
 					Name:  "run-group-id",
 					Usage: "filter tests by a specific run group. You can see a list of your `RUN-GROUP-ID`s with run-groups command.",

@@ -181,41 +181,89 @@ func TestStartLocalRun(t *testing.T) {
 	rfmlDir := setupTestRFMLDir()
 	defer os.RemoveAll(rfmlDir)
 
-	mappings := map[string]interface{}{
-		"f":   true,
-		"tag": []string{"foo", "bar"},
-		// There's less to stub with bg
-		"bg": true,
-	}
-	args := cli.Args{filepath.Join(rfmlDir, "a"), filepath.Join(rfmlDir, "b/b")}
-	c := newFakeContext(mappings, args)
-	r := newRunner()
-	fakeEnv := rainforest.Environment{ID: 123, Name: "the foo environment"}
-	client := &fakeRunnerClient{environment: fakeEnv}
-	r.client = client
+	testCases := []struct {
+		mappings    map[string]interface{}
+		args        cli.Args
+		wantUpload  []string
+		wantExecute []string
+	}{
+		{
+			mappings: map[string]interface{}{
+				"f":   true,
+				"tag": []string{"foo", "bar"},
+				// There's less to stub with bg
+				"bg": true,
+			},
+			args: cli.Args{filepath.Join(rfmlDir, "a"), filepath.Join(rfmlDir, "b/b")},
+			// a1 depends on b4 and b4 depends on b5, so b4 and b5 are uploaded
+			// even though they're not tagged properly.
+			wantUpload: []string{"a1", "a3", "b3", "b4", "b5"},
+			// b3 is execute: false so we shouldn't run it
+			wantExecute: []string{"a1", "a3"},
+		},
+		{
 
-	err := r.startRun(c)
-	if err != nil {
-		t.Error("Error starting run:", err)
+			mappings: map[string]interface{}{
+				"f":            true,
+				"bg":           true,
+				"execute":      []string{filepath.Join(rfmlDir, "b/b/b3.rfml")},
+				"dont-execute": []string{filepath.Join(rfmlDir, "a/a2.rfml")},
+			},
+			args: cli.Args{
+				filepath.Join(rfmlDir, "a/a2.rfml"),
+				filepath.Join(rfmlDir, "a/a3.rfml"),
+				filepath.Join(rfmlDir, "b/b/b3.rfml"),
+			},
+			wantUpload: []string{"a2", "a3", "b3"},
+			// We don't want to execute a2 but we override execute:false on b3
+			wantExecute: []string{"a3", "b3"},
+		},
 	}
 
-	// Check that the right tests were uploaded. a1 depends on b4 and b4 depends
-	// on b5, so b4 and b5 are uploaded even though they're not tagged properly.
-	want := []string{"a1", "a3", "b3", "b4", "b5"}
-	var got []string
-	for _, t := range client.createdTests {
-		got = append(got, t.RFMLID)
-	}
-	sort.Strings(got)
-	if !reflect.DeepEqual(want, got) {
-		t.Errorf("Tests were not uploaded correctly, wanted %v, got %v", want, got)
-	}
+	for _, testCase := range testCases {
+		c := newFakeContext(testCase.mappings, testCase.args)
+		r := newRunner()
+		fakeEnv := rainforest.Environment{ID: 123, Name: "the foo environment"}
+		client := &fakeRunnerClient{environment: fakeEnv}
+		r.client = client
 
-	// Check that the right tests were requested for the run
-	want = []string{"a1", "a3"} // b3 is execute: false
-	got = client.runParams.RFMLIDs
-	sort.Strings(got)
-	if !reflect.DeepEqual(want, got) {
-		t.Errorf("Incorrect tests were requested when starting run, wanted %v, got %v", want, got)
+		err := r.startRun(c)
+		if err != nil {
+			t.Error("Error starting run:", err)
+		}
+
+		var got []string
+		for _, t := range client.createdTests {
+			got = append(got, t.RFMLID)
+		}
+		sort.Strings(got)
+		want := testCase.wantUpload
+		if !reflect.DeepEqual(want, got) {
+			t.Errorf("Tests were not uploaded correctly, wanted %v, got %v", want, got)
+		}
+
+		// Check that the right tests were requested for the run
+		got = client.runParams.RFMLIDs
+		sort.Strings(got)
+		want = testCase.wantExecute
+		if !reflect.DeepEqual(want, got) {
+			t.Errorf("Incorrect tests were requested when starting run, wanted %v, got %v", want, got)
+		}
 	}
 }
+
+// func TestStartLocalRunExecuteOverride(t *testing.T) {
+// 	rfmlDir := setupTestRFMLDir()
+// 	defer os.RemoveAll(rfmlDir)
+
+// 	c := newFakeContext(mappings, args)
+// 	r := newRunner()
+// 	fakeEnv := rainforest.Environment{ID: 123, Name: "the foo environment"}
+// 	client := &fakeRunnerClient{environment: fakeEnv}
+// 	r.client = client
+
+// 	err := r.startRun(c)
+// 	if err != nil {
+// 		t.Error("Error starting run:", err)
+// 	}
+// }

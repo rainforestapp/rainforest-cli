@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -113,7 +114,26 @@ func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
 		return nil, err
 	}
 
-	return filterExecuteTests(tests, tags), nil
+	forceExecute := map[string]bool{}
+	for _, path := range c.StringSlice("execute") {
+		abs, err := filepath.Abs(path)
+		if err != nil {
+			log.Printf("%v is not a valid path", path)
+			continue
+		}
+		forceExecute[abs] = true
+	}
+
+	forceSkip := map[string]bool{}
+	for _, path := range c.StringSlice("dont-execute") {
+		abs, err := filepath.Abs(path)
+		if err != nil {
+			log.Printf("%v is not a valid path", path)
+			continue
+		}
+		forceSkip[abs] = true
+	}
+	return filterExecuteTests(tests, tags, forceExecute, forceSkip), nil
 }
 
 // filterUploadTests pre-filters tests for upload. The rule is: upload anything
@@ -127,7 +147,7 @@ func filterUploadTests(tests []*rainforest.RFTest, tags []string) ([]*rainforest
 	// Start with all the filtered tests
 	filteredTests := map[*rainforest.RFTest]bool{}
 	for _, test := range tests {
-		if anyMember(tags, test.Tags) {
+		if tags == nil || anyMember(tags, test.Tags) {
 			filteredTests[test] = true
 		}
 	}
@@ -163,12 +183,20 @@ func filterUploadTests(tests []*rainforest.RFTest, tags []string) ([]*rainforest
 	return result, nil
 }
 
-// filterExecuteTests filters for tests that should execute. The rule is: it
-// should execute if it's tagged properly *and* has Execute set to true.
-func filterExecuteTests(tests []*rainforest.RFTest, tags []string) []*rainforest.RFTest {
+// filterExecuteTests filters for tests that should execute. The rules are: it
+// should execute if it's tagged properly *and* has Execute set to true (or is
+// in forceExecute) *and* isn't in forceSkip.
+func filterExecuteTests(tests []*rainforest.RFTest, tags []string, forceExecute, forceSkip map[string]bool) []*rainforest.RFTest {
 	var result []*rainforest.RFTest
 	for _, test := range tests {
-		if test.Execute && anyMember(tags, test.Tags) {
+		path, err := filepath.Abs(test.RFMLPath)
+		if err != nil {
+			path = ""
+		}
+		if !forceSkip[path] &&
+			(test.Execute || forceExecute[path]) &&
+			(tags == nil || anyMember(tags, test.Tags)) {
+
 			result = append(result, test)
 		}
 	}

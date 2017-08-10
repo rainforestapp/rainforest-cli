@@ -144,23 +144,20 @@ func filterUploadTests(tests []*rainforest.RFTest, tags []string) ([]*rainforest
 		testsByID[test.RFMLID] = test
 	}
 
-	// Start with all the filtered tests
-	filteredTests := map[*rainforest.RFTest]bool{}
+	// DFS for filtered tests + embeds
+	includedTests := make(map[*rainforest.RFTest]bool)
+	var q []*rainforest.RFTest
+
+	// Start with tag-filtered tests
 	for _, test := range tests {
 		if tags == nil || anyMember(tags, test.Tags) {
-			filteredTests[test] = true
+			q = append(q, test)
 		}
-	}
-
-	// DFS for filtered tests + embeds
-	q := make([]*rainforest.RFTest, 0, len(filteredTests))
-	for t := range filteredTests {
-		q = append(q, t)
 	}
 	for len(q) > 0 {
 		t := q[len(q)-1]
 		q = q[:len(q)-1]
-		filteredTests[t] = true
+		includedTests[t] = true
 
 		for _, step := range t.Steps {
 			if embed, ok := step.(rainforest.RFEmbeddedTest); ok {
@@ -168,15 +165,15 @@ func filterUploadTests(tests []*rainforest.RFTest, tags []string) ([]*rainforest
 				if !ok {
 					return nil, fmt.Errorf("Could not find embedded test %v", embed.RFMLID)
 				}
-				if _, ok := filteredTests[embeddedTest]; !ok {
+				if _, ok := includedTests[embeddedTest]; !ok {
 					q = append(q, embeddedTest)
 				}
 			}
 		}
 	}
 
-	result := make([]*rainforest.RFTest, 0, len(filteredTests))
-	for t := range filteredTests {
+	result := make([]*rainforest.RFTest, 0, len(includedTests))
+	for t := range includedTests {
 		result = append(result, t)
 	}
 

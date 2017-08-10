@@ -254,6 +254,27 @@ api to construct a junit report.  This is useful to track tests in CI such as Je
 - `--import-variable-name NAME` - Use with `run` and `--import-variable-csv-file` to upload new tabular variable values before your run to specify the name of your tabular variable. You may also use this with the `csv-upload` command to update your variable without starting a run.
 - `--single-use` - Use with `run` or `csv-upload` to flag your variable upload as `single-use`. See `--import-variable-csv-file` and `--import-variable-name` options as well.
 
+### Pre-release
+
+A new pre-release feature allows you to start a run using your local RFML files (instead of uploading and running separately):
+
+```
+rainforest run -f [FILES OR FOLDERS]
+```
+
+`run -f` accepts any number of files and folders as arguments (folders will be recursively checked for `*.rfml` files). All embedded tests must be included within `FILES OR FOLDERS`.
+
+In addition, there is a new metadata option for RFML files: `# execute: true|false`, which indicates whether a test should be run by default (defaults to `true`). Embedded tests that are not usually run directly should specify `# execute: false`.
+
+Most options for `rainforest run` work the same way with `run -f`, with the exception of test filtering options (such as `--folder`). In addition, there are a few options that are new or behave differently:
+
+- `--tag TAG_NAME`: only run tests that are tagged with `TAG_NAME` (which can be a comma-separated list of tags). Note that this filters *within* local RFML files, not tests stored on Rainforest. Tests that are not tagged with `TAG_NAME` will not be executed but may be still be uploaded if they are embedded in another test.
+- `--exclude FILE`: exclude the test in `FILE` from being run, even if `# execute: true` is specified.
+- `--force-execute FILE`: execute the test in `FILE` even if `# execute: false` is specified.
+
+These options are subject to change, so don't add them to your CI scripts unless you disable auto-updating.
+
+
 ## Support
 
 Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having trouble using this gem or need help to integrate Rainforest in your CI or deployment flow.

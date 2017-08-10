@@ -274,6 +274,7 @@ Most options for `rainforest run` work the same way with `run -f`, with the exce
 
 These options are subject to change, so don't add them to your CI scripts unless you disable auto-updating.
 
+You can download a pre-release build by switching to the dev channel in our [download page](https://dl.equinox.io/rainforest_qa/rainforest-cli/dev).
 
 ## Support
 

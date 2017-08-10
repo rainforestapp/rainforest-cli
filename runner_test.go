@@ -262,19 +262,3 @@ func TestStartLocalRun(t *testing.T) {
 		}
 	}
 }
-
-// func TestStartLocalRunExecuteOverride(t *testing.T) {
-// 	rfmlDir := setupTestRFMLDir()
-// 	defer os.RemoveAll(rfmlDir)
-
-// 	c := newFakeContext(mappings, args)
-// 	r := newRunner()
-// 	fakeEnv := rainforest.Environment{ID: 123, Name: "the foo environment"}
-// 	client := &fakeRunnerClient{environment: fakeEnv}
-// 	r.client = client
-
-// 	err := r.startRun(c)
-// 	if err != nil {
-// 		t.Error("Error starting run:", err)
-// 	}
-// }

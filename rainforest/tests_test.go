@@ -219,6 +219,42 @@ func TestHasUploadableFiles(t *testing.T) {
 		t.Error("Test has uploadable files")
 	}
 
+	// Remote file download reference
+	test.Steps = []interface{}{
+		RFTestStep{
+			Action:   "{{ file.download(1235, foobar, testing.csv) }}",
+			Response: "nothing",
+		},
+	}
+
+	if test.HasUploadableFiles() {
+		t.Error("Test only has remote uploadable files")
+	}
+
+	// Remote screenshot reference
+	test.Steps = []interface{}{
+		RFTestStep{
+			Action:   "{{ file.screenshot(3332, hkBde5) }}",
+			Response: "nothing",
+		},
+	}
+
+	if test.HasUploadableFiles() {
+		t.Error("Test only has remote uploadable files")
+	}
+
+	// Remote and local reference
+	test.Steps = []interface{}{
+		RFTestStep{
+			Action:   "{{ file.download(1235, foobar, testing.csv) }} {{ file.download(./local/path.csv) }}",
+			Response: "nothing",
+		},
+	}
+
+	if !test.HasUploadableFiles() {
+		t.Error("Test should have an uploadable file")
+	}
+
 	// With missing argument
 	test.Steps = []interface{}{
 		RFTestStep{

@@ -288,3 +288,30 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 4. Commit your changes (`git commit -am 'Add some feature'`)
 5. Push to the branch (`git push origin my-new-feature`)
 6. Create new Pull Request
+
+## Release process
+
+Check the `circle.yml` for the latest, but currently merging to master will build and deploy to the following Equinox channels:
+
+Tag                             | Channels
+--------------------------------|-------------
+No tag                          | dev
+vX.Y.Z-alpha.N or vX.Y.Z-beta.N | beta, dev
+vX.Y.Z                          | stable, beta, dev
+
+Development + release process is:
+
+1. Branch from master
+2. Do work
+3. Open PR against master
+4. Merge to master
+5. Branch from master to update `CHANGELOG.md` to include the commit hashes and release date
+6. Update the `version` constant in `rainforest-cli.go` following [semvar](http://semver.org/)
+7. Merge to master
+8. Tag the master branch with the release:
+```bash
+   git tag vX.Y.Z or vX.Y.Z-alpha.N or vX.Y.Z-beta.N
+   git push origin vX.Y.Z
+```
+9. Merge to master to release to stable/beta/dev
+10. Add release to Github [release page](https://github.com/rainforestapp/rainforest-cli/releases)

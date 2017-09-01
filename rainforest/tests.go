@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 const uploadableRegex = `{{ *file\.(download|screenshot)\(([^\)]+)\) *}}`
@@ -227,18 +228,32 @@ type embeddedFile struct {
 // findEmbeddedFiles looks through a string and parses out embedded step variables
 // and returns a slice of uploadables
 func findEmbeddedFiles(s string) []embeddedFile {
-	// Shouldn't fail compilation unless uploadableRegex is incorrect
 	reg := regexp.MustCompile(uploadableRegex)
 	matches := reg.FindAllStringSubmatch(s, -1)
 
-	uploadables := make([]embeddedFile, len(matches))
+	uploadables := []embeddedFile{}
 
-	for idx, match := range matches {
-		uploadables[idx] = embeddedFile{
+	for _, match := range matches {
+		// If there are multiple arguments, check that a file ID and a signature
+		// exist. If so, ignore, as they are remote file references and can be
+		// uploaded without any string replacements.
+		if parameters := strings.Split(match[2], ","); len(parameters) > 1 {
+			if _, err := strconv.Atoi(parameters[0]); err != nil {
+				continue
+			}
+
+			if sig := parameters[1]; len(sig) != 6 {
+				continue
+			}
+		}
+
+		uploadable := embeddedFile{
 			text:    match[0],
 			stepVar: match[1],
 			path:    match[2],
 		}
+
+		uploadables = append(uploadables, uploadable)
 	}
 
 	return uploadables

@@ -1,8 +1,11 @@
 # Rainforest CLI Changelog
 
-## WIP
+## 2.3.0 - 1 Sep 2017
 - Fix bug that parsed a remote file reference as a file path when using
 file.screenshot and file.download step variables.
+(6a443d7e0ef5cc1ce9696ee07552ed87611e450b, @epaulet)
+- Add new prerelease feature for running local RFML tests.
+(573fdb7f179aa12baf99a4b2bf351649633d1636, @shosti)
 
 ## 2.2.0 - 14 Jul 2017
 - Added a `--debug` flag to print out http headers.

@@ -262,3 +262,36 @@ func TestStartLocalRun(t *testing.T) {
 		}
 	}
 }
+
+func TestPow(t *testing.T) {
+	testCases := [][]int{
+		[]int{-2, 2, 4},
+		[]int{0, 1, 0},
+		[]int{1, 1, 1},
+		[]int{1, 2, 1},
+		[]int{2, 1, 2},
+		[]int{2, 2, 4},
+		[]int{2, 0, 1},
+		[]int{0, 0, 1},
+	}
+
+	for _, testCase := range testCases {
+		if testCase[2] != Pow(testCase[0], testCase[1]) {
+			t.Errorf("Pow(%v, %v) != %v", testCase[0], testCase[1], testCase[2])
+		}
+	}
+}
+
+func TestPowPanic(t *testing.T) {
+	recovered := false
+	defer func() {
+		if r := recover(); r != nil {
+			recovered = true
+		}
+	}()
+
+	Pow(2, -2)
+	if recovered != false {
+		t.Errorf("Pow() should panic on negative exponent")
+	}
+}

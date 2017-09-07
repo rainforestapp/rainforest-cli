@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.3.0"
+	version = "2.4.0"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -118,6 +118,9 @@ func main() {
 			Name:  "debug",
 			Usage: "Output http request header information for debug purposes",
 		},
+	}
+	app.OnUsageError = func(c *cli.Context, err error, isSubcommand bool) error {
+		return cli.NewExitError("Unknown argument", 1)
 	}
 
 	app.Commands = []cli.Command{

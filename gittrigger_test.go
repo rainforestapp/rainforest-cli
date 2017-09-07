@@ -61,6 +61,14 @@ func makeFakeRepoWithCommit(t *testing.T, commitMsg string) {
 		deleteFakeRepo(t)
 		t.Fatal("Couldn't set the email in repo.")
 	}
+	cmd = exec.Command("git", "config", "commit.gpgSign", "false")
+	out.Reset()
+	cmd.Stdout = &out
+	err = cmd.Run()
+	if err != nil {
+		deleteFakeRepo(t)
+		t.Fatal("Couldn't set the email in repo.")
+	}
 
 	// create empty commit
 	cmd = exec.Command("git", "commit", "--allow-empty", "-m", commitMsg)

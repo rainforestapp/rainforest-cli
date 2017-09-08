@@ -554,6 +554,12 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 		if c.Int("folder-id") > 0 {
 			filters.SmartFolderID = c.Int("folder-id")
 		}
+		if c.Int("feature-id") > 0 {
+			filters.FeatureID = c.Int("feature-id")
+		}
+		if c.Int("run-group-id") > 0 {
+			filters.RunGroupID = c.Int("run-group-id")
+		}
 
 		tests, err = client.GetTests(&filters)
 		if err != nil {

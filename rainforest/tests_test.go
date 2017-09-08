@@ -63,7 +63,7 @@ func TestGetTests(t *testing.T) {
 				"tags":            []string{"foo", "bar"},
 				"site_id":         []string{"123"},
 				"smart_folder_id": []string{"321"},
-				"run_group_id":    []string{strconv.Itoa(rfFilters.RunGroupID)},
+				"run_group_id":    []string{"237"},
 			},
 		},
 

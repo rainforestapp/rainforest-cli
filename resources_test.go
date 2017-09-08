@@ -32,9 +32,11 @@ func TestPrintResourceTable(t *testing.T) {
 }
 
 type testResourceAPI struct {
-	Folders  []rainforest.Folder
-	Browsers []rainforest.Browser
-	Sites    []rainforest.Site
+	Folders   []rainforest.Folder
+	Browsers  []rainforest.Browser
+	Sites     []rainforest.Site
+	Features  []rainforest.Feature
+	RunGroups []rainforest.RunGroup
 }
 
 func (api testResourceAPI) GetFolders() ([]rainforest.Folder, error) {
@@ -47,6 +49,14 @@ func (api testResourceAPI) GetBrowsers() ([]rainforest.Browser, error) {
 
 func (api testResourceAPI) GetSites() ([]rainforest.Site, error) {
 	return api.Sites, nil
+}
+
+func (api testResourceAPI) GetFeatures() ([]rainforest.Feature, error) {
+	return api.Features, nil
+}
+
+func (api testResourceAPI) GetRunGroups() ([]rainforest.RunGroup, error) {
+	return api.RunGroups, nil
 }
 
 func TestPrintFolders(t *testing.T) {
@@ -106,4 +116,46 @@ func TestPrintSites(t *testing.T) {
 	regexMatchOut(`\| +123 +\| +My favorite site +\| +Site +\|`, t)
 	regexMatchOut(`\| +456 +\| +My favorite app URL +\| +iOS +\|`, t)
 	regexMatchOut(`\| +789 +\| +Site with unknown platform +\| +unknown_platform +\|`, t)
+}
+
+func TestPrintFeatures(t *testing.T) {
+	tablesOut = &bytes.Buffer{}
+	defer func() {
+		tablesOut = os.Stdout
+	}()
+
+	testAPI := testResourceAPI{
+		Features: []rainforest.Feature{
+			{ID: 123, Title: "My favorite feature"},
+			{ID: 456, Title: "My least favorite feature"},
+			{ID: 789, Title: "An OK feature"},
+		},
+	}
+
+	printFeatures(testAPI)
+	regexMatchOut(`\| +FEATURE ID +\| +FEATURE TITLE +\|`, t)
+	regexMatchOut(`\| +123 +\| +My favorite feature +\|`, t)
+	regexMatchOut(`\| +456 +\| +My least favorite feature +\|`, t)
+	regexMatchOut(`\| +789 +\| +An OK feature +\|`, t)
+}
+
+func TestPrintRunGroups(t *testing.T) {
+	tablesOut = &bytes.Buffer{}
+	defer func() {
+		tablesOut = os.Stdout
+	}()
+
+	testAPI := testResourceAPI{
+		RunGroups: []rainforest.RunGroup{
+			{ID: 123, Title: "My favorite run group"},
+			{ID: 456, Title: "My least favorite run group"},
+			{ID: 789, Title: "An OK run group"},
+		},
+	}
+
+	printRunGroups(testAPI)
+	regexMatchOut(`\| +RUN GROUP ID +\| +RUN GROUP TITLE +\|`, t)
+	regexMatchOut(`\| +123 +\| +My favorite run group +\|`, t)
+	regexMatchOut(`\| +456 +\| +My least favorite run group +\|`, t)
+	regexMatchOut(`\| +789 +\| +An OK run group +\|`, t)
 }

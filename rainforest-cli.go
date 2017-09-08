@@ -398,6 +398,20 @@ func main() {
 			},
 		},
 		{
+			Name:  "features",
+			Usage: "Lists available features",
+			Action: func(c *cli.Context) error {
+				return printFeatures(api)
+			},
+		},
+		{
+			Name:  "run-groups",
+			Usage: "Lists available run groups",
+			Action: func(c *cli.Context) error {
+				return printRunGroups(api)
+			},
+		},
+		{
 			Name:      "update",
 			Usage:     "Updates application to the latest version on specified release channel (stable/beta)",
 			ArgsUsage: "[CHANNEL]",

@@ -112,3 +112,123 @@ func TestGetSites(t *testing.T) {
 		t.Errorf("Response out = %v, want %v", out, want)
 	}
 }
+
+func TestGetFeatures(t *testing.T) {
+	setup()
+	defer cleanup()
+
+	const reqMethod = "GET"
+	const pages = 3
+	var lastPage int
+
+	mux.HandleFunc("/features", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != reqMethod {
+			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+		}
+		w.Header().Add("X-Total-Pages", strconv.Itoa(pages))
+		fmt.Fprint(w, `[{"id": 707, "title": "Foo"}, {"id": 777, "title": "Bar"}]`)
+	})
+
+	mux.HandleFunc("/features?page_size=100&page=", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != reqMethod {
+			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+		}
+
+		reg, _ := regexp.Compile(`page_size=100&page=(\d+)`)
+		matches := reg.FindStringSubmatch(r.URL.String())
+		page, err := strconv.Atoi(matches[1])
+
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		if page > pages {
+			t.Fatalf("Unexpected page argument: %v", page)
+		}
+
+		expectedPage := lastPage + 1
+		if page != expectedPage {
+			t.Errorf("Unexpected page argument. Want %v, Got %v", expectedPage, page)
+		}
+
+		lastPage = page
+
+		w.Header().Add("X-Total-Pages", strconv.Itoa(pages))
+		fmt.Fprint(w, `[{"id": 707, "title": "Foo"}, {"id": 777, "title": "Bar"}]`)
+	})
+
+	out, err := client.GetFeatures()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	want := []Feature{
+		{ID: 707, Title: "Foo"}, {ID: 777, Title: "Bar"},
+		{ID: 707, Title: "Foo"}, {ID: 777, Title: "Bar"},
+		{ID: 707, Title: "Foo"}, {ID: 777, Title: "Bar"},
+	}
+
+	if !reflect.DeepEqual(out, want) {
+		t.Errorf("Response out = %v, want %v", out, want)
+	}
+}
+
+func TestGetRunGroups(t *testing.T) {
+	setup()
+	defer cleanup()
+
+	const reqMethod = "GET"
+	const pages = 3
+	var lastPage int
+
+	mux.HandleFunc("/run_groups", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != reqMethod {
+			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+		}
+		w.Header().Add("X-Total-Pages", strconv.Itoa(pages))
+		fmt.Fprint(w, `[{"id": 707, "title": "Foo"}, {"id": 777, "title": "Bar"}]`)
+	})
+
+	mux.HandleFunc("/runGroups?page_size=100&page=", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != reqMethod {
+			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+		}
+
+		reg, _ := regexp.Compile(`page_size=100&page=(\d+)`)
+		matches := reg.FindStringSubmatch(r.URL.String())
+		page, err := strconv.Atoi(matches[1])
+
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		if page > pages {
+			t.Fatalf("Unexpected page argument: %v", page)
+		}
+
+		expectedPage := lastPage + 1
+		if page != expectedPage {
+			t.Errorf("Unexpected page argument. Want %v, Got %v", expectedPage, page)
+		}
+
+		lastPage = page
+
+		w.Header().Add("X-Total-Pages", strconv.Itoa(pages))
+		fmt.Fprint(w, `[{"id": 707, "title": "Foo"}, {"id": 777, "title": "Bar"}]`)
+	})
+
+	out, err := client.GetRunGroups()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	want := []RunGroup{
+		{ID: 707, Title: "Foo"}, {ID: 777, Title: "Bar"},
+		{ID: 707, Title: "Foo"}, {ID: 777, Title: "Bar"},
+		{ID: 707, Title: "Foo"}, {ID: 777, Title: "Bar"},
+	}
+
+	if !reflect.DeepEqual(out, want) {
+		t.Errorf("Response out = %v, want %v", out, want)
+	}
+}

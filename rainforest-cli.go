@@ -136,7 +136,7 @@ func main() {
 					Usage: "filter tests by a specific site. You can see a list of your `SITE-ID`s with the sites command.",
 				},
 				cli.StringFlag{
-					Name:  "folder, folder-id",
+					Name:  "folder, folder-id, filter, filter-id",
 					Usage: "filter tests by a specific folder. You can see a list of your `FOLDER-ID`s with the folders command.",
 				},
 				cli.IntFlag{
@@ -296,7 +296,7 @@ func main() {
 					Usage: "filter tests by a specific site. You can see a list of your `SITE-ID`s with the sites command.",
 				},
 				cli.IntFlag{
-					Name:  "folder, folder-id",
+					Name:  "folder, folder-id, filter, filter-id",
 					Usage: "filter tests by a specific folder. You can see a list of your `FOLDER-ID`s with the folders command.",
 				},
 				cli.IntFlag{
@@ -379,6 +379,13 @@ func main() {
 		{
 			Name:  "folders",
 			Usage: "Lists available folders",
+			Action: func(c *cli.Context) error {
+				return printFolders(api)
+			},
+		},
+		{
+			Name:  "filters",
+			Usage: "Lists available saved filters",
 			Action: func(c *cli.Context) error {
 				return printFolders(api)
 			},

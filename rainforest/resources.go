@@ -13,50 +13,67 @@ type Folder struct {
 	Title string `json:"title"`
 }
 
-// GetFolders returns a slice of Folders (their names and IDs) which are available
-// for filtering RF tests.
-func (c *Client) GetFolders() ([]Folder, error) {
-	// Prepare request
-	req, err := c.NewRequest("GET", "folders?page_size=100", nil)
+// getPaginatedResource gets all of a resource from endpoint (using multiple
+// requests, if necessary) and returns the result.
+//
+// Because of the type system, usage is hairy. coll should be a pointer to an
+// empty slice of the appropriate type, and collect is called every time
+// resources are added to the collection. The caller should handle collecting
+// the collection.
+func (c *Client) getPaginatedResource(endpoint string, coll interface{}, collect func(interface{})) error {
+	req, err := c.NewRequest("GET", endpoint+"?page_size=100", nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// Send request and process response
-	var folderResp []Folder
 	var res *http.Response
-	res, err = c.Do(req, &folderResp)
+	res, err = c.Do(req, &coll)
+	collect(coll)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	totalPagesHeader := res.Header.Get("X-Total-Pages")
 	if totalPagesHeader == "" {
-		return nil, fmt.Errorf("Missing X-Total-Pages header in HTTP Response")
+		return fmt.Errorf("Missing X-Total-Pages header in HTTP Response")
 	}
 
 	totalPages, err := strconv.Atoi(totalPagesHeader)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	for i := 1; i < totalPages; i++ {
 		page := strconv.Itoa(i + 1)
-		req, err = c.NewRequest("GET", "folders?page_size=100&page="+page, nil)
+		req, err = c.NewRequest("GET", endpoint+"?page_size=100&page="+page, nil)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		var extraFoldersResp []Folder
-		res, err = c.Do(req, &extraFoldersResp)
+		res, err = c.Do(req, &coll)
+		collect(coll)
 		if err != nil {
-			return nil, err
+			return err
 		}
-
-		folderResp = append(folderResp, extraFoldersResp...)
 	}
 
-	return folderResp, nil
+	return nil
+}
+
+// GetFolders returns a slice of Folders (their names and IDs) which are available
+// for filtering RF tests.
+func (c *Client) GetFolders() ([]Folder, error) {
+	var folders []Folder
+
+	collect := func(coll interface{}) {
+		newFolders := coll.(*[]Folder)
+		for _, folder := range *newFolders {
+			folders = append(folders, folder)
+		}
+	}
+
+	err := c.getPaginatedResource("folders", &[]Folder{}, collect)
+	return folders, err
 }
 
 // Browser type represents a single browser returned by the API call for a list of browsers
@@ -85,29 +102,6 @@ func (c *Client) GetBrowsers() ([]Browser, error) {
 		return nil, err
 	}
 	return browsersResp.AvailableBrowsers, nil
-}
-
-// RunGroup represents a single run group returned by the API.
-type RunGroup struct {
-	ID    int    `json:"id"`
-	Title string `json:"title"`
-}
-
-// GetRunGroups gets run groups from the API.
-func (c *Client) GetRunGroups() ([]RunGroup, error) {
-	// Prepare request
-	req, err := c.NewRequest("GET", "run_groups", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	// Send request and process response
-	var runGroupResp []RunGroup
-	_, err = c.Do(req, &runGroupResp)
-	if err != nil {
-		return nil, err
-	}
-	return runGroupResp, nil
 }
 
 // RunGroupDetails shows the details for a particular run group.
@@ -189,4 +183,44 @@ func (c *Client) GetSites() ([]Site, error) {
 		return nil, err
 	}
 	return sitesResp, nil
+}
+
+// Feature represents a single feature returned by the API.
+type Feature struct {
+	ID    int    `json:"id"`
+	Title string `json:"title"`
+}
+
+// GetFeatures fetches available features.
+func (c *Client) GetFeatures() ([]Feature, error) {
+	var features []Feature
+	collect := func(coll interface{}) {
+		newFeatures := coll.(*[]Feature)
+		for _, f := range *newFeatures {
+			features = append(features, f)
+		}
+	}
+
+	err := c.getPaginatedResource("features", &[]Feature{}, collect)
+	return features, err
+}
+
+// RunGroup represents a single run group returned by the API.
+type RunGroup struct {
+	ID    int    `json:"id"`
+	Title string `json:"title"`
+}
+
+// GetRunGroups fetches available run groups.
+func (c *Client) GetRunGroups() ([]RunGroup, error) {
+	var runGroups []RunGroup
+	collect := func(coll interface{}) {
+		newRunGroups := coll.(*[]RunGroup)
+		for _, r := range *newRunGroups {
+			runGroups = append(runGroups, r)
+		}
+	}
+
+	err := c.getPaginatedResource("run_groups", &[]RunGroup{}, collect)
+	return runGroups, err
 }

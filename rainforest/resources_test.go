@@ -1,15 +1,11 @@
 package rainforest
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"net/http"
-	"os"
 	"reflect"
 	"regexp"
 	"strconv"
-	"strings"
 	"testing"
 )
 
@@ -117,124 +113,122 @@ func TestGetSites(t *testing.T) {
 	}
 }
 
-func TestGetRunGroups(t *testing.T) {
+func TestGetFeatures(t *testing.T) {
 	setup()
 	defer cleanup()
 
 	const reqMethod = "GET"
+	const pages = 3
+	var lastPage int
 
-	mux.HandleFunc("/run_groups", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/features", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != reqMethod {
 			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
 		}
-		fmt.Fprint(w, `[{"id": 3457, "title": "Star"}, {"id": 289, "title": "Trek"}]`)
+		w.Header().Add("X-Total-Pages", strconv.Itoa(pages))
+		fmt.Fprint(w, `[{"id": 707, "title": "Foo"}, {"id": 777, "title": "Bar"}]`)
 	})
 
-	out, _ := client.GetRunGroups()
+	mux.HandleFunc("/features?page_size=100&page=", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != reqMethod {
+			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+		}
 
-	want := []RunGroup{{ID: 3457, Title: "Star"}, {ID: 289, Title: "Trek"}}
+		reg, _ := regexp.Compile(`page_size=100&page=(\d+)`)
+		matches := reg.FindStringSubmatch(r.URL.String())
+		page, err := strconv.Atoi(matches[1])
+
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		if page > pages {
+			t.Fatalf("Unexpected page argument: %v", page)
+		}
+
+		expectedPage := lastPage + 1
+		if page != expectedPage {
+			t.Errorf("Unexpected page argument. Want %v, Got %v", expectedPage, page)
+		}
+
+		lastPage = page
+
+		w.Header().Add("X-Total-Pages", strconv.Itoa(pages))
+		fmt.Fprint(w, `[{"id": 707, "title": "Foo"}, {"id": 777, "title": "Bar"}]`)
+	})
+
+	out, err := client.GetFeatures()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	want := []Feature{
+		{ID: 707, Title: "Foo"}, {ID: 777, Title: "Bar"},
+		{ID: 707, Title: "Foo"}, {ID: 777, Title: "Bar"},
+		{ID: 707, Title: "Foo"}, {ID: 777, Title: "Bar"},
+	}
 
 	if !reflect.DeepEqual(out, want) {
 		t.Errorf("Response out = %v, want %v", out, want)
 	}
 }
 
-func TestRunGroupDetailsPrint(t *testing.T) {
-	rgd := RunGroupDetails{
-		ID:    6678,
-		Title: "Main run group",
-		Environment: struct {
-			Name string `json:"name"`
-		}{
-			Name: "staging",
-		},
-		Crowd:      "default",
-		RerouteGeo: "usa",
-	}
+func TestGetRunGroups(t *testing.T) {
+	setup()
+	defer cleanup()
 
-	output, _ := captureStdout(func() error {
-		rgd.Print()
-		return nil
+	const reqMethod = "GET"
+	const pages = 3
+	var lastPage int
+
+	mux.HandleFunc("/run_groups", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != reqMethod {
+			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+		}
+		w.Header().Add("X-Total-Pages", strconv.Itoa(pages))
+		fmt.Fprint(w, `[{"id": 707, "title": "Foo"}, {"id": 777, "title": "Bar"}]`)
 	})
-	expectedNameStr := "Name: Main run group"
-	if !strings.Contains(output, expectedNameStr) {
-		t.Errorf("Run group name was not printed properly.\nExpected: %v\nto be included in: %v", expectedNameStr, output)
-	}
 
-	expectedEnvStr := "Environment: staging"
-	if !strings.Contains(output, expectedEnvStr) {
-		t.Errorf("Run group environment was not printed properly.\nExpected: %v\nto be included in: %v", expectedEnvStr, output)
-	}
+	mux.HandleFunc("/runGroups?page_size=100&page=", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != reqMethod {
+			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+		}
 
-	expectecCrowdStr := "Tester Crowd: default"
-	if !strings.Contains(output, expectecCrowdStr) {
-		t.Errorf("Run group tester crowd was not printed properly.\nExpected: %v\nto be included in: %v", expectecCrowdStr, output)
-	}
+		reg, _ := regexp.Compile(`page_size=100&page=(\d+)`)
+		matches := reg.FindStringSubmatch(r.URL.String())
+		page, err := strconv.Atoi(matches[1])
 
-	expectedLocationStr := "Location: usa"
-	if !strings.Contains(output, expectedLocationStr) {
-		t.Errorf("Run group location was not printed properly.\nExpected: %v\nto be included in: %v", expectedLocationStr, output)
-	}
+		if err != nil {
+			t.Fatal(err.Error())
+		}
 
-	if strings.Contains(output, "Schedule:") {
-		t.Error("Run group schedule found in output when schedule does not exist")
-	}
+		if page > pages {
+			t.Fatalf("Unexpected page argument: %v", page)
+		}
 
-	rgd.Schedule = struct {
-		RepeatRules []struct {
-			Day  string `json:"day"`
-			Time string `json:"time"`
-		} `json:"repeat_rules"`
-	}{
-		RepeatRules: []struct {
-			Day  string `json:"day"`
-			Time string `json:"time"`
-		}{
-			{
-				Day:  "tuesday",
-				Time: "12:00",
-			},
-			{
-				Day:  "friday",
-				Time: "12:00",
-			},
-		},
-	}
+		expectedPage := lastPage + 1
+		if page != expectedPage {
+			t.Errorf("Unexpected page argument. Want %v, Got %v", expectedPage, page)
+		}
 
-	output, _ = captureStdout(func() error {
-		rgd.Print()
-		return nil
+		lastPage = page
+
+		w.Header().Add("X-Total-Pages", strconv.Itoa(pages))
+		fmt.Fprint(w, `[{"id": 707, "title": "Foo"}, {"id": 777, "title": "Bar"}]`)
 	})
-	expectedScheduleStr := "Schedule: tuesday, friday @ 12:00"
-	if !strings.Contains(output, expectedScheduleStr) {
-		t.Errorf("Run group schedule was not printed properly.\nExpected: %v\nto be included in: %v", expectedScheduleStr, output)
-	}
-}
 
-func captureStdout(fn func() error) (string, error) {
-	r, w, err := os.Pipe()
+	out, err := client.GetRunGroups()
 	if err != nil {
-		return "", err
+		t.Fatal(err.Error())
 	}
 
-	originalStdOut := os.Stdout
-	os.Stdout = w
-	defer func() {
-		os.Stdout = originalStdOut
-	}()
-
-	err = fn()
-	if err != nil {
-		return "", err
+	want := []RunGroup{
+		{ID: 707, Title: "Foo"}, {ID: 777, Title: "Bar"},
+		{ID: 707, Title: "Foo"}, {ID: 777, Title: "Bar"},
+		{ID: 707, Title: "Foo"}, {ID: 777, Title: "Bar"},
 	}
 
-	w.Close()
-
-	buf := bytes.Buffer{}
-	_, err = io.Copy(&buf, r)
-	if err != nil {
-		return "", err
+	if !reflect.DeepEqual(out, want) {
+		t.Errorf("Response out = %v, want %v", out, want)
 	}
-
-	return buf.String(), nil
 }

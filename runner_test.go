@@ -124,6 +124,23 @@ func TestMakeRunParams(t *testing.T) {
 				EnvironmentID: fakeEnvID,
 			},
 		},
+		{
+			mappings: map[string]interface{}{
+				"feature": 123,
+			},
+			args: cli.Args{},
+			expected: rainforest.RunParams{
+				FeatureID: 123,
+			},
+		},
+		{
+			mappings: map[string]interface{}{
+				"run-group": 75,
+			},
+			expected: rainforest.RunParams{
+				RunGroupID: 75,
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

@@ -10,13 +10,72 @@ import (
 )
 
 func TestCreateRun(t *testing.T) {
+	testCases := []struct {
+		runParams RunParams
+		wantBody  string
+	}{
+		{
+			runParams: RunParams{Tags: []string{"foo", "bar"}, SiteID: 125},
+			wantBody:  `{"tags":["foo","bar"],"site_id":125}`,
+		},
+		{
+			runParams: RunParams{FeatureID: 25, Tags: []string{"baz"}},
+			wantBody:  `{"tags":["baz"],"feature_id":25}`,
+		},
+	}
+
+	for _, tc := range testCases {
+
+		setup()
+		defer cleanup()
+
+		const reqMethod = "POST"
+
+		mux.HandleFunc("/runs", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != reqMethod {
+				t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+			}
+
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(r.Body)
+			s := strings.TrimSpace(buf.String())
+			if s != tc.wantBody {
+				t.Errorf("Request body = %v, want %v", s, tc.wantBody)
+			}
+			fmt.Fprint(w, `{"id": 123, "state":"in_progress"}`)
+		})
+
+		out, _ := client.CreateRun(tc.runParams)
+
+		wantStatus := &RunStatus{ID: 123, State: "in_progress"}
+		if !reflect.DeepEqual(out, wantStatus) {
+			t.Errorf("Response out = %v, want %v", out, wantStatus)
+		}
+	}
+}
+
+func TestCreateRunFromRunGroup(t *testing.T) {
 	setup()
 	defer cleanup()
 
 	const reqMethod = "POST"
-	runParams := RunParams{Tags: []string{"foo", "bar"}, SiteID: 125}
+	runGroupID := 25
+	var completed = false
+
+	runParams := RunParams{
+		EnvironmentID: 23,
+		Conflict:      "abort",
+		RunGroupID:    runGroupID,
+	}
+	wantBody := `{"conflict":"abort","environment_id":23}`
 
 	mux.HandleFunc("/runs", func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("/runs endpoint hit, expected /run_groups/:id/runs")
+	})
+
+	wantPath := fmt.Sprintf("/run_groups/%v/runs", runGroupID)
+	mux.HandleFunc(wantPath, func(w http.ResponseWriter, r *http.Request) {
+		completed = true
 		if r.Method != reqMethod {
 			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
 		}
@@ -24,18 +83,62 @@ func TestCreateRun(t *testing.T) {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(r.Body)
 		s := strings.TrimSpace(buf.String())
-		if wantedBody := `{"tags":["foo","bar"],"site_id":125}`; s != wantedBody {
-			t.Errorf("Request body = %v, want %v", s, wantedBody)
+		if s != wantBody {
+			t.Errorf("Request body = %v, want %v", s, wantBody)
 		}
 		fmt.Fprint(w, `{"id": 123, "state":"in_progress"}`)
 	})
 
-	out, _ := client.CreateRun(runParams)
+	out, err := client.CreateRun(runParams)
+	if err != nil {
+		t.Error("Error creating run:", err)
+	}
 
-	want := &RunStatus{ID: 123, State: "in_progress"}
+	wantStatus := &RunStatus{ID: 123, State: "in_progress"}
+	if !reflect.DeepEqual(out, wantStatus) {
+		t.Errorf("Response out = %v, want %v", out, wantStatus)
+	}
 
-	if !reflect.DeepEqual(out, want) {
-		t.Errorf("Response out = %v, want %v", out, want)
+	if !completed {
+		t.Error("Run API endpoint not hit")
+	}
+
+	runGroupID = 42
+	// Check that you can't combine filters
+	badParams := []RunParams{
+		{
+			RunGroupID: runGroupID,
+			Tags:       []string{"foo"},
+		},
+		{
+			RunGroupID: runGroupID,
+			SiteID:     17,
+		},
+		{
+			RunGroupID: runGroupID,
+			Tests:      "all",
+		},
+		{
+			RunGroupID:    runGroupID,
+			SmartFolderID: 123,
+		},
+		{
+			RunGroupID: runGroupID,
+			Browsers:   []string{"chrome"},
+		},
+		{
+			RunGroupID: runGroupID,
+			FeatureID:  35,
+		},
+	}
+	mux.HandleFunc(fmt.Sprintf("/run_groups/%v/runs", runGroupID), func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"id": 123, "state":"in_progress"}`)
+	})
+	for _, params := range badParams {
+		_, err := client.CreateRun(params)
+		if err == nil {
+			t.Errorf("Expected error for params %v but there was no error", params)
+		}
 	}
 }
 

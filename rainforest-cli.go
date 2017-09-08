@@ -133,11 +133,19 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:  "site, site-id",
-					Usage: "filter tests by a specific site. You can see a list of your `SITE-ID`s with sites command.",
+					Usage: "filter tests by a specific site. You can see a list of your `SITE-ID`s with the sites command.",
 				},
 				cli.StringFlag{
-					Name:  "folder",
-					Usage: "filter tests by a specific folder. You can see a list of your `FOLDER-ID`s with folders command.",
+					Name:  "folder, folder-id",
+					Usage: "filter tests by a specific folder. You can see a list of your `FOLDER-ID`s with the folders command.",
+				},
+				cli.IntFlag{
+					Name:  "feature, feature-id",
+					Usage: "filter tests by a specific feature. You can see a list of your `FEATURE-ID`s with the features command.",
+				},
+				cli.IntFlag{
+					Name:  "run-group, run-group-id",
+					Usage: "start a run using a run group. You can see a list of your `RUN-GROUP-ID`s with the run-groups command. This option cannot be used in conjunction with other filtering options.",
 				},
 				cli.StringSliceFlag{
 					Name: "browser, browsers",

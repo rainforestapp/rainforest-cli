@@ -174,6 +174,9 @@ func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
 		return rainforest.RunParams{}, errors.New("Invalid conflict option specified")
 	}
 
+	featureID := c.Int("feature")
+	runGroupID := c.Int("run-group")
+
 	browsers := c.StringSlice("browser")
 	expandedBrowsers := expandStringSlice(browsers)
 
@@ -236,6 +239,8 @@ func (r *runner) makeRunParams(c cliContext) (rainforest.RunParams, error) {
 		Browsers:      expandedBrowsers,
 		Description:   description,
 		EnvironmentID: environmentID,
+		FeatureID:     featureID,
+		RunGroupID:    runGroupID,
 	}, nil
 }
 

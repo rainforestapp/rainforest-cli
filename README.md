@@ -144,6 +144,16 @@ See a list of all of your browsers and their IDs
 rainforest browsers
 ```
 
+See a list of all of your features and their IDs
+```bash
+rainforest features
+```
+
+See a list of all of your run groups and their IDs
+```bash
+rainforest run-groups
+```
+
 To generate a junit xml report for a test run which has already completed
 ```bash
 rainforest report <run-id> --junit-file rainforest.xml
@@ -234,7 +244,9 @@ Popular command line options are:
 - `--browsers ie8` or `--browsers ie8,chrome` - specify the browsers you wish to run against. This overrides the test own settings. Valid browsers can be found in your account settings.
 - `--tag TAG_NAME` - filter tests by tag. Can be used multiple times for filtering by multiple tags.
 - `--site-id SITE_ID` - filter tests by a specific site. You can see a list of your site IDs with `rainforest sites`.
-- `--folder ID` - filter tests in specified folder.
+- `--folder ID/--filter ID` - filter tests in specified folder.
+- `--feature ID` - filter tests in a feature.
+- `--run-group ID` - run/filter based on a run group. When used with `run`, this trigger a run from the run group; it can't be used in conjunction with other test filters.
 - `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
 - `--conflict OPTION` - use the `abort` option to abort any runs in progress in the same environment as your new run. use the `abort-all` option to abort all runs in progress.
 - `--bg` - creates a run in the background and rainforest-cli exits immediately after. Do not use if you want rainforest-cli to track your run and exit with an error code upon run failure (ie: using Rainforest in your CI environment).

@@ -29,43 +29,8 @@ type resourceAPI interface {
 	GetFolders() ([]rainforest.Folder, error)
 	GetBrowsers() ([]rainforest.Browser, error)
 	GetSites() ([]rainforest.Site, error)
+	GetFeatures() ([]rainforest.Feature, error)
 	GetRunGroups() ([]rainforest.RunGroup, error)
-}
-
-func printRunGroupDetails(c cliContext) error {
-	runGroupIDStr := c.Args().First()
-	if runGroupIDStr == "" {
-		return cli.NewExitError("Please supply the Run Group ID. Use the `run-groups` command to retrieve a list of Run Group IDs.", 1)
-	}
-
-	runGroupID, err := strconv.Atoi(runGroupIDStr)
-	if err != nil {
-		return cli.NewExitError(err.Error(), 1)
-	}
-
-	runGroup, err := api.GetRunGroupDetails(runGroupID)
-	if err != nil {
-		return cli.NewExitError(err.Error(), 1)
-	}
-
-	runGroup.Print()
-	return nil
-}
-
-func printRunGroups(api resourceAPI) error {
-
-	runGroups, err := api.GetRunGroups()
-	if err != nil {
-		return cli.NewExitError(err.Error(), 1)
-	}
-
-	rows := make([][]string, len(runGroups))
-	for i, rungrp := range runGroups {
-		rows[i] = []string{strconv.Itoa(rungrp.ID), rungrp.Title}
-	}
-
-	printResourceTable([]string{"Run Group ID", "Run Group Name"}, rows)
-	return nil
 }
 
 // printFolders fetches and prints out the available folders from the API
@@ -127,5 +92,39 @@ func printSites(api resourceAPI) error {
 	}
 
 	printResourceTable([]string{"Site ID", "Site Name", "Category"}, rows)
+	return nil
+}
+
+// printFeatures fetches and prints features
+func printFeatures(api resourceAPI) error {
+	// Fetch the list of features from the Rainforest
+	features, err := api.GetFeatures()
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	rows := make([][]string, len(features))
+	for i, feature := range features {
+		rows[i] = []string{strconv.Itoa(feature.ID), feature.Title}
+	}
+
+	printResourceTable([]string{"Feature ID", "Feature Title"}, rows)
+	return nil
+}
+
+// printRunGroups fetches and prints runGroups
+func printRunGroups(api resourceAPI) error {
+	// Fetch the list of runGroups from the Rainforest
+	runGroups, err := api.GetRunGroups()
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	rows := make([][]string, len(runGroups))
+	for i, runGroup := range runGroups {
+		rows[i] = []string{strconv.Itoa(runGroup.ID), runGroup.Title}
+	}
+
+	printResourceTable([]string{"Run Group ID", "Run Group Title"}, rows)
 	return nil
 }

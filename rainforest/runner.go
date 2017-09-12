@@ -1,6 +1,10 @@
 package rainforest
 
-import "strconv"
+import (
+	"errors"
+	"fmt"
+	"strconv"
+)
 
 // RunParams is a struct holding all potential parameters needed to start a new RF run.
 type RunParams struct {
@@ -15,7 +19,8 @@ type RunParams struct {
 	Browsers      []string    `json:"browsers,omitempty"`
 	Description   string      `json:"description,omitempty"`
 	EnvironmentID int         `json:"environment_id,omitempty"`
-	RunGroupID    int         `json:"run_group_id,omitempty"`
+	FeatureID     int         `json:"feature_id,omitempty"`
+	RunGroupID    int         `json:"-"`
 }
 
 // RunStatus represents a status of a RF run in progress.
@@ -40,8 +45,17 @@ type RunStatus struct {
 func (c *Client) CreateRun(params RunParams) (*RunStatus, error) {
 	var runStatus RunStatus
 
+	endpoint := "runs"
+	if params.RunGroupID > 0 {
+		err := validateRunGroupParams(params)
+		if err != nil {
+			return &runStatus, err
+		}
+		endpoint = fmt.Sprintf("run_groups/%v/runs", params.RunGroupID)
+	}
+
 	// Usual stuff - create a request and send it
-	req, err := c.NewRequest("POST", "runs", params)
+	req, err := c.NewRequest("POST", endpoint, params)
 	if err != nil {
 		return &runStatus, err
 	}
@@ -51,6 +65,29 @@ func (c *Client) CreateRun(params RunParams) (*RunStatus, error) {
 	}
 
 	return &runStatus, nil
+}
+
+func validateRunGroupParams(params RunParams) error {
+	if params.Tags != nil {
+		return errors.New("Tags cannot be specified alongside run group")
+	}
+	if params.Browsers != nil {
+		return errors.New("Browsers cannot be specified alongside run group")
+	}
+	if params.Tests != nil {
+		return errors.New("Tests cannot be specified alongside run group")
+	}
+	if params.SiteID != 0 {
+		return errors.New("Site cannot be specified alongside run group")
+	}
+	if params.FeatureID != 0 {
+		return errors.New("Feature cannot be specified alongside run group")
+	}
+	if params.SmartFolderID != 0 {
+		return errors.New("Folder cannot be specified alongside run group")
+	}
+
+	return nil
 }
 
 // CheckRunStatus returns the status of a specified run.

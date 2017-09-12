@@ -39,51 +39,79 @@ func TestGetRFMLIDs(t *testing.T) {
 }
 
 func TestGetTests(t *testing.T) {
-	setup()
-	defer cleanup()
+	testCases := []struct {
+		rfFilters     RFTestFilters
+		expectedQuery url.Values
+	}{
+		// Empty query
+		{
+			rfFilters:     RFTestFilters{},
+			expectedQuery: url.Values{"page": []string{"1"}, "page_size": []string{"50"}},
+		},
 
-	// Empty query
-	rfFilters := RFTestFilters{}
-	expectedQuery := url.Values{"page": []string{"1"}, "page_size": []string{"50"}}
-	mux.HandleFunc("/tests", func(w http.ResponseWriter, r *http.Request) {
-		receivedQuery := r.URL.Query()
-		if !reflect.DeepEqual(expectedQuery, receivedQuery) {
-			t.Errorf("Unexpected query sent to Rainforest API. Got %v, want %v", receivedQuery, expectedQuery)
+		// Non-empty query
+		{
+			rfFilters: RFTestFilters{
+				Tags:          []string{"foo", "bar"},
+				SiteID:        123,
+				SmartFolderID: 321,
+				RunGroupID:    237,
+			},
+			expectedQuery: url.Values{
+				"page":            []string{"1"},
+				"page_size":       []string{"50"},
+				"tags":            []string{"foo", "bar"},
+				"site_id":         []string{"123"},
+				"smart_folder_id": []string{"321"},
+				"run_group_id":    []string{"237"},
+			},
+		},
+
+		// Filter by feature and run group
+		{
+			rfFilters: RFTestFilters{
+				FeatureID:  123,
+				RunGroupID: 75,
+			},
+			expectedQuery: url.Values{
+				"page":         []string{"1"},
+				"page_size":    []string{"50"},
+				"feature_id":   []string{"123"},
+				"run_group_id": []string{"75"},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		setup()
+		defer cleanup()
+
+		// Empty query
+		mux.HandleFunc("/tests", func(w http.ResponseWriter, r *http.Request) {
+			receivedQuery := r.URL.Query()
+			if !reflect.DeepEqual(tc.expectedQuery, receivedQuery) {
+				t.Errorf("Unexpected query sent to Rainforest API. Got %v, want %v", receivedQuery, tc.expectedQuery)
+			}
+
+			w.Header().Add("X-Total-Pages", "1")
+			w.Write([]byte("[]"))
+		})
+
+		_, err := client.GetTests(&tc.rfFilters)
+		if err != nil {
+			t.Error(err.Error())
 		}
 
-		w.Header().Add("X-Total-Pages", "1")
-		w.Write([]byte("[]"))
-	})
-
-	_, err := client.GetTests(&rfFilters)
-	if err != nil {
-		t.Error(err.Error())
+		_, err = client.GetTests(&tc.rfFilters)
+		if err != nil {
+			t.Error(err.Error())
+		}
 	}
+}
 
-	// Non-empty query
-	rfFilters = RFTestFilters{
-		Tags:          []string{"foo", "bar"},
-		SiteID:        123,
-		SmartFolderID: 321,
-		RunGroupID:    237,
-	}
-	expectedQuery = url.Values{
-		"page":            []string{"1"},
-		"page_size":       []string{"50"},
-		"tags":            rfFilters.Tags,
-		"site_id":         []string{strconv.Itoa(rfFilters.SiteID)},
-		"smart_folder_id": []string{strconv.Itoa(rfFilters.SmartFolderID)},
-		"run_group_id":    []string{strconv.Itoa(rfFilters.RunGroupID)},
-	}
-
-	_, err = client.GetTests(&rfFilters)
-	if err != nil {
-		t.Error(err.Error())
-	}
-
-	// Multiple pages of tests
-	cleanup()
+func TestGetTestsMultiplePages(t *testing.T) {
 	setup()
+	defer cleanup()
 
 	currentPage := 1
 	totalPages := 5
@@ -107,10 +135,9 @@ func TestGetTests(t *testing.T) {
 		w.Write([]byte("[]"))
 	})
 
-	rfFilters = RFTestFilters{}
-	expectedQuery = url.Values{"page": []string{"1"}, "page_size": []string{"50"}}
+	rfFilters := RFTestFilters{}
 
-	_, err = client.GetTests(&rfFilters)
+	_, err := client.GetTests(&rfFilters)
 	if err != nil {
 		t.Error(err.Error())
 	}

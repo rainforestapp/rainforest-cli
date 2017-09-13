@@ -1,5 +1,12 @@
 # Rainforest CLI Changelog
 
+## 2.5.0 - 2017-09-12
+- Improve run group support: runs started from run groups will now apply run group browser settings.
+- Add support for viewing and filtering by features
+  - (e4fe58df872c178fd39756424983da33e4dd96a0, @shosti)
+- Fix a bug in printing run groups
+  - (32e0cd770e9a3faccce6828f3970d4a83181af6b, @shosti)
+
 ## 2.4.0 - 2017-09-03
 - Exit with non-zero status if an unknown flag is given
   - (2ebdd906d8e4314b3c0db4d0a72a2d6ca2af52ee, @jbarber)

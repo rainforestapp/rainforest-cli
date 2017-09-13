@@ -402,7 +402,7 @@ func main() {
 		{
 			Name:  "run-groups",
 			Usage: "Lists available run groups",
-			Action: func(c *cliContext) error {
+			Action: func(c *cli.Context) error {
 				return printRunGroups(api)
 			},
 		},

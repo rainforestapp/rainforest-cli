@@ -40,6 +40,7 @@ deployment:
       - equinox publish --token=$EQUINOX_ACC_TOKEN --app=$EQUINOX_APP_ID --channel beta --version=${CIRCLE_TAG:1}
       - equinox publish --token=$EQUINOX_ACC_TOKEN --app=$EQUINOX_APP_ID --channel dev --version=${CIRCLE_TAG:1}
       - rm -f $EQUINOX_KEY_PATH
+      - ./update-release.sh
 
   beta:
     tag: /^v[0-9]+(\.[0-9]+)*(\-(alpha|beta)\.[0-9]+)$/

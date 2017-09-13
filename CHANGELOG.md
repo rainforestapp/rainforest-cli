@@ -3,7 +3,7 @@
 ## 2.5.0 - 2017-09-12
 - Improve run group support: runs started from run groups will now apply run group browser settings.
 - Add support for viewing and filtering by features
-  - (32e0cd770e9a3faccce6828f3970d4a83181af6b, @shosti)
+  - (e4fe58df872c178fd39756424983da33e4dd96a0, @shosti)
 - Fix a bug in printing run groups
   - (32e0cd770e9a3faccce6828f3970d4a83181af6b, @shosti)
 

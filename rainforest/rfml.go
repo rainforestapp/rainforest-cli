@@ -124,6 +124,12 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 						return parsedRFTest, &parseError{lineNumStr, "Redirect value must be a valid boolean"}
 					}
 					currStepRedirect = redirect
+				case "feature_id":
+					featureID, err := strconv.Atoi(value)
+					if err != nil {
+						return parsedRFTest, &parseError{lineNumStr, "Feature ID must be a valid integer"}
+					}
+					parsedRFTest.FeatureID = featureID
 				case "execute":
 					execute, err := strconv.ParseBool(value)
 					if err != nil {

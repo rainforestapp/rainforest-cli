@@ -47,6 +47,7 @@ type RFTest struct {
 	Title       string                   `json:"title,omitempty"`
 	StartURI    string                   `json:"start_uri"`
 	SiteID      int                      `json:"site_id,omitempty"`
+	FeatureID   int                      `json:"feature_id,omitempty"`
 	Description string                   `json:"description,omitempty"`
 	Tags        []string                 `json:"tags"`
 	BrowsersMap []map[string]interface{} `json:"browsers"`

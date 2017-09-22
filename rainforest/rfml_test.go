@@ -37,14 +37,15 @@ func TestReadAll(t *testing.T) {
 	}
 
 	validTestValues := RFTest{
-		RFMLID:   "my_rfml_id",
-		Title:    "my_title",
-		StartURI: "/testing",
-		SiteID:   12345,
-		Tags:     []string{"foo", "bar"},
-		Browsers: []string{"chrome", "firefox"},
-		Steps:    validSteps,
-		Execute:  true,
+		RFMLID:    "my_rfml_id",
+		Title:     "my_title",
+		StartURI:  "/testing",
+		SiteID:    12345,
+		FeatureID: 98765,
+		Tags:      []string{"foo", "bar"},
+		Browsers:  []string{"chrome", "firefox"},
+		Steps:     validSteps,
+		Execute:   true,
 	}
 
 	testText := fmt.Sprintf(`#! %v
@@ -53,6 +54,7 @@ func TestReadAll(t *testing.T) {
 # site_id: %v
 # tags: %v
 # browsers: %v
+# feature_id: %v
 
 %v
 %v
@@ -67,6 +69,7 @@ func TestReadAll(t *testing.T) {
 		validTestValues.SiteID,
 		strings.Join(validTestValues.Tags, ", "),
 		strings.Join(validTestValues.Browsers, ", "),
+		validTestValues.FeatureID,
 		validSteps[0].(RFTestStep).Action,
 		validSteps[0].(RFTestStep).Response,
 		validSteps[1].(RFTestStep).Action,

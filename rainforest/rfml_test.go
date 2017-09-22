@@ -291,6 +291,7 @@ func TestWriteRFMLTest(t *testing.T) {
 	buffer.Reset()
 
 	siteID := 1989
+	featureID := 2017
 	tags := []string{"foo", "bar"}
 	browsers := []string{"chrome", "firefox"}
 	description := "This is my description\nand it spans multiple\nlines!"
@@ -299,15 +300,17 @@ func TestWriteRFMLTest(t *testing.T) {
 	test.Tags = tags
 	test.Browsers = browsers
 	test.Description = description
+	test.FeatureID = featureID
 
 	output = getOutput()
 
 	siteIDStr := "# site_id: " + strconv.Itoa(siteID)
+	featureIDStr := "# feature_id: " + strconv.Itoa(featureID)
 	tagsStr := "# tags: " + strings.Join(tags, ", ")
 	browsersStr := "# browsers: " + strings.Join(browsers, ", ")
 	descStr := "# " + strings.Replace(description, "\n", "\n# ", -1)
 
-	mustHaves = append(mustHaves, []string{siteIDStr, tagsStr, browsersStr, descStr}...)
+	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, browsersStr, descStr}...)
 	for _, mustHave := range mustHaves {
 		if !strings.Contains(output, mustHave) {
 			t.Errorf("Missing expected string in writer output: %v", mustHave)

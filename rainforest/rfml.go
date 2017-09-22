@@ -237,6 +237,14 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		}
 	}
 
+	if test.FeatureID != 0 {
+		_, err = writer.WriteString("# feature_id: " + strconv.Itoa(test.FeatureID) + "\n")
+
+		if err != nil {
+			return err
+		}
+	}
+
 	if len(test.Tags) > 0 {
 		tags := strings.Join(test.Tags, ", ")
 		tagsHeader := fmt.Sprintf("# tags: %v\n", tags)

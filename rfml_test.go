@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -230,9 +231,9 @@ func TestNewRFMLTest(t *testing.T) {
 }
 
 type testRfmlAPI struct {
-	mappings rainforest.TestIDMappings
-	// testMappings map[int]rainforest.RFTest
-	tests []rainforest.RFTest
+	mappings         rainforest.TestIDMappings
+	tests            []rainforest.RFTest
+	handleUpdateTest func(*rainforest.RFTest)
 }
 
 func (t *testRfmlAPI) GetRFMLIDs() (rainforest.TestIDMappings, error) {
@@ -263,14 +264,110 @@ func (t *testRfmlAPI) CreateTest(_ *rainforest.RFTest) error {
 	return errStub
 }
 
-func (t *testRfmlAPI) UpdateTest(_ *rainforest.RFTest) error {
-	// implement when needed
-	return errStub
+func (t *testRfmlAPI) UpdateTest(test *rainforest.RFTest) error {
+	t.handleUpdateTest(test)
+	return nil
 }
 
 func (t *testRfmlAPI) ParseEmbeddedFiles(_ *rainforest.RFTest) error {
 	// implement when needed
 	return errStub
+}
+
+func createTestFolder(testFolderPath string) error {
+	absTestFolderPath, err := filepath.Abs(testFolderPath)
+	if err != nil {
+		return err
+	}
+
+	dirStat, err := os.Stat(absTestFolderPath)
+	if os.IsNotExist(err) {
+		os.MkdirAll(absTestFolderPath, os.ModePerm)
+	} else if err != nil {
+		return err
+	} else if !dirStat.IsDir() {
+		return fmt.Errorf("Test folder path is not a directory: %v", absTestFolderPath)
+	}
+
+	return nil
+}
+
+func cleanUpTestFolder(testFolderPath string) error {
+	_, err := os.Stat(testFolderPath)
+
+	if err != nil && os.IsNotExist(err) {
+		return err
+	}
+
+	err = os.RemoveAll(testFolderPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func TestUploadRFML(t *testing.T) {
+	context := new(fakeContext)
+	testAPI := new(testRfmlAPI)
+	testDefaultSpecFolder := "testing/" + defaultSpecFolder
+
+	defer func() {
+		err := cleanUpTestFolder("testing")
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+	}()
+
+	context.mappings = map[string]interface{}{
+		"test-folder": testDefaultSpecFolder,
+	}
+
+	testID := 666
+	rfmlID := "unique_rfml_id"
+	title := "a very descriptive title"
+	featureID := 777
+
+	testAPI.mappings = rainforest.TestIDMappings{{ID: testID, RFMLID: rfmlID}}
+	testAPI.handleUpdateTest = func(rfTest *rainforest.RFTest) {
+		testCases := []struct {
+			fieldName string
+			expected  interface{}
+			got       interface{}
+		}{
+			{"test ID", testID, rfTest.TestID},
+			{"RFML ID", rfmlID, rfTest.RFMLID},
+			{"title", title, rfTest.Title},
+			{"feature ID", featureID, rfTest.FeatureID},
+		}
+
+		for _, testCase := range testCases {
+			if testCase.got != testCase.expected {
+				t.Errorf("Incorrect value for %v. Expected %v, Got %v", testCase.fieldName, testCase.expected, testCase.got)
+			}
+		}
+	}
+
+	err := createTestFolder(testDefaultSpecFolder)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	testPath := filepath.Join(testDefaultSpecFolder, "valid_test.rfml")
+	testContents := fmt.Sprintf(`#! %v
+# title: %v
+# feature_id: %v
+`, rfmlID, title, featureID)
+
+	err = ioutil.WriteFile(testPath, []byte(testContents), os.ModePerm)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	err = uploadRFML(context, testAPI)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 }
 
 func TestDownloadRFML(t *testing.T) {
@@ -279,23 +376,22 @@ func TestDownloadRFML(t *testing.T) {
 	testDefaultSpecFolder := "testing/" + defaultSpecFolder
 
 	defer func() {
-		_, err := os.Stat("./testing")
-		if !os.IsNotExist(err) {
-			err = os.RemoveAll("./testing")
-			if err != nil {
-				t.Fatal(err.Error())
-			}
+		err := cleanUpTestFolder("testing")
+		if err != nil {
+			t.Fatal(err.Error())
 		}
 	}()
 
 	testID := 112233
 	rfmlID := "rfml_test_id"
 	title := "My Test Title"
+	featureID := 665544
 
 	rfTest := rainforest.RFTest{
-		TestID: testID,
-		RFMLID: rfmlID,
-		Title:  title,
+		TestID:    testID,
+		RFMLID:    rfmlID,
+		Title:     title,
+		FeatureID: featureID,
 	}
 
 	testAPI.mappings = rainforest.TestIDMappings{{ID: testID, RFMLID: rfmlID}}
@@ -340,6 +436,10 @@ func TestDownloadRFML(t *testing.T) {
 
 	if !strings.Contains(rfmlText, rfmlID) {
 		t.Errorf("Expected RFML ID \"%v\" to appear in RFML test", rfmlID)
+	}
+
+	if !strings.Contains(rfmlText, strconv.Itoa(featureID)) {
+		t.Errorf("Expected Feature ID \"%v\" to appear in RFML test", featureID)
 	}
 }
 

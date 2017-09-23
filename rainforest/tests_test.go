@@ -346,6 +346,8 @@ func TestUpdateTest(t *testing.T) {
 	// // With extra attributes
 	rfTest.Browsers = []string{"chrome", "firefox"}
 	rfTest.Tags = []string{"foo", "bar"}
+	rfTest.FeatureID = 909
+
 	rfTest.mapBrowsers()
 
 	cleanup()
@@ -366,9 +368,13 @@ func TestUpdateTest(t *testing.T) {
 		bodyStr = string(data)
 
 		if !strings.Contains(bodyStr, "\"name\":\"chrome\"") || !strings.Contains(bodyStr, "\"name\":\"firefox\"") {
-			t.Errorf("Unexpected browsers received. Expected: \"chrome\", \"firefox\", Got:%v", bodyStr)
-		} else if !strings.Contains(bodyStr, "\"tags\":[\"foo\",\"bar\"]") {
-			t.Errorf("Unexpected browsers received. Expected: \"foo\", \"bar\", Got:%v", bodyStr)
+			t.Errorf("Expected browsers not received. Expected: \"chrome\", \"firefox\", Got: %v", bodyStr)
+		}
+		if !strings.Contains(bodyStr, "\"tags\":[\"foo\",\"bar\"]") {
+			t.Errorf("Expected tags not received. Expected: \"foo\", \"bar\", Got: %v", bodyStr)
+		}
+		if !strings.Contains(bodyStr, "\"folder_id\":909") {
+			t.Errorf("Expected folder ID not received. Expected: 909, Got %v", bodyStr)
 		}
 	})
 

@@ -42,6 +42,7 @@ func TestReadAll(t *testing.T) {
 		StartURI:  "/testing",
 		SiteID:    12345,
 		FeatureID: 98765,
+		State:     "enabled",
 		Tags:      []string{"foo", "bar"},
 		Browsers:  []string{"chrome", "firefox"},
 		Steps:     validSteps,
@@ -55,6 +56,7 @@ func TestReadAll(t *testing.T) {
 # tags: %v
 # browsers: %v
 # feature_id: %v
+# disabled: %v
 
 %v
 %v
@@ -70,6 +72,7 @@ func TestReadAll(t *testing.T) {
 		strings.Join(validTestValues.Tags, ", "),
 		strings.Join(validTestValues.Browsers, ", "),
 		validTestValues.FeatureID,
+		"false",
 		validSteps[0].(RFTestStep).Action,
 		validSteps[0].(RFTestStep).Response,
 		validSteps[1].(RFTestStep).Action,
@@ -86,6 +89,29 @@ func TestReadAll(t *testing.T) {
 
 	if !reflect.DeepEqual(*rfTest, validTestValues) {
 		t.Errorf("Incorrect values for RFTest.\nGot %#v\nWant %#v", rfTest, validTestValues)
+	}
+
+	// Test is disabled
+	testText = fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+# disabled: %v
+`,
+		validTestValues.RFMLID,
+		validTestValues.Title,
+		validTestValues.StartURI,
+		"true",
+	)
+
+	r = strings.NewReader(testText)
+	reader = NewRFMLReader(r)
+	rfTest, err = reader.ReadAll()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if rfTest.State != "disabled" {
+		t.Errorf("Incorrect test state. Got %v, Want %v", rfTest.State, "disabled")
 	}
 
 	// Comment with a colon
@@ -301,6 +327,7 @@ func TestWriteRFMLTest(t *testing.T) {
 	test.Browsers = browsers
 	test.Description = description
 	test.FeatureID = featureID
+	test.State = "disabled"
 
 	output = getOutput()
 
@@ -309,8 +336,9 @@ func TestWriteRFMLTest(t *testing.T) {
 	tagsStr := "# tags: " + strings.Join(tags, ", ")
 	browsersStr := "# browsers: " + strings.Join(browsers, ", ")
 	descStr := "# " + strings.Replace(description, "\n", "\n# ", -1)
+	disabledStateStr := "# disabled: true"
 
-	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, browsersStr, descStr}...)
+	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, browsersStr, descStr, disabledStateStr}...)
 	for _, mustHave := range mustHaves {
 		if !strings.Contains(output, mustHave) {
 			t.Errorf("Missing expected string in writer output: %v", mustHave)

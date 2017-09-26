@@ -347,6 +347,7 @@ func TestUpdateTest(t *testing.T) {
 	rfTest.Browsers = []string{"chrome", "firefox"}
 	rfTest.Tags = []string{"foo", "bar"}
 	rfTest.FeatureID = 909
+	rfTest.State = "disabled"
 
 	rfTest.mapBrowsers()
 
@@ -375,6 +376,9 @@ func TestUpdateTest(t *testing.T) {
 		}
 		if !strings.Contains(bodyStr, "\"folder_id\":909") {
 			t.Errorf("Expected folder ID not received. Expected: 909, Got %v", bodyStr)
+		}
+		if !strings.Contains(bodyStr, "\"state\":\"disabled\"") {
+			t.Errorf("Expected state to be disabled, Got %v", bodyStr)
 		}
 	})
 

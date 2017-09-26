@@ -45,6 +45,7 @@ type RFTest struct {
 	RFMLID      string                   `json:"rfml_id"`
 	Source      string                   `json:"source"`
 	Title       string                   `json:"title,omitempty"`
+	State       string                   `json:"state,omitempty"`
 	StartURI    string                   `json:"start_uri"`
 	SiteID      int                      `json:"site_id,omitempty"`
 	FeatureID   int                      `json:"folder_id,omitempty"`

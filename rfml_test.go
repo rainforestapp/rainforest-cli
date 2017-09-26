@@ -339,6 +339,7 @@ func TestUploadRFML(t *testing.T) {
 			{"RFML ID", rfmlID, rfTest.RFMLID},
 			{"title", title, rfTest.Title},
 			{"feature ID", featureID, rfTest.FeatureID},
+			{"disabled state", "disabled", rfTest.State},
 		}
 
 		for _, testCase := range testCases {
@@ -357,6 +358,7 @@ func TestUploadRFML(t *testing.T) {
 	testContents := fmt.Sprintf(`#! %v
 # title: %v
 # feature_id: %v
+# disabled: true
 `, rfmlID, title, featureID)
 
 	err = ioutil.WriteFile(testPath, []byte(testContents), os.ModePerm)

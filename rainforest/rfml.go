@@ -130,6 +130,17 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 						return parsedRFTest, &parseError{lineNumStr, "Feature ID must be a valid integer"}
 					}
 					parsedRFTest.FeatureID = featureID
+				case "disabled":
+					disabled, err := strconv.ParseBool(value)
+					if err != nil {
+						return parsedRFTest, &parseError{lineNumStr, "Disabled must be a valid boolean"}
+					}
+
+					if disabled {
+						parsedRFTest.State = "disabled"
+					} else {
+						parsedRFTest.State = "enabled"
+					}
 				case "execute":
 					execute, err := strconv.ParseBool(value)
 					if err != nil {
@@ -262,6 +273,13 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 
 		_, err = writer.WriteString(browsersHeader)
 
+		if err != nil {
+			return err
+		}
+	}
+
+	if test.State == "disabled" {
+		_, err = writer.WriteString("# disabled: true\n")
 		if err != nil {
 			return err
 		}

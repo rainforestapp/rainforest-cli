@@ -135,7 +135,6 @@ func TestMakeRunParams(t *testing.T) {
 				"description":    "my awesome description",
 				"environment-id": "1337",
 				"tag":            []string{"tag", "tag2,tag3"},
-				"run-group-id":   "14",
 			},
 			args: cli.Args{"12", "34", "56, 78"},
 			expected: rainforest.RunParams{
@@ -148,7 +147,6 @@ func TestMakeRunParams(t *testing.T) {
 				EnvironmentID: 1337,
 				Tags:          []string{"tag", "tag2", "tag3"},
 				Tests:         []int{12, 34, 56, 78},
-				RunGroupID:    14,
 			},
 		},
 		{
@@ -158,6 +156,23 @@ func TestMakeRunParams(t *testing.T) {
 			args: cli.Args{},
 			expected: rainforest.RunParams{
 				EnvironmentID: fakeEnvID,
+			},
+		},
+		{
+			mappings: map[string]interface{}{
+				"feature": 123,
+			},
+			args: cli.Args{},
+			expected: rainforest.RunParams{
+				FeatureID: 123,
+			},
+		},
+		{
+			mappings: map[string]interface{}{
+				"run-group": 75,
+			},
+			expected: rainforest.RunParams{
+				RunGroupID: 75,
 			},
 		},
 	}

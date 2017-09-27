@@ -274,14 +274,6 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 		}
 	}
 
-	var runGroupID int
-	if s := c.String("run-group-id"); !localOnly && s != "" {
-		runGroupID, err = strconv.Atoi(c.String("run-group-id"))
-		if err != nil {
-			return rainforest.RunParams{}, err
-		}
-	}
-
 	var siteID int
 	if s := c.String("site"); s != "" {
 		siteID, err = strconv.Atoi(c.String("site"))
@@ -299,6 +291,9 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
 		return rainforest.RunParams{}, errors.New("Invalid conflict option specified")
 	}
+
+	featureID := c.Int("feature")
+	runGroupID := c.Int("run-group")
 
 	browsers := c.StringSlice("browser")
 	expandedBrowsers := expandStringSlice(browsers)
@@ -367,6 +362,7 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 		Browsers:      expandedBrowsers,
 		Description:   description,
 		EnvironmentID: environmentID,
+		FeatureID:     featureID,
 		RunGroupID:    runGroupID,
 	}, nil
 }

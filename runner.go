@@ -222,6 +222,12 @@ func monitorRunStatus(c cliContext, runID int) error {
 			return nil
 		}
 
+		// If we've had too many errors, give up
+		if backoff >= 5 {
+			msg := fmt.Sprintf("Can not get run status after %d attempts, giving up", backoff)
+			return cli.NewExitError(msg, 1)
+		}
+
 		// If we hit an error, wait longer before retrying
 		if err != nil {
 			backoff++
@@ -229,12 +235,9 @@ func monitorRunStatus(c cliContext, runID int) error {
 			// Reset backoff
 			backoff = 1
 		}
-		// If we've had too many errors, give up
-		if backoff > 5 {
-			return cli.NewExitError(err.Error(), 1)
-		}
 
-		time.Sleep(runStatusPollInterval * time.Duration(Pow(backoff, 2)))
+		log.Printf("Waiting for %s before retrying", runStatusPollInterval)
+		time.Sleep(runStatusPollInterval)
 	}
 }
 
@@ -255,25 +258,6 @@ func getRunStatus(failFast bool, runID int) (*rainforest.RunStatus, string, bool
 		return newStatus, msg, true, nil
 	}
 	return newStatus, msg, false, nil
-}
-
-// Pow provides exponentiation for ints.
-// Only in Go would I find myself having to write this
-func Pow(x, y int) int {
-	if y < 0 {
-		panic("Pow(x, y): y must be positive")
-	}
-
-	if y == 0 {
-		return 1
-	}
-
-	y--
-	i := x
-	for ; y > 0; y-- {
-		i *= x
-	}
-	return i
 }
 
 // makeRunParams parses and validates command line arguments + options

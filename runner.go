@@ -202,61 +202,61 @@ func filterExecuteTests(tests []*rainforest.RFTest, tags []string, forceExecute,
 }
 
 func monitorRunStatus(c cliContext, runID int) error {
-	failed_attempts := 1
+	// Create two channels to communicate with the polling goroutine
+	// One that will tick when it's time to poll and the other to gather final state
+	t := time.NewTicker(runStatusPollInterval)
+	statusChan := make(chan statusWithError, 0)
+	go updateRunStatus(c, runID, t, statusChan)
 
-	for {
-		status, msg, done, err := getRunStatus(c.Bool("fail-fast"), runID)
-		log.Print(msg)
-
-		if done {
-			if status.FrontendURL != "" {
-				log.Printf("The detailed results are available at %v\n", status.FrontendURL)
-			}
-
-			postRunJUnitReport(c, runID)
-
-			if status.Result != "passed" {
-				return cli.NewExitError("", 1)
-			}
-
-			return nil
-		}
-
-		// If we've had too many errors, give up
-		if failed_attempts >= 5 {
-			msg := fmt.Sprintf("Can not get run status after %d attempts, giving up", failed_attempts)
-			return cli.NewExitError(msg, 1)
-		}
-
-		// If we hit an error, record it
-		if err != nil {
-			failed_attempts++
-		} else {
-			// Reset attempts
-			failed_attempts = 1
-		}
-
-		time.Sleep(runStatusPollInterval)
+	// This channel readout will block until updateRunStatus pushed final result to it
+	finalState := <-statusChan
+	if finalState.err != nil {
+		return cli.NewExitError(finalState.err.Error(), 1)
 	}
+
+	if finalState.status.FrontendURL != "" {
+		log.Printf("The detailed results are available at %v\n", finalState.status.FrontendURL)
+	}
+
+	postRunJUnitReport(c, runID)
+
+	if finalState.status.Result != "passed" {
+		return cli.NewExitError("", 1)
+	}
+
+	return nil
 }
 
-func getRunStatus(failFast bool, runID int) (*rainforest.RunStatus, string, bool, error) {
-	newStatus, err := api.CheckRunStatus(runID)
-	if err != nil {
-		msg := fmt.Sprintf("API error: %v\n", err)
-		return newStatus, msg, false, err
-	}
+// statusWithError is a helper type used to send RunStatus and error using single channel
+type statusWithError struct {
+	status *rainforest.RunStatus
+	err    error
+}
 
-	if newStatus.StateDetails.IsFinalState {
-		msg := fmt.Sprintf("Run %v is now %v and has %v\n", runID, newStatus.State, newStatus.Result)
-		return newStatus, msg, false, nil
-	}
+func updateRunStatus(c cliContext, runID int, t *time.Ticker, resChan chan statusWithError) {
+	for {
+		// Wait for tick
+		<-t.C
+		newStatus, err := api.CheckRunStatus(runID)
+		if err != nil {
+			resChan <- statusWithError{status: newStatus, err: err}
+			return
+		}
 
-	msg := fmt.Sprintf("Run %v is %v and is %v%% complete\n", runID, newStatus.State, newStatus.CurrentProgress.Percent)
-	if newStatus.Result == "failed" && failFast {
-		return newStatus, msg, true, nil
+		isFinalState := newStatus.StateDetails.IsFinalState
+		state := newStatus.State
+		currentPercent := newStatus.CurrentProgress.Percent
+
+		if !isFinalState {
+			log.Printf("Run %v is %v and is %v%% complete\n", runID, state, currentPercent)
+			if newStatus.Result == "failed" && c.Bool("fail-fast") {
+				resChan <- statusWithError{status: newStatus, err: nil}
+			}
+		} else {
+			log.Printf("Run %v is now %v and has %v\n", runID, state, newStatus.Result)
+			resChan <- statusWithError{status: newStatus, err: nil}
+		}
 	}
-	return newStatus, msg, false, nil
 }
 
 // makeRunParams parses and validates command line arguments + options

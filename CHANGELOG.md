@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.7.0 - 2017-09-28
+- Revert previous change
+  - (6760936af0ce827151906098cc70493e9072d9eb, @jbarber)
+
 ## 2.6.0 - 2017-09-28
 - When using --wait don't give up if the API returns an error
   - (95eb3d38dcf9f8cf4232c34f15ef5086bb51c9a9, @jbarber)

@@ -328,7 +328,16 @@ func TestUploadRFML(t *testing.T) {
 	title := "a very descriptive title"
 	featureID := 777
 
+	err := createTestFolder(testDefaultSpecFolder)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	testPath := filepath.Join(testDefaultSpecFolder, "valid_test.rfml")
+
 	testAPI.mappings = rainforest.TestIDMappings{{ID: testID, RFMLID: rfmlID}}
+
+	// basic test
 	testAPI.handleUpdateTest = func(rfTest *rainforest.RFTest) {
 		testCases := []struct {
 			fieldName string
@@ -339,7 +348,7 @@ func TestUploadRFML(t *testing.T) {
 			{"RFML ID", rfmlID, rfTest.RFMLID},
 			{"title", title, rfTest.Title},
 			{"feature ID", featureID, rfTest.FeatureID},
-			{"disabled state", "disabled", rfTest.State},
+			{"disabled state", "enabled", rfTest.State},
 		}
 
 		for _, testCase := range testCases {
@@ -349,17 +358,32 @@ func TestUploadRFML(t *testing.T) {
 		}
 	}
 
-	err := createTestFolder(testDefaultSpecFolder)
+	testContents := fmt.Sprintf(`#! %v
+# title: %v
+# feature_id: %v
+`, rfmlID, title, featureID)
+
+	err = ioutil.WriteFile(testPath, []byte(testContents), os.ModePerm)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 
-	testPath := filepath.Join(testDefaultSpecFolder, "valid_test.rfml")
-	testContents := fmt.Sprintf(`#! %v
+	err = uploadRFML(context, testAPI)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	// state is specified
+	testAPI.handleUpdateTest = func(rfTest *rainforest.RFTest) {
+		if rfTest.State != "disabled" {
+			t.Errorf("Incorrect value for state. Expected \"disabled\", Got %v", rfTest.State)
+		}
+	}
+
+	testContents = fmt.Sprintf(`#! %v
 # title: %v
-# feature_id: %v
-# disabled: true
-`, rfmlID, title, featureID)
+# state: disabled
+`, rfmlID, title)
 
 	err = ioutil.WriteFile(testPath, []byte(testContents), os.ModePerm)
 	if err != nil {
@@ -394,24 +418,26 @@ func TestDownloadRFML(t *testing.T) {
 		RFMLID:    rfmlID,
 		Title:     title,
 		FeatureID: featureID,
+		State:     "enabled",
 	}
 
 	testAPI.mappings = rainforest.TestIDMappings{{ID: testID, RFMLID: rfmlID}}
 	testAPI.tests = []rainforest.RFTest{rfTest}
 
-	context.mappings = map[string]interface{}{
-		"test-folder": testDefaultSpecFolder,
-	}
-
-	err := downloadRFML(context, testAPI)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
 	paddedTestID := fmt.Sprintf("%010d", testID)
 	sanitizedTitle := "my_test_title"
 	expectedFileName := fmt.Sprintf("%v_%v.rfml", paddedTestID, sanitizedTitle)
 	expectedRFMLPath := filepath.Join(testDefaultSpecFolder, expectedFileName)
+
+	context.mappings = map[string]interface{}{
+		"test-folder": testDefaultSpecFolder,
+	}
+
+	// basic test
+	err := downloadRFML(context, testAPI)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 
 	fileInfo, err := os.Stat(expectedRFMLPath)
 	if os.IsNotExist(err) {
@@ -442,6 +468,34 @@ func TestDownloadRFML(t *testing.T) {
 
 	if !strings.Contains(rfmlText, strconv.Itoa(featureID)) {
 		t.Errorf("Expected Feature ID \"%v\" to appear in RFML test", featureID)
+	}
+
+	if strings.Contains(rfmlText, "state") {
+		t.Errorf("Did not expect state field in RFML test. Got %v", rfmlText)
+	}
+
+	// Test is disabled
+	rfTest.State = "disabled"
+	testAPI.tests = []rainforest.RFTest{rfTest}
+
+	err = downloadRFML(context, testAPI)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	fileInfo, err = os.Stat(expectedRFMLPath)
+	if os.IsNotExist(err) {
+		t.Fatalf("Expected RFML test does not exist: %v", expectedRFMLPath)
+	}
+
+	contents, err = ioutil.ReadFile(expectedRFMLPath)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	rfmlText = string(contents)
+
+	if !strings.Contains(rfmlText, "# state: disabled") {
+		t.Errorf("Expected RFML test state to read disabled. Output: %v", rfmlText)
 	}
 }
 

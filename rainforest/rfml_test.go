@@ -56,7 +56,7 @@ func TestReadAll(t *testing.T) {
 # tags: %v
 # browsers: %v
 # feature_id: %v
-# disabled: %v
+# state: %v
 
 %v
 %v
@@ -72,7 +72,7 @@ func TestReadAll(t *testing.T) {
 		strings.Join(validTestValues.Tags, ", "),
 		strings.Join(validTestValues.Browsers, ", "),
 		validTestValues.FeatureID,
-		"false",
+		validTestValues.State,
 		validSteps[0].(RFTestStep).Action,
 		validSteps[0].(RFTestStep).Response,
 		validSteps[1].(RFTestStep).Action,
@@ -95,12 +95,12 @@ func TestReadAll(t *testing.T) {
 	testText = fmt.Sprintf(`#! %v
 # title: %v
 # start_uri: %v
-# disabled: %v
+# state: %v
 `,
 		validTestValues.RFMLID,
 		validTestValues.Title,
 		validTestValues.StartURI,
-		"true",
+		"disabled",
 	)
 
 	r = strings.NewReader(testText)
@@ -112,6 +112,27 @@ func TestReadAll(t *testing.T) {
 
 	if rfTest.State != "disabled" {
 		t.Errorf("Incorrect test state. Got %v, Want %v", rfTest.State, "disabled")
+	}
+
+	// Test state is omitted
+	testText = fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+`,
+		validTestValues.RFMLID,
+		validTestValues.Title,
+		validTestValues.StartURI,
+	)
+
+	r = strings.NewReader(testText)
+	reader = NewRFMLReader(r)
+	rfTest, err = reader.ReadAll()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if rfTest.State != "enabled" {
+		t.Errorf("Incorrect test state. Got %v, Want %v", rfTest.State, "enabled")
 	}
 
 	// Comment with a colon
@@ -336,9 +357,9 @@ func TestWriteRFMLTest(t *testing.T) {
 	tagsStr := "# tags: " + strings.Join(tags, ", ")
 	browsersStr := "# browsers: " + strings.Join(browsers, ", ")
 	descStr := "# " + strings.Replace(description, "\n", "\n# ", -1)
-	disabledStateStr := "# disabled: true"
+	stateStr := "# state: " + test.State
 
-	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, browsersStr, descStr, disabledStateStr}...)
+	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, browsersStr, descStr, stateStr}...)
 	for _, mustHave := range mustHaves {
 		if !strings.Contains(output, mustHave) {
 			t.Errorf("Missing expected string in writer output: %v", mustHave)
@@ -425,6 +446,15 @@ func TestWriteRFMLTest(t *testing.T) {
 	output = getOutput()
 	if !strings.Contains(output, "\n# execute: false") {
 		t.Error("execute: false not found in writer output.")
+		t.Logf("Output:\n%v", output)
+	}
+
+	// Test state omitted
+	buffer.Reset()
+	test.State = "enabled"
+	output = getOutput()
+	if strings.Contains(output, "state") {
+		t.Error("Test state field not expected to appear")
 		t.Logf("Output:\n%v", output)
 	}
 }

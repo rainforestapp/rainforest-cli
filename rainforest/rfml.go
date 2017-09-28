@@ -52,8 +52,10 @@ func NewRFMLReader(r io.Reader) *RFMLReader {
 // ReadAll parses whole RFML file using RFML version specified by Version parameter of reader
 // and returns resulting RFTest
 func (r *RFMLReader) ReadAll() (*RFTest, error) {
+	// Default values
 	parsedRFTest := &RFTest{
-		Execute: true, // we execute by default
+		State:   "enabled",
+		Execute: true,
 	}
 	// Set up a new scanner to read in data line by line
 	scanner := bufio.NewScanner(r.r)
@@ -130,16 +132,13 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 						return parsedRFTest, &parseError{lineNumStr, "Feature ID must be a valid integer"}
 					}
 					parsedRFTest.FeatureID = featureID
-				case "disabled":
-					disabled, err := strconv.ParseBool(value)
-					if err != nil {
-						return parsedRFTest, &parseError{lineNumStr, "Disabled must be a valid boolean"}
-					}
-
-					if disabled {
+				case "state":
+					if value == "disabled" {
 						parsedRFTest.State = "disabled"
-					} else {
+					} else if value == "enabled" {
 						parsedRFTest.State = "enabled"
+					} else {
+						return parsedRFTest, &parseError{lineNumStr, "Test state must be \"enabled\" or \"disabled\""}
 					}
 				case "execute":
 					execute, err := strconv.ParseBool(value)
@@ -279,7 +278,7 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 	}
 
 	if test.State == "disabled" {
-		_, err = writer.WriteString("# disabled: true\n")
+		_, err = writer.WriteString("# state: disabled\n")
 		if err != nil {
 			return err
 		}

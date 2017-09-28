@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 2.6.1 - 2017-09-28
+- Fix issue with process not exiting when tracking a complete run
+
 ## 2.6.0 - 2017-09-28
 - When using --wait don't give up if the API returns an error
   - (95eb3d38dcf9f8cf4232c34f15ef5086bb51c9a9, @jbarber)

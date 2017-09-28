@@ -17,6 +17,7 @@ import (
 type runnerAPI interface {
 	CreateRun(params rainforest.RunParams) (*rainforest.RunStatus, error)
 	CreateTemporaryEnvironment(string) (*rainforest.Environment, error)
+	CheckRunStatus(int) (*rainforest.RunStatus, error)
 	rfmlAPI
 }
 
@@ -205,7 +206,7 @@ func monitorRunStatus(c cliContext, runID int) error {
 	failed_attempts := 1
 
 	for {
-		status, msg, done, err := getRunStatus(c.Bool("fail-fast"), runID)
+		status, msg, done, err := getRunStatus(c.Bool("fail-fast"), runID, api)
 		log.Print(msg)
 
 		if done {
@@ -240,8 +241,8 @@ func monitorRunStatus(c cliContext, runID int) error {
 	}
 }
 
-func getRunStatus(failFast bool, runID int) (*rainforest.RunStatus, string, bool, error) {
-	newStatus, err := api.CheckRunStatus(runID)
+func getRunStatus(failFast bool, runID int, client runnerAPI) (*rainforest.RunStatus, string, bool, error) {
+	newStatus, err := client.CheckRunStatus(runID)
 	if err != nil {
 		msg := fmt.Sprintf("API error: %v\n", err)
 		return newStatus, msg, false, err
@@ -249,7 +250,7 @@ func getRunStatus(failFast bool, runID int) (*rainforest.RunStatus, string, bool
 
 	if newStatus.StateDetails.IsFinalState {
 		msg := fmt.Sprintf("Run %v is now %v and has %v\n", runID, newStatus.State, newStatus.Result)
-		return newStatus, msg, false, nil
+		return newStatus, msg, true, nil
 	}
 
 	msg := fmt.Sprintf("Run %v is %v and is %v%% complete\n", runID, newStatus.State, newStatus.CurrentProgress.Percent)

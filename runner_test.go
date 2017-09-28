@@ -128,6 +128,7 @@ func TestGetRunStatus(t *testing.T) {
 	runID := 123
 	client := new(fakeRunnerClient)
 
+	// Run is in a final state
 	client.runStatuses = []rainforest.RunStatus{
 		{
 			ID: runID,
@@ -142,7 +143,26 @@ func TestGetRunStatus(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+	if !done {
+		t.Errorf("Expected \"done\" to be true, got %v", done)
+	}
 
+	// Run is failed and failfast is true
+	client.runStatuses = []rainforest.RunStatus{
+		{
+			ID:     runID,
+			Result: "failed",
+			StateDetails: struct {
+				Name         string `json:"name"`
+				IsFinalState bool   `json:"is_final_state"`
+			}{"", false},
+		},
+	}
+
+	_, _, done, err = getRunStatus(true, runID, client)
+	if err != nil {
+		t.Error(err.Error())
+	}
 	if !done {
 		t.Errorf("Expected \"done\" to be true, got %v", done)
 	}

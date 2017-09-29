@@ -1,5 +1,12 @@
 # Rainforest CLI Changelog
 
+## 2.7.2 - 2017-09-28
+- Fix issue with process not exiting when tracking a complete run
+  - (135a2f0ccd96ca3f9ed32bd6a42251021fc11603, @epaulet)
+
+## 2.7.1 - 2017-09-28
+- Rerelease in attempt to revert to 2.5.0 again.
+
 ## 2.7.0 - 2017-09-28
 - Revert previous release as it never stopped trying
   - (fd149aebe61e89395c7f9673591f00c672f5e4f1, @jbarber)

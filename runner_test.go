@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -71,6 +72,7 @@ func TestExpandStringSlice(t *testing.T) {
 }
 
 type fakeRunnerClient struct {
+	runStatuses []rainforest.RunStatus
 	environment rainforest.Environment
 	// runParams captures whatever params were sent
 	runParams rainforest.RunParams
@@ -80,6 +82,16 @@ type fakeRunnerClient struct {
 	mu sync.Mutex
 	// "inherit" from RFML API
 	testRfmlAPI
+}
+
+func (r *fakeRunnerClient) CheckRunStatus(runID int) (*rainforest.RunStatus, error) {
+	for _, runStatus := range r.runStatuses {
+		if runStatus.ID == runID {
+			return &runStatus, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Unable to find run status for run ID %v", runID)
 }
 
 func (r *fakeRunnerClient) GetRFMLIDs() (rainforest.TestIDMappings, error) {
@@ -110,6 +122,50 @@ func (r *fakeRunnerClient) CreateTemporaryEnvironment(s string) (*rainforest.Env
 func (r *fakeRunnerClient) CreateRun(p rainforest.RunParams) (*rainforest.RunStatus, error) {
 	r.runParams = p
 	return &rainforest.RunStatus{}, nil
+}
+
+func TestGetRunStatus(t *testing.T) {
+	runID := 123
+	client := new(fakeRunnerClient)
+
+	// Run is in a final state
+	client.runStatuses = []rainforest.RunStatus{
+		{
+			ID: runID,
+			StateDetails: struct {
+				Name         string `json:"name"`
+				IsFinalState bool   `json:"is_final_state"`
+			}{"", true},
+		},
+	}
+
+	_, _, done, err := getRunStatus(false, runID, client)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if !done {
+		t.Errorf("Expected \"done\" to be true, got %v", done)
+	}
+
+	// Run is failed and failfast is true
+	client.runStatuses = []rainforest.RunStatus{
+		{
+			ID:     runID,
+			Result: "failed",
+			StateDetails: struct {
+				Name         string `json:"name"`
+				IsFinalState bool   `json:"is_final_state"`
+			}{"", false},
+		},
+	}
+
+	_, _, done, err = getRunStatus(true, runID, client)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if !done {
+		t.Errorf("Expected \"done\" to be true, got %v", done)
+	}
 }
 
 func TestMakeRunParams(t *testing.T) {

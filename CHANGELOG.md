@@ -1,5 +1,20 @@
 # Rainforest CLI Changelog
 
+## 2.7.2 - 2017-09-28
+- Fix issue with process not exiting when tracking a complete run
+  - (135a2f0ccd96ca3f9ed32bd6a42251021fc11603, @epaulet)
+
+## 2.7.1 - 2017-09-28
+- Rerelease in attempt to revert to 2.5.0 again.
+
+## 2.7.0 - 2017-09-28
+- Revert previous release as it never stopped trying
+  - (fd149aebe61e89395c7f9673591f00c672f5e4f1, @jbarber)
+
+## 2.6.0 - 2017-09-28
+- When using --wait don't give up if the API returns an error
+  - (95eb3d38dcf9f8cf4232c34f15ef5086bb51c9a9, @jbarber)
+
 ## 2.5.0 - 2017-09-12
 - Improve run group support: runs started from run groups will now apply run group browser settings.
 - Add support for viewing and filtering by features

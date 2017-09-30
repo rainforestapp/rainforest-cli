@@ -253,12 +253,13 @@ func TestReadAll(t *testing.T) {
 		t.Errorf("Wrong error reported. Expected error for title field. Returned error: %v", err.Error())
 	}
 
-	// Empty browser and tag list
+	// empty feature_id, browser list, and tag list
 	testText = fmt.Sprintf(`#! %v
 # title: %v
 # start_uri: %v
 # browsers:
 # tags:
+# feature_id:
 
 %v
 %v`,
@@ -277,11 +278,15 @@ func TestReadAll(t *testing.T) {
 	}
 
 	if browserCount := len(rfTest.Browsers); browserCount != 0 {
-		t.Fatalf("Unexpected browsers, expected 0, got %v: %v", browserCount, rfTest.Browsers)
+		t.Errorf("Unexpected browsers, expected 0, got %v: %v", browserCount, rfTest.Browsers)
 	}
 
 	if tagCount := len(rfTest.Tags); tagCount != 0 {
-		t.Fatalf("Unexpected tags, expected 0, got %v: %v", tagCount, rfTest.Tags)
+		t.Errorf("Unexpected tags, expected 0, got %v: %v", tagCount, rfTest.Tags)
+	}
+
+	if rfTest.FeatureID != deletedFeatureID {
+		t.Errorf("Unexpected feature ID, expected %v, got %v", deletedFeatureID, rfTest.FeatureID)
 	}
 }
 
@@ -347,7 +352,7 @@ func TestWriteRFMLTest(t *testing.T) {
 	test.Tags = tags
 	test.Browsers = browsers
 	test.Description = description
-	test.FeatureID = featureID
+	test.FeatureID = FeatureIDInt(featureID)
 	test.State = "disabled"
 
 	output = getOutput()

@@ -335,6 +335,8 @@ func TestUpdateTest(t *testing.T) {
 			t.Errorf("Unexpected browsers parameter received. Got:%v", bodyStr)
 		} else if !strings.Contains(bodyStr, "\"tags\":[]") {
 			t.Errorf("Unexpected tags parameter received. Got:%v", bodyStr)
+		} else if strings.Contains(bodyStr, "\"folder_id\"") {
+			t.Errorf("Unexpected parameter found: \"folder_id\" in:\n%v", bodyStr)
 		}
 	})
 
@@ -387,7 +389,8 @@ func TestUpdateTest(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	// Empty browsers and tags list
+	// Deleted feature ID, empty browsers and tags list
+	rfTest.FeatureID = deletedFeatureID
 	rfTest.Browsers = []string{}
 	rfTest.Tags = []string{}
 	rfTest.mapBrowsers()
@@ -413,6 +416,8 @@ func TestUpdateTest(t *testing.T) {
 			t.Errorf("Unexpected browsers received. Expected: [], Got: %v", bodyStr)
 		} else if !strings.Contains(bodyStr, "\"tags\":[]") {
 			t.Errorf("Unexpected tags received. Expected: [], Got: %v", bodyStr)
+		} else if !strings.Contains(bodyStr, "\"folder_id\":null") {
+			t.Errorf("Unexpected folder ID received. Expected: null, Got: %v", bodyStr)
 		}
 	})
 

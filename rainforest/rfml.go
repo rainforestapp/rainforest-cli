@@ -127,11 +127,17 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 					}
 					currStepRedirect = redirect
 				case "feature_id":
+					if value == "" {
+						// If the value is empty, delete the feature
+						parsedRFTest.FeatureID = deletedFeatureID
+						continue
+					}
+
 					featureID, err := strconv.Atoi(value)
 					if err != nil {
 						return parsedRFTest, &parseError{lineNumStr, "Feature ID must be a valid integer"}
 					}
-					parsedRFTest.FeatureID = featureID
+					parsedRFTest.FeatureID = FeatureIDInt(featureID)
 				case "state":
 					if value == "disabled" {
 						parsedRFTest.State = "disabled"
@@ -247,8 +253,8 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		}
 	}
 
-	if test.FeatureID != 0 {
-		_, err = writer.WriteString("# feature_id: " + strconv.Itoa(test.FeatureID) + "\n")
+	if featureID := int(test.FeatureID); featureID != 0 {
+		_, err = writer.WriteString("# feature_id: " + strconv.Itoa(featureID) + "\n")
 
 		if err != nil {
 			return err

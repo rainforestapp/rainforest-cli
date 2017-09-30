@@ -326,7 +326,7 @@ func TestUploadRFML(t *testing.T) {
 	testID := 666
 	rfmlID := "unique_rfml_id"
 	title := "a very descriptive title"
-	featureID := 777
+	var featureID rainforest.FeatureIDInt = 777
 
 	err := createTestFolder(testDefaultSpecFolder)
 	if err != nil {
@@ -417,7 +417,7 @@ func TestDownloadRFML(t *testing.T) {
 		TestID:    testID,
 		RFMLID:    rfmlID,
 		Title:     title,
-		FeatureID: featureID,
+		FeatureID: rainforest.FeatureIDInt(featureID),
 		State:     "enabled",
 	}
 

@@ -188,6 +188,8 @@ Rainforest Tests written using RFML have the following format
 # tags: [TAGS]
 # site_id: [SITE ID]
 # browsers: [BROWSER IDS]
+# feature_id: [FEATURE_ID]
+# state: [STATE]
 # [OTHER COMMENTS]
 
 [ACTION 1]
@@ -224,6 +226,9 @@ https://app.rainforestqa.com/settings/sites.
 your available browsers with the `browsers` command. If left empty or omitted,
 your test will default to using your account's default browsers.
 - `TAGS` - Comma separated list of your desired tags for this test.
+- `FEATURE_ID` - Feature ID for the feature that this test is a part of. You can
+find your available feature IDs with the `features` command.
+- `STATE` - State of the test. Valid states are `enabled` and `disabled`.
 - `OTHER COMMENTS` - Any comments you'd like to save to this test. All lines beginning with
 `#` will be ignored by Rainforest unless they begin with a supported data field,
 such as `tags` or `start_uri`.

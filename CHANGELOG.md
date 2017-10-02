@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 2.8.0 - WIP
+- Add `feature_id` and `state` fields to RFML headers.
+
 ## 2.7.2 - 2017-09-28
 - Fix issue with process not exiting when tracking a complete run
   - (135a2f0ccd96ca3f9ed32bd6a42251021fc11603, @epaulet)

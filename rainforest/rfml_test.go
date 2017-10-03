@@ -285,8 +285,8 @@ func TestReadAll(t *testing.T) {
 		t.Errorf("Unexpected tags, expected 0, got %v: %v", tagCount, rfTest.Tags)
 	}
 
-	if rfTest.FeatureID != deletedFeatureID {
-		t.Errorf("Unexpected feature ID, expected %v, got %v", deletedFeatureID, rfTest.FeatureID)
+	if rfTest.FeatureID != deleteFeature {
+		t.Errorf("Unexpected feature ID, expected %v, got %v", deleteFeature, rfTest.FeatureID)
 	}
 }
 

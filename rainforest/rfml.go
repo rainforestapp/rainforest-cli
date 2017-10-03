@@ -129,7 +129,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 				case "feature_id":
 					if value == "" {
 						// If the value is empty, delete the feature
-						parsedRFTest.FeatureID = deletedFeatureID
+						parsedRFTest.FeatureID = deleteFeature
 						continue
 					}
 

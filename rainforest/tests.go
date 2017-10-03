@@ -44,13 +44,13 @@ func (s TestIDMappings) MapRFMLIDtoID() map[string]int {
 // that implements the json.Marshaler interface.
 type FeatureIDInt int
 
-const deletedFeatureID = -1
+const deleteFeature = -1
 
 // MarshalJSON treats an FeatureIDInt value of -1 as a special case so that it
 // is marshalledd into a `null` JSON value.
 func (id *FeatureIDInt) MarshalJSON() ([]byte, error) {
 	intVal := int(*id)
-	if intVal == deletedFeatureID {
+	if intVal == deleteFeature {
 		return json.Marshal(nil)
 	}
 

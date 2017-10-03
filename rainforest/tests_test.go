@@ -390,7 +390,7 @@ func TestUpdateTest(t *testing.T) {
 	}
 
 	// Deleted feature ID, empty browsers and tags list
-	rfTest.FeatureID = deletedFeatureID
+	rfTest.FeatureID = deleteFeature
 	rfTest.Browsers = []string{}
 	rfTest.Tags = []string{}
 	rfTest.mapBrowsers()

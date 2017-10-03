@@ -37,14 +37,16 @@ func TestReadAll(t *testing.T) {
 	}
 
 	validTestValues := RFTest{
-		RFMLID:   "my_rfml_id",
-		Title:    "my_title",
-		StartURI: "/testing",
-		SiteID:   12345,
-		Tags:     []string{"foo", "bar"},
-		Browsers: []string{"chrome", "firefox"},
-		Steps:    validSteps,
-		Execute:  true,
+		RFMLID:    "my_rfml_id",
+		Title:     "my_title",
+		StartURI:  "/testing",
+		SiteID:    12345,
+		FeatureID: 98765,
+		State:     "enabled",
+		Tags:      []string{"foo", "bar"},
+		Browsers:  []string{"chrome", "firefox"},
+		Steps:     validSteps,
+		Execute:   true,
 	}
 
 	testText := fmt.Sprintf(`#! %v
@@ -53,6 +55,8 @@ func TestReadAll(t *testing.T) {
 # site_id: %v
 # tags: %v
 # browsers: %v
+# feature_id: %v
+# state: %v
 
 %v
 %v
@@ -67,6 +71,8 @@ func TestReadAll(t *testing.T) {
 		validTestValues.SiteID,
 		strings.Join(validTestValues.Tags, ", "),
 		strings.Join(validTestValues.Browsers, ", "),
+		validTestValues.FeatureID,
+		validTestValues.State,
 		validSteps[0].(RFTestStep).Action,
 		validSteps[0].(RFTestStep).Response,
 		validSteps[1].(RFTestStep).Action,
@@ -83,6 +89,50 @@ func TestReadAll(t *testing.T) {
 
 	if !reflect.DeepEqual(*rfTest, validTestValues) {
 		t.Errorf("Incorrect values for RFTest.\nGot %#v\nWant %#v", rfTest, validTestValues)
+	}
+
+	// Test is disabled
+	testText = fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+# state: %v
+`,
+		validTestValues.RFMLID,
+		validTestValues.Title,
+		validTestValues.StartURI,
+		"disabled",
+	)
+
+	r = strings.NewReader(testText)
+	reader = NewRFMLReader(r)
+	rfTest, err = reader.ReadAll()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if rfTest.State != "disabled" {
+		t.Errorf("Incorrect test state. Got %v, Want %v", rfTest.State, "disabled")
+	}
+
+	// Test state is omitted
+	testText = fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+`,
+		validTestValues.RFMLID,
+		validTestValues.Title,
+		validTestValues.StartURI,
+	)
+
+	r = strings.NewReader(testText)
+	reader = NewRFMLReader(r)
+	rfTest, err = reader.ReadAll()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if rfTest.State != "enabled" {
+		t.Errorf("Incorrect test state. Got %v, Want %v", rfTest.State, "enabled")
 	}
 
 	// Comment with a colon
@@ -203,12 +253,13 @@ func TestReadAll(t *testing.T) {
 		t.Errorf("Wrong error reported. Expected error for title field. Returned error: %v", err.Error())
 	}
 
-	// Empty browser and tag list
+	// empty feature_id, browser list, and tag list
 	testText = fmt.Sprintf(`#! %v
 # title: %v
 # start_uri: %v
 # browsers:
 # tags:
+# feature_id:
 
 %v
 %v`,
@@ -227,11 +278,15 @@ func TestReadAll(t *testing.T) {
 	}
 
 	if browserCount := len(rfTest.Browsers); browserCount != 0 {
-		t.Fatalf("Unexpected browsers, expected 0, got %v: %v", browserCount, rfTest.Browsers)
+		t.Errorf("Unexpected browsers, expected 0, got %v: %v", browserCount, rfTest.Browsers)
 	}
 
 	if tagCount := len(rfTest.Tags); tagCount != 0 {
-		t.Fatalf("Unexpected tags, expected 0, got %v: %v", tagCount, rfTest.Tags)
+		t.Errorf("Unexpected tags, expected 0, got %v: %v", tagCount, rfTest.Tags)
+	}
+
+	if rfTest.FeatureID != deleteFeature {
+		t.Errorf("Unexpected feature ID, expected %v, got %v", deleteFeature, rfTest.FeatureID)
 	}
 }
 
@@ -288,6 +343,7 @@ func TestWriteRFMLTest(t *testing.T) {
 	buffer.Reset()
 
 	siteID := 1989
+	featureID := 2017
 	tags := []string{"foo", "bar"}
 	browsers := []string{"chrome", "firefox"}
 	description := "This is my description\nand it spans multiple\nlines!"
@@ -296,15 +352,19 @@ func TestWriteRFMLTest(t *testing.T) {
 	test.Tags = tags
 	test.Browsers = browsers
 	test.Description = description
+	test.FeatureID = FeatureIDInt(featureID)
+	test.State = "disabled"
 
 	output = getOutput()
 
 	siteIDStr := "# site_id: " + strconv.Itoa(siteID)
+	featureIDStr := "# feature_id: " + strconv.Itoa(featureID)
 	tagsStr := "# tags: " + strings.Join(tags, ", ")
 	browsersStr := "# browsers: " + strings.Join(browsers, ", ")
 	descStr := "# " + strings.Replace(description, "\n", "\n# ", -1)
+	stateStr := "# state: " + test.State
 
-	mustHaves = append(mustHaves, []string{siteIDStr, tagsStr, browsersStr, descStr}...)
+	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, browsersStr, descStr, stateStr}...)
 	for _, mustHave := range mustHaves {
 		if !strings.Contains(output, mustHave) {
 			t.Errorf("Missing expected string in writer output: %v", mustHave)
@@ -391,6 +451,15 @@ func TestWriteRFMLTest(t *testing.T) {
 	output = getOutput()
 	if !strings.Contains(output, "\n# execute: false") {
 		t.Error("execute: false not found in writer output.")
+		t.Logf("Output:\n%v", output)
+	}
+
+	// Test state omitted
+	buffer.Reset()
+	test.State = "enabled"
+	output = getOutput()
+	if strings.Contains(output, "state") {
+		t.Error("Test state field not expected to appear")
 		t.Logf("Output:\n%v", output)
 	}
 }

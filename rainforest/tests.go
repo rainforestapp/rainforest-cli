@@ -1,6 +1,7 @@
 package rainforest
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -39,18 +40,38 @@ func (s TestIDMappings) MapRFMLIDtoID() map[string]int {
 	return resultMap
 }
 
+// FeatureIDInt is a wrapper the int type used in the FeatureID field of RFTest
+// that implements the json.Marshaler interface.
+type FeatureIDInt int
+
+const deleteFeature = -1
+
+// MarshalJSON treats an FeatureIDInt value of -1 as a special case so that it
+// is marshalledd into a `null` JSON value.
+func (id *FeatureIDInt) MarshalJSON() ([]byte, error) {
+	intVal := int(*id)
+	if intVal == deleteFeature {
+		return json.Marshal(nil)
+	}
+
+	// If not -1, marshal like any other int
+	return json.Marshal(intVal)
+}
+
 // RFTest is a struct representing the Rainforest Test with its settings and steps
 type RFTest struct {
 	TestID      int                      `json:"id"`
 	RFMLID      string                   `json:"rfml_id"`
 	Source      string                   `json:"source"`
 	Title       string                   `json:"title,omitempty"`
+	State       string                   `json:"state,omitempty"`
 	StartURI    string                   `json:"start_uri"`
 	SiteID      int                      `json:"site_id,omitempty"`
 	Description string                   `json:"description,omitempty"`
 	Tags        []string                 `json:"tags"`
 	BrowsersMap []map[string]interface{} `json:"browsers"`
 	Elements    []testElement            `json:"elements,omitempty"`
+	FeatureID   FeatureIDInt             `json:"folder_id,omitempty"`
 
 	// Browsers and Steps are helper fields
 	Browsers []string      `json:"-"`

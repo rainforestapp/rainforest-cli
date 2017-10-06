@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
+	"github.com/urfave/cli"
 )
 
 func TestNewRFMLTest(t *testing.T) {
@@ -396,6 +397,39 @@ func TestUploadRFML(t *testing.T) {
 	}
 }
 
+func TestDeleteRFML(t *testing.T) {
+	// Test error in parsing file
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	defer os.RemoveAll(dir)
+
+	rfmlFilePath := filepath.Join(dir, "testing.rfml")
+	fileContents := `#! testing
+# title: hello
+# site_id: a_string
+`
+	err = ioutil.WriteFile(rfmlFilePath, []byte(fileContents), 0666)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	dummyMappings := map[string]interface{}{}
+	args := cli.Args{rfmlFilePath}
+	ctx := newFakeContext(dummyMappings, args)
+
+	err = deleteRFML(ctx)
+	if err == nil {
+		t.Fatal("Expected parse error but received no error.")
+	}
+
+	errMsg := err.Error()
+	if !strings.Contains(errMsg, rfmlFilePath) {
+		t.Errorf("Expected error to contain file path \"%v\". Got:\n%v", rfmlFilePath, errMsg)
+	}
+}
+
 func TestDownloadRFML(t *testing.T) {
 	context := new(fakeContext)
 	testAPI := new(testRfmlAPI)
@@ -647,6 +681,35 @@ func TestReadRFMLFiles(t *testing.T) {
 		if !reflect.DeepEqual(wantFiles, gotFiles) {
 			t.Errorf("Unexpected files returned (want: %v, got: %v)", wantFiles, gotFiles)
 		}
+	}
+}
+
+func TestReadRFMLFile(t *testing.T) {
+	// Test error in parsing file
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	defer os.RemoveAll(dir)
+
+	rfmlFilePath := filepath.Join(dir, "testing.rfml")
+	fileContents := `#! testing
+# title: hello
+# site_id: a_string
+`
+	err = ioutil.WriteFile(rfmlFilePath, []byte(fileContents), 0666)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	_, err = readRFMLFile(rfmlFilePath)
+	if err == nil {
+		t.Fatal("Expected parse error but received no error.")
+	}
+
+	errMsg := err.Error()
+	if !strings.Contains(errMsg, rfmlFilePath) {
+		t.Errorf("Expected error to contain file path \"%v\". Got:\n%v", rfmlFilePath, errMsg)
 	}
 }
 

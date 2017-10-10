@@ -23,7 +23,7 @@ type fileParseError struct {
 }
 
 func (e fileParseError) Error() string {
-	return fmt.Sprintf("%v:%v", e.filePath, e.parseError.Error())
+	return fmt.Sprintf("%v: %v", e.filePath, e.parseError.Error())
 }
 
 // validateRFML is a wrapper around two other validation functions
@@ -123,7 +123,7 @@ func readRFMLFile(filePath string) (*rainforest.RFTest, error) {
 	var pTest *rainforest.RFTest
 	pTest, err = rfmlReader.ReadAll()
 	if err != nil {
-		return nil, err
+		return nil, fileParseError{filePath, err}
 	}
 
 	pTest.RFMLPath = filePath
@@ -318,6 +318,10 @@ func deleteRFML(c cliContext) error {
 	}
 	rfmlReader := rainforest.NewRFMLReader(f)
 	parsedRFML, err := rfmlReader.ReadAll()
+	if err != nil {
+		return fileParseError{filePath, err}
+	}
+
 	if parsedRFML.RFMLID == "" {
 		return cli.NewExitError("RFML file doesn't have RFML ID", 1)
 	}

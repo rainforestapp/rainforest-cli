@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.8.1 - 2017-10-10
+- Add file path to invalid file error message when using the `validate` command.
+  - (be557fff7e39c478426f3ecd6289fe5689c7a83f, @epaulet)
+
 ## 2.8.0 - 2017-10-03
 - Add `feature_id` and `state` fields to RFML headers.
   - (7e6b0b87e438838cef7b28fda4396f739f819c33, @epaulet)

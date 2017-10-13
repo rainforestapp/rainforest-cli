@@ -187,7 +187,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 		},
 	}
 
-	// api should not be used so input shouldn't matter
+	// Dummy API - be used when there are no failed tests
 	api := newFakeReporterAPI(-1, []rainforest.RunTestDetails{})
 
 	schema, err := createJUnitReportSchema(&runDetails, api)
@@ -214,6 +214,20 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 		t.Errorf("Expected: %#v", expectedSchema)
 		t.Errorf("Actual: %#v", schema)
 	}
+
+	// Run has no description
+	runDetails.Description = ""
+	schema, err = createJUnitReportSchema(&runDetails, api)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	expectedSchemaName := fmt.Sprintf("Run #%v", runDetails.ID)
+	if schema.Name != expectedSchemaName {
+		t.Errorf("Unexpected schema name. Expected: %v. Got %v.", expectedSchemaName, schema.Name)
+	}
+
+	runDetails.Description = runDesc // add description to the run again for next tests
 
 	// With failures
 	failedBrowser := "chrome"

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/xml"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -235,12 +236,17 @@ func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI)
 	finalStateName := runDetails.StateDetails.Name
 	runDuration := runDetails.Timestamps[finalStateName].Sub(runDetails.Timestamps["created_at"]).Seconds()
 	report := &jUnitReportSchema{
-		Name:      runDetails.Description,
 		Errors:    runDetails.TotalNoResultTests,
 		Failures:  runDetails.TotalFailedTests,
 		Tests:     runDetails.TotalTests,
 		TestCases: testCases,
 		Time:      runDuration,
+	}
+
+	if runDesc := runDetails.Description; runDesc != "" {
+		report.Name = runDesc
+	} else {
+		report.Name = fmt.Sprintf("Run #%v", runDetails.ID)
 	}
 
 	return report, nil

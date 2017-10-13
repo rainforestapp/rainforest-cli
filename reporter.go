@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/xml"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -23,11 +24,10 @@ type reporterAPI interface {
 }
 
 type reporter struct {
-	getRunDetails               func(int, reporterAPI) (*rainforest.RunDetails, error)
-	createOutputFile            func(string) (*os.File, error)
-	createJUnitReportSchema     func(*rainforest.RunDetails, reporterAPI) (*jUnitReportSchema, error)
-	createJunitTestReportSchema func(int, []rainforest.RunTestDetails, reporterAPI) ([]jUnitTestReportSchema, error)
-	writeJUnitReport            func(*jUnitReportSchema, *os.File) error
+	getRunDetails           func(int, reporterAPI) (*rainforest.RunDetails, error)
+	createOutputFile        func(string) (*os.File, error)
+	createJUnitReportSchema func(*rainforest.RunDetails, reporterAPI) (*jUnitReportSchema, error)
+	writeJUnitReport        func(*jUnitReportSchema, *os.File) error
 }
 
 func createReport(c cliContext) error {
@@ -48,11 +48,10 @@ func postRunJUnitReport(c cliContext, runID int) error {
 
 func newReporter() *reporter {
 	return &reporter{
-		getRunDetails:               getRunDetails,
-		createOutputFile:            os.Create,
-		createJUnitReportSchema:     createJUnitReportSchema,
-		createJunitTestReportSchema: createJunitTestReportSchema,
-		writeJUnitReport:            writeJUnitReport,
+		getRunDetails:           getRunDetails,
+		createOutputFile:        os.Create,
+		createJUnitReportSchema: createJUnitReportSchema,
+		writeJUnitReport:        writeJUnitReport,
 	}
 }
 
@@ -166,49 +165,29 @@ type jUnitReportSchema struct {
 	TestCases []jUnitTestReportSchema
 }
 
-func createJUnitReportSchema(runDetails *rainforest.RunDetails, client reporterAPI) (*jUnitReportSchema, error) {
-	finalStateName := runDetails.StateDetails.Name
-	duration := runDetails.Timestamps[finalStateName].Sub(runDetails.Timestamps["created_at"]).Seconds()
-
-	testCases, err := createJunitTestReportSchema(runDetails.ID, runDetails.Tests, client)
-	if err != nil {
-		return &jUnitReportSchema{}, err
-	}
-
-	report := &jUnitReportSchema{
-		Name:      runDetails.Description,
-		Errors:    runDetails.TotalNoResultTests,
-		Failures:  runDetails.TotalFailedTests,
-		Tests:     runDetails.TotalTests,
-		TestCases: testCases,
-		Time:      duration,
-	}
-
-	return report, nil
-}
-
-func createJunitTestReportSchema(runID int, tests []rainforest.RunTestDetails, api reporterAPI) ([]jUnitTestReportSchema, error) {
+func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI) (*jUnitReportSchema, error) {
 	type processedTestCase struct {
 		TestCase jUnitTestReportSchema
 		Error    error
 	}
 
 	// Create channels for work to be done and results
-	processedTestChan := make(chan processedTestCase, len(tests))
-	testsChan := make(chan rainforest.RunTestDetails, len(tests))
+	testCount := len(runDetails.Tests)
+	processedTestChan := make(chan processedTestCase, testCount)
+	testsChan := make(chan rainforest.RunTestDetails, testCount)
 
 	processTestWorker := func(testsChan <-chan rainforest.RunTestDetails) {
 		for test := range testsChan {
 			testCase := jUnitTestReportSchema{}
 
-			duration := test.UpdatedAt.Sub(test.CreatedAt).Seconds()
+			testDuration := test.UpdatedAt.Sub(test.CreatedAt).Seconds()
 
 			testCase.Name = test.Title
-			testCase.Time = duration
+			testCase.Time = testDuration
 
 			if test.Result == "failed" {
 				log.Printf("Fetching information for failed test #" + strconv.Itoa(test.ID))
-				testDetails, err := api.GetRunTestDetails(runID, test.ID)
+				testDetails, err := api.GetRunTestDetails(runDetails.ID, test.ID)
 
 				if err != nil {
 					processedTestChan <- processedTestCase{TestCase: jUnitTestReportSchema{}, Error: err}
@@ -217,11 +196,9 @@ func createJunitTestReportSchema(runID int, tests []rainforest.RunTestDetails, a
 
 				for _, step := range testDetails.Steps {
 					for _, browser := range step.Browsers {
-						browserName := browser.Name
-
 						for _, feedback := range browser.Feedback {
 							if feedback.AnswerGiven == "no" && feedback.JobState == "approved" && feedback.Note != "" {
-								reportFailure := jUnitTestReportFailure{Type: browserName, Message: feedback.Note}
+								reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: feedback.Note}
 								testCase.Failures = append(testCase.Failures, reportFailure)
 							}
 						}
@@ -239,24 +216,40 @@ func createJunitTestReportSchema(runID int, tests []rainforest.RunTestDetails, a
 	}
 
 	// give them work
-	for _, test := range tests {
+	for _, test := range runDetails.Tests {
 		testsChan <- test
 	}
 	close(testsChan)
 
 	// and collect the results
-	testCases := make([]jUnitTestReportSchema, len(tests))
-	for i := 0; i < len(tests); i++ {
+	testCases := make([]jUnitTestReportSchema, testCount)
+	for i := 0; i < testCount; i++ {
 		processed := <-processedTestChan
 
 		if processed.Error != nil {
-			return []jUnitTestReportSchema{}, processed.Error
+			return &jUnitReportSchema{}, processed.Error
 		}
 
 		testCases[i] = processed.TestCase
 	}
 
-	return testCases, nil
+	finalStateName := runDetails.StateDetails.Name
+	runDuration := runDetails.Timestamps[finalStateName].Sub(runDetails.Timestamps["created_at"]).Seconds()
+	report := &jUnitReportSchema{
+		Errors:    runDetails.TotalNoResultTests,
+		Failures:  runDetails.TotalFailedTests,
+		Tests:     runDetails.TotalTests,
+		TestCases: testCases,
+		Time:      runDuration,
+	}
+
+	if runDesc := runDetails.Description; runDesc != "" {
+		report.Name = runDesc
+	} else {
+		report.Name = fmt.Sprintf("Run #%v", runDetails.ID)
+	}
+
+	return report, nil
 }
 
 func writeJUnitReport(reportSchema *jUnitReportSchema, file *os.File) error {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -49,6 +50,8 @@ func TestShuffleFlags(t *testing.T) {
 		}
 	}
 }
+
+var errStub = errors.New("STUB")
 
 // fakeContext is a helper for testing the cli interfacing functions
 type fakeContext struct {

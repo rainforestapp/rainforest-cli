@@ -38,28 +38,6 @@ func newFakeReporter() *reporter {
 	return r
 }
 
-type fakeReporterAPI struct {
-	t              *testing.T
-	RunTestDetails *rainforest.RunTestDetails
-	ExpectedRunID  int
-	ExpectedTestID int
-}
-
-func (api fakeReporterAPI) GetRunTestDetails(runID int, testID int) (*rainforest.RunTestDetails, error) {
-	if runID != api.ExpectedRunID || testID != api.ExpectedTestID {
-		api.t.Errorf("Unexpected arguments given to GetRunTestDetails. runID: %v, testID: %v", runID, testID)
-	}
-	return api.RunTestDetails, nil
-}
-
-func (api fakeReporterAPI) GetRunDetails(smth int) (*rainforest.RunDetails, error) {
-	return nil, nil
-}
-
-func newFakeReporterAPI(t *testing.T) *fakeReporterAPI {
-	return &fakeReporterAPI{t: t}
-}
-
 func TestReporterCreateReport_WithoutFlags(t *testing.T) {
 	// No Flags
 	r := newReporter()
@@ -143,87 +121,157 @@ func TestReporterCreateReport(t *testing.T) {
 	}
 }
 
-func TestCreateJunitTestReportSchema(t *testing.T) {
+type fakeReporterAPI struct {
+	RunMappings map[int][]rainforest.RunTestDetails
+}
+
+func (api fakeReporterAPI) GetRunTestDetails(runID int, testID int) (*rainforest.RunTestDetails, error) {
+	runTests, ok := api.RunMappings[runID]
+	if !ok {
+		return nil, fmt.Errorf("No Run found with ID %v", runID)
+	}
+
+	for _, runTestDetails := range runTests {
+		if runTestDetails.ID == testID {
+			return &runTestDetails, nil
+		}
+	}
+
+	return nil, fmt.Errorf("No RunTest found with ID %v", testID)
+}
+
+func (api fakeReporterAPI) GetRunDetails(int) (*rainforest.RunDetails, error) {
+	// implement when needed
+	return nil, errStub
+}
+
+func newFakeReporterAPI(runID int, runTestDetails []rainforest.RunTestDetails) *fakeReporterAPI {
+	return &fakeReporterAPI{
+		RunMappings: map[int][]rainforest.RunTestDetails{
+			runID: runTestDetails,
+		},
+	}
+}
+
+func TestCreateJUnitReportSchema(t *testing.T) {
 	// Without failures
+	now := time.Now()
+	runDesc := "very descriptive description"
+	totalTests := 1
+	totalNoResultTests := 0
+	totalFailedTests := 0
+	stateName := "complete"
 
-	runID := 0 // Doesn't matter for this test
-	runTestTitle := "My title"
-	updatedAt := time.Now()
-	createdAt := updatedAt.Add(-10 * time.Minute)
-
-	tests := []rainforest.RunTestDetails{
-		{
-			Title:     runTestTitle,
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
-			Result:    "passed",
+	runDetails := rainforest.RunDetails{
+		ID:                 123,
+		Description:        runDesc,
+		TotalTests:         totalTests,
+		TotalNoResultTests: totalNoResultTests,
+		TotalFailedTests:   totalFailedTests,
+		StateDetails: rainforest.RunStateDetails{
+			Name:         stateName,
+			IsFinalState: true,
+		},
+		Timestamps: map[string]time.Time{
+			"created_at":  now.Add(-30 * time.Minute),
+			"in_progress": now.Add(-25 * time.Minute),
+			stateName:     now,
+		},
+		Tests: []rainforest.RunTestDetails{
+			{
+				Title:     "My test title",
+				CreatedAt: now.Add(-25 * time.Minute),
+				UpdatedAt: now,
+				Result:    "passed",
+			},
 		},
 	}
 
-	api := newFakeReporterAPI(t)
+	// Dummy API - be used when there are no failed tests
+	api := newFakeReporterAPI(-1, []rainforest.RunTestDetails{})
 
-	schema, err := createJunitTestReportSchema(runID, tests, api)
+	schema, err := createJUnitReportSchema(&runDetails, api)
 	if err != nil {
 		t.Errorf("Unexpected error returned by createJunitTestReportSchema: %v", err)
 	}
 
-	testSchema := schema[0]
-	expectedTestSchema := jUnitTestReportSchema{
-		Name: runTestTitle,
-		Time: 10 * time.Minute.Seconds(),
-	}
-
-	if !reflect.DeepEqual(testSchema, expectedTestSchema) {
-		t.Error("Incorrect JUnitTestReportSchema returned by createJunitTestReportSchema")
-		t.Errorf("Expected: %#v", expectedTestSchema)
-		t.Errorf("Actual: %#v", testSchema)
-	}
-
-	// With failures
-
-	runTestID := 123
-	runID = 987
-	failedBrowser := "chrome"
-	failedNote := "This note should appear"
-
-	tests = []rainforest.RunTestDetails{
-		{
-			ID:        runTestID,
-			Title:     runTestTitle,
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
-			Result:    "failed",
+	expectedSchema := jUnitReportSchema{
+		Name:     runDesc,
+		Errors:   totalNoResultTests,
+		Failures: totalFailedTests,
+		Tests:    totalTests,
+		Time:     30 * time.Minute.Seconds(),
+		TestCases: []jUnitTestReportSchema{
+			{
+				Name: runDetails.Tests[0].Title,
+				Time: 25 * time.Minute.Seconds(),
+			},
 		},
 	}
 
-	api.ExpectedTestID = runTestID
-	api.ExpectedRunID = runID
-	api.RunTestDetails = &rainforest.RunTestDetails{
-		ID:        runTestID,
-		Title:     runTestTitle,
-		CreatedAt: createdAt,
-		UpdatedAt: updatedAt,
+	if !reflect.DeepEqual(expectedSchema, *schema) {
+		t.Error("Incorrect JUnitTestReportSchema returned by createJunitTestReportSchema")
+		t.Errorf("Expected: %#v", expectedSchema)
+		t.Errorf("Actual: %#v", schema)
+	}
+
+	// Run has no description
+	runDetails.Description = ""
+	schema, err = createJUnitReportSchema(&runDetails, api)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	expectedSchemaName := fmt.Sprintf("Run #%v", runDetails.ID)
+	if schema.Name != expectedSchemaName {
+		t.Errorf("Unexpected schema name. Expected: %v. Got %v.", expectedSchemaName, schema.Name)
+	}
+
+	runDetails.Description = runDesc // add description to the run again for next tests
+
+	// With failures
+	failedBrowser := "chrome"
+	failedNote := "This note should appear"
+
+	runDetails.TotalFailedTests = 1
+
+	failedTest := rainforest.RunTestDetails{
+		ID:        999888,
+		Title:     "My failed test",
+		CreatedAt: now.Add(-25 * time.Minute),
+		UpdatedAt: now,
 		Result:    "failed",
-		Steps: []rainforest.RunStepDetails{
-			{
-				Browsers: []rainforest.RunBrowserDetails{
-					{
-						Name: failedBrowser,
-						Feedback: []rainforest.RunFeedback{
-							{
-								AnswerGiven: "no",
-								JobState:    "approved",
-								Note:        failedNote,
-							},
-							{
-								AnswerGiven: "yes",
-								JobState:    "approved",
-								Note:        "This note should not appear",
-							},
-							{
-								AnswerGiven: "no",
-								JobState:    "rejected",
-								Note:        "This note should not appear either",
+	}
+	runDetails.Tests = []rainforest.RunTestDetails{failedTest}
+
+	apiTests := []rainforest.RunTestDetails{
+		{
+			ID:        failedTest.ID,
+			Title:     failedTest.Title,
+			CreatedAt: failedTest.CreatedAt,
+			UpdatedAt: failedTest.UpdatedAt,
+			Result:    failedTest.Result,
+			Steps: []rainforest.RunStepDetails{
+				{
+					Browsers: []rainforest.RunBrowserDetails{
+						{
+							Name: failedBrowser,
+							Feedback: []rainforest.RunFeedback{
+								{
+									AnswerGiven: "no",
+									JobState:    "approved",
+									Note:        failedNote,
+								},
+								{
+									AnswerGiven: "yes",
+									JobState:    "approved",
+									Note:        "This note should not appear",
+								},
+								{
+									AnswerGiven: "no",
+									JobState:    "rejected",
+									Note:        "This note should not appear either",
+								},
 							},
 						},
 					},
@@ -231,29 +279,35 @@ func TestCreateJunitTestReportSchema(t *testing.T) {
 			},
 		},
 	}
+
+	api = newFakeReporterAPI(runDetails.ID, apiTests)
+
 	var out bytes.Buffer
 	log.SetOutput(&out)
-	schema, err = createJunitTestReportSchema(runID, tests, api)
+	schema, err = createJUnitReportSchema(&runDetails, api)
 	log.SetOutput(os.Stdout)
+
 	if err != nil {
 		t.Errorf("Unexpected error returned by createJunitTestReportSchema: %v", err)
 	}
 
-	testSchema = schema[0]
-	expectedTestSchema = jUnitTestReportSchema{
-		Name: runTestTitle,
-		Time: 10 * time.Minute.Seconds(),
-		Failures: []jUnitTestReportFailure{
-			{
-				Type:    failedBrowser,
-				Message: "This note should appear",
+	expectedSchema.Failures = 1
+	expectedSchema.TestCases = []jUnitTestReportSchema{
+		{
+			Name: failedTest.Title,
+			Time: 25 * time.Minute.Seconds(),
+			Failures: []jUnitTestReportFailure{
+				{
+					Type:    failedBrowser,
+					Message: failedNote,
+				},
 			},
 		},
 	}
 
-	if !reflect.DeepEqual(testSchema, expectedTestSchema) {
+	if !reflect.DeepEqual(expectedSchema, *schema) {
 		t.Error("Incorrect JUnitTestReportSchema returned by createJunitTestReportSchema")
-		t.Errorf("Expected: %#v", expectedTestSchema)
-		t.Errorf("Actual: %#v", testSchema)
+		t.Errorf("Expected: %#v", expectedSchema)
+		t.Errorf("Actual: %#v", schema)
 	}
 }

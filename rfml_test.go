@@ -258,8 +258,6 @@ func (t *testRfmlAPI) ClientToken() string {
 	return "abc123"
 }
 
-var errStub = errors.New("STUB")
-
 func (t *testRfmlAPI) CreateTest(_ *rainforest.RFTest) error {
 	// implement when needed
 	return errStub

@@ -38,28 +38,6 @@ func newFakeReporter() *reporter {
 	return r
 }
 
-type fakeReporterAPI struct {
-	t              *testing.T
-	RunTestDetails *rainforest.RunTestDetails
-	ExpectedRunID  int
-	ExpectedTestID int
-}
-
-func (api fakeReporterAPI) GetRunTestDetails(runID int, testID int) (*rainforest.RunTestDetails, error) {
-	if runID != api.ExpectedRunID || testID != api.ExpectedTestID {
-		api.t.Errorf("Unexpected arguments given to GetRunTestDetails. runID: %v, testID: %v", runID, testID)
-	}
-	return api.RunTestDetails, nil
-}
-
-func (api fakeReporterAPI) GetRunDetails(smth int) (*rainforest.RunDetails, error) {
-	return nil, nil
-}
-
-func newFakeReporterAPI(t *testing.T) *fakeReporterAPI {
-	return &fakeReporterAPI{t: t}
-}
-
 func TestReporterCreateReport_WithoutFlags(t *testing.T) {
 	// No Flags
 	r := newReporter()
@@ -143,10 +121,41 @@ func TestReporterCreateReport(t *testing.T) {
 	}
 }
 
+type fakeReporterAPI struct {
+	RunMappings map[int][]rainforest.RunTestDetails
+}
+
+func (api fakeReporterAPI) GetRunTestDetails(runID int, testID int) (*rainforest.RunTestDetails, error) {
+	runTests, ok := api.RunMappings[runID]
+	if !ok {
+		return nil, fmt.Errorf("No Run found with ID %v", runID)
+	}
+
+	for _, runTestDetails := range runTests {
+		if runTestDetails.ID == testID {
+			return &runTestDetails, nil
+		}
+	}
+
+	return nil, fmt.Errorf("No RunTest found with ID %v", testID)
+}
+
+func (api fakeReporterAPI) GetRunDetails(int) (*rainforest.RunDetails, error) {
+	// implement when needed
+	return nil, errStub
+}
+
+func newFakeReporterAPI(runID int, runTestDetails []rainforest.RunTestDetails) *fakeReporterAPI {
+	return &fakeReporterAPI{
+		RunMappings: map[int][]rainforest.RunTestDetails{
+			runID: runTestDetails,
+		},
+	}
+}
+
 func TestCreateJunitTestReportSchema(t *testing.T) {
 	// Without failures
-
-	runID := 0 // Doesn't matter for this test
+	runID := 999
 	runTestTitle := "My title"
 	updatedAt := time.Now()
 	createdAt := updatedAt.Add(-10 * time.Minute)
@@ -160,7 +169,8 @@ func TestCreateJunitTestReportSchema(t *testing.T) {
 		},
 	}
 
-	api := newFakeReporterAPI(t)
+	// api should not be used in this test case
+	api := newFakeReporterAPI(0, []rainforest.RunTestDetails{})
 
 	schema, err := createJunitTestReportSchema(runID, tests, api)
 	if err != nil {
@@ -180,9 +190,7 @@ func TestCreateJunitTestReportSchema(t *testing.T) {
 	}
 
 	// With failures
-
 	runTestID := 123
-	runID = 987
 	failedBrowser := "chrome"
 	failedNote := "This note should appear"
 
@@ -196,34 +204,34 @@ func TestCreateJunitTestReportSchema(t *testing.T) {
 		},
 	}
 
-	api.ExpectedTestID = runTestID
-	api.ExpectedRunID = runID
-	api.RunTestDetails = &rainforest.RunTestDetails{
-		ID:        runTestID,
-		Title:     runTestTitle,
-		CreatedAt: createdAt,
-		UpdatedAt: updatedAt,
-		Result:    "failed",
-		Steps: []rainforest.RunStepDetails{
-			{
-				Browsers: []rainforest.RunBrowserDetails{
-					{
-						Name: failedBrowser,
-						Feedback: []rainforest.RunFeedback{
-							{
-								AnswerGiven: "no",
-								JobState:    "approved",
-								Note:        failedNote,
-							},
-							{
-								AnswerGiven: "yes",
-								JobState:    "approved",
-								Note:        "This note should not appear",
-							},
-							{
-								AnswerGiven: "no",
-								JobState:    "rejected",
-								Note:        "This note should not appear either",
+	apiTests := []rainforest.RunTestDetails{
+		{
+			ID:        runTestID,
+			Title:     runTestTitle,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+			Result:    "failed",
+			Steps: []rainforest.RunStepDetails{
+				{
+					Browsers: []rainforest.RunBrowserDetails{
+						{
+							Name: failedBrowser,
+							Feedback: []rainforest.RunFeedback{
+								{
+									AnswerGiven: "no",
+									JobState:    "approved",
+									Note:        failedNote,
+								},
+								{
+									AnswerGiven: "yes",
+									JobState:    "approved",
+									Note:        "This note should not appear",
+								},
+								{
+									AnswerGiven: "no",
+									JobState:    "rejected",
+									Note:        "This note should not appear either",
+								},
 							},
 						},
 					},
@@ -231,6 +239,9 @@ func TestCreateJunitTestReportSchema(t *testing.T) {
 			},
 		},
 	}
+
+	api = newFakeReporterAPI(runID, apiTests)
+
 	var out bytes.Buffer
 	log.SetOutput(&out)
 	schema, err = createJunitTestReportSchema(runID, tests, api)
@@ -246,7 +257,7 @@ func TestCreateJunitTestReportSchema(t *testing.T) {
 		Failures: []jUnitTestReportFailure{
 			{
 				Type:    failedBrowser,
-				Message: "This note should appear",
+				Message: failedNote,
 			},
 		},
 	}

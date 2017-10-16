@@ -139,11 +139,13 @@ rainforest run -f [FILES OR FOLDERS]
 
 There is a specific metadata option in RFML files for `run -f`: `# execute: true|false`, which indicates whether a test should be run by default (defaults to `true`). Embedded tests that are not usually run directly should specify `# execute: false`.
 
-Most options for `rainforest run` work the same way with `run -f`, with the exception of test filtering options (such as `--folder`). In addition, there are a few options that are specific to `run -f` or behave differently:
+The following options are specific to `run -f` or behave differently:
 
 - `--tag TAG_NAME`: only run tests that are tagged with `TAG_NAME` (which can be a comma-separated list of tags). Note that this filters *within* local RFML files, not tests stored on Rainforest. Tests that are not tagged with `TAG_NAME` will not be executed but may be still be uploaded if they are embedded in another test.
 - `--exclude FILE`: exclude the test in `FILE` from being run, even if `# execute: true` is specified.
 - `--force-execute FILE`: execute the test in `FILE` even if `# execute: false` is specified.
+
+Run-level setting options (`--browsers`, `--environment_id`, etc) behave the same for `run -f`.
 
 #### Viewing Account Specific Information
 

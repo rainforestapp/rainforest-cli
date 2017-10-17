@@ -145,7 +145,7 @@ The following options are specific to `run -f` or behave differently:
 - `--exclude FILE`: exclude the test in `FILE` from being run, even if `# execute: true` is specified.
 - `--force-execute FILE`: execute the test in `FILE` even if `# execute: false` is specified.
 
-Run-level setting options (`--browsers`, `--environment_id`, etc) behave the same for `run -f`.
+Run-level setting options (`--browsers`, `--environment_id`, etc) behave the same for `run -f`. Other test filtering options (such as `--run-group`, `--site`, etc) cannot be used in conjunction with `run -f`.
 
 #### Viewing Account Specific Information
 

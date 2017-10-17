@@ -99,6 +99,12 @@ func (r *runner) startRun(c cliContext) error {
 }
 
 func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
+	invalidFilters := []string{"folder", "feature", "run-group", "site"}
+	for _, filter := range invalidFilters {
+		if c.Int(filter) != 0 || c.String(filter) != "" {
+			return nil, fmt.Errorf("%s cannot be specified with run -f", filter)
+		}
+	}
 	tags := getTags(c)
 	files := c.Args()
 	tests, err := readRFMLFiles(files)

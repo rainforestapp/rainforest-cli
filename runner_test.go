@@ -282,6 +282,33 @@ func TestStartLocalRun(t *testing.T) {
 			wantError: true,
 		},
 		{
+			mappings: map[string]interface{}{
+				"f":       true,
+				"feature": 42,
+				"bg":      true,
+			},
+			args:      cli.Args{filepath.Join(rfmlDir, "a"), filepath.Join(rfmlDir, "b/b")},
+			wantError: true,
+		},
+		{
+			mappings: map[string]interface{}{
+				"f":         true,
+				"run-group": 42,
+				"bg":        true,
+			},
+			args:      cli.Args{filepath.Join(rfmlDir, "a"), filepath.Join(rfmlDir, "b/b")},
+			wantError: true,
+		},
+		{
+			mappings: map[string]interface{}{
+				"f":    true,
+				"site": "42",
+				"bg":   true,
+			},
+			args:      cli.Args{filepath.Join(rfmlDir, "a"), filepath.Join(rfmlDir, "b/b")},
+			wantError: true,
+		},
+		{
 
 			mappings: map[string]interface{}{
 				"f":             true,

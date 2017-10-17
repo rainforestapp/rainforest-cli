@@ -127,6 +127,26 @@ Download specific tests based on their id on the Rainforest dashboard
 rainforest download 33445 11232 1337
 ```
 
+#### Running Local RFML Tests Only
+
+If you want to run a local set of RFML files (for instance in a CI environment), use the `run -f` option:
+
+```
+rainforest run -f [FILES OR FOLDERS]
+```
+
+`run -f` accepts any number of files and folders as arguments (folders will be recursively checked for `*.rfml` files). All embedded tests must be included within `FILES OR FOLDERS`.
+
+There is a specific metadata option in RFML files for `run -f`: `# execute: true|false`, which indicates whether a test should be run by default (defaults to `true`). Embedded tests that are not usually run directly should specify `# execute: false`.
+
+The following options are specific to `run -f` or behave differently:
+
+- `--tag TAG_NAME`: only run tests that are tagged with `TAG_NAME` (which can be a comma-separated list of tags). Note that this filters *within* local RFML files, not tests stored on Rainforest. Tests that are not tagged with `TAG_NAME` will not be executed but may be still be uploaded if they are embedded in another test.
+- `--exclude FILE`: exclude the test in `FILE` from being run, even if `# execute: true` is specified.
+- `--force-execute FILE`: execute the test in `FILE` even if `# execute: false` is specified.
+
+Run-level setting options (`--browsers`, `--environment_id`, etc) behave the same for `run -f`. Other test filtering options (such as `--run-group`, `--site`, etc) cannot be used in conjunction with `run -f`.
+
 #### Viewing Account Specific Information
 
 See a list of all of your sites and their IDs
@@ -270,28 +290,6 @@ api to construct a junit report.  This is useful to track tests in CI such as Je
 - `--import-variable-csv-file /path/to/csv/file.csv` - Use with `run` and `--import-variable-name` to upload new tabular variable values before your run to specify the path to your CSV file.
 - `--import-variable-name NAME` - Use with `run` and `--import-variable-csv-file` to upload new tabular variable values before your run to specify the name of your tabular variable. You may also use this with the `csv-upload` command to update your variable without starting a run.
 - `--single-use` - Use with `run` or `csv-upload` to flag your variable upload as `single-use`. See `--import-variable-csv-file` and `--import-variable-name` options as well.
-
-### Pre-release
-
-A new pre-release feature allows you to start a run using your local RFML files (instead of uploading and running separately):
-
-```
-rainforest run -f [FILES OR FOLDERS]
-```
-
-`run -f` accepts any number of files and folders as arguments (folders will be recursively checked for `*.rfml` files). All embedded tests must be included within `FILES OR FOLDERS`.
-
-In addition, there is a new metadata option for RFML files: `# execute: true|false`, which indicates whether a test should be run by default (defaults to `true`). Embedded tests that are not usually run directly should specify `# execute: false`.
-
-Most options for `rainforest run` work the same way with `run -f`, with the exception of test filtering options (such as `--folder`). In addition, there are a few options that are new or behave differently:
-
-- `--tag TAG_NAME`: only run tests that are tagged with `TAG_NAME` (which can be a comma-separated list of tags). Note that this filters *within* local RFML files, not tests stored on Rainforest. Tests that are not tagged with `TAG_NAME` will not be executed but may be still be uploaded if they are embedded in another test.
-- `--exclude FILE`: exclude the test in `FILE` from being run, even if `# execute: true` is specified.
-- `--force-execute FILE`: execute the test in `FILE` even if `# execute: false` is specified.
-
-These options are subject to change, so don't add them to your CI scripts unless you disable auto-updating.
-
-You can download a pre-release build by switching to the dev channel in our [download page](https://dl.equinox.io/rainforest_qa/rainforest-cli/dev).
 
 ## Support
 

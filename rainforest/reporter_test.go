@@ -116,14 +116,12 @@ func TestGetRunTestDetails(t *testing.T) {
 						Name: "chrome",
 						Feedback: []RunFeedback{
 							{
-								AnswerGiven: "no",
 								JobState:    "approved",
-								Note:        "did not work",
+								FailureNote: "did not work",
 							},
 							{
-								AnswerGiven: "yes",
 								JobState:    "rejected",
-								Note:        "it worked",
+								FailureNote: "",
 							},
 						},
 					},

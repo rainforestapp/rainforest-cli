@@ -197,8 +197,21 @@ func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI)
 				for _, step := range testDetails.Steps {
 					for _, browser := range step.Browsers {
 						for _, feedback := range browser.Feedback {
-							if feedback.AnswerGiven == "no" && feedback.JobState == "approved" && feedback.Note != "" {
-								reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: feedback.Note}
+							if feedback.Result != "failed" || feedback.JobState != "approved" {
+								continue
+							}
+
+							if feedback.FailureNote != "" {
+								reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: feedback.FailureNote}
+								testCase.Failures = append(testCase.Failures, reportFailure)
+							} else if feedback.CommentReason != "" {
+								// The step failed due to a special comment type being selected
+								message := feedback.CommentReason
+
+								if feedback.Comment != "" {
+									message += ": " + feedback.Comment
+								}
+								reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: message}
 								testCase.Failures = append(testCase.Failures, reportFailure)
 							}
 						}

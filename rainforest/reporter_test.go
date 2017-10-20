@@ -2,6 +2,7 @@ package rainforest
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -104,7 +105,7 @@ func TestGetRunTestDetails(t *testing.T) {
 	updatedAt, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:21:31.492Z")
 	createdAt := updatedAt.Add(-10 * time.Minute)
 	runTest := RunTestDetails{
-		ID:        runID,
+		ID:        testID,
 		Title:     "my test title",
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
@@ -116,12 +117,13 @@ func TestGetRunTestDetails(t *testing.T) {
 						Name: "chrome",
 						Feedback: []RunFeedback{
 							{
+								Result:      "failed",
 								JobState:    "approved",
 								FailureNote: "did not work",
 							},
 							{
-								JobState:    "rejected",
-								FailureNote: "",
+								Result:   "passed",
+								JobState: "rejected",
 							},
 						},
 					},
@@ -137,17 +139,62 @@ func TestGetRunTestDetails(t *testing.T) {
 			t.Errorf("Unexpected request method in GetRunTestDetails. Expected: %v, Actual: %v", reqMethod, r.Method)
 		}
 
-		enc := json.NewEncoder(w)
-		enc.Encode(runTest)
+		var createdAtData, updatedAtData []byte
+		var err error
+		createdAtData, err = runTest.CreatedAt.MarshalJSON()
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		updatedAtData, err = runTest.UpdatedAt.MarshalJSON()
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		jsonResponse := fmt.Sprintf(`{
+"id": %v,
+"title": "%v",
+"created_at": %v,
+"updated_at": %v,
+"result": "passed",
+"steps":[
+	{
+		"browsers": [
+			{
+				"name": "chrome",
+				"feedback": [
+				{
+					"result": "failed",
+					"job_state": "approved",
+					"note": "did not work"
+				},
+				{
+					"result": "passed",
+					"job_state": "rejected"
+				}
+				]
+			}
+		]
+	}
+]
+}`,
+			runTest.ID,
+			runTest.Title,
+			string(createdAtData),
+			string(updatedAtData),
+		)
+
+		_, err = w.Write([]byte(jsonResponse))
+		if err != nil {
+			t.Fatal(err.Error())
+		}
 	})
 
 	out, err := client.GetRunTestDetails(runID, testID)
 
 	if err != nil {
 		t.Errorf("Unexpected error in GetRunTestDetails: %v", err)
-	}
-
-	if !reflect.DeepEqual(runTest, *out) {
+	} else if !reflect.DeepEqual(runTest, *out) {
 		t.Errorf("Unexpected return value from GetRunTestDetails.\nExpected: %#v\nGot: %#v", runTest, *out)
 	}
 }

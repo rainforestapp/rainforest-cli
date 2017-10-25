@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 2.8.3 - WIP
+- Correctly find and parse failed steps for JUnit reports.
+
 ## 2.8.2 - 2017-10-13
 - Add a default JUnit test suite name for runs without a description.
   - (b66a7aaeb952986f29303f0291e4c749d990bd36, @epaulet)

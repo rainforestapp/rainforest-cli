@@ -7,9 +7,11 @@ import (
 
 // RunFeedback contains details about the feedback of a Run Step for a browser
 type RunFeedback struct {
-	AnswerGiven string `json:"answer_given"`
-	JobState    string `json:"job_state"`
-	Note        string `json:"note"`
+	JobState      string `json:"job_state"`
+	Result        string `json:"result"`
+	FailureNote   string `json:"note"`
+	Comment       string `json:"comment"`
+	CommentReason string `json:"comment_reason"`
 }
 
 // RunBrowserDetails contains details about a Browser of a Run Step

@@ -169,6 +169,11 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 	// potential errors to the caller.
 	if out != nil {
 		err = json.NewDecoder(res.Body).Decode(out)
+
+		if err != nil {
+			fmt.Printf("DEBUG - %v\n\n", err.Error())
+			return res, err
+		}
 	}
 
 	c.LastResponseHeaders = res.Header

@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 2.8.4 - WIP
+- Default the value of the local file flag to false when not given.
+
 ## 2.8.3 - 2017-10-25
 - Correctly find and parse failed steps for JUnit reports.
   - 090e407a579e452d1c421a36c531cdd4de4bd60d, @epaulet)

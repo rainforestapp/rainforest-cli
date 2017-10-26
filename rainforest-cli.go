@@ -134,7 +134,7 @@ func main() {
 				"Alternatively you can use one of the filtering options.",
 			ArgsUsage: "[test IDs]",
 			Flags: []cli.Flag{
-				cli.BoolTFlag{
+				cli.BoolFlag{
 					Name:  "f, files",
 					Usage: "run local tests specified by `FILES or FOLDERS`",
 				},

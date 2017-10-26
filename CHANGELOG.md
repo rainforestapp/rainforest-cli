@@ -1,11 +1,12 @@
 # Rainforest CLI Changelog
 
-## 2.8.4 - WIP
+## 2.8.4 - 2017-10-26
 - Default the value of the local file flag to false when not given.
+  - (1222cc0acb99995d0c29aa8d1acee400b4923af1, @epaulet)
 
 ## 2.8.3 - 2017-10-25
 - Correctly find and parse failed steps for JUnit reports.
-  - 090e407a579e452d1c421a36c531cdd4de4bd60d, @epaulet)
+  - (090e407a579e452d1c421a36c531cdd4de4bd60d, @epaulet)
 
 ## 2.8.2 - 2017-10-13
 - Add a default JUnit test suite name for runs without a description.

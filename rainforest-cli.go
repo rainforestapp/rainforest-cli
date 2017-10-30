@@ -476,7 +476,7 @@ func shuffleFlags(originalArgs []string) []string {
 		} else if option == "-f" || option == "--files" {
 			rest = append(rest, option)
 			i++
-			for originalArgs[i][0] != '-' {
+			for i < len(originalArgs) && originalArgs[i][0] != '-' {
 				fnameArgs = append(fnameArgs, originalArgs[i])
 				i++
 			}

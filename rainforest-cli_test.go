@@ -41,6 +41,10 @@ func TestShuffleFlags(t *testing.T) {
 			testArgs: []string{"./rainforest", "run", "-f", "foo.rfml", "bar.rfml", "--token", "foobar"},
 			want:     []string{"./rainforest", "--token", "foobar", "run", "-f", "foo.rfml", "bar.rfml"},
 		},
+		{
+			testArgs: []string{"./rainforest", "run", "-f", "foo.rfml"},
+			want:     []string{"./rainforest", "run", "-f", "foo.rfml"},
+		},
 	}
 
 	for _, tCase := range testCases {

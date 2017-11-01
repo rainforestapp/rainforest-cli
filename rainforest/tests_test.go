@@ -335,8 +335,8 @@ func TestUpdateTest(t *testing.T) {
 			t.Errorf("Unexpected browsers parameter received. Got:%v", bodyStr)
 		} else if !strings.Contains(bodyStr, "\"tags\":[]") {
 			t.Errorf("Unexpected tags parameter received. Got:%v", bodyStr)
-		} else if strings.Contains(bodyStr, "\"folder_id\"") {
-			t.Errorf("Unexpected parameter found: \"folder_id\" in:\n%v", bodyStr)
+		} else if strings.Contains(bodyStr, "\"feature_id\"") {
+			t.Errorf("Unexpected parameter found: \"feature_id\" in:\n%v", bodyStr)
 		}
 	})
 
@@ -376,8 +376,8 @@ func TestUpdateTest(t *testing.T) {
 		if !strings.Contains(bodyStr, "\"tags\":[\"foo\",\"bar\"]") {
 			t.Errorf("Expected tags not received. Expected: \"foo\", \"bar\", Got: %v", bodyStr)
 		}
-		if !strings.Contains(bodyStr, "\"folder_id\":909") {
-			t.Errorf("Expected folder ID not received. Expected: 909, Got %v", bodyStr)
+		if !strings.Contains(bodyStr, "\"feature_id\":909") {
+			t.Errorf("Expected feature ID not received. Expected: 909, Got %v", bodyStr)
 		}
 		if !strings.Contains(bodyStr, "\"state\":\"disabled\"") {
 			t.Errorf("Expected state to be disabled, Got %v", bodyStr)
@@ -416,7 +416,7 @@ func TestUpdateTest(t *testing.T) {
 			t.Errorf("Unexpected browsers received. Expected: [], Got: %v", bodyStr)
 		} else if !strings.Contains(bodyStr, "\"tags\":[]") {
 			t.Errorf("Unexpected tags received. Expected: [], Got: %v", bodyStr)
-		} else if !strings.Contains(bodyStr, "\"folder_id\":null") {
+		} else if !strings.Contains(bodyStr, "\"feature_id\":null") {
 			t.Errorf("Unexpected folder ID received. Expected: null, Got: %v", bodyStr)
 		}
 	})

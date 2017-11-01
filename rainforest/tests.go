@@ -71,7 +71,7 @@ type RFTest struct {
 	Tags        []string                 `json:"tags"`
 	BrowsersMap []map[string]interface{} `json:"browsers"`
 	Elements    []testElement            `json:"elements,omitempty"`
-	FeatureID   FeatureIDInt             `json:"folder_id,omitempty"`
+	FeatureID   FeatureIDInt             `json:"feature_id,omitempty"`
 
 	// Browsers and Steps are helper fields
 	Browsers []string      `json:"-"`

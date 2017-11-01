@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 2.8.6 - WIP
+- Remove duplicate listing of `run-groups` option.
+
 ## 2.8.5 - 2017-10-30
 - Fix error that occurs when `-f` if given as the final option of a command.
   - (d0abed0156ccc1da184a73fe4c0f6b2d5b6cce91, @epaulet)

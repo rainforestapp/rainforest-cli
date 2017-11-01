@@ -400,13 +400,6 @@ func main() {
 			},
 		},
 		{
-			Name:  "run-groups",
-			Usage: "Lists available run groups",
-			Action: func(c *cli.Context) error {
-				return printRunGroups(api)
-			},
-		},
-		{
 			Name:  "folders",
 			Usage: "Lists available folders",
 			Action: func(c *cli.Context) error {

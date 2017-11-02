@@ -508,6 +508,8 @@ func shuffleFlags(originalArgs []string) []string {
 
 func onCommandUsageErrorHandler(command string) func(*cli.Context, error, bool) error {
 	return func(c *cli.Context, err error, isSubcommand bool) error {
+		fmt.Printf("Incorrect usage: %s\n\n", err.Error())
+
 		cli.ShowCommandHelpAndExit(c, command, 1)
 		return nil
 	}

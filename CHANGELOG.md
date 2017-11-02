@@ -1,6 +1,6 @@
 # Rainforest CLI Changelog
 
-## 2.8.6 - WIP
+## 2.8.6 - 2017-11-01
 - Remove duplicate listing of `run-groups` option.
 
 ## 2.8.5 - 2017-10-30

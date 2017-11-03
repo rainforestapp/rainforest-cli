@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.8.8 - 2017-11-03
+- Revert 2.8.7
+  - (a1d29d8b253259aee1eb6906510492a6f461f63e, @jbarber)
+
 ## 2.8.7 - 2017-11-02
 - Properly exit with an error status when using flags improperly.
   - (8ae777dce7d1b6f9abdf85bf353aecfc6e38be17, @epaulet)

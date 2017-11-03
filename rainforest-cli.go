@@ -510,7 +510,8 @@ func onCommandUsageErrorHandler(command string) func(*cli.Context, error, bool) 
 	return func(c *cli.Context, err error, isSubcommand bool) error {
 		fmt.Printf("Incorrect usage: %s\n\n", err.Error())
 
-		cli.ShowCommandHelpAndExit(c, command, 1)
+		cli.ShowCommandHelp(c, command)
+		os.Exit(1)
 		return nil
 	}
 }

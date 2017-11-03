@@ -1,5 +1,5 @@
-hash: fa08a3bfa9e106d2be8c789645ffa1bfa902f3d88d3d7a18cd9449cbf44d336a
-updated: 2017-11-01T18:27:55.051103714-07:00
+hash: d31123fe13f77d46d4c45c7a9be00c74c1f44616bec01a5b8777889f1e3a8b3e
+updated: 2017-11-03T11:59:00.812165548-07:00
 imports:
 - name: github.com/equinox-io/equinox
   version: 6f97d0d3970881d3e53dd6f547a41109eb055e54
@@ -18,5 +18,5 @@ imports:
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/urfave/cli
-  version: cfb38830724cc34fedffe9a2a29fb54fa9169cd1
+  version: 4205e9c4ee9672a8df5bb4fe486a8aa07e1e4037
 testImports: []

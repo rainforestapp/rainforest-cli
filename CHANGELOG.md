@@ -1,7 +1,12 @@
 # Rainforest CLI Changelog
 
+## 2.8.7 - 2017-11-02
+- Properly exit with an error status when using flags improperly.
+  - (8ae777dce7d1b6f9abdf85bf353aecfc6e38be17, @epaulet)
+
 ## 2.8.6 - 2017-11-01
 - Remove duplicate listing of `run-groups` option.
+  - (0d54c1eb5d4dff75eb3b38ce67c7594c6788918c, @epaulet)
 
 ## 2.8.5 - 2017-10-30
 - Fix error that occurs when `-f` if given as the final option of a command.

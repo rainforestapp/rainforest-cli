@@ -125,11 +125,10 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
-			Name:         "run",
-			Aliases:      []string{"r"},
-			Usage:        "Run your tests on Rainforest",
-			OnUsageError: onCommandUsageErrorHandler("run"),
-			Action:       startRun,
+			Name:    "run",
+			Aliases: []string{"r"},
+			Usage:   "Run your tests on Rainforest",
+			Action:  startRun,
 			Description: "Runs your tests on Rainforest platform. " +
 				"You need to specify list of test IDs to run or use keyword 'all'. " +
 				"Alternatively you can use one of the filtering options.",
@@ -238,10 +237,9 @@ func main() {
 			},
 		},
 		{
-			Name:         "new",
-			Usage:        "Create a new RFML test",
-			OnUsageError: onCommandUsageErrorHandler("new"),
-			ArgsUsage:    "[name]",
+			Name:      "new",
+			Usage:     "Create a new RFML test",
+			ArgsUsage: "[name]",
 			Description: "Create new Rainforest test in RFML format (Rainforest Markup Language). " +
 				"You may also specify a custom test title or file name.",
 			Flags: []cli.Flag{
@@ -255,10 +253,9 @@ func main() {
 			Action: newRFMLTest,
 		},
 		{
-			Name:         "validate",
-			Usage:        "Validate your RFML tests",
-			OnUsageError: onCommandUsageErrorHandler("validate"),
-			ArgsUsage:    "[path to RFML file]",
+			Name:      "validate",
+			Usage:     "Validate your RFML tests",
+			ArgsUsage: "[path to RFML file]",
 			Description: "Validate your test for syntax. " +
 				"If no filepath is given it validates all RFML tests and performs additional checks for RFML ID validity and more. " +
 				"If API token is set it'll validate your tests against server data as well.",
@@ -275,10 +272,9 @@ func main() {
 			},
 		},
 		{
-			Name:         "upload",
-			Usage:        "Upload your RFML tests",
-			OnUsageError: onCommandUsageErrorHandler("upload"),
-			ArgsUsage:    "[path to RFML file]",
+			Name:      "upload",
+			Usage:     "Upload your RFML tests",
+			ArgsUsage: "[path to RFML file]",
 			Description: "Uploads specified test to Rainforest. " +
 				"If no filepath is given it uploads all RFML tests.",
 			Flags: []cli.Flag{
@@ -298,20 +294,18 @@ func main() {
 			},
 		},
 		{
-			Name:         "rm",
-			Usage:        "Remove an RFML test locally and remotely",
-			OnUsageError: onCommandUsageErrorHandler("rm"),
-			ArgsUsage:    "[path to RFML file]",
-			Description:  "Remove RFML file and remove test from Rainforest test suite.",
-			Action:       deleteRFML,
+			Name:        "rm",
+			Usage:       "Remove an RFML test locally and remotely",
+			ArgsUsage:   "[path to RFML file]",
+			Description: "Remove RFML file and remove test from Rainforest test suite.",
+			Action:      deleteRFML,
 		},
 		{
 			Name: "download",
 			// Left for legacy reason, should nuke?
-			Aliases:      []string{"export"},
-			Usage:        "Download your remote Rainforest tests to RFML",
-			OnUsageError: onCommandUsageErrorHandler("download"),
-			ArgsUsage:    "[test IDs]",
+			Aliases:   []string{"export"},
+			Usage:     "Download your remote Rainforest tests to RFML",
+			ArgsUsage: "[test IDs]",
 			Description: "Download your remote tests from Rainforest to RFML. " +
 				"You may specify list of test IDs or download all tests by default. " +
 				"Alternatively you can use one of the filtering options.",
@@ -352,11 +346,10 @@ func main() {
 			},
 		},
 		{
-			Name:         "csv-upload",
-			Usage:        "Create or update tabular var from CSV.",
-			OnUsageError: onCommandUsageErrorHandler("csv-upload"),
-			Description:  "Upload a CSV file to create or update tabular variables.",
-			ArgsUsage:    "[path to CSV file]",
+			Name:        "csv-upload",
+			Usage:       "Create or update tabular var from CSV.",
+			Description: "Upload a CSV file to create or update tabular variables.",
+			ArgsUsage:   "[path to CSV file]",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					// Alternative name left for legacy reason.
@@ -382,9 +375,8 @@ func main() {
 			},
 		},
 		{
-			Name:         "report",
-			Usage:        "Create a report from your run results",
-			OnUsageError: onCommandUsageErrorHandler("report"),
+			Name:  "report",
+			Usage: "Create a report from your run results",
 			Description: "Creates a report from your specified run." +
 				"You can specify output file using options, otherwise report will be generated to STDOUT",
 			ArgsUsage: "[run ID]",
@@ -401,59 +393,52 @@ func main() {
 			Action: createReport,
 		},
 		{
-			Name:         "sites",
-			Usage:        "Lists available sites",
-			OnUsageError: onCommandUsageErrorHandler("sites"),
+			Name:  "sites",
+			Usage: "Lists available sites",
 			Action: func(c *cli.Context) error {
 				return printSites(api)
 			},
 		},
 		{
-			Name:         "folders",
-			Usage:        "Lists available folders",
-			OnUsageError: onCommandUsageErrorHandler("folders"),
+			Name:  "folders",
+			Usage: "Lists available folders",
 			Action: func(c *cli.Context) error {
 				return printFolders(api)
 			},
 		},
 		{
-			Name:         "filters",
-			Usage:        "Lists available saved filters",
-			OnUsageError: onCommandUsageErrorHandler("filters"),
+			Name:  "filters",
+			Usage: "Lists available saved filters",
 			Action: func(c *cli.Context) error {
 				return printFolders(api)
 			},
 		},
 		{
-			Name:         "browsers",
-			Usage:        "Lists available browsers",
-			OnUsageError: onCommandUsageErrorHandler("browsers"),
+			Name:  "browsers",
+			Usage: "Lists available browsers",
 			Action: func(c *cli.Context) error {
 				return printBrowsers(api)
 			},
 		},
 		{
-			Name:         "features",
-			Usage:        "Lists available features",
-			OnUsageError: onCommandUsageErrorHandler("features"),
+			Name:  "features",
+			Usage: "Lists available features",
 			Action: func(c *cli.Context) error {
 				return printFeatures(api)
 			},
 		},
 		{
-			Name:         "run-groups",
-			Usage:        "Lists available run groups",
-			OnUsageError: onCommandUsageErrorHandler("run-groups"),
+			Name:  "run-groups",
+			Usage: "Lists available run groups",
 			Action: func(c *cli.Context) error {
 				return printRunGroups(api)
 			},
 		},
 		{
-			Name:         "update",
-			Usage:        "Updates application to the latest version on specified release channel (stable/beta)",
-			OnUsageError: onCommandUsageErrorHandler("update"),
-			ArgsUsage:    "[CHANNEL]",
-			Action:       updateCmd,
+			Name:      "update",
+			Usage:     "Updates application to the latest version on specified release channel (stable/beta)",
+			ArgsUsage: "[CHANNEL]",
+			Action:    updateCmd,
 		},
 	}
 
@@ -504,13 +489,4 @@ func shuffleFlags(originalArgs []string) []string {
 	shuffledFlags = append(shuffledFlags, fnameArgs...)
 
 	return shuffledFlags
-}
-
-func onCommandUsageErrorHandler(command string) func(*cli.Context, error, bool) error {
-	return func(c *cli.Context, err error, isSubcommand bool) error {
-		fmt.Printf("Incorrect usage: %s\n\n", err.Error())
-
-		cli.ShowCommandHelpAndExit(c, command, 1)
-		return nil
-	}
 }

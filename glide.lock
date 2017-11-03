@@ -1,5 +1,5 @@
-hash: d31123fe13f77d46d4c45c7a9be00c74c1f44616bec01a5b8777889f1e3a8b3e
-updated: 2016-12-20T15:25:24.27898513-08:00
+hash: fa08a3bfa9e106d2be8c789645ffa1bfa902f3d88d3d7a18cd9449cbf44d336a
+updated: 2017-11-01T18:27:55.051103714-07:00
 imports:
 - name: github.com/equinox-io/equinox
   version: 6f97d0d3970881d3e53dd6f547a41109eb055e54
@@ -12,11 +12,11 @@ imports:
 - name: github.com/gyuho/goraph
   version: d460590d53a91b1f29347ca9b01d1e8c158cbeb2
 - name: github.com/mattn/go-runewidth
-  version: d6bea18f789704b5f83375793155289da36a3c7f
+  version: 9e777a8366cce605130a531d2cd6363d07ad7317
 - name: github.com/olekukonko/tablewriter
   version: daf2955e742cf123959884fdff4685aa79b63135
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/urfave/cli
-  version: 4205e9c4ee9672a8df5bb4fe486a8aa07e1e4037
+  version: cfb38830724cc34fedffe9a2a29fb54fa9169cd1
 testImports: []

@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.8.8"
+	version = "2.8.9"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )

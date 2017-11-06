@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.8.9 - 2017-11-06
+- Re-release 2.8.7 with fixes
+  - (58e3464f8f7806db2830ed9411a27f87d36f1dbe, @epaulet)
+
 ## 2.8.8 - 2017-11-03
 - Revert 2.8.7
   - (a1d29d8b253259aee1eb6906510492a6f461f63e, @jbarber)

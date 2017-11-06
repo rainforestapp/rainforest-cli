@@ -2,11 +2,35 @@ package main
 
 import (
 	"errors"
+	"os"
+	"os/exec"
 	"reflect"
 	"testing"
 
 	"github.com/urfave/cli"
 )
+
+func TestMain(t *testing.T) {
+	commands := []string{"run", "new", "validate", "upload", "rm", "download", "csv-upload", "report", "sites", "folders", "filters", "browsers", "features", "run-groups", "update"}
+
+	for _, command := range commands {
+		if os.Getenv("TEST_EXIT") == "1" {
+			os.Args = []string{"./rainforest", command, "--not-real-flag"}
+			main()
+			return
+		}
+
+		cmd := exec.Command(os.Args[0], "-test.run=Main")
+		cmd.Env = append(os.Environ(), "TEST_EXIT=1")
+		err := cmd.Run()
+
+		if err == nil {
+			t.Error("Expected exit error was not received")
+		} else if e, ok := err.(*exec.ExitError); !ok || e.Success() {
+			t.Errorf("Unexpected error. Expected an exit error with non-zero status. Got %#v", e.Error())
+		}
+	}
+}
 
 func TestShuffleFlags(t *testing.T) {
 	var testCases = []struct {

@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.8.10 - 2017-11-29
+- Fix bug with `-f` flag returning an odd error.
+  - (c9242ba02b13e439203499cc3e965ed3c89c82d4, @macocha)
+
 ## 2.8.9 - 2017-11-06
 - Re-release 2.8.7 with fixes
   - (58e3464f8f7806db2830ed9411a27f87d36f1dbe, @epaulet)

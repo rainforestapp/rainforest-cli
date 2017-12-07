@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.8.11 - 2017-12-07
+- Patch over bug with parsing `null` timestamps returned by Rainforest generator API.
+  - (c8be6923d987522b08ea9b20088a3ab7f14e1a50, @epaulet)
+
 ## 2.8.10 - 2017-11-29
 - Fix bug with `-f` flag returning an odd error.
   - (c9242ba02b13e439203499cc3e965ed3c89c82d4, @macocha)

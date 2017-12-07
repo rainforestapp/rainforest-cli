@@ -3,7 +3,6 @@ package rainforest
 import (
 	"errors"
 	"strconv"
-	"time"
 )
 
 // Generator is a type representing generators which can be used as variables in RF tests.
@@ -11,7 +10,6 @@ import (
 type Generator struct {
 	ID          int               `json:"id,omitempty"`
 	Name        string            `json:"name,omitempty"`
-	CreatedAt   time.Time         `json:"created_at,omitempty"`
 	Description string            `json:"description,omitempty"`
 	Type        string            `json:"generator_type,omitempty"`
 	SingleUse   bool              `json:"single_use,omitempty"`
@@ -32,7 +30,6 @@ func (g Generator) GetDescription() string {
 // GeneratorColumn is a type of column in a generator
 type GeneratorColumn struct {
 	ID        int       `json:"id,omitempty"`
-	CreatedAt time.Time `json:"created_at,omitempty"`
 	Name      string    `json:"name,omitempty"`
 }
 

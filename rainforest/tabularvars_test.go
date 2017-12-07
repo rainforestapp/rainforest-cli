@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestGetGenerators(t *testing.T) {
@@ -30,6 +31,7 @@ func TestGetGenerators(t *testing.T) {
 	want := []Generator{{
 		ID:          1337,
 		Name:        "foo",
+		CreatedAt:   time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 		Description: "bar",
 		Type:        "tabular",
 		SingleUse:   false,
@@ -38,10 +40,12 @@ func TestGetGenerators(t *testing.T) {
 			{
 				ID:        30225,
 				Name:      "username",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 			{
 				ID:        30226,
 				Name:      "password",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 		},
 	}}
@@ -102,6 +106,7 @@ func TestCreateTabularVar(t *testing.T) {
 	want := &Generator{
 		ID:          1337,
 		Name:        "foo",
+		CreatedAt:   time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 		Description: "bar",
 		Type:        "tabular",
 		SingleUse:   false,
@@ -110,10 +115,12 @@ func TestCreateTabularVar(t *testing.T) {
 			{
 				ID:        30225,
 				Name:      "baz",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 			{
 				ID:        30226,
 				Name:      "wut",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 		},
 	}
@@ -154,10 +161,12 @@ func TestAddGeneratorRows(t *testing.T) {
 			{
 				ID:        123,
 				Name:      "qwe",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 			{
 				ID:        456,
 				Name:      "asd",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 		},
 	}
@@ -199,10 +208,12 @@ func TestAddGeneratorRowsFromTable(t *testing.T) {
 			{
 				ID:        123,
 				Name:      "qwe",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 			{
 				ID:        456,
 				Name:      "asd",
+				CreatedAt: time.Date(2016, time.November, 24, 14, 56, 19, 0, time.UTC),
 			},
 		},
 	}

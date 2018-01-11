@@ -12,11 +12,14 @@ var curTest *rainforest.RFTest
 %}
 
 %union {
-  str string
-  bool bool
+  strval string
+  boolval bool
+  steplist []interface{}
+  step rainforest.RFTestStep
+  embedded_test rainforest.RFEmbeddedTest
 }
 
-%token _STRING
+%token <strval> _STRING
 %token _TITLE
 %token _START_URI
 %token _TAGS
@@ -25,65 +28,67 @@ var curTest *rainforest.RFTest
 %token _EXECUTE
 %token _EOF
 
+%type   <strval>          headerval
+%type   <strval>          action
+%type   <strval>          response
+%type   <boolval>         redirect_header
+%type   <steplist>           steps
+%type   <step>           step
+%type   <embedded_test>  embedded_test
+%type   <steplist>       emptyline
+
+%start file
+
 %%
 
-file:
-                metadata '\n' steps _EOF { return 0 }
-                ;
+file : metadata '\n' steps _EOF { return finalizeTest($3) }
+     ;
 
-metadata:
-                id_header headers
-                ;
+metadata : id_header headers
+         ;
 
-id_header:
-                '#' '!' _STRING '\n' { curTest.RFMLID = $3.str }
-                ;
+id_header : '#' '!' _STRING '\n' { curTest.RFMLID = $3 }
+          ;
 
-headers:
-                /* empty */
+headers : /* empty */
         |       '#' header headers
                 ;
 
-header:
-                headerval
-        |       _TITLE ':' headerval { curTest.Title = $3.str }
-        |       _START_URI ':' headerval { curTest.StartURI = $3.str }
-        |       _TAGS ':' headerval { curTest.Tags = parseList($3.str) }
-        |       _BROWSERS ':' headerval { curTest.Browsers = parseList($3.str) }
-        |       _EXECUTE ':' headerval { curTest.Execute = parseBool($3.str) }
+header : headerval
+        |       _TITLE ':' headerval { curTest.Title = $3 }
+        |       _START_URI ':' headerval { curTest.StartURI = $3 }
+        |       _TAGS ':' headerval { curTest.Tags = parseList($3) }
+        |       _BROWSERS ':' headerval { curTest.Browsers = parseList($3) }
+        |       _EXECUTE ':' headerval { curTest.Execute = parseBool($3) }
                 ;
 
-headerval:
-                '\n' { $$.str = "" }
-        |       _STRING '\n' { $$.str = $1.str }
+headerval : '\n' { $$ = "" }
+        |       _STRING '\n' { $$ = $1 }
                 ;
 
-steps:
-                /* empty */
-        |       '\n' steps
-        |       embedded_test steps
-        |       step steps
+steps : /* empty */ { $$ = []interface{}{} }
+        |       emptyline steps { $$ = $2 }
+        |       embedded_test steps { $$ = append([]interface{}{$1}, $2...) }
+        |       step steps { $$ = append([]interface{}{$1}, $2...) }
                 ;
 
-embedded_test:
-                redirect_header '-' _STRING '\n' { appendEmbeddedTest($3.str, $1.bool) }
+emptyline : '\n' { $$ = []interface{}{} }
+
+embedded_test : redirect_header '-' _STRING '\n' { $$ = rainforest.RFEmbeddedTest{$3, $1} }
                 ;
 
-step:
-                redirect_header action response { appendStep($2.str, $3.str, $1.bool) }
+step :
+                redirect_header action response { $$ = rainforest.RFTestStep{$2, $3, $1} }
                 ;
 
-redirect_header:
-                /* empty */ { $$.bool = true }
-        |       '#' _REDIRECT ':' _STRING '\n' { $$.bool = parseBool($4.str) }
+redirect_header : /* empty */ { $$ = true }
+        |       '#' _REDIRECT ':' _STRING '\n' { $$ = parseBool($4) }
                 ;
 
-action:
-                _STRING '\n' { $$.str = $1.str }
+action : _STRING '\n' { $$ = $1 }
                 ;
 
-response:
-                _STRING '\n' { $$.str = $1.str }
+response : _STRING '\n' { $$ = $1 }
                 ;
 
 %%
@@ -112,12 +117,7 @@ func parseBool(str string) bool {
   panic(fmt.Sprintf("invalid boolean value: %s", str))
 }
 
-func appendEmbeddedTest(id string, redirect bool) {
-	step := rainforest.RFEmbeddedTest{RFMLID: id, Redirect: redirect}
-  curTest.Steps = append(curTest.Steps, step)
-}
-
-func appendStep(action, response string, redirect bool) {
-	step := rainforest.RFTestStep{Action: action, Response: response, Redirect: redirect}
-  curTest.Steps = append(curTest.Steps, step)
+func finalizeTest(steps []interface{}) int {
+  curTest.Steps = steps
+  return 0
 }

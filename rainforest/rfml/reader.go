@@ -103,7 +103,7 @@ func (r *Reader) Lex(lval *yySymType) int {
 		}
 
 		// we're not at a keyword, so just read to EOL as a string
-		lval.str = candidate + r.readToEOL()
+		lval.strval = candidate + r.readToEOL()
 		return _STRING
 	}
 
@@ -122,7 +122,7 @@ func (r *Reader) Lex(lval *yySymType) int {
 	}
 
 	// As a catch-all, read to the EOL as a string
-	lval.str = string(c) + r.readToEOL()
+	lval.strval = string(c) + r.readToEOL()
 	return _STRING
 }
 

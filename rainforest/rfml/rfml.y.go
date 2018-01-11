@@ -15,9 +15,12 @@ var curTest *rainforest.RFTest
 
 //line rfml.y:14
 type yySymType struct {
-	yys  int
-	str  string
-	bool bool
+	yys           int
+	strval        string
+	boolval       bool
+	steplist      []interface{}
+	step          rainforest.RFTestStep
+	embedded_test rainforest.RFEmbeddedTest
 }
 
 const _STRING = 57346
@@ -53,7 +56,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line rfml.y:89
+//line rfml.y:94
 
 func parseList(str string) []string {
 	result := []string{}
@@ -79,14 +82,9 @@ func parseBool(str string) bool {
 	panic(fmt.Sprintf("invalid boolean value: %s", str))
 }
 
-func appendEmbeddedTest(id string, redirect bool) {
-	step := rainforest.RFEmbeddedTest{RFMLID: id, Redirect: redirect}
-	curTest.Steps = append(curTest.Steps, step)
-}
-
-func appendStep(action, response string, redirect bool) {
-	step := rainforest.RFTestStep{Action: action, Response: response, Redirect: redirect}
-	curTest.Steps = append(curTest.Steps, step)
+func finalizeTest(steps []interface{}) int {
+	curTest.Steps = steps
+	return 0
 }
 
 //line yacctab:1
@@ -96,74 +94,74 @@ var yyExca = [...]int{
 	-2, 0,
 	-1, 5,
 	11, 14,
-	-2, 20,
+	-2, 21,
 	-1, 10,
 	11, 14,
-	-2, 20,
+	-2, 21,
 	-1, 11,
 	11, 14,
-	-2, 20,
+	-2, 21,
 	-1, 12,
 	11, 14,
-	-2, 20,
+	-2, 21,
 }
 
 const yyPrivate = 57344
 
-const yyLast = 56
+const yyLast = 57
 
 var yyAct = [...]int{
 
-	16, 23, 17, 18, 19, 20, 31, 21, 6, 22,
-	45, 38, 32, 37, 36, 35, 34, 9, 29, 10,
-	14, 54, 8, 23, 33, 7, 4, 52, 26, 27,
-	28, 22, 51, 44, 40, 46, 47, 48, 49, 50,
-	39, 5, 25, 53, 43, 41, 24, 42, 30, 13,
-	12, 11, 15, 3, 2, 1,
+	17, 24, 18, 19, 20, 21, 32, 22, 6, 23,
+	46, 39, 33, 38, 37, 36, 35, 9, 30, 13,
+	15, 55, 8, 24, 7, 34, 4, 53, 27, 28,
+	29, 23, 52, 45, 41, 40, 47, 48, 49, 50,
+	51, 5, 26, 54, 44, 42, 25, 16, 3, 2,
+	1, 10, 11, 12, 14, 43, 31,
 }
 var yyPact = [...]int{
 
-	13, -1000, 29, 12, 8, 7, -1000, -3, 42, 31,
-	7, 7, 7, 2, 3, 12, -1000, 1, 0, -1,
-	-2, -4, -1000, 28, 22, -1000, -1000, -1000, -1000, 41,
-	40, 21, -5, -1000, 19, 19, 19, 19, 19, -1000,
-	-1000, 20, -1000, 15, -1000, 39, -1000, -1000, -1000, -1000,
-	-1000, -1000, -1000, 9, -1000,
+	13, -1000, 29, 11, 8, 7, -1000, -3, 42, 31,
+	7, 7, 7, -1000, 2, 3, 11, -1000, 1, 0,
+	-1, -2, -4, -1000, 23, 22, -1000, -1000, -1000, -1000,
+	41, 40, 21, -5, -1000, 19, 19, 19, 19, 19,
+	-1000, -1000, 20, -1000, 15, -1000, 39, -1000, -1000, -1000,
+	-1000, -1000, -1000, -1000, 9, -1000,
 }
 var yyPgo = [...]int{
 
-	0, 55, 54, 17, 53, 8, 52, 0, 51, 50,
-	49, 48, 47,
+	0, 0, 56, 55, 54, 17, 53, 52, 51, 50,
+	49, 48, 8, 47,
 }
 var yyR1 = [...]int{
 
-	0, 1, 2, 4, 5, 5, 6, 6, 6, 6,
-	6, 6, 7, 7, 3, 3, 3, 3, 8, 9,
-	10, 10, 11, 12,
+	0, 9, 10, 11, 12, 12, 13, 13, 13, 13,
+	13, 13, 1, 1, 5, 5, 5, 5, 8, 7,
+	6, 4, 4, 2, 3,
 }
 var yyR2 = [...]int{
 
 	0, 4, 2, 4, 0, 3, 1, 3, 3, 3,
-	3, 3, 1, 2, 0, 2, 2, 2, 4, 3,
-	0, 5, 2, 2,
+	3, 3, 1, 2, 0, 2, 2, 2, 1, 4,
+	3, 0, 5, 2, 2,
 }
 var yyChk = [...]int{
 
-	-1000, -1, -2, -4, 13, 12, -5, 13, 14, -3,
-	12, -8, -9, -10, 13, -6, -7, 5, 6, 7,
-	8, 10, 12, 4, 4, 11, -3, -3, -3, 16,
-	-11, 4, 9, -5, 15, 15, 15, 15, 15, 12,
-	12, 4, -12, 4, 12, 15, -7, -7, -7, -7,
-	-7, 12, 12, 4, 12,
+	-1000, -9, -10, -11, 13, 12, -12, 13, 14, -5,
+	-8, -7, -6, 12, -4, 13, -13, -1, 5, 6,
+	7, 8, 10, 12, 4, 4, 11, -5, -5, -5,
+	16, -2, 4, 9, -12, 15, 15, 15, 15, 15,
+	12, 12, 4, -3, 4, 12, 15, -1, -1, -1,
+	-1, -1, 12, 12, 4, 12,
 }
 var yyDef = [...]int{
 
 	0, -2, 0, 4, 0, -2, 2, 0, 0, 0,
-	-2, -2, -2, 0, 0, 4, 6, 0, 0, 0,
-	0, 0, 12, 0, 0, 1, 15, 16, 17, 0,
-	0, 0, 0, 5, 0, 0, 0, 0, 0, 13,
-	3, 0, 19, 0, 22, 0, 7, 8, 9, 10,
-	11, 18, 23, 0, 21,
+	-2, -2, -2, 18, 0, 0, 4, 6, 0, 0,
+	0, 0, 0, 12, 0, 0, 1, 15, 16, 17,
+	0, 0, 0, 0, 5, 0, 0, 0, 0, 0,
+	13, 3, 0, 20, 0, 23, 0, 7, 8, 9,
+	10, 11, 19, 24, 0, 22,
 }
 var yyTok1 = [...]int{
 
@@ -521,93 +519,123 @@ yydefault:
 
 	case 1:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line rfml.y:31
+		//line rfml.y:44
 		{
-			return 0
+			return finalizeTest(yyDollar[3].steplist)
 		}
 	case 3:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line rfml.y:39
+		//line rfml.y:50
 		{
-			curTest.RFMLID = yyDollar[3].str
+			curTest.RFMLID = yyDollar[3].strval
 		}
 	case 7:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line rfml.y:49
+		//line rfml.y:58
 		{
-			curTest.Title = yyDollar[3].str
+			curTest.Title = yyDollar[3].strval
 		}
 	case 8:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line rfml.y:50
+		//line rfml.y:59
 		{
-			curTest.StartURI = yyDollar[3].str
+			curTest.StartURI = yyDollar[3].strval
 		}
 	case 9:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line rfml.y:51
+		//line rfml.y:60
 		{
-			curTest.Tags = parseList(yyDollar[3].str)
+			curTest.Tags = parseList(yyDollar[3].strval)
 		}
 	case 10:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line rfml.y:52
+		//line rfml.y:61
 		{
-			curTest.Browsers = parseList(yyDollar[3].str)
+			curTest.Browsers = parseList(yyDollar[3].strval)
 		}
 	case 11:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line rfml.y:53
+		//line rfml.y:62
 		{
-			curTest.Execute = parseBool(yyDollar[3].str)
+			curTest.Execute = parseBool(yyDollar[3].strval)
 		}
 	case 12:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line rfml.y:57
+		//line rfml.y:65
 		{
-			yyVAL.str = ""
+			yyVAL.strval = ""
 		}
 	case 13:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line rfml.y:58
+		//line rfml.y:66
 		{
-			yyVAL.str = yyDollar[1].str
+			yyVAL.strval = yyDollar[1].strval
 		}
-	case 18:
-		yyDollar = yyS[yypt-4 : yypt+1]
+	case 14:
+		yyDollar = yyS[yypt-0 : yypt+1]
 		//line rfml.y:69
 		{
-			appendEmbeddedTest(yyDollar[3].str, yyDollar[1].bool)
+			yyVAL.steplist = []interface{}{}
+		}
+	case 15:
+		yyDollar = yyS[yypt-2 : yypt+1]
+		//line rfml.y:70
+		{
+			yyVAL.steplist = yyDollar[2].steplist
+		}
+	case 16:
+		yyDollar = yyS[yypt-2 : yypt+1]
+		//line rfml.y:71
+		{
+			yyVAL.steplist = append([]interface{}{yyDollar[1].embedded_test}, yyDollar[2].steplist...)
+		}
+	case 17:
+		yyDollar = yyS[yypt-2 : yypt+1]
+		//line rfml.y:72
+		{
+			yyVAL.steplist = append([]interface{}{yyDollar[1].step}, yyDollar[2].steplist...)
+		}
+	case 18:
+		yyDollar = yyS[yypt-1 : yypt+1]
+		//line rfml.y:75
+		{
+			yyVAL.steplist = []interface{}{}
 		}
 	case 19:
-		yyDollar = yyS[yypt-3 : yypt+1]
-		//line rfml.y:73
-		{
-			appendStep(yyDollar[2].str, yyDollar[3].str, yyDollar[1].bool)
-		}
-	case 20:
-		yyDollar = yyS[yypt-0 : yypt+1]
+		yyDollar = yyS[yypt-4 : yypt+1]
 		//line rfml.y:77
 		{
-			yyVAL.bool = true
+			yyVAL.embedded_test = rainforest.RFEmbeddedTest{yyDollar[3].strval, yyDollar[1].boolval}
+		}
+	case 20:
+		yyDollar = yyS[yypt-3 : yypt+1]
+		//line rfml.y:81
+		{
+			yyVAL.step = rainforest.RFTestStep{yyDollar[2].strval, yyDollar[3].strval, yyDollar[1].boolval}
 		}
 	case 21:
-		yyDollar = yyS[yypt-5 : yypt+1]
-		//line rfml.y:78
+		yyDollar = yyS[yypt-0 : yypt+1]
+		//line rfml.y:84
 		{
-			yyVAL.bool = parseBool(yyDollar[4].str)
+			yyVAL.boolval = true
 		}
 	case 22:
-		yyDollar = yyS[yypt-2 : yypt+1]
-		//line rfml.y:82
+		yyDollar = yyS[yypt-5 : yypt+1]
+		//line rfml.y:85
 		{
-			yyVAL.str = yyDollar[1].str
+			yyVAL.boolval = parseBool(yyDollar[4].strval)
 		}
 	case 23:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line rfml.y:86
+		//line rfml.y:88
 		{
-			yyVAL.str = yyDollar[1].str
+			yyVAL.strval = yyDollar[1].strval
+		}
+	case 24:
+		yyDollar = yyS[yypt-2 : yypt+1]
+		//line rfml.y:91
+		{
+			yyVAL.strval = yyDollar[1].strval
 		}
 	}
 	goto yystack /* stack new state and value */

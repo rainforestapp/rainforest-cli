@@ -1,0 +1,15 @@
+#! test-a
+# title: Test A
+# start_uri: /
+# tags: run-me, fixme
+# browsers: chrome_1440_900
+#
+
+- login
+
+#redirect: false
+Do a thing.
+Did something happen?
+
+Do something else.
+Did something else happen?

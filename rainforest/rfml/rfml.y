@@ -2,7 +2,6 @@
 package rfml
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -20,6 +19,7 @@ var curTest *rainforest.RFTest
 }
 
 %token <strval> _STRING
+%token <boolval> _BOOL
 %token _TITLE
 %token _START_URI
 %token _TAGS
@@ -32,7 +32,7 @@ var curTest *rainforest.RFTest
 %type   <strval>          action
 %type   <strval>          response
 %type   <boolval>         redirect_header
-%type   <steplist>           steps
+%type   <steplist>        steps
 %type   <step>           step
 %type   <embedded_test>  embedded_test
 %type   <steplist>       emptyline
@@ -59,7 +59,7 @@ header : headerval
         |       _START_URI ':' headerval { curTest.StartURI = $3 }
         |       _TAGS ':' headerval { curTest.Tags = parseList($3) }
         |       _BROWSERS ':' headerval { curTest.Browsers = parseList($3) }
-        |       _EXECUTE ':' headerval { curTest.Execute = parseBool($3) }
+        |       _EXECUTE ':' _BOOL '\n' { curTest.Execute = $3 }
                 ;
 
 headerval : '\n' { $$ = "" }
@@ -82,7 +82,7 @@ step :
                 ;
 
 redirect_header : /* empty */ { $$ = true }
-        |       '#' _REDIRECT ':' _STRING '\n' { $$ = parseBool($4) }
+        |       '#' _REDIRECT ':' _BOOL '\n' { $$ = $4 }
                 ;
 
 action : _STRING '\n' { $$ = $1 }
@@ -104,17 +104,6 @@ func parseList(str string) []string {
 	}
 
 	return result
-}
-
-func parseBool(str string) bool {
-	s := strings.TrimSpace(str)
-	if s == "true" {
-		return true
-	}
-	if s == "false" {
-		return false
-	}
-  panic(fmt.Sprintf("invalid boolean value: %s", str))
 }
 
 func finalizeTest(steps []interface{}) int {

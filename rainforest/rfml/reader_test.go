@@ -67,7 +67,7 @@ func TestLex(t *testing.T) {
 		'#', _TITLE, ':', _STRING, '\n',
 		'#', _START_URI, ':', _STRING, '\n',
 		'#', _TAGS, ':', '\n',
-		'#', _EXECUTE, ':', _STRING, '\n',
+		'#', _EXECUTE, ':', _BOOL, '\n',
 		'#', '\n',
 		'\n',
 		_STRING, '\n',

@@ -5,7 +5,6 @@ import __yyfmt__ "fmt"
 
 //line rfml.y:2
 import (
-	"fmt"
 	"strings"
 )
 
@@ -13,7 +12,7 @@ import "github.com/rainforestapp/rainforest-cli/rainforest"
 
 var curTest *rainforest.RFTest
 
-//line rfml.y:14
+//line rfml.y:13
 type yySymType struct {
 	yys           int
 	strval        string
@@ -24,19 +23,21 @@ type yySymType struct {
 }
 
 const _STRING = 57346
-const _TITLE = 57347
-const _START_URI = 57348
-const _TAGS = 57349
-const _BROWSERS = 57350
-const _REDIRECT = 57351
-const _EXECUTE = 57352
-const _EOF = 57353
+const _BOOL = 57347
+const _TITLE = 57348
+const _START_URI = 57349
+const _TAGS = 57350
+const _BROWSERS = 57351
+const _REDIRECT = 57352
+const _EXECUTE = 57353
+const _EOF = 57354
 
 var yyToknames = [...]string{
 	"$end",
 	"error",
 	"$unk",
 	"_STRING",
+	"_BOOL",
 	"_TITLE",
 	"_START_URI",
 	"_TAGS",
@@ -71,17 +72,6 @@ func parseList(str string) []string {
 	return result
 }
 
-func parseBool(str string) bool {
-	s := strings.TrimSpace(str)
-	if s == "true" {
-		return true
-	}
-	if s == "false" {
-		return false
-	}
-	panic(fmt.Sprintf("invalid boolean value: %s", str))
-}
-
 func finalizeTest(steps []interface{}) int {
 	curTest.Steps = steps
 	return 0
@@ -93,45 +83,45 @@ var yyExca = [...]int{
 	1, -1,
 	-2, 0,
 	-1, 5,
-	11, 14,
+	12, 14,
 	-2, 21,
 	-1, 10,
-	11, 14,
+	12, 14,
 	-2, 21,
 	-1, 11,
-	11, 14,
+	12, 14,
 	-2, 21,
 	-1, 12,
-	11, 14,
+	12, 14,
 	-2, 21,
 }
 
 const yyPrivate = 57344
 
-const yyLast = 57
+const yyLast = 58
 
 var yyAct = [...]int{
 
-	17, 24, 18, 19, 20, 21, 32, 22, 6, 23,
-	46, 39, 33, 38, 37, 36, 35, 9, 30, 13,
-	15, 55, 8, 24, 7, 34, 4, 53, 27, 28,
-	29, 23, 52, 45, 41, 40, 47, 48, 49, 50,
-	51, 5, 26, 54, 44, 42, 25, 16, 3, 2,
-	1, 10, 11, 12, 14, 43, 31,
+	17, 24, 32, 18, 19, 20, 21, 6, 22, 46,
+	23, 39, 38, 24, 8, 30, 37, 36, 35, 13,
+	15, 9, 23, 56, 34, 7, 4, 55, 53, 52,
+	45, 41, 27, 28, 29, 40, 47, 48, 49, 50,
+	5, 26, 33, 54, 51, 44, 42, 25, 16, 3,
+	2, 1, 10, 11, 12, 14, 43, 31,
 }
 var yyPact = [...]int{
 
-	13, -1000, 29, 11, 8, 7, -1000, -3, 42, 31,
-	7, 7, 7, -1000, 2, 3, 11, -1000, 1, 0,
-	-1, -2, -4, -1000, 23, 22, -1000, -1000, -1000, -1000,
-	41, 40, 21, -5, -1000, 19, 19, 19, 19, 19,
-	-1000, -1000, 20, -1000, 15, -1000, 39, -1000, -1000, -1000,
-	-1000, -1000, -1000, -1000, 9, -1000,
+	12, -1000, 27, 11, -1, 6, -1000, -3, 43, 29,
+	6, 6, 6, -1000, -2, 32, 11, -1000, 2, 1,
+	0, -4, -5, -1000, 22, 18, -1000, -1000, -1000, -1000,
+	42, 41, 17, -7, -1000, 9, 9, 9, 9, 39,
+	-1000, -1000, 16, -1000, 15, -1000, 38, -1000, -1000, -1000,
+	-1000, 14, -1000, -1000, 10, -1000, -1000,
 }
 var yyPgo = [...]int{
 
-	0, 0, 56, 55, 54, 17, 53, 52, 51, 50,
-	49, 48, 8, 47,
+	0, 0, 57, 56, 55, 21, 54, 53, 52, 51,
+	50, 49, 7, 48,
 }
 var yyR1 = [...]int{
 
@@ -142,17 +132,17 @@ var yyR1 = [...]int{
 var yyR2 = [...]int{
 
 	0, 4, 2, 4, 0, 3, 1, 3, 3, 3,
-	3, 3, 1, 2, 0, 2, 2, 2, 1, 4,
+	3, 4, 1, 2, 0, 2, 2, 2, 1, 4,
 	3, 0, 5, 2, 2,
 }
 var yyChk = [...]int{
 
-	-1000, -9, -10, -11, 13, 12, -12, 13, 14, -5,
-	-8, -7, -6, 12, -4, 13, -13, -1, 5, 6,
-	7, 8, 10, 12, 4, 4, 11, -5, -5, -5,
-	16, -2, 4, 9, -12, 15, 15, 15, 15, 15,
-	12, 12, 4, -3, 4, 12, 15, -1, -1, -1,
-	-1, -1, 12, 12, 4, 12,
+	-1000, -9, -10, -11, 14, 13, -12, 14, 15, -5,
+	-8, -7, -6, 13, -4, 14, -13, -1, 6, 7,
+	8, 9, 11, 13, 4, 4, 12, -5, -5, -5,
+	17, -2, 4, 10, -12, 16, 16, 16, 16, 16,
+	13, 13, 4, -3, 4, 13, 16, -1, -1, -1,
+	-1, 5, 13, 13, 5, 13, 13,
 }
 var yyDef = [...]int{
 
@@ -161,20 +151,21 @@ var yyDef = [...]int{
 	0, 0, 0, 12, 0, 0, 1, 15, 16, 17,
 	0, 0, 0, 0, 5, 0, 0, 0, 0, 0,
 	13, 3, 0, 20, 0, 23, 0, 7, 8, 9,
-	10, 11, 19, 24, 0, 22,
+	10, 0, 19, 24, 0, 11, 22,
 }
 var yyTok1 = [...]int{
 
 	1, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	12, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	13, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 14, 3, 13, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 16, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3, 15,
+	3, 3, 3, 15, 3, 14, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 17, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 16,
 }
 var yyTok2 = [...]int{
 
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+	12,
 }
 var yyTok3 = [...]int{
 	0,
@@ -554,10 +545,10 @@ yydefault:
 			curTest.Browsers = parseList(yyDollar[3].strval)
 		}
 	case 11:
-		yyDollar = yyS[yypt-3 : yypt+1]
+		yyDollar = yyS[yypt-4 : yypt+1]
 		//line rfml.y:62
 		{
-			curTest.Execute = parseBool(yyDollar[3].strval)
+			curTest.Execute = yyDollar[3].boolval
 		}
 	case 12:
 		yyDollar = yyS[yypt-1 : yypt+1]
@@ -623,7 +614,7 @@ yydefault:
 		yyDollar = yyS[yypt-5 : yypt+1]
 		//line rfml.y:85
 		{
-			yyVAL.boolval = parseBool(yyDollar[4].strval)
+			yyVAL.boolval = yyDollar[4].boolval
 		}
 	case 23:
 		yyDollar = yyS[yypt-2 : yypt+1]

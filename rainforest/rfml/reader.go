@@ -16,8 +16,9 @@ type Reader struct {
 	parseError error
 
 	// vars for internal state tracking
-	atbol  bool
-	atmeta bool
+	atbol    bool
+	atmeta   bool
+	inheader bool
 }
 
 func NewReader(r io.Reader) *Reader {
@@ -43,14 +44,18 @@ func (r *Reader) ReadAll() (*rainforest.RFTest, error) {
 	return curTest, nil
 }
 
-var keywords = map[string]int{
-	"string":    _STRING,
+var headers = map[string]int{
 	"title":     _TITLE,
 	"start_uri": _START_URI,
 	"tags":      _TAGS,
 	"browsers":  _BROWSERS,
 	"redirect":  _REDIRECT,
 	"execute":   _EXECUTE,
+}
+
+var bools = map[string]bool{
+	"true":  true,
+	"false": false,
 }
 
 func (r *Reader) Lex(lval *yySymType) int {
@@ -82,6 +87,7 @@ func (r *Reader) Lex(lval *yySymType) int {
 	if c == '\n' {
 		r.atbol = true
 		r.atmeta = false
+		r.inheader = false
 		return int(c)
 	}
 
@@ -93,12 +99,13 @@ func (r *Reader) Lex(lval *yySymType) int {
 
 		// Special consideration for "shebang"
 		if c == '!' {
+			r.inheader = false
 			return int(c)
 		}
 
 		r.r.UnreadRune()
 		candidate := r.readKeyword()
-		if k, ok := keywords[candidate]; ok {
+		if k, ok := headers[candidate]; ok {
 			return k
 		}
 
@@ -110,6 +117,7 @@ func (r *Reader) Lex(lval *yySymType) int {
 	if r.atbol {
 		if c == '#' {
 			r.atmeta = true
+			r.inheader = true
 			return int(c)
 		}
 		if c == '-' {
@@ -119,6 +127,19 @@ func (r *Reader) Lex(lval *yySymType) int {
 
 	if c == ':' {
 		return int(c)
+	}
+
+	if r.inheader {
+		// Check for bool vals, which only happen in headers.
+		r.r.UnreadRune()
+		candidate := r.readKeyword()
+		if val, ok := bools[candidate]; ok {
+			lval.boolval = val
+			return _BOOL
+		}
+
+		lval.strval = candidate + r.readToEOL()
+		return _STRING
 	}
 
 	// As a catch-all, read to the EOL as a string

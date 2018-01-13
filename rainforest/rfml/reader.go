@@ -4,8 +4,11 @@ package rfml
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"io"
+	"regexp"
+	"strconv"
 	"unicode"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
@@ -16,9 +19,9 @@ type Reader struct {
 	parseError error
 
 	// vars for internal state tracking
-	atbol    bool
-	atmeta   bool
-	inheader bool
+	atbol         bool
+	atmeta        bool
+	pseudonewline bool
 }
 
 func NewReader(r io.Reader) *Reader {
@@ -45,17 +48,15 @@ func (r *Reader) ReadAll() (*rainforest.RFTest, error) {
 }
 
 var headers = map[string]int{
-	"title":     _TITLE,
-	"start_uri": _START_URI,
-	"tags":      _TAGS,
-	"browsers":  _BROWSERS,
-	"redirect":  _REDIRECT,
-	"execute":   _EXECUTE,
-}
-
-var bools = map[string]bool{
-	"true":  true,
-	"false": false,
+	"title":      _TITLE,
+	"start_uri":  _START_URI,
+	"tags":       _TAGS,
+	"browsers":   _BROWSERS,
+	"redirect":   _REDIRECT,
+	"execute":    _EXECUTE,
+	"site_id":    _SITE_ID,
+	"feature_id": _FEATURE_ID,
+	"state":      _STATE,
 }
 
 func (r *Reader) Lex(lval *yySymType) int {
@@ -64,6 +65,11 @@ func (r *Reader) Lex(lval *yySymType) int {
 
 	if r.parseError != nil {
 		return 0
+	}
+
+	if r.pseudonewline {
+		r.pseudonewline = false
+		return '\n'
 	}
 
 	// Ignore leading whitespace before all tokens and advance to the next
@@ -87,7 +93,6 @@ func (r *Reader) Lex(lval *yySymType) int {
 	if c == '\n' {
 		r.atbol = true
 		r.atmeta = false
-		r.inheader = false
 		return int(c)
 	}
 
@@ -99,7 +104,6 @@ func (r *Reader) Lex(lval *yySymType) int {
 
 		// Special consideration for "shebang"
 		if c == '!' {
-			r.inheader = false
 			return int(c)
 		}
 
@@ -117,7 +121,6 @@ func (r *Reader) Lex(lval *yySymType) int {
 	if r.atbol {
 		if c == '#' {
 			r.atmeta = true
-			r.inheader = true
 			return int(c)
 		}
 		if c == '-' {
@@ -129,22 +132,9 @@ func (r *Reader) Lex(lval *yySymType) int {
 		return int(c)
 	}
 
-	if r.inheader {
-		// Check for bool vals, which only happen in headers.
-		r.r.UnreadRune()
-		candidate := r.readKeyword()
-		if val, ok := bools[candidate]; ok {
-			lval.boolval = val
-			return _BOOL
-		}
-
-		lval.strval = candidate + r.readToEOL()
-		return _STRING
-	}
-
-	// As a catch-all, read to the EOL as a string
-	lval.strval = string(c) + r.readToEOL()
-	return _STRING
+	// As a catch-all, to EOL as a value
+	val := string(c) + r.readToEOL()
+	return r.parseVal(val, lval)
 }
 
 func (r *Reader) readKeyword() string {
@@ -167,18 +157,50 @@ func (r *Reader) readKeyword() string {
 	return string(str)
 }
 
-func (r *Reader) readToEOL() string {
-	b, err := r.r.ReadBytes('\n')
-	if err != nil {
-		panic(err)
-	}
-	// Unread the newline
-	err = r.r.UnreadByte()
-	if err != nil {
-		panic(err)
+var bools = map[string]bool{
+	"true":  true,
+	"false": false,
+}
+var numRegexp = regexp.MustCompile(`\A[0-9]+\z`)
+
+func (r *Reader) parseVal(val string, lval *yySymType) int {
+	if b, ok := bools[val]; ok {
+		lval.boolval = b
+
+		return _BOOL
 	}
 
-	return string(b[:len(b)-1])
+	if numRegexp.MatchString(val) {
+		d, err := strconv.Atoi(val)
+		if err != nil {
+			panic(err)
+		}
+
+		lval.intval = d
+		return _INTEGER
+	}
+
+	lval.strval = val
+	return _STRING
+}
+
+func (r *Reader) readToEOL() string {
+	b, err := r.r.ReadBytes('\n')
+	if err != nil && err != io.EOF {
+		panic(err)
+	}
+	if err == io.EOF {
+		// Hack: we insert a "pseudo-newline" at EOF if there isn't one.
+		r.pseudonewline = true
+	} else {
+		// Unread the newline
+		err = r.r.UnreadByte()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return string(bytes.TrimSpace(b))
 }
 
 func (r *Reader) Error(e string) {

@@ -13,6 +13,7 @@ var curTest *rainforest.RFTest
 %union {
   strval string
   boolval bool
+  intval int
   steplist []interface{}
   step rainforest.RFTestStep
   embedded_test rainforest.RFEmbeddedTest
@@ -20,15 +21,18 @@ var curTest *rainforest.RFTest
 
 %token <strval> _STRING
 %token <boolval> _BOOL
+%token <intval> _INTEGER
 %token _TITLE
 %token _START_URI
 %token _TAGS
 %token _BROWSERS
 %token _REDIRECT
 %token _EXECUTE
+%token _FEATURE_ID
+%token _SITE_ID
+%token _STATE
 %token _EOF
 
-%type   <strval>          headerval
 %type   <strval>          action
 %type   <strval>          response
 %type   <boolval>         redirect_header
@@ -36,6 +40,8 @@ var curTest *rainforest.RFTest
 %type   <step>           step
 %type   <embedded_test>  embedded_test
 %type   <steplist>       emptyline
+%type   <strval>         headerstr
+%type   <intval>        headerint
 
 %start file
 
@@ -54,17 +60,24 @@ headers : /* empty */
         |       '#' header headers
                 ;
 
-header : headerval
-        |       _TITLE ':' headerval { curTest.Title = $3 }
-        |       _START_URI ':' headerval { curTest.StartURI = $3 }
-        |       _TAGS ':' headerval { curTest.Tags = parseList($3) }
-        |       _BROWSERS ':' headerval { curTest.Browsers = parseList($3) }
+header : headerstr
+        |       _TITLE ':' headerstr { curTest.Title = $3 }
+        |       _START_URI ':' headerstr { curTest.StartURI = $3 }
+        |       _TAGS ':' headerstr { curTest.Tags = parseList($3) }
+        |       _BROWSERS ':' headerstr { curTest.Browsers = parseList($3) }
         |       _EXECUTE ':' _BOOL '\n' { curTest.Execute = $3 }
+        |       _SITE_ID ':' headerint { curTest.SiteID = $3 }
+        |       _STATE ':' headerstr { curTest.State = $3 }
+        |       _FEATURE_ID ':' headerint { curTest.FeatureID = rainforest.FeatureIDInt($3) }
                 ;
 
-headerval : '\n' { $$ = "" }
+headerstr : '\n' { $$ = "" }
         |       _STRING '\n' { $$ = $1 }
-                ;
+;
+
+headerint : '\n' { $$ = 0 }
+        |       _INTEGER '\n' { $$ = $1 }
+;
 
 steps : /* empty */ { $$ = []interface{}{} }
         |       emptyline steps { $$ = $2 }
@@ -74,7 +87,7 @@ steps : /* empty */ { $$ = []interface{}{} }
 
 emptyline : '\n' { $$ = []interface{}{} }
 
-embedded_test : redirect_header '-' _STRING '\n' { $$ = rainforest.RFEmbeddedTest{$3, $1} }
+embedded_test : redirect_header '-' _STRING '\n' { __yyfmt__.Println("TEEEST"); $$ = rainforest.RFEmbeddedTest{$3, $1} }
                 ;
 
 step :

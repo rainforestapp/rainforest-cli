@@ -36,6 +36,7 @@ var curTest *rainforest.RFTest
 %type   <strval>          action
 %type   <strval>          response
 %type   <boolval>         redirect_header
+%type   <steplist>        steplist
 %type   <steplist>        steps
 %type   <step>           step
 %type   <embedded_test>  embedded_test
@@ -47,7 +48,7 @@ var curTest *rainforest.RFTest
 
 %%
 
-file : metadata '\n' steps _EOF { return finalizeTest($3) }
+file : metadata steplist _EOF { return finalizeTest($2) }
      ;
 
 metadata : id_header headers
@@ -77,6 +78,10 @@ headerstr : '\n' { $$ = "" }
 
 headerint : '\n' { $$ = 0 }
         |       _INTEGER '\n' { $$ = $1 }
+;
+
+steplist : /* empty */ { $$ = []interface{}{} }
+        |       '\n' steps { $$ = $2 }
 ;
 
 steps : /* empty */ { $$ = []interface{}{} }

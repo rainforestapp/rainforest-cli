@@ -667,7 +667,7 @@ yydefault:
 		}
 	case 27:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line rfml.y:96
+		//line rfml.y:97
 		{
 			yyVAL.embedded_test = rainforest.RFEmbeddedTest{yyDollar[3].strval, yyDollar[1].boolval}
 		}

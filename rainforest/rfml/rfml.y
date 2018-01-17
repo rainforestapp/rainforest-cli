@@ -61,7 +61,7 @@ headers : /* empty */
         |       '#' header headers
                 ;
 
-header : headerstr
+header : headerstr { curTest.Description += $1 + "\n" }
         |       _TITLE ':' headerstr { curTest.Title = $3 }
         |       _START_URI ':' headerstr { curTest.StartURI = $3 }
         |       _TAGS ':' headerstr { curTest.Tags = parseList($3) }

@@ -16,7 +16,7 @@ var fixtures = map[string]*rainforest.RFTest{
 		Title:       "Test A",
 		StartURI:    "/",
 		State:       "enabled",
-		Description: "",
+		Description: "\n",
 		Execute:     true,
 		Tags:        []string{"run-me", "fixme"},
 		Browsers:    []string{"chrome_1440_900"},
@@ -43,7 +43,7 @@ var fixtures = map[string]*rainforest.RFTest{
 		StartURI:    "/login",
 		SiteID:      12345,
 		State:       "enabled",
-		Description: "",
+		Description: "\n",
 		Execute:     false,
 		Tags:        []string{},
 		Steps: []interface{}{

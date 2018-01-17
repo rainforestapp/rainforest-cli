@@ -539,6 +539,12 @@ yydefault:
 		{
 			curTest.RFMLID = yyDollar[3].strval
 		}
+	case 6:
+		yyDollar = yyS[yypt-1 : yypt+1]
+		//line rfml.y:64
+		{
+			curTest.Description += yyDollar[1].strval + "\n"
+		}
 	case 7:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line rfml.y:65

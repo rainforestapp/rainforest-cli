@@ -104,7 +104,7 @@ redirect_header : /* empty */                   { $$ = true }
             |   '#' _REDIRECT ':' _BOOL '\n'    { $$ = $4 }
             ;
 
-action          :   _STRING '\n'                { $$ = $1 }
+action      :   _STRING '\n'                    { $$ = $1 }
             ;
 
 response    :   _STRING step_end                { $$ = $1 }

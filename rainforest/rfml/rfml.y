@@ -69,7 +69,8 @@ header : headerstr { curTest.Description += $1 + "\n" }
         |       _EXECUTE ':' _BOOL '\n' { curTest.Execute = $3 }
         |       _SITE_ID ':' headerint { curTest.SiteID = $3 }
         |       _STATE ':' headerstr { curTest.State = $3 }
-        |       _FEATURE_ID ':' headerint { curTest.FeatureID = rainforest.FeatureIDInt($3) }
+        |       _FEATURE_ID ':' '\n' { curTest.FeatureID = rainforest.FeatureIDInt(-1) }
+        |       _FEATURE_ID ':' _INTEGER '\n' { curTest.FeatureID = rainforest.FeatureIDInt($3) }
                 ;
 
 headerstr : '\n' { $$ = "" }

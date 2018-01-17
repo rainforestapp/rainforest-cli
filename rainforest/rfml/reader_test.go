@@ -99,7 +99,6 @@ func TestLex(t *testing.T) {
 
 func TestReadFixtures(t *testing.T) {
 	for fname, want := range fixtures {
-		fmt.Println("FNAME", fname)
 		f, err := os.Open(fmt.Sprintf("fixtures/%v.rfml", fname))
 		if err != nil {
 			t.Error("Open error:", err)
@@ -115,8 +114,6 @@ func TestReadFixtures(t *testing.T) {
 
 		if !reflect.DeepEqual(want, got) {
 			t.Errorf("RFML parse error!\nwant:\n %+v\n\ngot:\n %+v", want, got)
-		} else {
-			fmt.Println("HOORAY!")
 		}
 	}
 }

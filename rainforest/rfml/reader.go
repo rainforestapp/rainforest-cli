@@ -19,9 +19,8 @@ type Reader struct {
 	parseError error
 
 	// vars for internal state tracking
-	atbol         bool
-	atmeta        bool
-	pseudonewline bool
+	atbol  bool
+	atmeta bool
 }
 
 func NewReader(r io.Reader) *Reader {
@@ -65,11 +64,6 @@ func (r *Reader) Lex(lval *yySymType) int {
 
 	if r.parseError != nil {
 		return 0
-	}
-
-	if r.pseudonewline {
-		r.pseudonewline = false
-		return '\n'
 	}
 
 	// Ignore leading whitespace before all tokens and advance to the next
@@ -189,10 +183,8 @@ func (r *Reader) readToEOL() string {
 	if err != nil && err != io.EOF {
 		panic(err)
 	}
-	if err == io.EOF {
-		// Hack: we insert a "pseudo-newline" at EOF if there isn't one.
-		r.pseudonewline = true
-	} else {
+
+	if err != io.EOF {
 		// Unread the newline
 		err = r.r.UnreadByte()
 		if err != nil {

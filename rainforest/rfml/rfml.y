@@ -87,7 +87,7 @@ steps : /* empty */ { $$ = []interface{}{} }
 
 emptyline : '\n' { $$ = []interface{}{} }
 
-embedded_test : redirect_header '-' _STRING '\n' { __yyfmt__.Println("TEEEST"); $$ = rainforest.RFEmbeddedTest{$3, $1} }
+embedded_test : redirect_header '-' _STRING step_end { $$ = rainforest.RFEmbeddedTest{$3, $1} }
                 ;
 
 step :
@@ -101,8 +101,11 @@ redirect_header : /* empty */ { $$ = true }
 action : _STRING '\n' { $$ = $1 }
                 ;
 
-response : _STRING '\n' { $$ = $1 }
+response : _STRING step_end { $$ = $1 }
                 ;
+
+step_end : '\n' | _EOF
+;
 
 %%
 

@@ -192,7 +192,7 @@ func (r *Reader) readToEOL() string {
 		}
 	}
 
-	return string(bytes.TrimSpace(b))
+	return string(bytes.TrimRightFunc(b, unicode.IsSpace))
 }
 
 func (r *Reader) Error(e string) {

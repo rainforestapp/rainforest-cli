@@ -3,6 +3,7 @@
 # start_uri: /
 # tags: run-me, fixme
 # browsers: chrome_1440_900
+# A test with some things in it...
 #
 
 - login
@@ -12,4 +13,4 @@ Do a thing.
 Did something happen?
 
 Do something else.
-Did something else happen?
+A thing should have happened. Did it?

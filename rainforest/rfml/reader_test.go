@@ -16,10 +16,10 @@ var fixtures = map[string]*rainforest.RFTest{
 		Title:       "Test A",
 		StartURI:    "/",
 		State:       "enabled",
-		Description: "\n",
 		Execute:     true,
 		Tags:        []string{"run-me", "fixme"},
 		Browsers:    []string{"chrome_1440_900"},
+		Description: "A test with some things in it...\n\n",
 		Steps: []interface{}{
 			rainforest.RFEmbeddedTest{
 				RFMLID:   "login",
@@ -32,10 +32,20 @@ var fixtures = map[string]*rainforest.RFTest{
 			},
 			rainforest.RFTestStep{
 				Action:   "Do something else.",
-				Response: "Did something else happen?",
+				Response: "A thing should have happened. Did it?",
 				Redirect: true,
 			},
 		},
+	},
+	"b": &rainforest.RFTest{
+		RFMLID:      "emptytest",
+		Title:       "Empty",
+		StartURI:    "/",
+		Description: "",
+		State:       "enabled",
+		Execute:     true,
+		Tags:        []string{},
+		Steps:       []interface{}{},
 	},
 	"login-test": &rainforest.RFTest{
 		RFMLID:      "login",

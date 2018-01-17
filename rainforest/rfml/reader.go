@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"regexp"
 	"strconv"
@@ -21,6 +22,7 @@ type Reader struct {
 	// vars for internal state tracking
 	atbol  bool
 	atmeta bool
+	line   int
 }
 
 func NewReader(r io.Reader) *Reader {
@@ -28,6 +30,7 @@ func NewReader(r io.Reader) *Reader {
 		r:      bufio.NewReader(r),
 		atbol:  true,
 		atmeta: false,
+		line:   1,
 	}
 }
 
@@ -43,6 +46,14 @@ func (r *Reader) ReadAll() (*rainforest.RFTest, error) {
 	if r.parseError != nil {
 		return nil, r.parseError
 	}
+	if curTest.Title == "" {
+		return nil, fmt.Errorf("Title is required for .rfml files. Specify it using \"# title: \" followed by your test's title.")
+	}
+
+	if curTest.RFMLID == "" {
+		return nil, fmt.Errorf("RFML ID is required for .rfml files. Specify it using #! followed by a unique RFML ID")
+	}
+
 	return curTest, nil
 }
 
@@ -87,6 +98,7 @@ func (r *Reader) Lex(lval *yySymType) int {
 	if c == '\n' {
 		r.atbol = true
 		r.atmeta = false
+		r.line++
 		return int(c)
 	}
 
@@ -196,5 +208,5 @@ func (r *Reader) readToEOL() string {
 }
 
 func (r *Reader) Error(e string) {
-	r.parseError = errors.New(e)
+	r.parseError = errors.New(fmt.Sprintf("RFML parsing error on line %v: %v", r.line, e))
 }

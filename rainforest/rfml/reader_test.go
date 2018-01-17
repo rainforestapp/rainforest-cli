@@ -316,8 +316,6 @@ func TestReadAll(t *testing.T) {
 	_, err = reader.ReadAll()
 	if err == nil {
 		t.Fatal("Expected an error from ReadAll")
-	} else if !strings.Contains(err.Error(), "#!") {
-		t.Errorf("Wrong error reported. Expected error for RFML ID field. Returned error: %v", err.Error())
 	}
 
 	// Two RFML IDs

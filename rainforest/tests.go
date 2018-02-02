@@ -150,12 +150,11 @@ func (t *RFTest) marshallElements(mappings TestIDMappings) error {
 }
 
 // unmarshalElements converts API elements format into RFML go structs
-func (t *RFTest) unmarshalElements(mappings TestIDMappings) error {
+func (t *RFTest) unmarshalElements(idToRFMLIDMap map[int]string) error {
 	if len(t.Elements) == 0 {
 		return nil
 	}
 	t.Steps = make([]interface{}, len(t.Elements))
-	idToRFMLID := mappings.MapIDtoRFMLID()
 
 	for i, element := range t.Elements {
 		switch element.Type {
@@ -163,7 +162,7 @@ func (t *RFTest) unmarshalElements(mappings TestIDMappings) error {
 			step := RFTestStep{Action: element.Details.Action, Response: element.Details.Response, Redirect: element.Redirect}
 			t.Steps[i] = step
 		case "test":
-			rfmlID, ok := idToRFMLID[element.Details.ID]
+			rfmlID, ok := idToRFMLIDMap[element.Details.ID]
 			if !ok {
 				return errors.New("Couldn't convert test ID to RFML ID")
 			}
@@ -195,8 +194,8 @@ func (t *RFTest) PrepareToUploadFromRFML(mappings TestIDMappings) error {
 }
 
 // PrepareToWriteAsRFML uses different helper methods to prepare struct for translation to RFML
-func (t *RFTest) PrepareToWriteAsRFML(mappings TestIDMappings) error {
-	err := t.unmarshalElements(mappings)
+func (t *RFTest) PrepareToWriteAsRFML(idToRFMLIDMap map[int]string) error {
+	err := t.unmarshalElements(idToRFMLIDMap)
 	if err != nil {
 		return err
 	}

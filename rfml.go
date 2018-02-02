@@ -622,18 +622,19 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 		go downloadRFTestWorker(testIDChan, errorsChan, testChan, client)
 	}
 
-	var mappings rainforest.TestIDMappings
-	mappings, err = client.GetRFMLIDs()
+	var testIDsAndRFMLIDs rainforest.TestIDMappings
+	testIDsAndRFMLIDs, err = client.GetRFMLIDs()
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
+	idToRfmlIdMap := testIDsAndRFMLIDs.MapIDtoRFMLID()
 
 	for i := 0; i < len(testIDs); i++ {
 		select {
 		case err = <-errorsChan:
 			return cli.NewExitError(err.Error(), 1)
 		case test := <-testChan:
-			err = test.PrepareToWriteAsRFML(mappings)
+			err = test.PrepareToWriteAsRFML(idToRfmlIdMap)
 			if err != nil {
 				return cli.NewExitError(err.Error(), 1)
 			}

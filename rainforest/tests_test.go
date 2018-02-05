@@ -18,8 +18,10 @@ func TestGetRFMLIDs(t *testing.T) {
 	const reqMethod = "GET"
 
 	rfmlIDs := TestIDMappings{
-		{ID: 123, RFMLID: "abc"},
-		{ID: 456, RFMLID: "xyz"},
+		Pairs: []TestIDMap{
+			{ID: 123, RFMLID: "abc"},
+			{ID: 456, RFMLID: "xyz"},
+		},
 	}
 
 	mux.HandleFunc("/tests/rfml_ids", func(w http.ResponseWriter, r *http.Request) {
@@ -28,12 +30,13 @@ func TestGetRFMLIDs(t *testing.T) {
 		}
 
 		enc := json.NewEncoder(w)
-		enc.Encode(rfmlIDs)
+		enc.Encode(rfmlIDs.Pairs)
 	})
 
-	out, _ := client.GetRFMLIDs()
-
-	if !reflect.DeepEqual(rfmlIDs, out) {
+	out, err := client.GetRFMLIDs()
+	if err != nil {
+		t.Error(err.Error())
+	} else if !reflect.DeepEqual(&rfmlIDs, out) {
 		t.Errorf("Response expected = %v, actual %v", rfmlIDs, out)
 	}
 }
@@ -302,7 +305,7 @@ func TestUpdateTest(t *testing.T) {
 		Title:    "a title",
 		StartURI: "/",
 	}
-	rfTest.PrepareToUploadFromRFML(TestIDMappings{})
+	rfTest.PrepareToUploadFromRFML(&TestIDMappings{})
 
 	setup()
 	defer cleanup()

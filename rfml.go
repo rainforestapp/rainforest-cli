@@ -16,6 +16,16 @@ import (
 	"github.com/urfave/cli"
 )
 
+type rfmlAPI interface {
+	GetRFMLIDs() (*rainforest.TestIDMappings, error)
+	GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, error)
+	GetTest(int) (*rainforest.RFTest, error)
+	CreateTest(*rainforest.RFTest) error
+	UpdateTest(*rainforest.RFTest) error
+	ParseEmbeddedFiles(*rainforest.RFTest) error
+	ClientToken() string
+}
+
 // parseError is a custom error implementing error interface for reporting RFML parsing errors.
 type fileParseError struct {
 	filePath   string
@@ -175,15 +185,15 @@ func validateRFMLFiles(parsedTests []*rainforest.RFTest, localOnly bool, api rfm
 	// check for embedded tests id validity
 	// start with pulling the external test ids to validate against them as well
 	if !localOnly && api.ClientToken() != "" {
-		var externalTests rainforest.TestIDMappings
-		externalTests, err = api.GetRFMLIDs()
+		var testIDMappings *rainforest.TestIDMappings
+		testIDMappings, err = api.GetRFMLIDs()
 		if err != nil {
 			return err
 		}
-		for _, externalTest := range externalTests {
-			if _, ok := rfmlIDToTest[externalTest.RFMLID]; !ok {
-				rfmlIDToTest[externalTest.RFMLID] = &rainforest.RFTest{}
-				dependencyGraph.AddNode(goraph.NewNode(externalTest.RFMLID))
+		for _, testIDs := range testIDMappings.Pairs {
+			if _, ok := rfmlIDToTest[testIDs.RFMLID]; !ok {
+				rfmlIDToTest[testIDs.RFMLID] = &rainforest.RFTest{}
+				dependencyGraph.AddNode(goraph.NewNode(testIDs.RFMLID))
 			}
 		}
 	}
@@ -392,7 +402,7 @@ func uploadSingleRFMLFile(filePath string) error {
 		return err
 	}
 
-	testID, ok := mappings.MapRFMLIDtoID()[parsedTest.RFMLID]
+	testID, ok := mappings.GetID(parsedTest.RFMLID)
 	if ok {
 		parsedTest.TestID = testID
 	} else {
@@ -420,7 +430,7 @@ func uploadSingleRFMLFile(filePath string) error {
 			return err
 		}
 		// Assign test ID
-		testID, ok := mappings.MapRFMLIDtoID()[parsedTest.RFMLID]
+		testID, ok := mappings.GetID(parsedTest.RFMLID)
 		if ok {
 			parsedTest.TestID = testID
 		} else {
@@ -461,7 +471,6 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 	if err != nil {
 		return err
 	}
-	rfmlidToID := mappings.MapRFMLIDtoID()
 	var newTests []*rainforest.RFTest
 	var parsedTests []*rainforest.RFTest
 
@@ -469,7 +478,7 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 		parsedTests = append(parsedTests, pTest)
 		// Check if it's a new test or an existing one, because they need different treatment
 		// to ensure we first add new ones and have IDs for potential embedds
-		if _, ok := rfmlidToID[pTest.RFMLID]; !ok {
+		if _, ok := mappings.GetID(pTest.RFMLID); !ok {
 			newTests = append(newTests, pTest)
 		}
 	}
@@ -514,7 +523,7 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 	// And here we update all of the tests
 	testsToUpdate := make(chan *rainforest.RFTest, len(parsedTests))
 	for _, testToUpdate := range parsedTests {
-		testID, ok := mappings.MapRFMLIDtoID()[testToUpdate.RFMLID]
+		testID, ok := mappings.GetID(testToUpdate.RFMLID)
 		if ok {
 			testToUpdate.TestID = testID
 		} else {
@@ -550,16 +559,6 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 	}
 
 	return nil
-}
-
-type rfmlAPI interface {
-	GetRFMLIDs() (rainforest.TestIDMappings, error)
-	GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, error)
-	GetTest(int) (*rainforest.RFTest, error)
-	CreateTest(*rainforest.RFTest) error
-	UpdateTest(*rainforest.RFTest) error
-	ParseEmbeddedFiles(*rainforest.RFTest) error
-	ClientToken() string
 }
 
 func downloadRFML(c cliContext, client rfmlAPI) error {
@@ -622,19 +621,18 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 		go downloadRFTestWorker(testIDChan, errorsChan, testChan, client)
 	}
 
-	var testIDsAndRFMLIDs rainforest.TestIDMappings
+	var testIDsAndRFMLIDs *rainforest.TestIDMappings
 	testIDsAndRFMLIDs, err = client.GetRFMLIDs()
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
-	idToRfmlIdMap := testIDsAndRFMLIDs.MapIDtoRFMLID()
 
 	for i := 0; i < len(testIDs); i++ {
 		select {
 		case err = <-errorsChan:
 			return cli.NewExitError(err.Error(), 1)
 		case test := <-testChan:
-			err = test.PrepareToWriteAsRFML(idToRfmlIdMap)
+			err = test.PrepareToWriteAsRFML(testIDsAndRFMLIDs)
 			if err != nil {
 				return cli.NewExitError(err.Error(), 1)
 			}

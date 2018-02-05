@@ -335,7 +335,7 @@ func TestUploadRFML(t *testing.T) {
 	testPath := filepath.Join(testDefaultSpecFolder, "valid_test.rfml")
 
 	testAPI.mappings = rainforest.TestIDMappings{
-		Pairs: []rainforest.TestIDMap{
+		Pairs: []rainforest.TestIDPair{
 			{ID: testID, RFMLID: rfmlID},
 		},
 	}
@@ -458,7 +458,7 @@ func TestDownloadRFML(t *testing.T) {
 	}
 
 	testAPI.mappings = rainforest.TestIDMappings{
-		Pairs: []rainforest.TestIDMap{
+		Pairs: []rainforest.TestIDPair{
 			{ID: testID, RFMLID: rfmlID},
 		},
 	}
@@ -579,7 +579,7 @@ func TestValidateEmbedded(t *testing.T) {
 
 	testAPI := new(testRfmlAPI)
 	testAPI.mappings = rainforest.TestIDMappings{
-		Pairs: []rainforest.TestIDMap{
+		Pairs: []rainforest.TestIDPair{
 			{ID: t1.TestID, RFMLID: t1.RFMLID},
 			{ID: t2.TestID, RFMLID: t2.RFMLID},
 		},

@@ -18,7 +18,7 @@ func TestGetRFMLIDs(t *testing.T) {
 	const reqMethod = "GET"
 
 	rfmlIDs := TestIDMappings{
-		Pairs: []TestIDMap{
+		Pairs: []TestIDPair{
 			{ID: 123, RFMLID: "abc"},
 			{ID: 456, RFMLID: "xyz"},
 		},
@@ -155,12 +155,13 @@ func TestGetTestsMultiplePages(t *testing.T) {
 				RFMLID: "123",
 			},
 		}
-		b, err := json.Marshal(test)
+		var data []byte
+		data, err = json.Marshal(test)
 		if err != nil {
 			t.Fatal("Error marshalling test:", err)
 		}
 		w.Header().Add("X-Total-Pages", "1")
-		w.Write(b)
+		w.Write(data)
 	})
 
 	tests, err := client.GetTests(&RFTestFilters{})

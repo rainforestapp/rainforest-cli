@@ -97,7 +97,7 @@ func (r *fakeRunnerClient) CheckRunStatus(runID int) (*rainforest.RunStatus, err
 func (r *fakeRunnerClient) GetRFMLIDs() (*rainforest.TestIDMappings, error) {
 	var mappings rainforest.TestIDMappings
 	for _, test := range r.createdTests {
-		mappings.Pairs = append(mappings.Pairs, rainforest.TestIDMap{ID: test.TestID, RFMLID: test.RFMLID})
+		mappings.Pairs = append(mappings.Pairs, rainforest.TestIDPair{ID: test.TestID, RFMLID: test.RFMLID})
 	}
 	return &mappings, nil
 }

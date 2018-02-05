@@ -12,8 +12,8 @@ import (
 
 const uploadableRegex = `{{ *file\.(download|screenshot)\(([^\)]+)\) *}}`
 
-// TestIDMap is a type representing RF tests that contain the test definitions.
-type TestIDMap struct {
+// TestIDPair is a type representing RF tests that contain the test definitions.
+type TestIDPair struct {
 	ID     int    `json:"id"`
 	RFMLID string `json:"rfml_id"`
 }
@@ -21,7 +21,7 @@ type TestIDMap struct {
 // TestIDMappings is a slice of all the mapping pairs.
 // And has a set of functions defined to get map of one to the other.
 type TestIDMappings struct {
-	Pairs      []TestIDMap
+	Pairs      []TestIDPair
 	idToRFMLID map[int]string
 	rfmlIDtoID map[string]int
 }
@@ -121,6 +121,19 @@ type testElementDetails struct {
 	ID       int    `json:"id,omitempty"`
 	Action   string `json:"action,omitempty"`
 	Response string `json:"response,omitempty"`
+}
+
+// RFTestStep contains single Rainforest step
+type RFTestStep struct {
+	Action   string
+	Response string
+	Redirect bool
+}
+
+// RFEmbeddedTest contains an embedded test details
+type RFEmbeddedTest struct {
+	RFMLID   string
+	Redirect bool
 }
 
 // mapBrowsers fills the browsers field with format recognized by the API
@@ -238,13 +251,6 @@ func (t *RFTest) HasUploadableFiles() bool {
 	return false
 }
 
-// RFTestStep contains single Rainforest step
-type RFTestStep struct {
-	Action   string
-	Response string
-	Redirect bool
-}
-
 func (s *RFTestStep) hasUploadableFiles() bool {
 	return len(s.embeddedFilesInAction()) > 0 || len(s.embeddedFilesInResponse()) > 0
 }
@@ -301,12 +307,6 @@ func findEmbeddedFiles(s string) []embeddedFile {
 	return uploadables
 }
 
-// RFEmbeddedTest contains an embedded test details
-type RFEmbeddedTest struct {
-	RFMLID   string
-	Redirect bool
-}
-
 // RFTestFilters are used to translate test filters to a proper query string
 type RFTestFilters struct {
 	Tags          []string
@@ -346,7 +346,7 @@ func (c *Client) GetRFMLIDs() (*TestIDMappings, error) {
 	}
 
 	// Send request and process response
-	var testResp []TestIDMap
+	var testResp []TestIDPair
 	_, err = c.Do(req, &testResp)
 	if err != nil {
 		return nil, err

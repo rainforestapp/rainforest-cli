@@ -186,7 +186,10 @@ func TestGetTest(t *testing.T) {
 	setup()
 	defer cleanup()
 
+	requestCount := 0
 	mux.HandleFunc("/tests/123", func(w http.ResponseWriter, r *http.Request) {
+		requestCount += 1
+
 		test := &RFTest{
 			TestID: 123,
 			RFMLID: "123",
@@ -202,12 +205,19 @@ func TestGetTest(t *testing.T) {
 	test, err := client.GetTest(123)
 	if err != nil {
 		t.Error("Error fetching test:", err)
-	}
-	if test.TestID != 123 || test.RFMLID != "123" || test.Title != "A test" {
+	} else if test.TestID != 123 || test.RFMLID != "123" || test.Title != "A test" {
 		t.Errorf("test %v was unmarshalled incorrectly", test)
-	}
-	if !test.Execute {
+	} else if !test.Execute {
 		t.Error("GetTest didn't set execute: true by default")
+	}
+
+	test2, err := client.GetTest(123)
+	if err != nil {
+		t.Error("Error fetching test:", err.Error())
+	} else if requestCount > 1 {
+		t.Error("Request was not cached")
+	} else if test != test2 {
+		t.Error("Expected to receive cached test, got another test")
 	}
 }
 

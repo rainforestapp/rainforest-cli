@@ -406,7 +406,12 @@ func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
 
 // GetTest gets a test from RF specified by the given test ID
 func (c *Client) GetTest(testID int) (*RFTest, error) {
-	req, err := c.NewRequest("GET", "tests/"+strconv.Itoa(testID), nil)
+	url := "tests/"+strconv.Itoa(testID)
+	if test, ok := c.requestCache.Load(url); ok {
+		return test.(*RFTest), nil
+	}
+
+	req, err := c.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -419,6 +424,8 @@ func (c *Client) GetTest(testID int) (*RFTest, error) {
 
 	testResp.TestID = testID
 	testResp.Execute = true
+
+	c.requestCache.Store(url, &testResp)
 	return &testResp, nil
 }
 

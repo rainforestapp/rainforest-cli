@@ -621,8 +621,6 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 		go downloadRFTestWorker(testIDChan, errorsChan, testChan, client)
 	}
 
-	var testIDsAndRFMLIDs *rainforest.TestIDMappings
-	testIDsAndRFMLIDs, err = client.GetRFMLIDs()
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -632,7 +630,7 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 		case err = <-errorsChan:
 			return cli.NewExitError(err.Error(), 1)
 		case test := <-testChan:
-			err = test.PrepareToWriteAsRFML(testIDsAndRFMLIDs)
+			err = test.PrepareToWriteAsRFML(client, c.Bool("embed-tests"))
 			if err != nil {
 				return cli.NewExitError(err.Error(), 1)
 			}

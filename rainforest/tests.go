@@ -184,25 +184,56 @@ func (t *RFTest) marshallElements(mappings *TestIDMappings) error {
 	return nil
 }
 
+type TestApiClient interface {
+	GetRFMLIDs() (*TestIDMappings, error)
+	GetTest(int) (*RFTest, error)
+}
+
 // unmarshalElements converts API elements format into RFML go structs
-func (t *RFTest) unmarshalElements(mappings *TestIDMappings) error {
+func (t *RFTest) unmarshalElements(client TestApiClient, embedTests bool) error {
 	if len(t.Elements) == 0 {
 		return nil
 	}
 	t.Steps = make([]interface{}, len(t.Elements))
 
-	for i, element := range t.Elements {
+	var mappings *TestIDMappings
+	var err error
+
+	for _, element := range t.Elements {
 		switch element.Type {
 		case "step":
 			step := RFTestStep{Action: element.Details.Action, Response: element.Details.Response, Redirect: element.Redirect}
-			t.Steps[i] = step
+			t.Steps = append(t.Steps, step)
 		case "test":
-			rfmlID, ok := mappings.GetRFMLID(element.Details.ID)
-			if !ok {
-				return errors.New("Couldn't convert test ID to RFML ID")
+			if embedTests {
+				if mappings == nil {
+					mappings, err = client.GetRFMLIDs()
+
+					if err != nil {
+						return err
+					}
+				}
+
+				rfmlID, ok := mappings.GetRFMLID(element.Details.ID)
+				if !ok {
+					return errors.New("Couldn't convert test ID to RFML ID")
+				}
+
+				embedd := RFEmbeddedTest{RFMLID: rfmlID, Redirect: element.Redirect}
+				t.Steps = append(t.Steps, embedd)
+			} else {
+				test, err := client.GetTest(element.Details.ID)
+				if err != nil {
+					return err
+				}
+
+				err = test.unmarshalElements(client, false)
+				if err != nil {
+					return err
+				}
+
+				t.Steps = append(t.Steps, test.Steps...)
 			}
-			embedd := RFEmbeddedTest{RFMLID: rfmlID, Redirect: element.Redirect}
-			t.Steps[i] = embedd
 		}
 	}
 	return nil
@@ -228,9 +259,10 @@ func (t *RFTest) PrepareToUploadFromRFML(mappings *TestIDMappings) error {
 	return nil
 }
 
+// TODO: TEST THIS
 // PrepareToWriteAsRFML uses different helper methods to prepare struct for translation to RFML
-func (t *RFTest) PrepareToWriteAsRFML(mappings *TestIDMappings) error {
-	err := t.unmarshalElements(mappings)
+func (t *RFTest) PrepareToWriteAsRFML(client TestApiClient, embedTests bool) error {
+	err := t.unmarshalElements(client, embedTests)
 	if err != nil {
 		return err
 	}
@@ -406,7 +438,7 @@ func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
 
 // GetTest gets a test from RF specified by the given test ID
 func (c *Client) GetTest(testID int) (*RFTest, error) {
-	url := "tests/"+strconv.Itoa(testID)
+	url := "tests/" + strconv.Itoa(testID)
 	if test, ok := c.requestCache.Load(url); ok {
 		return test.(*RFTest), nil
 	}

@@ -194,7 +194,7 @@ func (t *RFTest) unmarshalElements(client TestApiClient, embedTests bool) error 
 	if len(t.Elements) == 0 {
 		return nil
 	}
-	t.Steps = make([]interface{}, len(t.Elements))
+	t.Steps = []interface{}{}
 
 	var mappings *TestIDMappings
 	var err error
@@ -259,7 +259,6 @@ func (t *RFTest) PrepareToUploadFromRFML(mappings *TestIDMappings) error {
 	return nil
 }
 
-// TODO: TEST THIS
 // PrepareToWriteAsRFML uses different helper methods to prepare struct for translation to RFML
 func (t *RFTest) PrepareToWriteAsRFML(client TestApiClient, embedTests bool) error {
 	err := t.unmarshalElements(client, embedTests)

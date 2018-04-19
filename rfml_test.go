@@ -422,6 +422,10 @@ func TestDeleteRFML(t *testing.T) {
 		t.Fatal("Expected parse error but received no error.")
 	}
 
+	if _, ok := err.(*cli.ExitError); !ok {
+		t.Fatalf("Unexpected error type: %v", reflect.TypeOf(err))
+	}
+
 	errMsg := err.Error()
 	if !strings.Contains(errMsg, rfmlFilePath) {
 		t.Errorf("Expected error to contain file path \"%v\". Got:\n%v", rfmlFilePath, errMsg)

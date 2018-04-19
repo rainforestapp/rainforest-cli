@@ -319,7 +319,8 @@ func deleteRFML(c cliContext) error {
 	rfmlReader := rainforest.NewRFMLReader(f)
 	parsedRFML, err := rfmlReader.ReadAll()
 	if err != nil {
-		return fileParseError{filePath, err}
+		errMsg := fmt.Sprintf("Error removing test at '%v': %v", filePath, err.Error())
+		return cli.NewExitError(errMsg, 1)
 	}
 
 	if parsedRFML.RFMLID == "" {

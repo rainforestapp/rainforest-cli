@@ -145,7 +145,7 @@ func main() {
 				},
 				cli.StringSliceFlag{
 					Name:  "exclude",
-					Usage: "Don't execute test specified by `FILE`. Can be used multiple times for specifying muliple files.",
+					Usage: "Don't execute test specified by `FILE`. Can be used multiple times for specifying multiple files.",
 				},
 				cli.StringSliceFlag{
 					Name:  "force-execute",
@@ -189,7 +189,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name: "bg, background",
-					Usage: "run in the background. This option makes cli return after succesfully starting a run, " +
+					Usage: "run in the background. This option makes cli return after successfully starting a run, " +
 						"without waiting for the run results.",
 				},
 				cli.BoolFlag{

@@ -1,5 +1,11 @@
 # Rainforest CLI Changelog
 
+## 2.8.12 - 2018-04-19
+- Fix bug with `rainforest rm` failing silently if the file cannot be parsed.
+  - (aca9793b49de56bb4b2cc1770950daffaa709391, @epaulet)
+- Fix grammatical errors.
+  - (64f578845f498ef06beca3edacbc9f4a3fd2f09f, @jeis2497052)a
+
 ## 2.8.11 - 2017-12-07
 - Patch over bug with parsing `null` timestamps returned by Rainforest generator API.
   - (c8be6923d987522b08ea9b20088a3ab7f14e1a50, @epaulet)

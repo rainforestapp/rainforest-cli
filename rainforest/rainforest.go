@@ -108,7 +108,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	if c.clientToken != "" {
 		req.Header.Set(authTokenHeader, c.clientToken)
 	} else {
-		return nil, errors.New("Please provide your API Token with the RAINFOREST_API_TOKEN environment variable or --token global flag.")
+		return nil, errors.New("Please provide your API Token with the RAINFOREST_API_TOKEN environment variable or --token global flag")
 	}
 
 	// Set UserAgent header with appended library version, will look like:

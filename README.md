@@ -8,10 +8,15 @@ This is the easiest way to integrate Rainforest with your deploy scripts or CI s
 
 ## Installation
 
-Follow the directions on our [download page](https://dl.equinox.io/rainforest_qa/rainforest-cli/stable).
+If you are on a mac and use brew, you can run:
 
-The CLI will check for updates and automatically update itself on every use unless the
-`--skip-update` global flag is given.
+```bash
+brew install rainforestapp/public/rainforest-cli
+```
+
+If not, follow the directions on our [download page](https://dl.equinox.io/rainforest_qa/rainforest-cli/stable). For non-homebrew mac users, please make sure you use the "Install via the command line" instructions.
+
+The CLI will check for updates and automatically update itself on every use unless the `--skip-update` global flag is given.
 
 For migration directions from 1.x, please read our [migration guide](./migration.md).
 

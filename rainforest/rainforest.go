@@ -128,16 +128,22 @@ func checkResponse(res *http.Response) error {
 	}
 
 	// Otherwise we return error from the API or general one if we can't decode it
+	body, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		return errors.New("RF API Error - Unable to read response.")
+	}
+
 	type simpleErrorResponse struct {
 		Err string `json:"error"`
 	}
 	var out simpleErrorResponse
-	err := json.NewDecoder(res.Body).Decode(&out)
-	if err == nil {
-		return errors.New(out.Err)
+	err = json.Unmarshal(body, &out)
+	if err != nil {
+		return errors.New(fmt.Sprintf("RF API Error - Unable to parse response JSON: %v", err.Error()))
 	}
 
-	return errors.New("RF API Error")
+	return errors.New(fmt.Sprintf("RF API Error (%v): %v", res.StatusCode, out.Err))
 }
 
 // Do sends out the request to the API and unpacks JSON response to the out variable.

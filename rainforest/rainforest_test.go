@@ -73,40 +73,42 @@ func TestNewRequest(t *testing.T) {
 
 func TestCheckResponse(t *testing.T) {
 	var testCases = []struct {
-		httpResp  *http.Response
-		wantError bool
+		httpResp      *http.Response
+		expectedError string
 	}{
 		{
-			httpResp:  &http.Response{StatusCode: 200},
-			wantError: false,
+			httpResp: &http.Response{StatusCode: 200},
 		},
 		{
-			httpResp:  &http.Response{StatusCode: 201},
-			wantError: false,
+			httpResp: &http.Response{StatusCode: 201},
 		},
 		{
 			httpResp: &http.Response{
 				StatusCode: 500,
 				Body:       ioutil.NopCloser(bytes.NewBufferString(`{"error": "foo"}`)),
 			},
-			wantError: true,
+			expectedError: "RF API Error (500): foo",
 		},
 		{
 			httpResp: &http.Response{
 				StatusCode: 103,
 				Body:       ioutil.NopCloser(bytes.NewBufferString(`Totally not JSON`)),
 			},
-			wantError: true,
+			expectedError: "RF API Error - Unable to parse response JSON: invalid character 'T' looking for beginning of value",
 		},
 	}
 
 	for _, tCase := range testCases {
-		got := checkResponse(tCase.httpResp)
-		if tCase.wantError && got == nil {
-			t.Errorf("checkResponse should've returned error, got %+v", got)
+		err := checkResponse(tCase.httpResp)
+		errorExpected := len(tCase.expectedError) > 0
+		if errorExpected && err == nil {
+			t.Error("checkResponse should've returned error, but returned nil.")
+		} else if !errorExpected && err != nil {
+			t.Errorf("checkResponse should've returned nil, got %+v", err)
 		}
-		if !tCase.wantError && got != nil {
-			t.Errorf("checkResponse should've returned nil, got %+v", got)
+
+		if err != nil && err.Error() != tCase.expectedError {
+			t.Errorf("checkResponse returned the wrong error. Got: %v. Want: %v.", err.Error(), tCase.expectedError)
 		}
 	}
 }

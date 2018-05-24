@@ -131,7 +131,7 @@ func checkResponse(res *http.Response) error {
 	body, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	if err != nil {
-		return errors.New("RF API Error - Unable to read response.")
+		return errors.New(fmt.Sprintf("RF API Error - Unable to read response: %v.", err.Error()))
 	}
 
 	type simpleErrorResponse struct {

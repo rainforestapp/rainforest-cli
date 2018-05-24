@@ -2,6 +2,7 @@ package rainforest
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -71,6 +72,16 @@ func TestNewRequest(t *testing.T) {
 	}
 }
 
+type unreadableResponseBody struct{}
+
+func (res *unreadableResponseBody) Read(p []byte) (n int, err error) {
+	return 0, errors.New("Just not readable")
+}
+
+func (res *unreadableResponseBody) Close() error {
+	return nil
+}
+
 func TestCheckResponse(t *testing.T) {
 	var testCases = []struct {
 		httpResp      *http.Response
@@ -95,6 +106,13 @@ func TestCheckResponse(t *testing.T) {
 				Body:       ioutil.NopCloser(bytes.NewBufferString(`Totally not JSON`)),
 			},
 			expectedError: "RF API Error - Unable to parse response JSON: invalid character 'T' looking for beginning of value",
+		},
+		{
+			httpResp: &http.Response{
+				StatusCode: 400,
+				Body:       &unreadableResponseBody{},
+			},
+			expectedError: "RF API Error - Unable to read response: Just not readable.",
 		},
 	}
 

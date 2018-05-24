@@ -121,17 +121,19 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 
 // checkResponse checks if we received vaild response with code 200,
 // returns error otherwise
-func checkResponse(res *http.Response) error {
+func checkResponse(res *http.Response, debugFlag bool) error {
 	// If we are on a happy path just return nil
 	if res.StatusCode >= 200 && res.StatusCode < 300 {
 		return nil
 	}
 
+	errPrefix := fmt.Sprintf("RF API Error (%v)", res.StatusCode)
+
 	// Otherwise we return error from the API or general one if we can't decode it
 	body, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	if err != nil {
-		return errors.New(fmt.Sprintf("RF API Error - Unable to read response: %v.", err.Error()))
+		return errors.New(errPrefix + " - Unable to read response: " + err.Error())
 	}
 
 	type simpleErrorResponse struct {
@@ -140,10 +142,14 @@ func checkResponse(res *http.Response) error {
 	var out simpleErrorResponse
 	err = json.Unmarshal(body, &out)
 	if err != nil {
-		return errors.New(fmt.Sprintf("RF API Error - Unable to parse response JSON: %v", err.Error()))
+		if debugFlag {
+			fmt.Println("Cannot parse response: \n" + string(body))
+		}
+
+		return errors.New(errPrefix + " - Unable to parse response JSON: " + err.Error())
 	}
 
-	return errors.New(fmt.Sprintf("RF API Error (%v): %v", res.StatusCode, out.Err))
+	return errors.New(errPrefix + ": " + out.Err)
 }
 
 // Do sends out the request to the API and unpacks JSON response to the out variable.
@@ -166,7 +172,7 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 
 	// We check response for potential errors and return them to the caller.
 	// We do not nil the response, as a caller might want to inspect the response in case of an error.
-	err = checkResponse(res)
+	err = checkResponse(res, c.DebugFlag)
 	if err != nil {
 		return res, err
 	}

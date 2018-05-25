@@ -11,6 +11,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/rainforestapp/testutil"
 )
 
 var (
@@ -86,6 +88,7 @@ func TestCheckResponse(t *testing.T) {
 	var testCases = []struct {
 		httpResp      *http.Response
 		expectedError string
+		expectedDebug string
 	}{
 		{
 			httpResp: &http.Response{StatusCode: 200},
@@ -105,20 +108,34 @@ func TestCheckResponse(t *testing.T) {
 				StatusCode: 103,
 				Body:       ioutil.NopCloser(bytes.NewBufferString(`Totally not JSON`)),
 			},
-			expectedError: "RF API Error - Unable to parse response JSON: invalid character 'T' looking for beginning of value",
+			expectedError: "RF API Error (103) - Unable to parse response JSON: invalid character 'T' looking for beginning of value",
+			expectedDebug: "Cannot parse response: \nTotally not JSON",
 		},
 		{
 			httpResp: &http.Response{
 				StatusCode: 400,
 				Body:       &unreadableResponseBody{},
 			},
-			expectedError: "RF API Error - Unable to read response: Just not readable.",
+			expectedError: "RF API Error (400) - Unable to read response: Just not readable",
 		},
 	}
 
 	for _, tCase := range testCases {
-		err := checkResponse(tCase.httpResp)
 		errorExpected := len(tCase.expectedError) > 0
+		debuggable := len(tCase.expectedDebug) > 0
+
+		var err error
+		stdout, captureError := testutil.CaptureStdout(func() error {
+			// keep error returned by checkResponse separate from errors
+			// returned by CaptureStdout
+			err = checkResponse(tCase.httpResp, debuggable)
+			return nil
+		})
+
+		if captureError != nil {
+			t.Fatal(captureError.Error())
+		}
+
 		if errorExpected && err == nil {
 			t.Error("checkResponse should've returned error, but returned nil.")
 		} else if !errorExpected && err != nil {
@@ -127,6 +144,12 @@ func TestCheckResponse(t *testing.T) {
 
 		if err != nil && err.Error() != tCase.expectedError {
 			t.Errorf("checkResponse returned the wrong error. Got: %v. Want: %v.", err.Error(), tCase.expectedError)
+		}
+
+		if debuggable {
+			if !strings.Contains(stdout, tCase.expectedDebug) {
+				t.Errorf("checkResponse debug incorrect. Expected\n\n%v\n\nto be included in\n\n%v", tCase.expectedDebug, stdout)
+			}
 		}
 	}
 }

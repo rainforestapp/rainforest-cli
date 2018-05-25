@@ -1,5 +1,13 @@
 # Rainforest CLI Changelog
 
+## 2.9.0 - 2018-05-24
+- Show more descriptive Rainforest API errors.
+  - (071123b4e9301357b7df6dda78dd79229c953530, @epaulet, @jbarber)
+  - (778fbac8a8130f9422baade38eda25f49f879712, @epaulet)
+- Use `--debug` flag to print raw response bodies from Rainforest API in case
+  the response body is not parseable JSON.
+  - (071123b4e9301357b7df6dda78dd79229c953530, @epaulet)
+
 ## 2.8.12 - 2018-04-19
 - Fix bug with `rainforest rm` failing silently if the file cannot be parsed.
   - (aca9793b49de56bb4b2cc1770950daffaa709391, @epaulet)

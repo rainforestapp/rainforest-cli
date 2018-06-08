@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sync"
 )
 
 const (
@@ -41,6 +42,9 @@ type Client struct {
 
 	// Client token used for authenticating requests made to the RF
 	clientToken string
+
+	// requestCache caches API responses
+	requestCache sync.Map
 }
 
 // NewClient constructs a new rainforest API Client. As a parameter takes client token
@@ -63,6 +67,7 @@ func NewClient(token string, debug bool) *Client {
 		clientToken:         token,
 		LastResponseHeaders: http.Header{},
 		DebugFlag:           debug,
+		requestCache:        sync.Map{},
 	}
 }
 

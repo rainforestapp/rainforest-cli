@@ -18,8 +18,10 @@ func TestGetRFMLIDs(t *testing.T) {
 	const reqMethod = "GET"
 
 	rfmlIDs := TestIDMappings{
-		{ID: 123, RFMLID: "abc"},
-		{ID: 456, RFMLID: "xyz"},
+		Pairs: []TestIDPair{
+			{ID: 123, RFMLID: "abc"},
+			{ID: 456, RFMLID: "xyz"},
+		},
 	}
 
 	mux.HandleFunc("/tests/rfml_ids", func(w http.ResponseWriter, r *http.Request) {
@@ -28,12 +30,13 @@ func TestGetRFMLIDs(t *testing.T) {
 		}
 
 		enc := json.NewEncoder(w)
-		enc.Encode(rfmlIDs)
+		enc.Encode(rfmlIDs.Pairs)
 	})
 
-	out, _ := client.GetRFMLIDs()
-
-	if !reflect.DeepEqual(rfmlIDs, out) {
+	out, err := client.GetRFMLIDs()
+	if err != nil {
+		t.Error(err.Error())
+	} else if !reflect.DeepEqual(&rfmlIDs, out) {
 		t.Errorf("Response expected = %v, actual %v", rfmlIDs, out)
 	}
 }
@@ -152,12 +155,13 @@ func TestGetTestsMultiplePages(t *testing.T) {
 				RFMLID: "123",
 			},
 		}
-		b, err := json.Marshal(test)
+		var data []byte
+		data, err = json.Marshal(test)
 		if err != nil {
 			t.Fatal("Error marshalling test:", err)
 		}
 		w.Header().Add("X-Total-Pages", "1")
-		w.Write(b)
+		w.Write(data)
 	})
 
 	tests, err := client.GetTests(&RFTestFilters{})
@@ -182,7 +186,10 @@ func TestGetTest(t *testing.T) {
 	setup()
 	defer cleanup()
 
+	requestCount := 0
 	mux.HandleFunc("/tests/123", func(w http.ResponseWriter, r *http.Request) {
+		requestCount += 1
+
 		test := &RFTest{
 			TestID: 123,
 			RFMLID: "123",
@@ -198,12 +205,218 @@ func TestGetTest(t *testing.T) {
 	test, err := client.GetTest(123)
 	if err != nil {
 		t.Error("Error fetching test:", err)
-	}
-	if test.TestID != 123 || test.RFMLID != "123" || test.Title != "A test" {
+	} else if test.TestID != 123 || test.RFMLID != "123" || test.Title != "A test" {
 		t.Errorf("test %v was unmarshalled incorrectly", test)
-	}
-	if !test.Execute {
+	} else if !test.Execute {
 		t.Error("GetTest didn't set execute: true by default")
+	}
+
+	test2, err := client.GetTest(123)
+	if err != nil {
+		t.Error("Error fetching test:", err.Error())
+	} else if requestCount > 1 {
+		t.Error("Request was not cached")
+	} else if test != test2 {
+		t.Error("Expected to receive cached test, got another test")
+	}
+}
+
+func TestPrepareToWriteAsRFML(t *testing.T) {
+	client = NewClient("foo", false)
+
+	// No test elements
+	test := RFTest{}
+	err := test.PrepareToWriteAsRFML(client, false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if test.Steps != nil {
+		t.Error("Unexpected steps appeared in test")
+	}
+
+	// Just step elements
+	test = RFTest{
+		Elements: []testElement{
+			{
+				Redirect: false,
+				Type:     "step",
+				Details: testElementDetails{
+					Action:   "first action",
+					Response: "first response",
+				},
+			},
+			{
+				Redirect: true,
+				Type:     "step",
+				Details: testElementDetails{
+					Action:   "second action",
+					Response: "second response",
+				},
+			},
+		},
+	}
+
+	err = test.PrepareToWriteAsRFML(client, false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	expectedSteps := []interface{}{
+		RFTestStep{Action: "first action", Response: "first response", Redirect: false},
+		RFTestStep{Action: "second action", Response: "second response", Redirect: true},
+	}
+	for i, expectedStep := range expectedSteps {
+		actualStep := test.Steps[i]
+		if !reflect.DeepEqual(expectedStep, actualStep) {
+			t.Errorf("Unexpected step.\nExpected:\n%v\nGot:\n%v", expectedStep, actualStep)
+		}
+	}
+
+	// Step and test elements, all embedded
+	test = RFTest{
+		Elements: []testElement{
+			{
+				Redirect: false,
+				Type:     "step",
+				Details: testElementDetails{
+					Action:   "first action",
+					Response: "first response",
+				},
+			},
+			{
+				Redirect: true,
+				Type:     "test",
+				Details:  testElementDetails{ID: 778899},
+			},
+			{
+				Redirect: true,
+				Type:     "step",
+				Details: testElementDetails{
+					Action:   "second action",
+					Response: "second response",
+				},
+			},
+		},
+	}
+
+	setup()
+	defer cleanup()
+
+	mux.HandleFunc("/tests/rfml_ids", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			t.Errorf("Incorrect HTTP verb. Expected GET. Got %v", r.Method)
+		}
+
+		idPairs := []TestIDPair{{ID: 778899, RFMLID: "an_rfml_id"}}
+		var b []byte
+		b, err = json.Marshal(&idPairs)
+		if err != nil {
+			t.Fatal("Error marshalling test IDs: ", err.Error())
+		}
+		w.Write(b)
+	})
+
+	err = test.PrepareToWriteAsRFML(client, true)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	expectedSteps = []interface{}{
+		RFTestStep{Action: "first action", Response: "first response", Redirect: false},
+		RFEmbeddedTest{RFMLID: "an_rfml_id", Redirect: true},
+		RFTestStep{Action: "second action", Response: "second response", Redirect: true},
+	}
+	for i, expectedStep := range expectedSteps {
+		actualStep := test.Steps[i]
+		if !reflect.DeepEqual(expectedStep, actualStep) {
+			t.Errorf("Unexpected step.\nExpected:\n%v\nGot:\n%v", expectedStep, actualStep)
+		}
+	}
+
+	// Step and deeply embedded test elements, all flattened
+	cleanup()
+	setup()
+	mux.HandleFunc("/tests/rfml_ids", func(http.ResponseWriter, *http.Request) {
+		t.Fatal("This request shouldn't have been made!")
+	})
+	mux.HandleFunc("/tests/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			t.Errorf("Incorrect HTTP verb. Expected GET. Got %v", r.Method)
+		}
+
+		var returnedTest RFTest
+		if r.URL.Path == "/tests/778899" {
+			returnedTest = RFTest{
+				Elements: []testElement{
+					{
+						Redirect: true,
+						Type:     "step",
+						Details: testElementDetails{
+							Action:   "action in first embedded test",
+							Response: "response in first embedded test",
+						},
+					},
+					{
+						Redirect: false,
+						Type:     "test",
+						Details:  testElementDetails{ID: 543543},
+					},
+				},
+			}
+		} else if r.URL.Path == "/tests/543543" {
+			returnedTest = RFTest{
+				Elements: []testElement{
+					{
+						Redirect: true,
+						Type:     "step",
+						Details: testElementDetails{
+							Action:   "action in second embedded test",
+							Response: "response in second embedded test",
+						},
+					},
+				},
+			}
+		} else {
+			t.Error("Unexpected path: ", r.URL.Path)
+		}
+
+		var b []byte
+		b, err = json.Marshal(&returnedTest)
+		if err != nil {
+			t.Fatal("Error marshalling test: ", err.Error())
+		}
+		w.Write(b)
+	})
+
+	err = test.PrepareToWriteAsRFML(client, false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	expectedSteps = []interface{}{
+		RFTestStep{Action: "first action", Response: "first response", Redirect: false},
+		RFTestStep{Action: "action in first embedded test", Response: "response in first embedded test", Redirect: true},
+		RFTestStep{Action: "action in second embedded test", Response: "response in second embedded test", Redirect: true},
+		RFTestStep{Action: "second action", Response: "second response", Redirect: true},
+	}
+	if !reflect.DeepEqual(expectedSteps, test.Steps) {
+		t.Errorf("Unexpected steps.\nExpected:\n%v\nGot:\n%v", expectedSteps, test.Steps)
+	}
+
+	// Browsers
+	test = RFTest{
+		BrowsersMap: []map[string]interface{}{
+			{"state": "enabled", "name": "some_browser"},
+			{"state": "disabled", "name": "disabled_browser"},
+			{"state": "enabled", "name": "another_browser"},
+		},
+	}
+
+	err = test.PrepareToWriteAsRFML(client, true)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	expectedBrowsers := []string{"some_browser", "another_browser"}
+	if !reflect.DeepEqual(expectedBrowsers, test.Browsers) {
+		t.Errorf("Unexpected browsers.\nExpected:\n%v\nGot:\n%v", expectedBrowsers, test.Browsers)
 	}
 }
 
@@ -302,7 +515,7 @@ func TestUpdateTest(t *testing.T) {
 		Title:    "a title",
 		StartURI: "/",
 	}
-	rfTest.PrepareToUploadFromRFML(TestIDMappings{})
+	rfTest.PrepareToUploadFromRFML(&TestIDMappings{})
 
 	setup()
 	defer cleanup()

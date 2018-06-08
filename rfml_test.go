@@ -237,8 +237,8 @@ type testRfmlAPI struct {
 	handleUpdateTest func(*rainforest.RFTest)
 }
 
-func (t *testRfmlAPI) GetRFMLIDs() (rainforest.TestIDMappings, error) {
-	return t.mappings, nil
+func (t *testRfmlAPI) GetRFMLIDs() (*rainforest.TestIDMappings, error) {
+	return &t.mappings, nil
 }
 
 func (t *testRfmlAPI) GetTest(testID int) (*rainforest.RFTest, error) {
@@ -334,7 +334,11 @@ func TestUploadRFML(t *testing.T) {
 
 	testPath := filepath.Join(testDefaultSpecFolder, "valid_test.rfml")
 
-	testAPI.mappings = rainforest.TestIDMappings{{ID: testID, RFMLID: rfmlID}}
+	testAPI.mappings = rainforest.TestIDMappings{
+		Pairs: []rainforest.TestIDPair{
+			{ID: testID, RFMLID: rfmlID},
+		},
+	}
 
 	// basic test
 	testAPI.handleUpdateTest = func(rfTest *rainforest.RFTest) {
@@ -457,7 +461,11 @@ func TestDownloadRFML(t *testing.T) {
 		State:     "enabled",
 	}
 
-	testAPI.mappings = rainforest.TestIDMappings{{ID: testID, RFMLID: rfmlID}}
+	testAPI.mappings = rainforest.TestIDMappings{
+		Pairs: []rainforest.TestIDPair{
+			{ID: testID, RFMLID: rfmlID},
+		},
+	}
 	testAPI.tests = []rainforest.RFTest{rfTest}
 
 	paddedTestID := fmt.Sprintf("%010d", testID)
@@ -575,8 +583,10 @@ func TestValidateEmbedded(t *testing.T) {
 
 	testAPI := new(testRfmlAPI)
 	testAPI.mappings = rainforest.TestIDMappings{
-		{ID: t1.TestID, RFMLID: t1.RFMLID},
-		{ID: t2.TestID, RFMLID: t2.RFMLID},
+		Pairs: []rainforest.TestIDPair{
+			{ID: t1.TestID, RFMLID: t1.RFMLID},
+			{ID: t2.TestID, RFMLID: t2.RFMLID},
+		},
 	}
 
 	tests := []*rainforest.RFTest{&t2}

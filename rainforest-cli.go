@@ -343,8 +343,8 @@ func main() {
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
 				cli.BoolFlag{
-					Name:  "embed-tests",
-					Usage: "download your tests without extracting the steps of an embedded test.",
+					Name:  "flatten-steps",
+					Usage: "download your tests with steps extracted from embedded tests.",
 				},
 			},
 			Action: func(c *cli.Context) error {

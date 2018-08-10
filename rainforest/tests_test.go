@@ -11,13 +11,13 @@ import (
 	"testing"
 )
 
-func TestGetRFMLIDs(t *testing.T) {
+func TestGetTestIDs(t *testing.T) {
 	setup()
 	defer cleanup()
 
 	const reqMethod = "GET"
 
-	rfmlIDs := []TestIDPair{
+	testIDPairs := []TestIDPair{
 		{ID: 123, RFMLID: "abc"},
 		{ID: 456, RFMLID: "xyz"},
 	}
@@ -28,15 +28,13 @@ func TestGetRFMLIDs(t *testing.T) {
 		}
 
 		enc := json.NewEncoder(w)
-		enc.Encode(rfmlIDs)
+		enc.Encode(testIDPairs)
 	})
 
-	out, _ := client.GetRFMLIDs()
-	expected := new(TestIDFinder)
-	expected.Pairs = rfmlIDs
+	out, _ := client.GetTestIDs()
 
-	if !reflect.DeepEqual(expected, out) {
-		t.Errorf("Response expected = %v, actual %v", rfmlIDs, out)
+	if !reflect.DeepEqual(testIDPairs, out) {
+		t.Errorf("Response expected = %v, actual %v", testIDPairs, out)
 	}
 }
 
@@ -304,7 +302,7 @@ func TestUpdateTest(t *testing.T) {
 		Title:    "a title",
 		StartURI: "/",
 	}
-	rfTest.PrepareToUploadFromRFML(TestIDFinder{})
+	rfTest.PrepareToUploadFromRFML(TestIDCollection{})
 
 	setup()
 	defer cleanup()

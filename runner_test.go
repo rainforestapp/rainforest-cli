@@ -94,12 +94,13 @@ func (r *fakeRunnerClient) CheckRunStatus(runID int) (*rainforest.RunStatus, err
 	return nil, fmt.Errorf("Unable to find run status for run ID %v", runID)
 }
 
-func (r *fakeRunnerClient) GetRFMLIDs() (*rainforest.TestIDFinder, error) {
-	var finder rainforest.TestIDFinder
-	for _, test := range r.createdTests {
-		finder.Pairs = append(finder.Pairs, rainforest.TestIDPair{ID: test.TestID, RFMLID: test.RFMLID})
+func (r *fakeRunnerClient) GetTestIDs() ([]rainforest.TestIDPair, error) {
+	pairs := make([]rainforest.TestIDPair, len(r.createdTests))
+	for idx, test := range r.createdTests {
+		pairs[idx] = rainforest.TestIDPair{ID: test.TestID, RFMLID: test.RFMLID}
 	}
-	return &finder, nil
+
+	return pairs, nil
 }
 
 func (r *fakeRunnerClient) CreateTest(t *rainforest.RFTest) error {

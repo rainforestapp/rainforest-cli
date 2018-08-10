@@ -17,7 +17,7 @@ func TestGetRFMLIDs(t *testing.T) {
 
 	const reqMethod = "GET"
 
-	rfmlIDs := TestIDMappings{
+	rfmlIDs := []TestIDPair{
 		{ID: 123, RFMLID: "abc"},
 		{ID: 456, RFMLID: "xyz"},
 	}
@@ -32,8 +32,10 @@ func TestGetRFMLIDs(t *testing.T) {
 	})
 
 	out, _ := client.GetRFMLIDs()
+	expected := new(TestIDFinder)
+	expected.Pairs = rfmlIDs
 
-	if !reflect.DeepEqual(rfmlIDs, out) {
+	if !reflect.DeepEqual(expected, out) {
 		t.Errorf("Response expected = %v, actual %v", rfmlIDs, out)
 	}
 }
@@ -302,7 +304,7 @@ func TestUpdateTest(t *testing.T) {
 		Title:    "a title",
 		StartURI: "/",
 	}
-	rfTest.PrepareToUploadFromRFML(TestIDMappings{})
+	rfTest.PrepareToUploadFromRFML(TestIDFinder{})
 
 	setup()
 	defer cleanup()

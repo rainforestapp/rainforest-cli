@@ -175,12 +175,12 @@ func validateRFMLFiles(parsedTests []*rainforest.RFTest, localOnly bool, api rfm
 	// check for embedded tests id validity
 	// start with pulling the external test ids to validate against them as well
 	if !localOnly && api.ClientToken() != "" {
-		var externalTests rainforest.TestIDMappings
+		var externalTests *rainforest.TestIDFinder
 		externalTests, err = api.GetRFMLIDs()
 		if err != nil {
 			return err
 		}
-		for _, externalTest := range externalTests {
+		for _, externalTest := range externalTests.Pairs {
 			if _, ok := rfmlIDToTest[externalTest.RFMLID]; !ok {
 				rfmlIDToTest[externalTest.RFMLID] = &rainforest.RFTest{}
 				dependencyGraph.AddNode(goraph.NewNode(externalTest.RFMLID))
@@ -388,15 +388,14 @@ func uploadSingleRFMLFile(filePath string) error {
 	parsedTest.RFMLPath = filePath
 
 	// Check if the test already exists in RF so we can decide between updating and creating new one
-	mappings, err := api.GetRFMLIDs()
+	testIDFinder, err := api.GetRFMLIDs()
 	if err != nil {
 		return err
 	}
 
-	testID, ok := mappings.MapRFMLIDtoID()[parsedTest.RFMLID]
-	if ok {
-		parsedTest.TestID = testID
-	} else {
+	var testID int
+	testID, err = testIDFinder.GetTestID(parsedTest.RFMLID)
+	if err != nil {
 		// Create an empty test
 		log.Printf("Creating new test: %v", parsedTest.RFMLID)
 
@@ -405,7 +404,7 @@ func uploadSingleRFMLFile(filePath string) error {
 			Title:  parsedTest.Title,
 		}
 
-		err = emptyTest.PrepareToUploadFromRFML(mappings)
+		err = emptyTest.PrepareToUploadFromRFML(*testIDFinder)
 		if err != nil {
 			return err
 		}
@@ -416,17 +415,19 @@ func uploadSingleRFMLFile(filePath string) error {
 		}
 		log.Printf("Created new test: %v", parsedTest.RFMLID)
 		// Refresh mappings
-		mappings, err = api.GetRFMLIDs()
+		testIDFinder, err = api.GetRFMLIDs()
 		if err != nil {
 			return err
 		}
 		// Assign test ID
-		testID, ok := mappings.MapRFMLIDtoID()[parsedTest.RFMLID]
-		if ok {
-			parsedTest.TestID = testID
-		} else {
+		testID, err = testIDFinder.GetTestID(parsedTest.RFMLID)
+		if err != nil {
 			panic(fmt.Sprintf("Unable to map RFML ID to a primary ID: %v", parsedTest.RFMLID))
+		} else {
+			parsedTest.TestID = testID
 		}
+	} else {
+		parsedTest.TestID = testID
 	}
 
 	if parsedTest.HasUploadableFiles() {
@@ -436,7 +437,7 @@ func uploadSingleRFMLFile(filePath string) error {
 		}
 	}
 
-	err = parsedTest.PrepareToUploadFromRFML(mappings)
+	err = parsedTest.PrepareToUploadFromRFML(*testIDFinder)
 	if err != nil {
 		return err
 	}
@@ -458,11 +459,11 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 
 	// walk through the specifed directory (also subdirs) and pick the .rfml files
 	// This will be used over and over again
-	mappings, err := api.GetRFMLIDs()
+	testIDFinder, err := api.GetRFMLIDs()
 	if err != nil {
 		return err
 	}
-	rfmlidToID := mappings.MapRFMLIDtoID()
+
 	var newTests []*rainforest.RFTest
 	var parsedTests []*rainforest.RFTest
 
@@ -470,7 +471,8 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 		parsedTests = append(parsedTests, pTest)
 		// Check if it's a new test or an existing one, because they need different treatment
 		// to ensure we first add new ones and have IDs for potential embedds
-		if _, ok := rfmlidToID[pTest.RFMLID]; !ok {
+		_, err = testIDFinder.GetTestID(pTest.RFMLID)
+		if err != nil {
 			newTests = append(newTests, pTest)
 		}
 	}
@@ -486,7 +488,7 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 			Description: newTest.Description,
 			Title:       newTest.Title,
 		}
-		err = emptyTest.PrepareToUploadFromRFML(mappings)
+		err = emptyTest.PrepareToUploadFromRFML(*testIDFinder)
 		if err != nil {
 			return err
 		}
@@ -507,7 +509,7 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 	}
 
 	// Refresh the mappings so we have all of the new tests
-	mappings, err = api.GetRFMLIDs()
+	testIDFinder, err = api.GetRFMLIDs()
 	if err != nil {
 		return err
 	}
@@ -515,11 +517,11 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 	// And here we update all of the tests
 	testsToUpdate := make(chan *rainforest.RFTest, len(parsedTests))
 	for _, testToUpdate := range parsedTests {
-		testID, ok := mappings.MapRFMLIDtoID()[testToUpdate.RFMLID]
-		if ok {
-			testToUpdate.TestID = testID
-		} else {
+		testID, err := testIDFinder.GetTestID(testToUpdate.RFMLID)
+		if err != nil {
 			panic(fmt.Sprintf("Unable to map RFML ID to primary ID: %v", testToUpdate.RFMLID))
+		} else {
+			testToUpdate.TestID = testID
 		}
 
 		if testToUpdate.HasUploadableFiles() {
@@ -529,7 +531,7 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 			}
 		}
 
-		err = testToUpdate.PrepareToUploadFromRFML(mappings)
+		err = testToUpdate.PrepareToUploadFromRFML(*testIDFinder)
 		if err != nil {
 			return err
 		}
@@ -554,7 +556,7 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 }
 
 type rfmlAPI interface {
-	GetRFMLIDs() (rainforest.TestIDMappings, error)
+	GetRFMLIDs() (*rainforest.TestIDFinder, error)
 	GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, error)
 	GetTest(int) (*rainforest.RFTest, error)
 	CreateTest(*rainforest.RFTest) error
@@ -623,8 +625,7 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 		go downloadRFTestWorker(testIDChan, errorsChan, testChan, client)
 	}
 
-	var mappings rainforest.TestIDMappings
-	mappings, err = client.GetRFMLIDs()
+	testIDFinder, err := client.GetRFMLIDs()
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -634,7 +635,7 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 		case err = <-errorsChan:
 			return cli.NewExitError(err.Error(), 1)
 		case test := <-testChan:
-			err = test.PrepareToWriteAsRFML(mappings)
+			err = test.PrepareToWriteAsRFML(*testIDFinder)
 			if err != nil {
 				return cli.NewExitError(err.Error(), 1)
 			}

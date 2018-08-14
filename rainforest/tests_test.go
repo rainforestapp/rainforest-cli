@@ -11,6 +11,91 @@ import (
 	"testing"
 )
 
+func TestPrepareToWriteAsRFML(t *testing.T) {
+	test := RFTest{
+		StartURI: "",
+		BrowsersMap: []map[string]interface{}{
+			{
+				"name":  "foo",
+				"state": "enabled",
+			},
+			{
+				"name":  "bar",
+				"state": "disabled",
+			},
+			{
+				"name":  "baz",
+				"state": "enabled",
+			},
+		},
+		// Deeply embedded tests
+		Elements: []testElement{
+			{
+				Type: "test",
+				Details: testElementDetails{
+					ID: 123,
+					Elements: []testElement{
+						{
+							Type: "test",
+							Details: testElementDetails{
+								ID: 234,
+								Elements: []testElement{
+									{
+										Type: "step",
+										Details: testElementDetails{
+											Action:   "first step",
+											Response: "first step?",
+										},
+									},
+								},
+							},
+						},
+						{
+							Type: "step",
+							Details: testElementDetails{
+								Action:   "second step",
+								Response: "second step?",
+							},
+						},
+					},
+				},
+			},
+			{
+				Type: "step",
+				Details: testElementDetails{
+					Action:   "third step",
+					Response: "third step?",
+				},
+			},
+		},
+	}
+	coll := TestIDCollection{}
+
+	err := test.PrepareToWriteAsRFML(coll, true)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	expectedBrowsers := []string{"foo", "baz"}
+	if !reflect.DeepEqual(test.Browsers, expectedBrowsers) {
+		t.Errorf("Expected browsers to be %v, got %v", expectedBrowsers, test.Browsers)
+	}
+
+	if len(test.Steps) != 3 {
+		t.Errorf("Expected to have 3 steps, instead got %v steps", len(test.Steps))
+	} else {
+		if firstStep := test.Steps[0].(RFTestStep); firstStep.Action != "first step" {
+			t.Errorf("Unexpected step text. Expected \"first step\", got %v", firstStep.Action)
+		}
+		if secondStep := test.Steps[1].(RFTestStep); secondStep.Response != "second step?" {
+			t.Errorf("Unexpected response text. Expect \"second step?\", got %v", secondStep.Response)
+		}
+		if thirdStep := test.Steps[2].(RFTestStep); thirdStep.Action != "third step" {
+			t.Errorf("Unexpected step text. Expected \"third step\", got %v", thirdStep.Action)
+		}
+	}
+}
+
 func TestGetTestIDs(t *testing.T) {
 	setup()
 	defer cleanup()

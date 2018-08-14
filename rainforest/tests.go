@@ -18,13 +18,14 @@ type TestIDPair struct {
 	RFMLID string `json:"rfml_id"`
 }
 
-// TestIDCollection finds corresponding test IDs and RFML IDs.
+// TestIDCollection efficiently finds corresponding test IDs and RFML IDs.
 type TestIDCollection struct {
 	pairs      []TestIDPair
 	idToRFMLID map[int]string
 	rfmlIDtoID map[string]int
 }
 
+// NewTestIDCollection creates a new collection for a given slice of TestIDPairs
 func NewTestIDCollection(testIDPairs []TestIDPair) *TestIDCollection {
 	return &TestIDCollection{
 		pairs: testIDPairs,
@@ -48,7 +49,7 @@ func (coll TestIDCollection) GetRFMLID(testID int) (string, error) {
 	return rfmlID, nil
 }
 
-// MapRFMLIDtoID creates a map from RFML IDs to IDs
+// GetTestID find the corresponding test ID for a RFML ID
 func (coll TestIDCollection) GetTestID(rfmlID string) (int, error) {
 	if coll.rfmlIDtoID == nil {
 		coll.rfmlIDtoID = make(map[string]int, len(coll.pairs))
@@ -120,9 +121,10 @@ type testElement struct {
 
 // testElementDetails is one of the helpers to construct the proper JSON test sturcture
 type testElementDetails struct {
-	ID       int    `json:"id,omitempty"`
-	Action   string `json:"action,omitempty"`
-	Response string `json:"response,omitempty"`
+	ID       int           `json:"id,omitempty"`
+	Action   string        `json:"action,omitempty"`
+	Response string        `json:"response,omitempty"`
+	Elements []testElement `json:"elements,omitempty"` // for embedded tests
 }
 
 // mapBrowsers fills the browsers field with format recognized by the API
@@ -174,26 +176,52 @@ func (t *RFTest) marshallElements(coll TestIDCollection) error {
 }
 
 // unmarshalElements converts API elements format into RFML go structs
-func (t *RFTest) unmarshalElements(coll TestIDCollection) error {
+func (t *RFTest) unmarshalElements(coll TestIDCollection, flattenedSteps bool) error {
 	if len(t.Elements) == 0 {
 		return nil
 	}
-	t.Steps = make([]interface{}, len(t.Elements))
-	for i, element := range t.Elements {
+
+	t.Steps = []interface{}{} // ensure that we are starting with an empty slice
+	for _, element := range t.Elements {
 		switch element.Type {
 		case "step":
 			step := RFTestStep{Action: element.Details.Action, Response: element.Details.Response, Redirect: element.Redirect}
-			t.Steps[i] = step
+			t.Steps = append(t.Steps, step)
 		case "test":
-			rfmlID, err := coll.GetRFMLID(element.Details.ID)
-			if err != nil {
-				return err
+			if flattenedSteps {
+				steps := flattenEmbeddedTestElement(&element)
+				t.Steps = append(t.Steps, steps...)
+			} else {
+				rfmlID, err := coll.GetRFMLID(element.Details.ID)
+				if err != nil {
+					return err
+				}
+
+				embedd := RFEmbeddedTest{RFMLID: rfmlID, Redirect: element.Redirect}
+				t.Steps = append(t.Steps, embedd)
 			}
-			embedd := RFEmbeddedTest{RFMLID: rfmlID, Redirect: element.Redirect}
-			t.Steps[i] = embedd
 		}
 	}
+
 	return nil
+}
+
+func flattenEmbeddedTestElement(element *testElement) []interface{} {
+	var steps []interface{}
+
+	if element.Type == "step" {
+		step := RFTestStep{Action: element.Details.Action, Response: element.Details.Response, Redirect: element.Redirect}
+		steps = []interface{}{step}
+	} else if element.Type == "test" {
+		for _, el := range element.Details.Elements {
+			flattenedSteps := flattenEmbeddedTestElement(&el)
+			steps = append(steps, flattenedSteps...)
+		}
+	} else {
+		panic("Unknown test element type: " + element.Type)
+	}
+
+	return steps
 }
 
 // PrepareToUploadFromRFML uses different helper methods to prepare struct for API upload
@@ -203,7 +231,7 @@ func (t *RFTest) PrepareToUploadFromRFML(coll TestIDCollection) error {
 		t.StartURI = "/"
 	}
 
-	// prevent []string(nil) as a value for Tags
+	// prevent nil pointer as a value for Tags
 	if len(t.Tags) == 0 {
 		t.Tags = []string{}
 	}
@@ -217,8 +245,8 @@ func (t *RFTest) PrepareToUploadFromRFML(coll TestIDCollection) error {
 }
 
 // PrepareToWriteAsRFML uses different helper methods to prepare struct for translation to RFML
-func (t *RFTest) PrepareToWriteAsRFML(coll TestIDCollection) error {
-	err := t.unmarshalElements(coll)
+func (t *RFTest) PrepareToWriteAsRFML(coll TestIDCollection, flattenedSteps bool) error {
+	err := t.unmarshalElements(coll, flattenedSteps)
 	if err != nil {
 		return err
 	}

@@ -413,7 +413,7 @@ func uploadSingleRFMLFile(filePath string) error {
 			return err
 		}
 		log.Printf("Created new test: %v", parsedTest.RFMLID)
-		// Refresh mappings
+		// Refresh collection with new test IDs
 		testIDPairs, err = api.GetTestIDs()
 		if err != nil {
 			return err
@@ -510,7 +510,7 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 		}
 	}
 
-	// Refresh the mappings so we have all of the new tests
+	// Refresh the collection with new test IDs so we have all of the new tests
 	testIDs, err = api.GetTestIDs()
 	if err != nil {
 		return err
@@ -639,7 +639,7 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 		case err = <-errorsChan:
 			return cli.NewExitError(err.Error(), 1)
 		case test := <-testChan:
-			err = test.PrepareToWriteAsRFML(*testIDCollection)
+			err = test.PrepareToWriteAsRFML(*testIDCollection, c.Bool("flatten-steps"))
 			if err != nil {
 				return cli.NewExitError(err.Error(), 1)
 			}

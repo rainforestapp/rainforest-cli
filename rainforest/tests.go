@@ -12,32 +12,58 @@ import (
 
 const uploadableRegex = `{{ *file\.(download|screenshot)\(([^\)]+)\) *}}`
 
-// TestIDMap is a type representing RF tests that contain the test definitions.
-type TestIDMap struct {
+// TestIDPair is a type representing RF tests that contain the test definitions.
+type TestIDPair struct {
 	ID     int    `json:"id"`
 	RFMLID string `json:"rfml_id"`
 }
 
-// TestIDMappings is a slice of all the mapping pairs.
-// And has a set of functions defined to get map of one to the other.
-type TestIDMappings []TestIDMap
-
-// MapIDtoRFMLID creates a map from test IDs to RFML IDs
-func (s TestIDMappings) MapIDtoRFMLID() map[int]string {
-	resultMap := make(map[int]string)
-	for _, mapping := range s {
-		resultMap[mapping.ID] = mapping.RFMLID
-	}
-	return resultMap
+// TestIDCollection efficiently finds corresponding test IDs and RFML IDs.
+type TestIDCollection struct {
+	pairs      []TestIDPair
+	idToRFMLID map[int]string
+	rfmlIDtoID map[string]int
 }
 
-// MapRFMLIDtoID creates a map from RFML IDs to IDs
-func (s TestIDMappings) MapRFMLIDtoID() map[string]int {
-	resultMap := make(map[string]int)
-	for _, mapping := range s {
-		resultMap[mapping.RFMLID] = mapping.ID
+// NewTestIDCollection creates a new collection for a given slice of TestIDPairs
+func NewTestIDCollection(testIDPairs []TestIDPair) *TestIDCollection {
+	return &TestIDCollection{
+		pairs: testIDPairs,
 	}
-	return resultMap
+}
+
+// GetRFMLID finds the corresponding RFML ID for a test ID
+func (coll TestIDCollection) GetRFMLID(testID int) (string, error) {
+	if coll.idToRFMLID == nil {
+		coll.idToRFMLID = make(map[int]string, len(coll.pairs))
+		for _, pair := range coll.pairs {
+			coll.idToRFMLID[pair.ID] = pair.RFMLID
+		}
+	}
+
+	rfmlID, ok := coll.idToRFMLID[testID]
+	if !ok {
+		return "", fmt.Errorf("Unable to find test with ID %v", testID)
+	}
+
+	return rfmlID, nil
+}
+
+// GetTestID find the corresponding test ID for a RFML ID
+func (coll TestIDCollection) GetTestID(rfmlID string) (int, error) {
+	if coll.rfmlIDtoID == nil {
+		coll.rfmlIDtoID = make(map[string]int, len(coll.pairs))
+		for _, pair := range coll.pairs {
+			coll.rfmlIDtoID[pair.RFMLID] = pair.ID
+		}
+	}
+
+	testID, ok := coll.rfmlIDtoID[rfmlID]
+	if !ok {
+		return 0, fmt.Errorf("Unable to find test with RFML ID %v", rfmlID)
+	}
+
+	return testID, nil
 }
 
 // FeatureIDInt is a wrapper the int type used in the FeatureID field of RFTest
@@ -95,9 +121,10 @@ type testElement struct {
 
 // testElementDetails is one of the helpers to construct the proper JSON test sturcture
 type testElementDetails struct {
-	ID       int    `json:"id,omitempty"`
-	Action   string `json:"action,omitempty"`
-	Response string `json:"response,omitempty"`
+	ID       int           `json:"id,omitempty"`
+	Action   string        `json:"action,omitempty"`
+	Response string        `json:"response,omitempty"`
+	Elements []testElement `json:"elements,omitempty"` // for embedded tests
 }
 
 // mapBrowsers fills the browsers field with format recognized by the API
@@ -123,13 +150,12 @@ func (t *RFTest) unmapBrowsers() {
 }
 
 // marshallElements converts go rfml structs into format understood by the API
-func (t *RFTest) marshallElements(mappings TestIDMappings) error {
+func (t *RFTest) marshallElements(coll TestIDCollection) error {
 	// if there are no steps skip marshalling
 	if len(t.Steps) == 0 {
 		return nil
 	}
 	t.Elements = make([]testElement, len(t.Steps))
-	rfmlidToID := mappings.MapRFMLIDtoID()
 	for i, step := range t.Steps {
 		switch castStep := step.(type) {
 		case RFTestStep:
@@ -137,9 +163,9 @@ func (t *RFTest) marshallElements(mappings TestIDMappings) error {
 			stepElement := testElement{Redirect: castStep.Redirect, Type: "step", Details: stepElementDetails}
 			t.Elements[i] = stepElement
 		case RFEmbeddedTest:
-			embeddedID, ok := rfmlidToID[castStep.RFMLID]
-			if !ok {
-				return errors.New("Couldn't convert RFML ID to test ID")
+			embeddedID, err := coll.GetTestID(castStep.RFMLID)
+			if err != nil {
+				return err
 			}
 			embeddedElementDetails := testElementDetails{ID: embeddedID}
 			embeddedElement := testElement{Redirect: castStep.Redirect, Type: "test", Details: embeddedElementDetails}
@@ -150,44 +176,68 @@ func (t *RFTest) marshallElements(mappings TestIDMappings) error {
 }
 
 // unmarshalElements converts API elements format into RFML go structs
-func (t *RFTest) unmarshalElements(mappings TestIDMappings) error {
+func (t *RFTest) unmarshalElements(coll TestIDCollection, flattenedSteps bool) error {
 	if len(t.Elements) == 0 {
 		return nil
 	}
-	t.Steps = make([]interface{}, len(t.Elements))
-	idToRFMLID := mappings.MapIDtoRFMLID()
 
-	for i, element := range t.Elements {
+	t.Steps = []interface{}{} // ensure that we are starting with an empty slice
+	for _, element := range t.Elements {
 		switch element.Type {
 		case "step":
 			step := RFTestStep{Action: element.Details.Action, Response: element.Details.Response, Redirect: element.Redirect}
-			t.Steps[i] = step
+			t.Steps = append(t.Steps, step)
 		case "test":
-			rfmlID, ok := idToRFMLID[element.Details.ID]
-			if !ok {
-				return errors.New("Couldn't convert test ID to RFML ID")
+			if flattenedSteps {
+				steps := flattenEmbeddedTestElement(&element)
+				t.Steps = append(t.Steps, steps...)
+			} else {
+				rfmlID, err := coll.GetRFMLID(element.Details.ID)
+				if err != nil {
+					return err
+				}
+
+				embedd := RFEmbeddedTest{RFMLID: rfmlID, Redirect: element.Redirect}
+				t.Steps = append(t.Steps, embedd)
 			}
-			embedd := RFEmbeddedTest{RFMLID: rfmlID, Redirect: element.Redirect}
-			t.Steps[i] = embedd
 		}
 	}
+
 	return nil
 }
 
+func flattenEmbeddedTestElement(element *testElement) []interface{} {
+	var steps []interface{}
+
+	if element.Type == "step" {
+		step := RFTestStep{Action: element.Details.Action, Response: element.Details.Response, Redirect: element.Redirect}
+		steps = []interface{}{step}
+	} else if element.Type == "test" {
+		for _, el := range element.Details.Elements {
+			flattenedSteps := flattenEmbeddedTestElement(&el)
+			steps = append(steps, flattenedSteps...)
+		}
+	} else {
+		panic("Unknown test element type: " + element.Type)
+	}
+
+	return steps
+}
+
 // PrepareToUploadFromRFML uses different helper methods to prepare struct for API upload
-func (t *RFTest) PrepareToUploadFromRFML(mappings TestIDMappings) error {
+func (t *RFTest) PrepareToUploadFromRFML(coll TestIDCollection) error {
 	t.Source = "rainforest-cli"
 	if t.StartURI == "" {
 		t.StartURI = "/"
 	}
 
-	// prevent []string(nil) as a value for Tags
+	// prevent nil pointer as a value for Tags
 	if len(t.Tags) == 0 {
 		t.Tags = []string{}
 	}
 
 	t.mapBrowsers()
-	err := t.marshallElements(mappings)
+	err := t.marshallElements(coll)
 	if err != nil {
 		return err
 	}
@@ -195,8 +245,8 @@ func (t *RFTest) PrepareToUploadFromRFML(mappings TestIDMappings) error {
 }
 
 // PrepareToWriteAsRFML uses different helper methods to prepare struct for translation to RFML
-func (t *RFTest) PrepareToWriteAsRFML(mappings TestIDMappings) error {
-	err := t.unmarshalElements(mappings)
+func (t *RFTest) PrepareToWriteAsRFML(coll TestIDCollection, flattenedSteps bool) error {
+	err := t.unmarshalElements(coll, flattenedSteps)
 	if err != nil {
 		return err
 	}
@@ -315,9 +365,9 @@ func (f *RFTestFilters) toQuery() string {
 	return v.Encode()
 }
 
-// GetRFMLIDs returns all tests IDs and RFML IDs to properly map tests to their IDs
+// GetTestIDs returns all tests IDs and RFML IDs to properly map tests to their IDs
 // for uploading and deleting.
-func (c *Client) GetRFMLIDs() (TestIDMappings, error) {
+func (c *Client) GetTestIDs() ([]TestIDPair, error) {
 	// Prepare request
 	req, err := c.NewRequest("GET", "tests/rfml_ids", nil)
 	if err != nil {
@@ -325,11 +375,12 @@ func (c *Client) GetRFMLIDs() (TestIDMappings, error) {
 	}
 
 	// Send request and process response
-	var testResp TestIDMappings
+	var testResp []TestIDPair
 	_, err = c.Do(req, &testResp)
 	if err != nil {
 		return nil, err
 	}
+
 	return testResp, nil
 }
 
@@ -417,14 +468,15 @@ func (c *Client) DeleteTest(testID int) error {
 
 // DeleteTestByRFMLID deletes test with a specified RFMLID from the RF test suite
 func (c *Client) DeleteTestByRFMLID(testRFMLID string) error {
-	testMappings, err := c.GetRFMLIDs()
+	testIDPairs, err := c.GetTestIDs()
 	if err != nil {
 		return err
 	}
-	rfmlMap := testMappings.MapRFMLIDtoID()
-	testID, ok := rfmlMap[testRFMLID]
-	if !ok {
-		return fmt.Errorf("RFML ID: %v doesn't exist in Rainforest", testRFMLID)
+
+	testIDCollection := NewTestIDCollection(testIDPairs)
+	testID, err := testIDCollection.GetTestID(testRFMLID)
+	if err != nil {
+		return err
 	}
 	return c.DeleteTest(testID)
 }

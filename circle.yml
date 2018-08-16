@@ -2,13 +2,9 @@ machine:
   environment:
     GOPATH: "$HOME/.go_workspace"
     BUILD: "$GOPATH/src/github.com/rainforestapp/rainforest-cli"
-    GODIST: "go1.7.3.linux-amd64.tar.gz"
     EQUINOX_KEY_PATH: "$BUILD/equinox.key"
   post:
     - mkdir -p download
-    - test -e download/$GODIST || curl -o download/$GODIST https://storage.googleapis.com/golang/$GODIST
-    - sudo rm -rf /usr/local/go
-    - sudo tar -C /usr/local -xzf download/$GODIST
 
 checkout:
   post:

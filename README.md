@@ -286,8 +286,7 @@ Popular command line options are:
 - `--custom-url` - use a custom url for this run to use an ad-hoc QA environment on all tests. You will need to specify a `site_id` too for this to work. Note that we will be creating a new environment for your account for this particular run.
 - `--git-trigger` - only trigger a run when the last commit (for a git repo in the current working directory) has contains `@rainforest` and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged `checkout`. This over-rides `--tag` and any tests specified. If no `@rainforest` is detected it will exit 0.
 - `--description "CI automatic run"` - add an arbitrary description for the run.
-- `--embed-tests` - Use with `rainforest export` to export your tests without extracting the
-steps of an embedded test.
+- `--flatten-steps` - Use with `rainforest download` to download your tests with steps extracted from embedded tests.
 - `--test-folder /path/to/directory` - Use with `rainforest [new, upload, export]`. If this option is not provided, rainforest-cli will, in the case of 'new' create a directory, or in the case of 'upload' and 'export' use the directory, at the default path `./spec/rainforest/`.
 - `--junit-file` - Create a junit xml report file with the specified name.  Must be run in foreground mode, or with the report command. Uses the rainforest
 api to construct a junit report.  This is useful to track tests in CI such as Jenkins or Bamboo.

@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.10.0 - 2018-08-15
+- Remove defunct `--embed-tests` flag and replace with `--flatten-steps` flag.
+  - (804b18864407cf3cad6b04fec0a4f8d5d67f0a00, @epaulet)
+
 ## 2.9.0 - 2018-05-24
 - Show more descriptive Rainforest API errors.
   - (071123b4e9301357b7df6dda78dd79229c953530, @epaulet, @jbarber)

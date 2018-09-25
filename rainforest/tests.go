@@ -436,7 +436,7 @@ func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
 func (c *Client) GetTest(testID int) (*RFTest, error) {
 	req, err := c.NewRequest(
 		"GET",
-		fmt.Sprintf("tests/%d?slim=true", strconv.Itoa(testID)),
+		fmt.Sprintf("tests/%d?slim=true", testID),
 		nil,
 	)
 	if err != nil {
@@ -510,7 +510,7 @@ func (c *Client) UpdateTest(test *RFTest) error {
 	// Prepare request
 	req, err := c.NewRequest(
 		"PUT",
-		fmt.Sprintf("tests/%d?slim=true", strconv.Itoa(test.TestID)),
+		fmt.Sprintf("tests/%d?slim=true", test.TestID),
 		test,
 	)
 	if err != nil {

@@ -510,7 +510,7 @@ func (c *Client) UpdateTest(test *RFTest) error {
 	// Prepare request
 	req, err := c.NewRequest(
 		"PUT",
-		fmt.Sprintf("tests/%d?slim=true", strconv.Itoa(testID)),
+		fmt.Sprintf("tests/%d?slim=true", strconv.Itoa(test.TestID)),
 		test,
 	)
 	if err != nil {

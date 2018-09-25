@@ -434,7 +434,11 @@ func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
 
 // GetTest gets a test from RF specified by the given test ID
 func (c *Client) GetTest(testID int) (*RFTest, error) {
-	req, err := c.NewRequest("GET", "tests/"+strconv.Itoa(testID), nil)
+	req, err := c.NewRequest(
+		"GET",
+		fmt.Sprintf("tests/%d?slim=true", strconv.Itoa(testID)),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -484,7 +488,7 @@ func (c *Client) DeleteTestByRFMLID(testRFMLID string) error {
 // CreateTest creates new test on RF, requires RFTest struct to be prepared to upload using helpers
 func (c *Client) CreateTest(test *RFTest) error {
 	// Prepare request
-	req, err := c.NewRequest("POST", "tests", test)
+	req, err := c.NewRequest("POST", "tests?slim=true", test)
 	if err != nil {
 		return err
 	}
@@ -504,7 +508,11 @@ func (c *Client) UpdateTest(test *RFTest) error {
 	}
 
 	// Prepare request
-	req, err := c.NewRequest("PUT", "tests/"+strconv.Itoa(test.TestID), test)
+	req, err := c.NewRequest(
+		"PUT",
+		fmt.Sprintf("tests/%d?slim=true", strconv.Itoa(testID)),
+		test,
+	)
 	if err != nil {
 		return err
 	}

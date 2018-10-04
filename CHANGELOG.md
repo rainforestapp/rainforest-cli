@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.10.1 - 2018-10-04
+- Use slim=true when interacting with the tests API endpoint.
+  - (54e7a8918c95b3b71d5ef91d007fa957e4b3a32b, @nxvl)
+
 ## 2.10.0 - 2018-08-15
 - Remove defunct `--embed-tests` flag and replace with `--flatten-steps` flag.
   - (804b18864407cf3cad6b04fec0a4f8d5d67f0a00, @epaulet)

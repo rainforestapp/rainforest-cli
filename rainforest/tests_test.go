@@ -273,6 +273,10 @@ func TestGetTest(t *testing.T) {
 			RFMLID: "123",
 			Title:  "A test",
 		}
+		slim := r.URL.Query().Get("slim")
+		if slim != "true" {
+			t.Error("Slim param wasn't true: ", slim)
+		}
 		b, err := json.Marshal(test)
 		if err != nil {
 			t.Fatal("Error marshalling test:", err)
@@ -399,6 +403,10 @@ func TestUpdateTest(t *testing.T) {
 		if r.Method != "PUT" {
 			t.Errorf("Incorrect HTTP method - expected PUT, got %v", r.Method)
 			return
+		}
+		slim := r.URL.Query().Get("slim")
+		if slim != "true" {
+			t.Error("Slim param wasn't true: ", slim)
 		}
 
 		data, err = ioutil.ReadAll(r.Body)

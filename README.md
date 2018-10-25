@@ -253,7 +253,7 @@ your test will default to using your account's default browsers.
 - `TAGS` - Comma separated list of your desired tags for this test.
 - `FEATURE_ID` - Feature ID for the feature that this test is a part of. You can
 find your available feature IDs with the `features` command.
-- `STATE` - State of the test. Valid states are `enabled` and `disabled`.
+- `STATE` - State of the test. Valid states are `enabled`, `disabled` and `draft`.
 - `OTHER COMMENTS` - Any comments you'd like to save to this test. All lines beginning with
 `#` will be ignored by Rainforest unless they begin with a supported data field,
 such as `tags` or `start_uri`.

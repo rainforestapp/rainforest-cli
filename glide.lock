@@ -1,5 +1,5 @@
 hash: 830f6492322c307a441a080abbee95473db71b03fa9044effa7c79643b50c3e7
-updated: 2018-05-24T11:55:24.70805-07:00
+updated: 2018-11-08T17:28:27.686824-08:00
 imports:
 - name: github.com/equinox-io/equinox
   version: 6f97d0d3970881d3e53dd6f547a41109eb055e54
@@ -12,7 +12,7 @@ imports:
 - name: github.com/gyuho/goraph
   version: d460590d53a91b1f29347ca9b01d1e8c158cbeb2
 - name: github.com/mattn/go-runewidth
-  version: 9e777a8366cce605130a531d2cd6363d07ad7317
+  version: ce7b0b5c7b45a81508558cd1dba6bb1e4ddb51bb
 - name: github.com/olekukonko/tablewriter
   version: daf2955e742cf123959884fdff4685aa79b63135
 - name: github.com/rainforestapp/testutil

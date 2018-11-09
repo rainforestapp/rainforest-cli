@@ -1,5 +1,10 @@
 # Rainforest CLI Changelog
 
+## 2.11.0 - 2018-11-09
+- Add support for uploads direct to S3 for mobile application builds
+ - (, @ukd1)
+- Update to Go 1.11
+
 ## 2.10.1 - 2018-10-04
 - Use slim=true when interacting with the tests API endpoint.
   - (54e7a8918c95b3b71d5ef91d007fa957e4b3a32b, @nxvl)

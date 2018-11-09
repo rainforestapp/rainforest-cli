@@ -1,4 +1,4 @@
-FROM golang:1.9.2
+FROM golang:1.11.1
 WORKDIR /go/src/github.com/rainforestapp/rainforest-cli
 RUN curl -s https://glide.sh/get | sh
 ADD glide.yaml glide.lock ./

@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.10.1"
+	version = "2.11.0"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -379,6 +379,16 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				return csvUpload(c, api)
+			},
+		},
+		{
+			Name:         "binary-upload",
+			Usage:        "Create or replace a binary for a mobile build.",
+			OnUsageError: onCommandUsageErrorHandler("binary-upload"),
+			Description:  "Upload and overwrite a binary for a mobile build.",
+			ArgsUsage:    "[path to a apk / ipa / app]",
+			Action: func(c *cli.Context) error {
+				return binaryUpload(c)
 			},
 		},
 		{

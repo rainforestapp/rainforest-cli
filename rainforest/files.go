@@ -67,6 +67,10 @@ func (aws *awsFileInfo) multipartFormRequest(fileName string, fileContents []byt
 	writer.WriteField("Content-Type", mime.TypeByExtension(fileExt))
 
 	part, err := writer.CreateFormFile("file", fileName)
+	if err != nil {
+		return nil, err
+	}
+
 	part.Write(fileContents)
 
 	url := aws.URL

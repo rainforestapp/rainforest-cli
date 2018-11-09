@@ -1,30 +1,33 @@
 package main
 
 import (
-  "github.com/rainforestapp/rainforest-cli/rainforest"
-	"github.com/urfave/cli"
-	"log"
 	"os"
+
+	"github.com/urfave/cli"
 )
 
 func binaryUpload(c cliContext) error {
-	// Get the file path either from the command argument
-	fileName := c.Args().First()
-	if fileName == "" {
+	// Get the file path from the command argument
+	filePath := c.Args().First()
+	if filePath == "" {
 		return cli.NewExitError("File not specified", 1)
 	}
-	log.Println(fileName)
-  log.Println(rainforest.GetUploadEndpoint(fileName))
 
-	file, err := os.OpenFile(fileName, os.O_RDONLY, 0666)
+	err := verifyBinary(filePath)
 	if err != nil {
-		if os.IsPermission(err) {
-			log.Println("Unable to read from ", fileName)
-			log.Println(err)
-			os.Exit(1)
-		}
+		return cli.NewExitError(err.Error(), 1)
 	}
-	file.Close()
+
+	err = api.UploadBinary(filePath)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
 
 	return nil
+}
+
+func verifyBinary(filePath string) error {
+	file, err := os.OpenFile(filePath, os.O_RDONLY, 0666)
+	file.Close()
+	return err
 }

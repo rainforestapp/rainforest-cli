@@ -51,7 +51,7 @@ type RunDetails struct {
 	TotalNoResultTests int                  `json:"total_no_result_tests"`
 	StateDetails       RunStateDetails      `json:"state_details"`
 	Timestamps         map[string]time.Time `json:"timestamps"`
-	Tests              []RunTestDetails
+	Tests              []RunTestDetails     `json:"tests"`
 }
 
 // GetRunDetails returns the top level details of a Run
@@ -68,24 +68,6 @@ func (c *Client) GetRunDetails(runID int) (*RunDetails, error) {
 	if err != nil {
 		return &runDetails, err
 	}
-
-	// NOTE: This extra request is only necessary because `updated_at` is not
-	// currently exposed in the `/runs/:id` endpoint. This may change in the future:
-	// https://github.com/rainforestapp/rainforest-cli/issues/216
-	var runTests []RunTestDetails
-	url = "runs/" + strconv.Itoa(runID) + "/tests?page_size=" + strconv.Itoa(runDetails.TotalTests)
-
-	req, err = c.NewRequest("GET", url, nil)
-	if err != nil {
-		return &runDetails, err
-	}
-
-	_, err = c.Do(req, &runTests)
-	if err != nil {
-		return &runDetails, err
-	}
-
-	runDetails.Tests = runTests
 
 	return &runDetails, err
 }

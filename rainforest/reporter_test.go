@@ -41,15 +41,6 @@ func TestGetRunDetails(t *testing.T) {
 		},
 	}
 
-	mux.HandleFunc(runsURL, func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != reqMethod {
-			t.Errorf("Unexpected request method in GetRunTestDetails. Expected: %v, Actual: %v", reqMethod, r.Method)
-		}
-
-		enc := json.NewEncoder(w)
-		enc.Encode(runDetails)
-	})
-
 	updatedAt, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:21:31.492Z")
 	createdAt := updatedAt.Add(-10 * time.Minute)
 	runTests := []RunTestDetails{
@@ -62,14 +53,15 @@ func TestGetRunDetails(t *testing.T) {
 		},
 	}
 
-	testsURL := "/runs/" + strconv.Itoa(runID) + "/tests"
-	mux.HandleFunc(testsURL, func(w http.ResponseWriter, r *http.Request) {
+	runDetails.Tests = runTests
+
+	mux.HandleFunc(runsURL, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != reqMethod {
 			t.Errorf("Unexpected request method in GetRunTestDetails. Expected: %v, Actual: %v", reqMethod, r.Method)
 		}
 
 		enc := json.NewEncoder(w)
-		enc.Encode(runTests)
+		enc.Encode(runDetails)
 	})
 
 	out, err := client.GetRunDetails(runID)

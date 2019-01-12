@@ -132,8 +132,7 @@ func TestGetRunTestDetails(t *testing.T) {
 		},
 	}
 
-	// TODO: Find the correct pattern for this
-	url := "/runs/" + strconv.Itoa(runID) + "/tests/" + strconv.Itoa(testID)
+	url := fmt.Sprintf("/runs/%d/tests/%d", runID, testID)
 	mux.HandleFunc(url, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != reqMethod {
 			t.Errorf("Unexpected request method in GetRunTestDetails. Expected: %v, Actual: %v", reqMethod, r.Method)

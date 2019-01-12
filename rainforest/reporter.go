@@ -1,6 +1,7 @@
 package rainforest
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -92,7 +93,7 @@ func (c *Client) GetRunDetails(runID int) (*RunDetails, error) {
 // GetRunTestDetails returns the detailed information for a RunTest
 func (c *Client) GetRunTestDetails(runID int, testID int) (*RunTestDetails, error) {
 	var runTestDetails RunTestDetails
-	url := "runs/" + strconv.Itoa(runID) + "/tests/" + strconv.Itoa(testID)
+	url := fmt.Sprintf("runs/%d/tests/%d?include_feedback=true&skip_mark_as_viewed=true", runID, testID)
 
 	req, err := c.NewRequest("GET", url, nil)
 	if err != nil {

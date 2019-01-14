@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
-	"strconv"
 	"testing"
 	"time"
 )
@@ -16,7 +15,7 @@ func TestGetRunDetails(t *testing.T) {
 
 	runID := 1337
 	reqMethod := "GET"
-	runsURL := "/runs/" + strconv.Itoa(runID)
+	runsURL := fmt.Sprintf("/runs/%d", runID)
 
 	completeTime, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:21:31.492Z")
 	inProgressTime, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:06:18.279Z")

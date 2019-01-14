@@ -1,5 +1,11 @@
 # Rainforest CLI Changelog
 
+## 2.10.2 - 2019-01-14
+- Use `include_feedback` and `skip_mark_as_viewed` query params when fetching run results in order to get details of failures and not update the results state to `viewed`.
+  - (c76cb1dea35677f951dc22bc1b3ed3b7895bb569, @epaulet)
+- Remove extra request to API that was used for fetching the `updated_at` attribute on test results.
+  - (053157a38cd35be14a0fe371711e03a03a179295, @epaulet)
+
 ## 2.10.1 - 2018-10-04
 - Use slim=true when interacting with the tests API endpoint.
   - (54e7a8918c95b3b71d5ef91d007fa957e4b3a32b, @nxvl)

@@ -70,6 +70,7 @@ func (l *logWriter) Write(p []byte) (int, error) {
 func main() {
 	updateFinishedChan := make(chan struct{})
 	app := cli.NewApp()
+	app.Name = "Rainforest CLI"
 	app.Usage = "Rainforest QA CLI - https://www.rainforestqa.com/"
 	app.Version = version
 	if releaseChannel != "" {

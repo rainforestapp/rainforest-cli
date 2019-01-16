@@ -1,6 +1,7 @@
 package rainforest
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -50,7 +51,7 @@ type RunDetails struct {
 	TotalNoResultTests int                  `json:"total_no_result_tests"`
 	StateDetails       RunStateDetails      `json:"state_details"`
 	Timestamps         map[string]time.Time `json:"timestamps"`
-	Tests              []RunTestDetails
+	Tests              []RunTestDetails     `json:"tests"`
 }
 
 // GetRunDetails returns the top level details of a Run
@@ -68,31 +69,13 @@ func (c *Client) GetRunDetails(runID int) (*RunDetails, error) {
 		return &runDetails, err
 	}
 
-	// NOTE: This extra request is only necessary because `updated_at` is not
-	// currently exposed in the `/runs/:id` endpoint. This may change in the future:
-	// https://github.com/rainforestapp/rainforest-cli/issues/216
-	var runTests []RunTestDetails
-	url = "runs/" + strconv.Itoa(runID) + "/tests?page_size=" + strconv.Itoa(runDetails.TotalTests)
-
-	req, err = c.NewRequest("GET", url, nil)
-	if err != nil {
-		return &runDetails, err
-	}
-
-	_, err = c.Do(req, &runTests)
-	if err != nil {
-		return &runDetails, err
-	}
-
-	runDetails.Tests = runTests
-
 	return &runDetails, err
 }
 
 // GetRunTestDetails returns the detailed information for a RunTest
 func (c *Client) GetRunTestDetails(runID int, testID int) (*RunTestDetails, error) {
 	var runTestDetails RunTestDetails
-	url := "runs/" + strconv.Itoa(runID) + "/tests/" + strconv.Itoa(testID)
+	url := fmt.Sprintf("runs/%d/tests/%d?include_feedback=true&skip_mark_as_viewed=true", runID, testID)
 
 	req, err := c.NewRequest("GET", url, nil)
 	if err != nil {

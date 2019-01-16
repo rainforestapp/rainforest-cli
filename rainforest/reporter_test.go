@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
-	"strconv"
 	"testing"
 	"time"
 )
@@ -16,7 +15,7 @@ func TestGetRunDetails(t *testing.T) {
 
 	runID := 1337
 	reqMethod := "GET"
-	runsURL := "/runs/" + strconv.Itoa(runID)
+	runsURL := fmt.Sprintf("/runs/%d", runID)
 
 	completeTime, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:21:31.492Z")
 	inProgressTime, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:06:18.279Z")
@@ -41,15 +40,6 @@ func TestGetRunDetails(t *testing.T) {
 		},
 	}
 
-	mux.HandleFunc(runsURL, func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != reqMethod {
-			t.Errorf("Unexpected request method in GetRunTestDetails. Expected: %v, Actual: %v", reqMethod, r.Method)
-		}
-
-		enc := json.NewEncoder(w)
-		enc.Encode(runDetails)
-	})
-
 	updatedAt, _ := time.Parse(time.RFC3339Nano, "2016-07-13T22:21:31.492Z")
 	createdAt := updatedAt.Add(-10 * time.Minute)
 	runTests := []RunTestDetails{
@@ -62,14 +52,15 @@ func TestGetRunDetails(t *testing.T) {
 		},
 	}
 
-	testsURL := "/runs/" + strconv.Itoa(runID) + "/tests"
-	mux.HandleFunc(testsURL, func(w http.ResponseWriter, r *http.Request) {
+	runDetails.Tests = runTests
+
+	mux.HandleFunc(runsURL, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != reqMethod {
 			t.Errorf("Unexpected request method in GetRunTestDetails. Expected: %v, Actual: %v", reqMethod, r.Method)
 		}
 
 		enc := json.NewEncoder(w)
-		enc.Encode(runTests)
+		enc.Encode(runDetails)
 	})
 
 	out, err := client.GetRunDetails(runID)
@@ -132,8 +123,7 @@ func TestGetRunTestDetails(t *testing.T) {
 		},
 	}
 
-	// TODO: Find the correct pattern for this
-	url := "/runs/" + strconv.Itoa(runID) + "/tests/" + strconv.Itoa(testID)
+	url := fmt.Sprintf("/runs/%d/tests/%d", runID, testID)
 	mux.HandleFunc(url, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != reqMethod {
 			t.Errorf("Unexpected request method in GetRunTestDetails. Expected: %v, Actual: %v", reqMethod, r.Method)

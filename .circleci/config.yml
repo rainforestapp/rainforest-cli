@@ -1,0 +1,101 @@
+version: 2
+
+steps:
+  - &install_equinox
+    run:
+        name: Install Equinox Release Tool
+        command: |
+          mkdir ~/download
+          cd ~/download && curl -O https://bin.equinox.io/c/mBWdkfai63v/release-tool-stable-linux-amd64.zip
+          sudo unzip ~/download/release-tool-stable-linux-amd64.zip -d /usr/local/bin
+  - &install_dependencies
+    run:
+        name: Install Dependencies
+        command: |
+          curl https://glide.sh/get | sh
+          glide install
+
+jobs:
+  test:
+    docker:
+      - image: circleci/golang:1.11.4-node
+    working_directory: "/go/src/github.com/rainforestapp/rainforest-cli"
+    steps:
+      - checkout
+      - *install_dependencies
+      - run:
+          name: Run Unit Tests
+          command: go test -v -race $(glide novendor)
+
+  deploy_stable:
+    docker:
+      - image: circleci/golang:1.11.4-node
+    working_directory: "/go/src/github.com/rainforestapp/rainforest-cli"
+    steps:
+      - checkout
+      - *install_dependencies
+      - *install_equinox
+      - run:
+          name: Release to Stable Channel
+          command:
+            echo -e $EQUINOX_KEY > equinox.key
+            equinox release --version=${CIRCLE_TAG:1} --platforms="darwin_amd64 linux_amd64 darwin_386 linux_386 windows_amd64 windows_386" --signing-key=equinox.key --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel beta -- -ldflags "-X main.releaseChannel=beta -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
+            equinox publish --token=$EQUINOX_ACC_TOKEN --app=$EQUINOX_APP_ID --channel dev --version=${CIRCLE_TAG:1}
+            rm -f equinox.key
+
+  deploy_beta:
+    docker:
+      - image: circleci/golang:1.11.4-node
+    working_directory: "/go/src/github.com/rainforestapp/rainforest-cli"
+    steps:
+      - checkout
+      - *install_dependencies
+      - *install_equinox
+      - run:
+          name: Release to Beta Channel
+          command: |
+            echo -e $EQUINOX_KEY > equinox.key
+            equinox release --version=${CIRCLE_TAG:1} --platforms="darwin_amd64 linux_amd64 darwin_386 linux_386 windows_amd64 windows_386" --signing-key=equinox.key --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel beta -- -ldflags "-X main.releaseChannel=beta -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
+            equinox publish --token=$EQUINOX_ACC_TOKEN --app=$EQUINOX_APP_ID --channel dev --version=${CIRCLE_TAG:1}
+            rm -f equinox.key
+
+  deploy_dev:
+    docker:
+      - image: circleci/golang:1.11.4-node
+    working_directory: "/go/src/github.com/rainforestapp/rainforest-cli"
+    steps:
+      - checkout
+      - *install_dependencies
+      - *install_equinox
+      - run:
+          name: Release to Dev Channel
+          command: |
+            echo -e $EQUINOX_KEY > equinox.key
+            equinox release --version=${CIRCLE_SHA1:0:8} --platforms="darwin_amd64 linux_amd64 darwin_386 linux_386 windows_amd64 windows_386" --signing-key=equinox.key --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel dev -- -ldflags "-X main.releaseChannel=dev -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
+            rm -f equinox.key
+
+workflows:
+  version: 2
+  test_and_deploy:
+    jobs:
+      - test
+      - deploy_dev:
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
+      - deploy_beta:
+          filters:
+            # don't execute on branch pushes, only tag pushes
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(\-(alpha|beta)\.[0-9]+)$/
+      - deploy_stable:
+          filters:
+            # don't execute on branch pushes, only tag pushes
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/

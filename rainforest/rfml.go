@@ -139,13 +139,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 					}
 					parsedRFTest.FeatureID = FeatureIDInt(featureID)
 				case "state":
-					if value == "disabled" {
-						parsedRFTest.State = "disabled"
-					} else if value == "enabled" {
-						parsedRFTest.State = "enabled"
-					} else {
-						return parsedRFTest, &parseError{lineNumStr, "Test state must be \"enabled\" or \"disabled\""}
-					}
+					parsedRFTest.State = value
 				case "execute":
 					execute, err := strconv.ParseBool(value)
 					if err != nil {

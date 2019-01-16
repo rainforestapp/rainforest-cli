@@ -91,7 +91,7 @@ func TestReadAll(t *testing.T) {
 		t.Errorf("Incorrect values for RFTest.\nGot %#v\nWant %#v", rfTest, validTestValues)
 	}
 
-	// Test is disabled
+	// Test state is present
 	testText = fmt.Sprintf(`#! %v
 # title: %v
 # start_uri: %v
@@ -100,7 +100,7 @@ func TestReadAll(t *testing.T) {
 		validTestValues.RFMLID,
 		validTestValues.Title,
 		validTestValues.StartURI,
-		"disabled",
+		"some_state",
 	)
 
 	r = strings.NewReader(testText)
@@ -110,8 +110,8 @@ func TestReadAll(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	if rfTest.State != "disabled" {
-		t.Errorf("Incorrect test state. Got %v, Want %v", rfTest.State, "disabled")
+	if rfTest.State != "some_state" {
+		t.Errorf("Incorrect test state. Got %v, Want %v", rfTest.State, "some_state")
 	}
 
 	// Test state is omitted

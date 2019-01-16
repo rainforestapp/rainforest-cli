@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.10.3 - 2019-01-16
+- Remove local validation for RFML state attribute so that the API will validate it instead.
+  - (ac67e3d4c3f6f7d8df2ea465c3741980dfc16af2, @epaulet, @jbarber)
+
 ## 2.10.2 - 2019-01-14
 - Use `include_feedback` and `skip_mark_as_viewed` query params when fetching run results in order to get details of failures and not update the results state to `viewed`.
   - (c76cb1dea35677f951dc22bc1b3ed3b7895bb569, @epaulet)

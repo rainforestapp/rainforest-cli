@@ -410,6 +410,14 @@ func main() {
 			},
 		},
 		{
+			Name:         "environments",
+			Usage:        "Lists available environments",
+			OnUsageError: onCommandUsageErrorHandler("environments"),
+			Action: func(c *cli.Context) error {
+				return printEnvironments(api)
+			},
+		},
+		{
 			Name:         "folders",
 			Usage:        "Lists available folders",
 			OnUsageError: onCommandUsageErrorHandler("folders"),

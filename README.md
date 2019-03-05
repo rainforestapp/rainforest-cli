@@ -159,6 +159,11 @@ See a list of all of your sites and their IDs
 rainforest sites
 ```
 
+See a list of all of your environments and their IDs
+```bash
+rainforest environments
+```
+
 See a list of all of your smart folders and their IDs
 ```bash
 rainforest folders

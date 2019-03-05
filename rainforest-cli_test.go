@@ -11,7 +11,7 @@ import (
 )
 
 func TestMain(t *testing.T) {
-	commands := []string{"run", "new", "validate", "upload", "rm", "download", "csv-upload", "report", "sites", "folders", "filters", "browsers", "features", "run-groups", "update"}
+	commands := []string{"run", "new", "validate", "upload", "rm", "download", "csv-upload", "report", "sites", "environments", "folders", "filters", "browsers", "features", "run-groups", "update"}
 
 	for _, command := range commands {
 		if os.Getenv("TEST_EXIT") == "1" {

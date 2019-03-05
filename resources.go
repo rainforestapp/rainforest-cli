@@ -29,6 +29,7 @@ type resourceAPI interface {
 	GetFolders() ([]rainforest.Folder, error)
 	GetBrowsers() ([]rainforest.Browser, error)
 	GetSites() ([]rainforest.Site, error)
+	GetEnvironments() ([]rainforest.Environment, error)
 	GetFeatures() ([]rainforest.Feature, error)
 	GetRunGroups() ([]rainforest.RunGroup, error)
 }
@@ -92,6 +93,23 @@ func printSites(api resourceAPI) error {
 	}
 
 	printResourceTable([]string{"Site ID", "Site Name", "Category"}, rows)
+	return nil
+}
+
+// printEnvironments fetches and prints out the defined enviroments
+func printEnvironments(api resourceAPI) error {
+	// Fetch the list of enviroments from the Rainforest
+	environments, err := api.GetEnvironments()
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	rows := make([][]string, len(environments))
+	for i, environment := range environments {
+		rows[i] = []string{strconv.Itoa(environment.ID), environment.Name}
+	}
+
+	printResourceTable([]string{"Environment ID", "Environment Name"}, rows)
 	return nil
 }
 

@@ -113,6 +113,28 @@ func TestGetSites(t *testing.T) {
 	}
 }
 
+func TestGetEnvironments(t *testing.T) {
+	setup()
+	defer cleanup()
+
+	const reqMethod = "GET"
+
+	mux.HandleFunc("/environments", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != reqMethod {
+			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+		}
+		fmt.Fprint(w, `[{"id": 1234, "name": "Staging"}, {"id": 4321, "name": "QA"}]`)
+	})
+
+	out, _ := client.GetEnvironments()
+
+	want := []Environment{{ID: 1234, Name: "Staging"}, {ID: 4321, Name: "QA"}}
+
+	if !reflect.DeepEqual(out, want) {
+		t.Errorf("Response out = %v, want %v", out, want)
+	}
+}
+
 func TestGetFeatures(t *testing.T) {
 	setup()
 	defer cleanup()

@@ -185,6 +185,23 @@ func (c *Client) GetSites() ([]Site, error) {
 	return sitesResp, nil
 }
 
+// GetEnvironments fetches environments available to use during the RF runs.
+func (c *Client) GetEnvironments() ([]Environment, error) {
+	// Prepare request
+	req, err := c.NewRequest("GET", "environments", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Send request and process response
+	var envsResp []Environment
+	_, err = c.Do(req, &envsResp)
+	if err != nil {
+		return nil, err
+	}
+	return envsResp, nil
+}
+
 // Feature represents a single feature returned by the API.
 type Feature struct {
 	ID    int    `json:"id"`

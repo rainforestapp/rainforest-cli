@@ -32,11 +32,12 @@ func TestPrintResourceTable(t *testing.T) {
 }
 
 type testResourceAPI struct {
-	Folders   []rainforest.Folder
-	Browsers  []rainforest.Browser
-	Sites     []rainforest.Site
-	Features  []rainforest.Feature
-	RunGroups []rainforest.RunGroup
+	Folders      []rainforest.Folder
+	Browsers     []rainforest.Browser
+	Sites        []rainforest.Site
+	Environments []rainforest.Environment
+	Features     []rainforest.Feature
+	RunGroups    []rainforest.RunGroup
 }
 
 func (api testResourceAPI) GetFolders() ([]rainforest.Folder, error) {
@@ -49,6 +50,10 @@ func (api testResourceAPI) GetBrowsers() ([]rainforest.Browser, error) {
 
 func (api testResourceAPI) GetSites() ([]rainforest.Site, error) {
 	return api.Sites, nil
+}
+
+func (api testResourceAPI) GetEnvironments() ([]rainforest.Environment, error) {
+	return api.Environments, nil
 }
 
 func (api testResourceAPI) GetFeatures() ([]rainforest.Feature, error) {
@@ -116,6 +121,27 @@ func TestPrintSites(t *testing.T) {
 	regexMatchOut(`\| +123 +\| +My favorite site +\| +Site +\|`, t)
 	regexMatchOut(`\| +456 +\| +My favorite app URL +\| +iOS +\|`, t)
 	regexMatchOut(`\| +789 +\| +Site with unknown platform +\| +unknown_platform +\|`, t)
+}
+
+func TestPrintEnvironments(t *testing.T) {
+	tablesOut = &bytes.Buffer{}
+	defer func() {
+		tablesOut = os.Stdout
+	}()
+
+	testAPI := testResourceAPI{
+		Environments: []rainforest.Environment{
+			{ID: 123, Name: "QA"},
+			{ID: 456, Name: "Staging 1"},
+			{ID: 789, Name: "Staging 2"},
+		},
+	}
+
+	printEnvironments(testAPI)
+	regexMatchOut(`\| +ENVIRONMENT ID +\| +ENVIRONMENT NAME +\|`, t)
+	regexMatchOut(`\| +123 +\| +QA +\|`, t)
+	regexMatchOut(`\| +456 +\| +Staging 1 +\|`, t)
+	regexMatchOut(`\| +789 +\| +Staging 2 +\|`, t)
 }
 
 func TestPrintFeatures(t *testing.T) {

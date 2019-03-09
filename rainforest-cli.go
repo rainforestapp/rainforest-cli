@@ -383,6 +383,26 @@ func main() {
 			},
 		},
 		{
+			Name:         "mobile-upload",
+			Usage:        "Upload your mobile app to Rainforest.",
+			OnUsageError: onCommandUsageErrorHandler("mobile-upload"),
+			Description:  "Upload a mobile app file to Rainforest.",
+			ArgsUsage:    "[path to mobile app file]",
+			Flags: []cli.Flag{
+				cli.IntFlag{
+					Name:  "site-id",
+					Usage: "The site-id of the app you are uploading. You can see a list of your `SITE-ID`s with the sites command.",
+				},
+				cli.IntFlag{
+					Name:  "environment-id",
+					Usage: "The environment-id of the app you are uploading. You can see a list of your `ENVIRONMENT-ID`s with the environment command.",
+				},
+			},
+			Action: func(c *cli.Context) error {
+				return mobileAppUpload(c, api)
+			},
+		},
+		{
 			Name:         "report",
 			Usage:        "Create a report from your run results",
 			OnUsageError: onCommandUsageErrorHandler("report"),

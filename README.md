@@ -201,6 +201,16 @@ Upload a CSV to update an existing tabular variables.
 rainforest csv-upload --import-variable-name my_variable --overwrite-variable PATH/TO/CSV.csv
 ```
 
+#### Uploading Mobile Apps
+
+Upload a mobile app to Rainforest.
+```bash
+rainforest mobile-upload --site-id <site_id> --environment-id <environment_id> PATH/TO/mobile_app.ipa
+```
+- `--site-id SITE_ID` - filter tests by a specific site. You can see a list of your site IDs with `rainforest sites`.
+- `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
+
+
 ## Options
 
 ### Global

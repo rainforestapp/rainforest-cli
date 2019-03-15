@@ -1,5 +1,13 @@
 # Rainforest CLI Changelog
 
+## 2.11.0 - 2019-03-15
+- Add `mobile-upload` command
+  - (ccb84a2a923c7e4a142a1d0a3f4d475bb66127e4, @shanempope)
+- Add `environments` command
+  - (f6f53c0971aeccad4e6674bd9965da72b4a8fa43, @shanempope)
+- Update to go 1.9.7
+  - (583d5ad6c5e827a9b7bd6736507f2406b3b4b018, @shanempope)
+
 ## 2.10.3 - 2019-01-16
 - Remove local validation for RFML state attribute so that the API will validate it instead.
   - (ac67e3d4c3f6f7d8df2ea465c3741980dfc16af2, @epaulet, @jbarber)

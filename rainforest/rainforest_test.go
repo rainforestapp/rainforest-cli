@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/textproto"
 	"net/url"
 	"reflect"
 	"strings"
@@ -74,10 +75,12 @@ func TestNewRequest(t *testing.T) {
 	}
 }
 
-type unreadableResponseBody struct{}
+type unreadableResponseBody struct {
+	ErrMsg string
+}
 
 func (res *unreadableResponseBody) Read(p []byte) (n int, err error) {
-	return 0, errors.New("Just not readable")
+	return 0, errors.New(res.ErrMsg)
 }
 
 func (res *unreadableResponseBody) Close() error {
@@ -85,6 +88,8 @@ func (res *unreadableResponseBody) Close() error {
 }
 
 func TestCheckResponse(t *testing.T) {
+	contentTypeHeader := textproto.CanonicalMIMEHeaderKey("Content-Type")
+
 	var testCases = []struct {
 		httpResp      *http.Response
 		expectedError string
@@ -98,32 +103,49 @@ func TestCheckResponse(t *testing.T) {
 		},
 		{
 			httpResp: &http.Response{
+				StatusCode: 400,
+				Body:       &unreadableResponseBody{"Just not readable"},
+			},
+			expectedError: "RF API Error (400) - Unable to read response: Just not readable",
+		},
+		{
+			httpResp: &http.Response{
+				StatusCode: 103,
+				Header:     http.Header{contentTypeHeader: {"text/plain"}},
+				Body:       ioutil.NopCloser(bytes.NewBufferString(`Totally not JSON`)),
+			},
+			expectedError: "RF API Error (103):\nTotally not JSON",
+		},
+		{
+			httpResp: &http.Response{
+				StatusCode: 103,
+				Header:     http.Header{contentTypeHeader: {"text/html"}},
+				Body:       ioutil.NopCloser(bytes.NewBufferString(`<html>Totally not JSON</html>`)),
+			},
+			expectedError: "RF API Error (103):\n<html>Totally not JSON</html>",
+		},
+		{
+			httpResp: &http.Response{
 				StatusCode: 500,
+				Header:     http.Header{contentTypeHeader: {"application/json"}},
 				Body:       ioutil.NopCloser(bytes.NewBufferString(`{"error": "foo"}`)),
 			},
 			expectedError: "RF API Error (500): foo",
 		},
 		{
 			httpResp: &http.Response{
-				StatusCode: 103,
-				Body:       ioutil.NopCloser(bytes.NewBufferString(`Totally not JSON`)),
-			},
-			expectedError: "RF API Error (103) - Unable to parse response JSON: invalid character 'T' looking for beginning of value",
-			expectedDebug: "Cannot parse response: \nTotally not JSON",
-		},
-		{
-			httpResp: &http.Response{
 				StatusCode: 400,
-				Body:       &unreadableResponseBody{},
+				Header:     http.Header{contentTypeHeader: {"application/json"}},
+				Body:       ioutil.NopCloser(bytes.NewBufferString(`(this is not json)`)),
 			},
-			expectedError: "RF API Error (400) - Unable to read response: Just not readable",
+			expectedError: "RF API Error (400) - Unable to parse response JSON: invalid character '(' looking for beginning of value",
+			expectedDebug: "Cannot parse response:\n(this is not json)",
 		},
 	}
 
 	for _, tCase := range testCases {
 		errorExpected := len(tCase.expectedError) > 0
 		debuggable := len(tCase.expectedDebug) > 0
-
 		var err error
 		stdout, captureError := testutil.CaptureStdout(func() error {
 			// keep error returned by checkResponse separate from errors
@@ -146,10 +168,8 @@ func TestCheckResponse(t *testing.T) {
 			t.Errorf("checkResponse returned the wrong error. Got: %v. Want: %v.", err.Error(), tCase.expectedError)
 		}
 
-		if debuggable {
-			if !strings.Contains(stdout, tCase.expectedDebug) {
-				t.Errorf("checkResponse debug incorrect. Expected\n\n%v\n\nto be included in\n\n%v", tCase.expectedDebug, stdout)
-			}
+		if debuggable && !strings.Contains(stdout, tCase.expectedDebug) {
+			t.Errorf("checkResponse debug incorrect. Expected\n\n%v\n\nto be included in\n\n%v", tCase.expectedDebug, stdout)
 		}
 	}
 }

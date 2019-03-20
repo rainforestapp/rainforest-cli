@@ -4,7 +4,7 @@
 
 A command line interface to interact with [Rainforest QA](https://www.rainforestqa.com/).
 
-This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation](https://intercom.help/rainforest/developer-tools/cli-docs/rainforest-cli-for-continuous-integration) on the subject.
+This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation](https://rainforestqa.zendesk.com/hc/en-us/articles/360004495033-Rainforest-CLI-for-Continuous-Integration) on the subject.
 
 ## Installation
 

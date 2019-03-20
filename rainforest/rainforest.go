@@ -136,14 +136,18 @@ func checkResponse(res *http.Response, debugFlag bool) error {
 		return errors.New(errPrefix + " - Unable to read response: " + err.Error())
 	}
 
-	type simpleErrorResponse struct {
+	if contentType := res.Header.Get("Content-Type"); contentType != "application/json" {
+		// Just print out the response body as a string
+		return errors.New(errPrefix + ":\n" + string(body))
+	}
+
+	var out struct {
 		Err string `json:"error"`
 	}
-	var out simpleErrorResponse
 	err = json.Unmarshal(body, &out)
 	if err != nil {
 		if debugFlag {
-			fmt.Println("Cannot parse response: \n" + string(body))
+			fmt.Println("Cannot parse response:\n" + string(body))
 		}
 
 		return errors.New(errPrefix + " - Unable to parse response JSON: " + err.Error())

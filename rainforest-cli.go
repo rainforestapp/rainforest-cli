@@ -397,6 +397,10 @@ func main() {
 					Name:  "environment-id",
 					Usage: "The environment-id of the app you are uploading. You can see a list of your `ENVIRONMENT-ID`s with the environment command.",
 				},
+				cli.StringFlag{
+					Name:  "app-slot",
+					Usage: "An optional flag for specifying the app slot (1-5) of your app, if your site-environment contains multiple apps. Default is 1.",
+				},
 			},
 			Action: func(c *cli.Context) error {
 				return mobileAppUpload(c, api)

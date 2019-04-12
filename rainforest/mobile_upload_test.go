@@ -21,6 +21,7 @@ func TestGetPresignedPOST(t *testing.T) {
 	siteID := 123
 	environmentID := 456
 	extension := ".zip"
+	appSlot := 2
 
 	Key := "awsKey"
 	AccessID := "accessID"
@@ -36,7 +37,7 @@ func TestGetPresignedPOST(t *testing.T) {
 		"signature":      Signature,
 	}
 	const awsURL = "https://s3.aws.com/stuff"
-	const rainforestURL = "https://private-apps.rainforestqa.com/123/456.zip"
+	const rainforestURL = "https://private-apps.rainforestqa.com/123/456-2.zip"
 	respBody := RFPresignedPostData{
 		URL: awsURL, RequiredFields: requiredFields, RainforestURL: rainforestURL,
 	}
@@ -50,7 +51,7 @@ func TestGetPresignedPOST(t *testing.T) {
 		fmt.Fprint(w, jsonString)
 	})
 
-	presignedPost, err := client.GetPresignedPOST(extension, siteID, environmentID)
+	presignedPost, err := client.GetPresignedPOST(extension, siteID, environmentID, appSlot)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -179,6 +180,9 @@ func TestUpdateURL(t *testing.T) {
 
 	siteID := 123
 	environmentID := 456
+	appSlot := 1
+
+	fullURLToSet := func() string { return "" }
 
 	respBody := SiteEnvironmentsData{
 		SiteEnvironments: []SiteEnvironment{
@@ -190,14 +194,12 @@ func TestUpdateURL(t *testing.T) {
 			},
 			SiteEnvironment{
 				ID:            2,
-				SiteID:        654,
-				EnvironmentID: 321,
-				URL:           "https://oldurl.com/app2.zip",
+				SiteID:        2,
+				EnvironmentID: 1,
+				URL:           "https://oldurl.com/app3.zip|https://oldurl.com/app4.zip",
 			},
 		},
 	}
-
-	newURL := "https://newurl.com/app3.zip"
 
 	mux.HandleFunc("/site_environments", func(w http.ResponseWriter, r *http.Request) {
 		const reqMethod = "GET"
@@ -209,7 +211,7 @@ func TestUpdateURL(t *testing.T) {
 		fmt.Fprint(w, jsonString)
 	})
 
-	mux.HandleFunc("/site_environments/1", func(w http.ResponseWriter, r *http.Request) {
+	putHandler := func(w http.ResponseWriter, r *http.Request) {
 		const reqMethod = "PUT"
 		if r.Method != reqMethod {
 			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
@@ -221,13 +223,73 @@ func TestUpdateURL(t *testing.T) {
 		if err != nil {
 			t.Errorf(err.Error())
 		}
-		if data.URL != newURL {
+		if data.URL != fullURLToSet() {
 			t.Errorf("New URL not found in body of put")
 		}
 		fmt.Fprint(w, "OK")
-	})
+	}
 
-	err := client.UpdateURL(siteID, environmentID, newURL)
+	mux.HandleFunc("/site_environments/1", putHandler)
+	mux.HandleFunc("/site_environments/2", putHandler)
+
+	appSlot = 1
+	newURL := "https://newurl.com/app3.zip"
+	fullURLToSet = func() string {
+		return "https://newurl.com/app3.zip"
+	}
+	err := client.UpdateURL(siteID, environmentID, appSlot, newURL)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	appSlot = 2
+	newURL = "https://newurl.com/app3.zip"
+	fullURLToSet = func() string {
+		return "https://oldurl.com/app1.zip|https://newurl.com/app3.zip"
+	}
+	err = client.UpdateURL(siteID, environmentID, appSlot, newURL)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	appSlot = 5
+	newURL = "https://newurl.com/app3.zip"
+	fullURLToSet = func() string {
+		return "https://oldurl.com/app1.zip||||https://newurl.com/app3.zip"
+	}
+	err = client.UpdateURL(siteID, environmentID, appSlot, newURL)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	siteID = 2
+	environmentID = 1
+	appSlot = 1
+	newURL = "https://newurl.com/appX.zip"
+	fullURLToSet = func() string {
+		return "https://newurl.com/appX.zip|https://oldurl.com/app4.zip"
+	}
+	err = client.UpdateURL(siteID, environmentID, appSlot, newURL)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	appSlot = 2
+	newURL = "https://newurl.com/appX.zip"
+	fullURLToSet = func() string {
+		return "https://oldurl.com/app3.zip|https://newurl.com/appX.zip"
+	}
+	err = client.UpdateURL(siteID, environmentID, appSlot, newURL)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	appSlot = 3
+	newURL = "https://newurl.com/appX.zip"
+	fullURLToSet = func() string {
+		return "https://oldurl.com/app3.zip|https://oldurl.com/app4.zip|https://newurl.com/appX.zip"
+	}
+	err = client.UpdateURL(siteID, environmentID, appSlot, newURL)
 	if err != nil {
 		t.Errorf(err.Error())
 	}

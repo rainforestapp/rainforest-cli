@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 // RFPresignedPostData represents the url and required fields we must POST to AWS
@@ -22,7 +23,7 @@ type RFPresignedPostData struct {
 
 // GetPresignedPOST requests the presigned POST data from Rainforest so that we can upload the mobile
 // app to S3
-func (c *Client) GetPresignedPOST(fileExt string, siteID int, environmentID int) (*RFPresignedPostData, error) {
+func (c *Client) GetPresignedPOST(fileExt string, siteID int, environmentID int, appSlot int) (*RFPresignedPostData, error) {
 	var data RFPresignedPostData
 	url := "uploads"
 	req, err := c.NewRequest("GET", url, nil)
@@ -30,6 +31,7 @@ func (c *Client) GetPresignedPOST(fileExt string, siteID int, environmentID int)
 	q.Add("app_site_id", strconv.Itoa(siteID))
 	q.Add("environment_id", strconv.Itoa(environmentID))
 	q.Add("extension", fileExt)
+	q.Add("app_slot", strconv.Itoa(appSlot))
 	req.URL.RawQuery = q.Encode()
 
 	_, err = c.Do(req, &data)
@@ -131,13 +133,23 @@ func (postData *RFPresignedPostData) emptyMultipartSize(fieldname, filename stri
 }
 
 // UpdateURL fetches sites available to use during the RF runs.
-func (c *Client) UpdateURL(siteID int, environmentID int, newURL string) error {
-	siteEnvironmentID, err := c.getSiteEnvironmentID(siteID, environmentID)
+func (c *Client) UpdateURL(siteID int, environmentID int, appSlot int, newURL string) error {
+	siteEnvironment, err := c.getSiteEnvironment(siteID, environmentID)
 	if err != nil {
 		return err
 	}
 
-	err = c.setSiteEnvironmentURL(siteEnvironmentID, newURL)
+	index := appSlot - 1 // appSlot is 1-5, make it 0-index based
+	splitURL := strings.Split(siteEnvironment.URL, "|")[:]
+	if len(splitURL) < index+1 {
+		newSplitURL := make([]string, index+1)
+		copy(newSplitURL, splitURL)
+		splitURL = newSplitURL
+	}
+	splitURL[index] = newURL
+	updatedNewURL := strings.Join(splitURL, "|")
+
+	err = c.setSiteEnvironmentURL(siteEnvironment.ID, updatedNewURL)
 	if err != nil {
 		return err
 	}
@@ -158,27 +170,29 @@ type SiteEnvironment struct {
 	URL           string `json:"url"`
 }
 
-func (c *Client) getSiteEnvironmentID(siteID int, environmentID int) (int, error) {
+func (c *Client) getSiteEnvironment(siteID int, environmentID int) (SiteEnvironment, error) {
+	var siteEnvironment SiteEnvironment
+
 	// Prepare request
 	req, err := c.NewRequest("GET", "site_environments", nil)
 	if err != nil {
-		return 0, err
+		return siteEnvironment, err
 	}
 
 	// Send request and process response
 	var resp SiteEnvironmentsData
 	_, err = c.Do(req, &resp)
 	if err != nil {
-		return 0, err
+		return siteEnvironment, err
 	}
 
 	for _, siteEnvironment := range resp.SiteEnvironments {
 		if siteEnvironment.SiteID == siteID && siteEnvironment.EnvironmentID == environmentID {
-			return siteEnvironment.ID, nil
+			return siteEnvironment, nil
 		}
 	}
 
-	return 0, fmt.Errorf("SiteEnvironment not found")
+	return siteEnvironment, fmt.Errorf("SiteEnvironment not found")
 }
 
 // SiteEnvironmentUpdate type is the body of site_environments PUT update for updating the URL

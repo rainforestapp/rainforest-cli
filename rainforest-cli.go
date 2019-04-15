@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.11.1"
+	version = "2.11.2"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -396,6 +396,10 @@ func main() {
 				cli.IntFlag{
 					Name:  "environment-id",
 					Usage: "The environment-id of the app you are uploading. You can see a list of your `ENVIRONMENT-ID`s with the environment command.",
+				},
+				cli.StringFlag{
+					Name:  "app-slot",
+					Usage: "An optional flag for specifying the app slot (1-5) of your app, if your site-environment contains multiple apps. Default is 1.",
 				},
 			},
 			Action: func(c *cli.Context) error {

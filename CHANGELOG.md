@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.11.2 - 2019-04-12
+- Add multiple app support to `mobile-upload` command via `--app-slot` flag.
+  - (2374999d7965bb5854a15b6ad1d885922ec788f5, @shanempope)
+
 ## 2.11.1 - 2019-03-19
 - Fix parsing errors for non-JSON responses.
   - (ec4ee32934c670a9a1b285f0eef3775cfab91de5, @epaulet)

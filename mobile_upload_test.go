@@ -175,19 +175,19 @@ func TestMobileAppUpload(t *testing.T) {
 	}, cli.Args{"./file.zip"})
 	err = mobileAppUpload(fakeContext, f)
 	if _, ok := err.(*cli.ExitError); !ok &&
-		!strings.Contains(err.Error(), "app-slot must be an integer (1 to 5)") {
+		!strings.Contains(err.Error(), "app-slot must be an integer (1 to 100)") {
 		t.Errorf("Not erroring on invalid app-slot.")
 	}
 
-	// app-slot flag is set to a non 1-5 int
+	// app-slot flag is set to a non 1-100 int
 	fakeContext = newFakeContext(map[string]interface{}{
 		"site-id":        siteID,
 		"environment-id": environmentID,
-		"app-slot":       10,
+		"app-slot":       101,
 	}, cli.Args{"./file.zip"})
 	err = mobileAppUpload(fakeContext, f)
 	if _, ok := err.(*cli.ExitError); !ok &&
-		!strings.Contains(err.Error(), "app-slot must be an integer (1 to 5)") {
+		!strings.Contains(err.Error(), "app-slot must be an integer (1 to 100)") {
 		t.Errorf("Not erroring on invalid app-slot.")
 	}
 

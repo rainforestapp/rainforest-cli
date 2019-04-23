@@ -399,7 +399,7 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:  "app-slot",
-					Usage: "An optional flag for specifying the app slot (1-5) of your app, if your site-environment contains multiple apps. Default is 1.",
+					Usage: "An optional flag for specifying the app slot (1-100) of your app, if your site-environment contains multiple apps. Default is 1.",
 				},
 			},
 			Action: func(c *cli.Context) error {

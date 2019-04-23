@@ -86,8 +86,8 @@ func mobileAppUpload(c cliContext, api mobileUploadAPI) error {
 	appSlotString := c.String("app-slot")
 	if appSlotString != "" {
 		appSlot, err = strconv.Atoi(appSlotString)
-		if err != nil || appSlot < 1 || appSlot > 5 {
-			return cli.NewExitError("app-slot must be an integer (1 to 5)", 1)
+		if err != nil || appSlot < 1 || appSlot > 100 {
+			return cli.NewExitError("app-slot must be an integer (1 to 100)", 1)
 		}
 	}
 

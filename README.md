@@ -209,7 +209,7 @@ rainforest mobile-upload --site-id <site_id> --environment-id <environment_id> P
 ```
 - `--site-id SITE_ID` - Filter tests by a specific site. You can see a list of your site IDs with `rainforest sites`.
 - `--environment-id` - Run your tests using this environment. Otherwise it will use your default environment.
-- `--app-slot` - An optional flag for specifying the app slot (1-5) of your app, if your site-environment contains multiple apps. Default is 1.
+- `--app-slot` - An optional flag for specifying the app slot (1-100) of your app, if your site-environment contains multiple apps. Default is 1.
 
 
 ## Options

@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.11.3 - 2019-04-23
+- Increase upload app slots to 100 for `mobile-upload` command `--app-slot` flag.
+  - (abc9966adb6364d567b75b9c11ae53fbabd6edc3, @shanempope)
+
 ## 2.11.2 - 2019-04-12
 - Add multiple app support to `mobile-upload` command via `--app-slot` flag.
   - (2374999d7965bb5854a15b6ad1d885922ec788f5, @shanempope)

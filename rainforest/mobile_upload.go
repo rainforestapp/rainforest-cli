@@ -139,7 +139,7 @@ func (c *Client) UpdateURL(siteID int, environmentID int, appSlot int, newURL st
 		return err
 	}
 
-	index := appSlot - 1 // appSlot is 1-5, make it 0-index based
+	index := appSlot - 1 // appSlot is 1-100, make it 0-index based
 	splitURL := strings.Split(siteEnvironment.URL, "|")[:]
 	if len(splitURL) < index+1 {
 		newSplitURL := make([]string, index+1)

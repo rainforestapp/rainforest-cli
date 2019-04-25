@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.12.0 - 2019-04-25
+- Add a `release` flag to the `run` command.
+  - (cbb6289bdd54cb3f294819621e9a8bcdc7d9cdd0, @AJFunk, @fuzzylita)
+
 ## 2.11.3 - 2019-04-23
 - Increase upload app slots to 100 for `mobile-upload` command `--app-slot` flag.
   - (abc9966adb6364d567b75b9c11ae53fbabd6edc3, @shanempope)

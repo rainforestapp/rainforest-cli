@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.11.3"
+	version = "2.12.0"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -211,6 +211,11 @@ func main() {
 				cli.StringFlag{
 					Name:  "description",
 					Usage: "add arbitrary `DESCRIPTION` to the run.",
+				},
+				cli.StringFlag{
+					Name: "release",
+					Usage: "adds a `RELEASE` ID that is associated with this run. You can use any string, but commonly used " +
+						"IDs are commit SHAs, build IDs, branch names, etc.",
 				},
 				cli.StringFlag{
 					Name:  "junit-file",

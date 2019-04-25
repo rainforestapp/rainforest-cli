@@ -18,6 +18,7 @@ type RunParams struct {
 	Conflict      string      `json:"conflict,omitempty"`
 	Browsers      []string    `json:"browsers,omitempty"`
 	Description   string      `json:"description,omitempty"`
+	Release       string      `json:"release,omitempty"`
 	EnvironmentID int         `json:"environment_id,omitempty"`
 	FeatureID     int         `json:"feature_id,omitempty"`
 	RunGroupID    int         `json:"-"`

@@ -305,6 +305,7 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 	expandedBrowsers := expandStringSlice(browsers)
 
 	description := c.String("description")
+	release := c.String("release")
 
 	var environmentID int
 	if s := c.String("custom-url"); s != "" {
@@ -367,6 +368,7 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 		Conflict:      conflict,
 		Browsers:      expandedBrowsers,
 		Description:   description,
+		Release:       release,
 		EnvironmentID: environmentID,
 		FeatureID:     featureID,
 		RunGroupID:    runGroupID,

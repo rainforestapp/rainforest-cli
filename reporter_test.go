@@ -157,6 +157,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 	// Without failures
 	now := time.Now()
 	runDesc := "very descriptive description"
+	runRelease := "1a2b3c"
 	totalTests := 1
 	totalNoResultTests := 0
 	totalFailedTests := 0
@@ -165,6 +166,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 	runDetails := rainforest.RunDetails{
 		ID:                 123,
 		Description:        runDesc,
+		Release:            runRelease,
 		TotalTests:         totalTests,
 		TotalNoResultTests: totalNoResultTests,
 		TotalFailedTests:   totalFailedTests,

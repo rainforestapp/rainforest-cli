@@ -46,6 +46,7 @@ type RunStateDetails struct {
 type RunDetails struct {
 	ID                 int                  `json:"id"`
 	Description        string               `json:"description"`
+	Release            string               `json:"release"`
 	TotalTests         int                  `json:"total_tests"`
 	TotalFailedTests   int                  `json:"total_failed_tests"`
 	TotalNoResultTests int                  `json:"total_no_result_tests"`

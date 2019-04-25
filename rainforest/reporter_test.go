@@ -25,6 +25,7 @@ func TestGetRunDetails(t *testing.T) {
 	runDetails := RunDetails{
 		ID:                 runID,
 		Description:        "run description",
+		Release:            "1a2b3c",
 		TotalTests:         10,
 		TotalFailedTests:   2,
 		TotalNoResultTests: 1,
@@ -72,6 +73,7 @@ func TestGetRunDetails(t *testing.T) {
 	expectedRunDetails := RunDetails{
 		ID:                 runDetails.ID,
 		Description:        runDetails.Description,
+		Release:            runDetails.Release,
 		TotalTests:         runDetails.TotalTests,
 		TotalFailedTests:   runDetails.TotalFailedTests,
 		TotalNoResultTests: runDetails.TotalNoResultTests,

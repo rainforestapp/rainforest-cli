@@ -213,6 +213,11 @@ func main() {
 					Usage: "add arbitrary `DESCRIPTION` to the run.",
 				},
 				cli.StringFlag{
+					Name:  "release",
+					Usage: "adds a `RELEASE` ID that is associated with this run. You can use any string, but commonly used " +
+					  "IDs are commit SHAs, build IDs, branch names, etc.",
+				},
+				cli.StringFlag{
 					Name:  "junit-file",
 					Usage: "Create a JUnit XML report `FILE` with the specified name. Must be run in foreground mode.",
 				},

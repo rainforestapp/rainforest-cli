@@ -8,32 +8,22 @@ steps:
           mkdir ~/download
           cd ~/download && curl -O https://bin.equinox.io/c/mBWdkfai63v/release-tool-stable-linux-amd64.zip
           sudo unzip ~/download/release-tool-stable-linux-amd64.zip -d /usr/local/bin
-  - &install_dependencies
-    run:
-        name: Install Dependencies
-        command: |
-          curl https://glide.sh/get | sh
-          glide install
 
 jobs:
   test:
     docker:
-      - image: circleci/golang:1.11.4-node
-    working_directory: "/go/src/github.com/rainforestapp/rainforest-cli"
+      - image: circleci/golang:1.12.4-node
     steps:
       - checkout
-      - *install_dependencies
       - run:
           name: Run Unit Tests
-          command: go test -v -race $(glide novendor)
+          command: go test -v -race ./...
 
   deploy_stable:
     docker:
-      - image: circleci/golang:1.11.4-node
-    working_directory: "/go/src/github.com/rainforestapp/rainforest-cli"
+      - image: circleci/golang:1.12.4-node
     steps:
       - checkout
-      - *install_dependencies
       - *install_equinox
       - run:
           name: Release to Stable Channel
@@ -46,11 +36,9 @@ jobs:
 
   deploy_beta:
     docker:
-      - image: circleci/golang:1.11.4-node
-    working_directory: "/go/src/github.com/rainforestapp/rainforest-cli"
+      - image: circleci/golang:1.12.4-node
     steps:
       - checkout
-      - *install_dependencies
       - *install_equinox
       - run:
           name: Release to Beta Channel
@@ -62,11 +50,9 @@ jobs:
 
   deploy_dev:
     docker:
-      - image: circleci/golang:1.11.4-node
-    working_directory: "/go/src/github.com/rainforestapp/rainforest-cli"
+      - image: circleci/golang:1.12.4-node
     steps:
       - checkout
-      - *install_dependencies
       - *install_equinox
       - run:
           name: Release to Dev Channel

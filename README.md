@@ -1,3 +1,4 @@
+FOO
 [![CircleCI](https://circleci.com/gh/rainforestapp/rainforest-cli.svg?style=shield)](https://circleci.com/gh/rainforestapp/rainforest-cli)
 
 # Rainforest-cli

@@ -1,9 +1,9 @@
-FROM golang:1.9.7
-WORKDIR /go/src/github.com/rainforestapp/rainforest-cli
-RUN curl -s https://glide.sh/get | sh
-ADD glide.yaml glide.lock ./
-RUN glide install
+FROM golang:1.12.4-alpine3.9 AS builder
+RUN apk add --no-cache git
+WORKDIR /build
 COPY . .
-RUN go-wrapper install -ldflags "-X main.build=docker"
+RUN go build -ldflags "-X main.build=docker"
 
+FROM alpine:3.9
+COPY --from=builder /build/rainforest-cli /usr/local/bin/rainforest-cli
 ENTRYPOINT ["rainforest-cli", "--skip-update"]

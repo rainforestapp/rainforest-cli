@@ -292,6 +292,14 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		}
 	}
 
+	switch test.Priority {
+	case "P1", "P2", "P3":
+		_, err = writer.WriteString(fmt.Sprintf("# priority: %s\n", test.Priority))
+		if err != nil {
+			return err
+		}
+	}
+
 	if !test.Execute {
 		_, err = writer.WriteString("# execute: false\n")
 		if err != nil {

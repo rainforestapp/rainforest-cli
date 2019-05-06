@@ -146,7 +146,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 					case "P1", "P2", "P3", "":
 						parsedRFTest.Priority = value
 					default:
-						return parsedRFTest, &parseError{lineNumStr, "Redirect value must be one of P1, P2, P3"}
+						return parsedRFTest, &parseError{lineNumStr, "Priority value must be one of "", P1, P2, P3"}
 					}
 				case "execute":
 					execute, err := strconv.ParseBool(value)
@@ -287,6 +287,14 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 
 	if test.State == "disabled" {
 		_, err = writer.WriteString("# state: disabled\n")
+		if err != nil {
+			return err
+		}
+	}
+
+	switch test.Priority {
+	case "P1", "P2", "P3":
+		_, err = writer.WriteString(fmt.Sprintf("# priority: %s\n", test.Priority))
 		if err != nil {
 			return err
 		}

@@ -401,6 +401,7 @@ func TestWriteRFMLTest(t *testing.T) {
 	test.Description = description
 	test.FeatureID = FeatureIDInt(featureID)
 	test.State = "disabled"
+	test.Priority = "P1"
 
 	output = getOutput()
 
@@ -410,8 +411,9 @@ func TestWriteRFMLTest(t *testing.T) {
 	browsersStr := "# browsers: " + strings.Join(browsers, ", ")
 	descStr := "# " + strings.Replace(description, "\n", "\n# ", -1)
 	stateStr := "# state: " + test.State
+	priorityStr := "# priority: " + test.Priority
 
-	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, browsersStr, descStr, stateStr}...)
+	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, browsersStr, descStr, stateStr, priorityStr}...)
 	for _, mustHave := range mustHaves {
 		if !strings.Contains(output, mustHave) {
 			t.Errorf("Missing expected string in writer output: %v", mustHave)
@@ -507,6 +509,15 @@ func TestWriteRFMLTest(t *testing.T) {
 	output = getOutput()
 	if strings.Contains(output, "state") {
 		t.Error("Test state field not expected to appear")
+		t.Logf("Output:\n%v", output)
+	}
+
+	// Test priority omitted
+	buffer.Reset()
+	test.Priority = ""
+	output = getOutput()
+	if strings.Contains(output, "priority") {
+		t.Error("Test priority field not expected to appear")
 		t.Logf("Output:\n%v", output)
 	}
 }

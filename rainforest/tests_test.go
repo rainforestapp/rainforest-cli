@@ -443,6 +443,7 @@ func TestUpdateTest(t *testing.T) {
 	rfTest.Tags = []string{"foo", "bar"}
 	rfTest.FeatureID = 909
 	rfTest.State = "disabled"
+	rfTest.Priority = "P1"
 
 	rfTest.mapBrowsers()
 
@@ -474,6 +475,9 @@ func TestUpdateTest(t *testing.T) {
 		}
 		if !strings.Contains(bodyStr, "\"state\":\"disabled\"") {
 			t.Errorf("Expected state to be disabled, Got %v", bodyStr)
+		}
+		if !strings.Contains(bodyStr, "\"priority\":\"P1\"") {
+			t.Errorf("Expected priority to be P1, Got %v", bodyStr)
 		}
 	})
 

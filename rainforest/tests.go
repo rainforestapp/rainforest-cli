@@ -91,6 +91,7 @@ type RFTest struct {
 	Source      string                   `json:"source"`
 	Title       string                   `json:"title,omitempty"`
 	State       string                   `json:"state,omitempty"`
+	Priority    string                   `json:"priority,omitempty"`
 	StartURI    string                   `json:"start_uri"`
 	SiteID      int                      `json:"site_id,omitempty"`
 	Description string                   `json:"description,omitempty"`

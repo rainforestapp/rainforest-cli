@@ -140,6 +140,14 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 					parsedRFTest.FeatureID = FeatureIDInt(featureID)
 				case "state":
 					parsedRFTest.State = value
+				case "priority":
+					value = strings.ToUpper(value)
+					switch value {
+					case "P1", "P2", "P3", "":
+						parsedRFTest.Priority = value
+					default:
+						return parsedRFTest, &parseError{lineNumStr, "Redirect value must be one of P1, P2, P3"}
+					}
 				case "execute":
 					execute, err := strconv.ParseBool(value)
 					if err != nil {

@@ -43,6 +43,7 @@ func TestReadAll(t *testing.T) {
 		SiteID:    12345,
 		FeatureID: 98765,
 		State:     "enabled",
+		Priority:  "P1",
 		Tags:      []string{"foo", "bar"},
 		Browsers:  []string{"chrome", "firefox"},
 		Steps:     validSteps,
@@ -57,6 +58,7 @@ func TestReadAll(t *testing.T) {
 # browsers: %v
 # feature_id: %v
 # state: %v
+# priority: %v
 
 %v
 %v
@@ -73,6 +75,7 @@ func TestReadAll(t *testing.T) {
 		strings.Join(validTestValues.Browsers, ", "),
 		validTestValues.FeatureID,
 		validTestValues.State,
+		validTestValues.Priority,
 		validSteps[0].(RFTestStep).Action,
 		validSteps[0].(RFTestStep).Response,
 		validSteps[1].(RFTestStep).Action,
@@ -133,6 +136,50 @@ func TestReadAll(t *testing.T) {
 
 	if rfTest.State != "enabled" {
 		t.Errorf("Incorrect test state. Got %v, Want %v", rfTest.State, "enabled")
+	}
+
+	// Test priority is present
+	testText = fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+# priority: %v
+`,
+		validTestValues.RFMLID,
+		validTestValues.Title,
+		validTestValues.StartURI,
+		"P1",
+	)
+
+	r = strings.NewReader(testText)
+	reader = NewRFMLReader(r)
+	rfTest, err = reader.ReadAll()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if rfTest.Priority != "P1" {
+		t.Errorf("Incorrect test priority. Got %v, Want %v", rfTest.Priority, "priority")
+	}
+
+	// Test priority is omitted
+	testText = fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+`,
+		validTestValues.RFMLID,
+		validTestValues.Title,
+		validTestValues.StartURI,
+	)
+
+	r = strings.NewReader(testText)
+	reader = NewRFMLReader(r)
+	rfTest, err = reader.ReadAll()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if rfTest.Priority != "" {
+		t.Errorf("Incorrect test priority. Got %v, Want empty string", rfTest.Priority)
 	}
 
 	// Comment with a colon

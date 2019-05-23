@@ -146,7 +146,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 					case "P1", "P2", "P3", "":
 						parsedRFTest.Priority = value
 					default:
-						return parsedRFTest, &parseError{lineNumStr, "Priority value must be one of "", P1, P2, P3"}
+						return parsedRFTest, &parseError{lineNumStr, "Priority value must be one of '', P1, P2, P3"}
 					}
 				case "execute":
 					execute, err := strconv.ParseBool(value)

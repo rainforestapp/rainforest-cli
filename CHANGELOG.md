@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.13.0 - 2019-05-24
+- Add `priority` setting to RFML.
+  - (db095be3f3463e1af7aa829f48ecfa258df38c44, @fuzzylita)
+
 ## 2.12.0 - 2019-04-25
 - Add a `release` flag to the `run` command.
   - (cbb6289bdd54cb3f294819621e9a8bcdc7d9cdd0, @AJFunk, @fuzzylita)

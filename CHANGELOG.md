@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.14.0 - 2019-07-19
+- Support `automation` option in the `--crowd` flag.
+  - (febca56232f57397c1b95df4478b3e2e58a2a415, @grodowski)
+
 ## 2.13.0 - 2019-05-24
 - Add `priority` setting to RFML.
   - (db095be3f3463e1af7aa829f48ecfa258df38c44, @fuzzylita)

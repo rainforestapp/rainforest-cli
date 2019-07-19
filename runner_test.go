@@ -234,6 +234,14 @@ func TestMakeRunParams(t *testing.T) {
 				RunGroupID: 75,
 			},
 		},
+		{
+			mappings: map[string]interface{}{
+				"crowd": "automation",
+			},
+			expected: rainforest.RunParams{
+				Crowd: "automation",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

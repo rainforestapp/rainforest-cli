@@ -180,7 +180,7 @@ func main() {
 				cli.StringFlag{
 					Name:  "crowd",
 					Value: "default",
-					Usage: "run your tests using specified `CROWD`. Available choices are: default or on_premise_crowd. " +
+					Usage: "run your tests using specified `CROWD`. Available choices are: default, automation or on_premise_crowd. " +
 						"Contact your CSM for more details.",
 				},
 				cli.StringFlag{

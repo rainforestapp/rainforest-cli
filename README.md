@@ -351,3 +351,4 @@ Development + release process is:
 ```
 9. Merge to master to release to stable/beta/dev
 10. Add release to Github [release page](https://github.com/rainforestapp/rainforest-cli/releases)
+11. Update https://github.com/rainforestapp/homebrew-public to use the latest stable build url from [equinox](https://equinox.io)

@@ -327,7 +327,7 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 
 ## Release process
 
-Check the `circle.yml` for the latest, but currently merging to master will build and deploy to the following Equinox channels:
+Check the `.circleci/config.yml` for the latest, but currently merging to master will build and deploy to the following Equinox channels:
 
 Tag                             | Channels
 --------------------------------|-------------

@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.15.0 - 2019-11-18
+- Support `automation_and_crowd` option in the `--crowd` flag.
+  - (5835fb69e68e8cd57cd259bc3f68400f63be1789, @kruszczynski)
+
 ## 2.14.0 - 2019-07-19
 - Support `automation` option in the `--crowd` flag.
   - (febca56232f57397c1b95df4478b3e2e58a2a415, @grodowski)

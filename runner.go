@@ -289,7 +289,7 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 	}
 
 	var crowd string
-	if crowd = c.String("crowd"); crowd != "" && crowd != "default" && crowd != "on_premise_crowd" && crowd != "automation" {
+	if crowd = c.String("crowd"); crowd != "" && crowd != "default" && crowd != "on_premise_crowd" && crowd != "automation" && crowd != "automation_and_crowd" {
 		return rainforest.RunParams{}, errors.New("Invalid crowd option specified")
 	}
 

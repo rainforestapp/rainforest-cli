@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.15.1 - 2019-11-26
+- Remove `skip_mark_as_viewed` param when fetching run results
+  - (8985398c8e0244241421bdf2a56a57cc93c8e1db, @AJFunk)
+
 ## 2.15.0 - 2019-11-18
 - Support `automation_and_crowd` option in the `--crowd` flag.
   - (5835fb69e68e8cd57cd259bc3f68400f63be1789, @kruszczynski)

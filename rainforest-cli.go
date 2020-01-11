@@ -126,6 +126,14 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
+			Name:         "tunnel",
+			Usage:        "Connect to your development application",
+			OnUsageError: onCommandUsageErrorHandler("tunnel"),
+			ArgsUsage:    "[hostname and port to development app]",
+			Description:  "Connect to your development application.",
+			Action:       newTunnel,
+		},
+		{
 			Name:         "run",
 			Aliases:      []string{"r"},
 			Usage:        "Run your tests on Rainforest",

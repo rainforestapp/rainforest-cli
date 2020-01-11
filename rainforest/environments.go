@@ -1,5 +1,9 @@
 package rainforest
 
+import (
+	"strconv"
+)
+
 // EnvironmentParams are the parameters used to create a new Environment
 type EnvironmentParams struct {
 	Name string `json:"name"`
@@ -31,4 +35,20 @@ func (c *Client) CreateTemporaryEnvironment(urlString string) (*Environment, err
 	}
 
 	return &env, nil
+}
+
+// DeleteEnvironment deletes an environment with a specified ID
+func (c *Client) DeleteEnvironment(environmentID int) error {
+	// Prepare request
+	req, err := c.NewRequest("DELETE", "environments/"+strconv.Itoa(environmentID), nil)
+	if err != nil {
+		return err
+	}
+
+	// Send request and process response
+	_, err = c.Do(req, nil)
+	if err != nil {
+		return err
+	}
+	return nil
 }

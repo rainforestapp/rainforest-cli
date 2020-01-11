@@ -4,14 +4,19 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/rainforestapp/gonnel"
 )
 
-func newTunnel(c cliContext) {
-	pathName := c.Args().First()
-	path := pathName
+// TunnelConfig contains the configuration to create a tunnel
+type TunnelConfig struct {
+	siteID int
+	port   int
+	host   string
+}
 
+func newTunnel(config TunnelConfig) {
 	client, err := gonnel.NewClient(gonnel.Options{
 		BinaryPath: "ngrok",
 	})
@@ -25,11 +30,11 @@ func newTunnel(c cliContext) {
 	fmt.Println("FOOOO")
 	go client.StartServer(done)
 	<-done
-	fmt.Printf("I AM HERE %v\n", path)
+	fmt.Printf("I AM HERE %v\n", config.port)
 
 	client.AddTunnel(&gonnel.Tunnel{
 		Proto:        gonnel.HTTP,
-		LocalAddress: path,
+		LocalAddress: strconv.Itoa(config.port),
 		Name:         "adequate",
 	})
 

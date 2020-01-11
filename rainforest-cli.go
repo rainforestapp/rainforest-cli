@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
@@ -131,7 +132,11 @@ func main() {
 			OnUsageError: onCommandUsageErrorHandler("tunnel"),
 			ArgsUsage:    "[hostname and port to development app]",
 			Description:  "Connect to your development application.",
-			Action:       newTunnel,
+			Action: func(c *cli.Context) error {
+				port, _ := strconv.Atoi(c.Args().First())
+				newTunnel(TunnelConfig{port: port})
+				return nil
+			},
 		},
 		{
 			Name:         "run",
@@ -250,6 +255,17 @@ func main() {
 					Usage: "monitor existing run with `RUN_ID` instead of starting a new one.",
 				},
 			},
+		},
+		{
+			Name:         "run-local",
+			Usage:        "",
+			OnUsageError: onCommandUsageErrorHandler("run-local"),
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name: "tunnel",
+				},
+			},
+			Action: NewLocalRun,
 		},
 		{
 			Name:         "new",

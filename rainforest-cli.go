@@ -133,8 +133,8 @@ func main() {
 			ArgsUsage:    "[hostname and port to development app]",
 			Description:  "Connect to your development application.",
 			Action: func(c *cli.Context) error {
-				port, _ := strconv.Atoi(c.Args().First())
-				newTunnel(TunnelConfig{port: port})
+				config := splitTunnelArgs(c.Args().First())
+				newTunnel(config)
 				return nil
 			},
 		},

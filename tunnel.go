@@ -4,16 +4,30 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
+	"strings"
 
 	"github.com/rainforestapp/gonnel"
 )
 
 // TunnelConfig contains the configuration to create a tunnel
 type TunnelConfig struct {
-	siteID int
-	port   int
-	host   string
+	port  string
+	extra map[string]string
+}
+
+func splitTunnelArgs(requestDetails string) TunnelConfig {
+	splitDetails := strings.Split(requestDetails, ",")
+	port := splitDetails[0]
+
+	extraOpts := map[string]string{}
+	opts := splitDetails[1:]
+
+	for _, o := range opts {
+		opt := strings.Split(o, "=")
+		extraOpts[opt[0]] = opt[1]
+	}
+
+	return TunnelConfig{port: port, extra: extraOpts}
 }
 
 func newTunnel(config TunnelConfig) {
@@ -34,8 +48,9 @@ func newTunnel(config TunnelConfig) {
 
 	client.AddTunnel(&gonnel.Tunnel{
 		Proto:        gonnel.HTTP,
-		LocalAddress: strconv.Itoa(config.port),
+		LocalAddress: config.port,
 		Name:         "adequate",
+		ExtraOpts:    config.extra,
 	})
 
 	client.ConnectAll()

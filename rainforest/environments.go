@@ -1,6 +1,7 @@
 package rainforest
 
 import (
+	"sort"
 	"strconv"
 )
 
@@ -12,8 +13,9 @@ type EnvironmentParams struct {
 
 // Environment represents an environment in Rainforest
 type Environment struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID               int               `json:"id"`
+	Name             string            `json:"name"`
+	SiteEnvironments []SiteEnvironment `json:"site_environments"`
 }
 
 // CreateTemporaryEnvironment creates a new temporary environment and returns the
@@ -35,6 +37,23 @@ func (c *Client) CreateTemporaryEnvironment(urlString string) (*Environment, err
 	}
 
 	return &env, nil
+}
+
+// SetSiteEnvironments uses a map of site id to urls
+func (c *Client) SetSiteEnvironments(env *Environment, siteURLMap *map[int]string) (*Environment, error) {
+	siteEnvs := env.SiteEnvironments
+	for siteID, URL := range *siteURLMap {
+		i := sort.Search(len(siteEnvs), func(i int) bool { return siteEnvs[i].SiteID == siteID })
+		if i <= len(siteEnvs) {
+			err := c.setSiteEnvironmentURL(siteEnvs[i].ID, URL)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			// site id doesn't exist
+		}
+	}
+	return env, nil
 }
 
 // DeleteEnvironment deletes an environment with a specified ID

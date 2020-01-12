@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
 	"os"
+	"os/signal"
 	"strings"
 
 	"github.com/rainforestapp/gonnel"
+	"github.com/urfave/cli"
 )
 
 // TunnelConfig contains the configuration to create a tunnel
@@ -15,7 +15,7 @@ type TunnelConfig struct {
 	extra map[string]string
 }
 
-func splitTunnelArgs(requestDetails string) TunnelConfig {
+func parseTunnelArgs(requestDetails string) TunnelConfig {
 	splitDetails := strings.Split(requestDetails, ",")
 	port := splitDetails[0]
 
@@ -30,34 +30,42 @@ func splitTunnelArgs(requestDetails string) TunnelConfig {
 	return TunnelConfig{port: port, extra: extraOpts}
 }
 
-func newTunnel(config TunnelConfig) {
-	client, err := gonnel.NewClient(gonnel.Options{
-		BinaryPath: "ngrok",
-	})
-	client.LogApi = true
+func startTunnel(c *cli.Context) error {
+	config := parseTunnelArgs(c.Args().First())
+	client, err := newTunnelClient()
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	defer client.Close()
+	newTunnel(config, client)
+	client.ConnectAll()
 
+	done := make(chan os.Signal, 1)
+	signal.Notify(done)
+	<-done
+	client.DisconnectAll()
+
+	return nil
+}
+
+func newTunnelClient() (*gonnel.Client, error) {
+	return gonnel.NewClient(gonnel.Options{
+		BinaryPath: "ngrok",
+	})
+}
+
+func newTunnel(config TunnelConfig, client *gonnel.Client) *gonnel.Tunnel {
 	done := make(chan bool)
-	fmt.Println("FOOOO")
 	go client.StartServer(done)
 	<-done
-	fmt.Printf("I AM HERE %v\n", config.port)
 
-	client.AddTunnel(&gonnel.Tunnel{
+	t := &gonnel.Tunnel{
 		Proto:        gonnel.HTTP,
 		LocalAddress: config.port,
 		Name:         "adequate",
 		ExtraOpts:    config.extra,
-	})
+	}
+	client.AddTunnel(t)
 
-	client.ConnectAll()
-
-	fmt.Print("Press any to disconnect")
-	reader := bufio.NewReader(os.Stdin)
-	reader.ReadRune()
-
-	client.DisconnectAll()
+	return t
 }

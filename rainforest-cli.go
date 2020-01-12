@@ -131,11 +131,7 @@ func main() {
 			OnUsageError: onCommandUsageErrorHandler("tunnel"),
 			ArgsUsage:    "[hostname and port to development app]",
 			Description:  "Connect to your development application.",
-			Action: func(c *cli.Context) error {
-				config := splitTunnelArgs(c.Args().First())
-				newTunnel(config)
-				return nil
-			},
+			Action:       startTunnel,
 		},
 		{
 			Name:         "run",
@@ -260,7 +256,7 @@ func main() {
 			Usage:        "",
 			OnUsageError: onCommandUsageErrorHandler("run-local"),
 			Flags: []cli.Flag{
-				cli.StringFlag{
+				cli.StringSliceFlag{
 					Name: "tunnel",
 				},
 				cli.BoolFlag{

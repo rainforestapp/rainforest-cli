@@ -1,7 +1,6 @@
 package rainforest
 
 import (
-	"sort"
 	"strconv"
 )
 
@@ -43,14 +42,13 @@ func (c *Client) CreateTemporaryEnvironment(urlString string) (*Environment, err
 func (c *Client) SetSiteEnvironments(env *Environment, siteURLMap *map[int]string) (*Environment, error) {
 	siteEnvs := env.SiteEnvironments
 	for siteID, URL := range *siteURLMap {
-		i := sort.Search(len(siteEnvs), func(i int) bool { return siteEnvs[i].SiteID == siteID })
-		if i <= len(siteEnvs) {
-			err := c.setSiteEnvironmentURL(siteEnvs[i].ID, URL)
-			if err != nil {
-				return nil, err
+		for i, env := range siteEnvs {
+			if env.SiteID == siteID {
+				err := c.setSiteEnvironmentURL(siteEnvs[i].ID, URL)
+				if err != nil {
+					return nil, err
+				}
 			}
-		} else {
-			// site id doesn't exist
 		}
 	}
 	return env, nil

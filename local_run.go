@@ -17,10 +17,6 @@ type localRunTunnel struct {
 
 // NewLocalRun create new local run
 func NewLocalRun(c *cli.Context, api *rainforest.Client) error {
-	// parse & create tunnel
-	// configs := []TunnelConfig{TunnelConfig{port: "3000", extra: map[string]string{"host": "app.rainforest.test"}}}
-	// fmt.Println(configs)
-	// ngrokURLs := &map[int]string{5537: "https://foo.ngrok.io"}
 	tunnelArgs := c.StringSlice("tunnel")
 	tunnels := make(map[int]*localRunTunnel)
 	for _, conf := range tunnelArgs {
@@ -31,7 +27,7 @@ func NewLocalRun(c *cli.Context, api *rainforest.Client) error {
 
 		siteID, err := strconv.Atoi(s[0])
 		if err != nil {
-			return err
+			return cli.NewExitError(err.Error(), 1)
 		}
 
 		tunnels[siteID] = &localRunTunnel{config: parseTunnelArgs(s[1])}
@@ -40,7 +36,7 @@ func NewLocalRun(c *cli.Context, api *rainforest.Client) error {
 	client, err := newTunnelClient()
 	if err != nil {
 		fmt.Println("ERR", err)
-		return err
+		return cli.NewExitError(err.Error(), 1)
 	}
 	for siteID, t := range tunnels {
 		tunnels[siteID].tunnel = newTunnel(t.config, client)
@@ -56,7 +52,7 @@ func NewLocalRun(c *cli.Context, api *rainforest.Client) error {
 	// create temp env
 	env, err := api.CreateTemporaryEnvironment("https://www.example.com")
 	if err != nil {
-		return err
+		return cli.NewExitError(err.Error(), 1)
 	}
 
 	env, err = api.SetSiteEnvironments(env, &tunnelURLs)
@@ -78,5 +74,9 @@ func NewLocalRun(c *cli.Context, api *rainforest.Client) error {
 	api.DeleteEnvironment(env.ID)
 	fmt.Println("Tore down environment")
 
-	return err
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	return nil
 }

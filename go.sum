@@ -18,6 +18,8 @@ github.com/rainforestapp/gonnel v0.0.0-20180224174010-836c5bd3cd9b h1:m5mt1Yj5pF
 github.com/rainforestapp/gonnel v0.0.0-20180224174010-836c5bd3cd9b/go.mod h1:jWiMr4JKM9j71qZUS5tzdIBAyYYbjI4qB0jpVfoXo9s=
 github.com/rainforestapp/gonnel v0.0.0-20200111080928-fd659dc40c3c h1:i6g9tSvO21ziqTWMSxp7S07NcvTf0Uhl/so/rpBHc7s=
 github.com/rainforestapp/gonnel v0.0.0-20200111080928-fd659dc40c3c/go.mod h1:jWiMr4JKM9j71qZUS5tzdIBAyYYbjI4qB0jpVfoXo9s=
+github.com/rainforestapp/gonnel v0.0.0-20200111091101-b5dfa0af4a2b h1:jjGO8ic3Nexc6feLKy+reqO5W2eyJ6cOyVuCqTvGMJI=
+github.com/rainforestapp/gonnel v0.0.0-20200111091101-b5dfa0af4a2b/go.mod h1:jWiMr4JKM9j71qZUS5tzdIBAyYYbjI4qB0jpVfoXo9s=
 github.com/rainforestapp/testutil v0.0.0-20170615220520-c9155e7da96e h1:yF1mXdyl6i50XquzDkzkGSwLf+fnClYwsOwq0TH2Lxw=
 github.com/rainforestapp/testutil v0.0.0-20170615220520-c9155e7da96e/go.mod h1:wYy1wh1VsTxLVSTvfYS+nOHmZGsvFqOSBJKHVsAYtlM=
 github.com/satori/go.uuid v1.1.0 h1:B9KXyj+GzIpJbV7gmr873NsY6zpbxNy24CBtGrk7jHo=

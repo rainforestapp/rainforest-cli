@@ -4,13 +4,23 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/rainforestapp/gonnel"
 )
 
 func newTunnel(c cliContext) {
-	pathName := c.Args().First()
-	path := pathName
+	requestDetails := c.Args().First()
+	splitDetails := strings.Split(requestDetails, ",")
+	path := splitDetails[0]
+
+	extraOpts := map[string]string{}
+	opts := splitDetails[1:]
+
+	for _, o := range opts {
+		opt := strings.Split(o, "=")
+		extraOpts[opt[0]] = opt[1]
+	}
 
 	client, err := gonnel.NewClient(gonnel.Options{
 		BinaryPath: "ngrok",
@@ -31,6 +41,7 @@ func newTunnel(c cliContext) {
 		Proto:        gonnel.HTTP,
 		LocalAddress: path,
 		Name:         "adequate",
+		ExtraOpts:    extraOpts,
 	})
 
 	client.ConnectAll()

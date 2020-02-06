@@ -6,27 +6,29 @@ A command line interface to interact with [Rainforest QA](https://www.rainforest
 
 This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation](https://rainforestqa.zendesk.com/hc/en-us/articles/360004495033-Rainforest-CLI-for-Continuous-Integration) on the subject.
 
+The CLI uses the Rainforest API which is documented at https://app.rainforestqa.com/docs
+
 ## Installation
 
-If you are on a mac and use brew, you can run:
+If you are on OSX and use Brew, you can run:
 
 ```bash
 brew install rainforestapp/public/rainforest-cli
 ```
 
-If not, follow the directions on our [download page](https://dl.equinox.io/rainforest_qa/rainforest-cli/stable). For non-homebrew mac users, please make sure you use the "Install via the command line" instructions.
+If not, follow the directions on our [download page](https://dl.equinox.io/rainforest_qa/rainforest-cli/stable). non-Brew OSX users should use the "Install via the command line" instructions.
 
-The CLI will check for updates and automatically update itself on every use unless the `--skip-update` global flag is given.
+The CLI will check for updates and automatically update itself on every use unless the global flag `--skip-update` is used.
 
 For migration directions from 1.x, please read our [migration guide](./migration.md).
 
 ## Basic Usage
-To use the cli client, you'll need your API token from your [integrations settings page](https://app.rainforestqa.com/settings/integrations).
 
-In order to access your account from the CLI, set the `RAINFOREST_API_TOKEN` environment variable
-to your API token. Alternatively, you may pass your token with the global `--token` flag.
+To authenticate against Rainforest you'll need your API token which you can get from your [integrations settings page](https://app.rainforestqa.com/settings/integrations).
 
-CLI Commands are formatted as follows:
+Pass the token into the CLI through the `RAINFOREST_API_TOKEN` environment variable or with the global flag `--token`.
+
+CLI commands are formatted as follows:
 ```bash
 rainforest [global flags] <command> [command-specific-flags] [arguments]
 ```
@@ -216,8 +218,8 @@ rainforest mobile-upload --site-id <site_id> --environment-id <environment_id> P
 
 ### Global
 
-- `--token <your-rainforest-token>` - supply your token (get it from any tests API tab), if not set in `RAINFOREST_API_TOKEN` environment variable
-- `--skip-update` - Do not automatically check for CLI updates.
+- `--token <your-rainforest-token>` - your API token if it's not set via the `RAINFOREST_API_TOKEN` environment variable
+- `--skip-update` - Do not automatically check for CLI updates
 
 ### Writing Tests
 Rainforest Tests written using RFML have the following format
@@ -282,12 +284,12 @@ using the embedded test's RFML ID.
 For more information on embedding inline screenshots and file downloads,
 [see our examples](./examples/inline_files.md)
 
-For more information on test writing, please visit our [documentation](http://support.rainforestqa.com/hc/en-us/sections/200585603-Writing-Tests).
+For more information on test writing see the [documentation](http://support.rainforestqa.com/hc/en-us/sections/200585603-Writing-Tests).
 
 ### Command Line Options
 
 Popular command line options are:
-- `--browsers ie8` or `--browsers ie8,chrome` - specify the browsers you wish to run against. This overrides the test own settings. Valid browsers can be found in your account settings.
+- `--browsers ie8` or `--browsers ie8,chrome` - specify the browsers you wish to run against. This overrides the test level settings. Valid browsers can be found in your account settings.
 - `--tag TAG_NAME` - filter tests by tag. Can be used multiple times for filtering by multiple tags.
 - `--site-id SITE_ID` - filter tests by a specific site. You can see a list of your site IDs with `rainforest sites`.
 - `--folder ID/--filter ID` - filter tests in specified folder.
@@ -314,16 +316,16 @@ api to construct a junit report.  This is useful to track tests in CI such as Je
 
 ## Support
 
-Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having trouble using this gem or need help to integrate Rainforest in your CI or deployment flow.
+Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having trouble using the CLI or need help with integrating Rainforest in your CI or development workflow.
 
 ## Contributing
 
 1. Fork it
-2. Make sure you init the submodules (`git submodule init && git submodule update`)
-3. Create your feature branch (`git checkout -b my-new-feature`)
+2. Initialize the submodules (`git submodule init && git submodule update`)
+3. Create a feature branch (`git checkout -b my-new-feature`)
 4. Commit your changes (`git commit -am 'Add some feature'`)
 5. Push to the branch (`git push origin my-new-feature`)
-6. Create new Pull Request
+6. Create a new Pull Request
 
 ## Release process
 

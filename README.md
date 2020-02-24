@@ -10,17 +10,31 @@ The CLI uses the Rainforest API which is documented at https://app.rainforestqa.
 
 ## Installation
 
-If you are on OSX and use Brew, you can run:
+### Docker
+
+```bash
+$ docker pull gcr.io/rf-public-images/rainforest-cli
+$ docker run gcr.io/rf-public-images/rainforest-cli --version
+Rainforest CLI version 2.15.1 - build: docker
+```
+
+### Brew
+
+If you are on OSX and use Brew, you can install the CLI with the command:
 
 ```bash
 brew install rainforestapp/public/rainforest-cli
 ```
 
-If not, follow the directions on our [download page](https://dl.equinox.io/rainforest_qa/rainforest-cli/stable). non-Brew OSX users should use the "Install via the command line" instructions.
+### Binaries
+
+Get the CLI binaries from our [download page](https://dl.equinox.io/rainforest_qa/rainforest-cli/stable) and follow the instructions.
 
 The CLI will check for updates and automatically update itself on every use unless the global flag `--skip-update` is used.
 
-For migration directions from 1.x, please read our [migration guide](./migration.md).
+### Migrating from our old CLI
+
+The previous version of our CLI is deprecated and parts of it no longer work. To upgrade, follow our [migration guide](./migration.md).
 
 ## Basic Usage
 

@@ -194,25 +194,36 @@ func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI)
 					return
 				}
 
-				for _, step := range testDetails.Steps {
-					for _, browser := range step.Browsers {
-						for _, feedback := range browser.Feedback {
-							if feedback.Result != "failed" || feedback.JobState != "approved" {
-								continue
-							}
+				if testDetails.HasWispResults == true {
+					for _, browser := range testDetails.Browsers {
+						if browser.Result == "failed" {
+							reportFailure := jUnitTestReportFailure{Type: browser.Name}
+							testCase.Failures = append(testCase.Failures, reportFailure)
+						}
+					}
+				} else {
+					for _, step := range testDetails.Steps {
+						for _, browser := range step.Browsers {
+							log.Println(testDetails)
+							for _, feedback := range browser.Feedback {
 
-							if feedback.FailureNote != "" {
-								reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: feedback.FailureNote}
-								testCase.Failures = append(testCase.Failures, reportFailure)
-							} else if feedback.CommentReason != "" {
-								// The step failed due to a special comment type being selected
-								message := feedback.CommentReason
-
-								if feedback.Comment != "" {
-									message += ": " + feedback.Comment
+								if feedback.Result != "failed" || feedback.JobState != "approved" {
+									continue
 								}
-								reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: message}
-								testCase.Failures = append(testCase.Failures, reportFailure)
+
+								if feedback.FailureNote != "" {
+									reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: feedback.FailureNote}
+									testCase.Failures = append(testCase.Failures, reportFailure)
+								} else if feedback.CommentReason != "" {
+									// The step failed due to a special comment type being selected
+									message := feedback.CommentReason
+
+									if feedback.Comment != "" {
+										message += ": " + feedback.Comment
+									}
+									reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: message}
+									testCase.Failures = append(testCase.Failures, reportFailure)
+								}
 							}
 						}
 					}

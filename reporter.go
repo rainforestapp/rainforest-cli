@@ -194,7 +194,7 @@ func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI)
 					return
 				}
 
-				if testDetails.HasWispResults == true {
+				if testDetails.HasRfaResults == true {
 					for _, browser := range testDetails.Browsers {
 						if browser.Result == "failed" {
 							reportFailure := jUnitTestReportFailure{Type: browser.Name}

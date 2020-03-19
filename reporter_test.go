@@ -247,12 +247,12 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 
 	apiTests := []rainforest.RunTestDetails{
 		{
-			ID:             failedTest.ID,
-			Title:          failedTest.Title,
-			CreatedAt:      failedTest.CreatedAt,
-			UpdatedAt:      failedTest.UpdatedAt,
-			Result:         failedTest.Result,
-			HasWispResults: true,
+			ID:            failedTest.ID,
+			Title:         failedTest.Title,
+			CreatedAt:     failedTest.CreatedAt,
+			UpdatedAt:     failedTest.UpdatedAt,
+			Result:        failedTest.Result,
+			HasRfaResults: true,
 			Browsers: []rainforest.RunTestBrowserDetails{
 				{
 					Name:   "chrome_1440_900",
@@ -334,12 +334,12 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 
 	apiTests = []rainforest.RunTestDetails{
 		{
-			ID:             failedTest.ID,
-			Title:          failedTest.Title,
-			CreatedAt:      failedTest.CreatedAt,
-			UpdatedAt:      failedTest.UpdatedAt,
-			Result:         failedTest.Result,
-			HasWispResults: false,
+			ID:            failedTest.ID,
+			Title:         failedTest.Title,
+			CreatedAt:     failedTest.CreatedAt,
+			UpdatedAt:     failedTest.UpdatedAt,
+			Result:        failedTest.Result,
+			HasRfaResults: false,
 			Steps: []rainforest.RunStepDetails{
 				{
 					Browsers: []rainforest.RunBrowserDetails{

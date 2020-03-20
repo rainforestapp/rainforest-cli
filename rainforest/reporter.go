@@ -26,14 +26,22 @@ type RunStepDetails struct {
 	Browsers []RunBrowserDetails `json:"browsers"`
 }
 
+// RunTestBrowserDetails contain browsers for each run test
+type RunTestBrowserDetails struct {
+	Name   string `json:"name"`
+	Result string `json:"result"`
+}
+
 // RunTestDetails contains details about a Run Test
 type RunTestDetails struct {
-	ID        int              `json:"id"`
-	Title     string           `json:"title"`
-	CreatedAt time.Time        `json:"created_at"`
-	UpdatedAt time.Time        `json:"updated_at"`
-	Result    string           `json:"result"`
-	Steps     []RunStepDetails `json:"steps"`
+	ID            int                     `json:"id"`
+	Title         string                  `json:"title"`
+	CreatedAt     time.Time               `json:"created_at"`
+	UpdatedAt     time.Time               `json:"updated_at"`
+	Result        string                  `json:"result"`
+	Steps         []RunStepDetails        `json:"steps"`
+	HasRfaResults bool                    `json:"has_rfa_results"`
+	Browsers      []RunTestBrowserDetails `json:"browsers"`
 }
 
 // RunStateDetails contains details about the state of a Run

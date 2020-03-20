@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.15.2 - 2020-03-20
+- Report Rainforest Automation failures in JUnit
+  - (2ceb9f41fac2cf7136376e0e9ba3f79ff011b611, @kruszczynski)
+
 ## 2.15.1 - 2019-11-26
 - Remove `skip_mark_as_viewed` param when fetching run results
   - (8985398c8e0244241421bdf2a56a57cc93c8e1db, @AJFunk)

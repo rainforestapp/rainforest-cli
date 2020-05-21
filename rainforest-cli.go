@@ -30,6 +30,9 @@ var (
 	// Rainforest API client
 	api *rainforest.Client
 
+	// CircleCI Orb version
+	orbVersion string
+
 	// default output for printing resource tables
 	tablesOut io.Writer = os.Stdout
 
@@ -90,10 +93,13 @@ func main() {
 		api = rainforest.NewClient(c.String("token"), c.Bool("debug"))
 
 		// Set the User-Agent that will be used for api calls
+		api.UserAgent = "rainforest-cli/" + version
+		orbVersion = os.Getenv("ORB_VERSION")
+		if orbVersion != "" {
+			api.UserAgent += " rainforest-orb/" + orbVersion
+		}
 		if build != "" {
-			api.UserAgent = "rainforest-cli/" + version + " build: " + build
-		} else {
-			api.UserAgent = "rainforest-cli/" + version
+			api.UserAgent += " build: " + build
 		}
 
 		return nil

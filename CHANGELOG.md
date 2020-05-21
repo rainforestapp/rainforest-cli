@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.15.3 - 2020-05-21
+- Add rainforest-orb and version to UserAgent if CLI is called from CircleCI Orb
+  - (da19bb6ad2702aead89f7169504af7286659d621, @magni-)
+
 ## 2.15.2 - 2020-03-20
 - Report Rainforest Automation failures in JUnit
   - (2ceb9f41fac2cf7136376e0e9ba3f79ff011b611, @kruszczynski)

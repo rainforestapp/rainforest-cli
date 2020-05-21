@@ -79,6 +79,37 @@ func TestShuffleFlags(t *testing.T) {
 	}
 }
 
+func TestUserAgent(t *testing.T) {
+	os.Unsetenv("ORB_VERSION")
+	os.Args = []string{"./rainforest"}
+	main()
+
+	if api == nil {
+		t.Error("Expected api to be set")
+	}
+
+	userAgent := "rainforest-cli/" + version
+	if api.UserAgent != userAgent {
+		t.Errorf("main() didn't set proper UserAgent %+v, want %+v", api.UserAgent, userAgent)
+	}
+}
+
+func TestUserAgentWithOrb(t *testing.T) {
+	os.Setenv("ORB_VERSION", "1.3.1")
+	os.Args = []string{"./rainforest"}
+
+	main()
+
+	if api == nil {
+		t.Error("Expected api to be set")
+	}
+
+	userAgent := "rainforest-cli/" + version + " rainforest-orb/1.3.1"
+	if api.UserAgent != userAgent {
+		t.Errorf("main() with orb didn't set proper UserAgent %+v, want %+v", api.UserAgent, userAgent)
+	}
+}
+
 var errStub = errors.New("STUB")
 
 // fakeContext is a helper for testing the cli interfacing functions

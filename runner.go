@@ -209,7 +209,7 @@ func filterExecuteTests(tests []*rainforest.RFTest, tags []string, forceExecute,
 }
 
 func monitorRunStatus(c cliContext, runID int) error {
-	failed_attempts := 1
+	failedAttempts := 1
 
 	for {
 		status, msg, done, err := getRunStatus(c.Bool("fail-fast"), runID, api)
@@ -230,17 +230,17 @@ func monitorRunStatus(c cliContext, runID int) error {
 		}
 
 		// If we've had too many errors, give up
-		if failed_attempts >= 5 {
-			msg := fmt.Sprintf("Can not get run status after %d attempts, giving up", failed_attempts)
+		if failedAttempts >= 5 {
+			msg := fmt.Sprintf("Can not get run status after %d attempts, giving up", failedAttempts)
 			return cli.NewExitError(msg, 1)
 		}
 
 		// If we hit an error, record it
 		if err != nil {
-			failed_attempts++
+			failedAttempts++
 		} else {
 			// Reset attempts
-			failed_attempts = 1
+			failedAttempts = 1
 		}
 
 		time.Sleep(runStatusPollInterval)

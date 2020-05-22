@@ -30,6 +30,11 @@ func startRun(c cliContext) error {
 	return r.startRun(c)
 }
 
+func rerunRun(c cliContext) error {
+	r := newRunner()
+	return r.rerunRun(c)
+}
+
 func newRunner() *runner {
 	return &runner{client: api}
 }
@@ -84,6 +89,26 @@ func (r *runner) startRun(c cliContext) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
+	runStatus, err := r.client.CreateRun(params)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	log.Printf("Run %v has been created.", runStatus.ID)
+
+	// if background flag is enabled we'll skip monitoring run status
+	if c.Bool("bg") {
+		return nil
+	}
+
+	return monitorRunStatus(c, runStatus.ID)
+}
+
+// rerunRun reruns failed tests from a previous Rainforest run & depending on passed flags monitors its execution
+func (r *runner) rerunRun(c cliContext) error {
+	params, err := r.makeRerunParams(c)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
 	runStatus, err := r.client.CreateRun(params)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
@@ -372,6 +397,30 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 		EnvironmentID: environmentID,
 		FeatureID:     featureID,
 		RunGroupID:    runGroupID,
+	}, nil
+}
+
+func (r *runner) makeRerunParams(c cliContext) (rainforest.RunParams, error) {
+	var err error
+
+	var runIDString string
+	var runID int
+	if runIDString = c.Args().First(); runIDString == "" {
+		return rainforest.RunParams{}, errors.New("Missing run ID")
+	}
+	runID, err = strconv.Atoi(runIDString)
+	if err != nil {
+		return rainforest.RunParams{}, errors.New("Invalid run ID specified")
+	}
+
+	var conflict string
+	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
+		return rainforest.RunParams{}, errors.New("Invalid conflict option specified")
+	}
+
+	return rainforest.RunParams{
+		RunID:    runID,
+		Conflict: conflict,
 	}, nil
 }
 

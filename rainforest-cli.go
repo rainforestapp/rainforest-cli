@@ -250,6 +250,37 @@ func main() {
 			},
 		},
 		{
+			Name:         "rerun",
+			Aliases:      []string{"rr"},
+			Usage:        "Rerun failed tests from a previous run",
+			OnUsageError: onCommandUsageErrorHandler("rerun"),
+			Action:       rerunRun,
+			Description: "Reruns the failed tests from a previous run on Rainforest platform. " +
+				"Parameters such as 'environment', 'crowd', 'release', etc. are copied from the previous run.",
+			ArgsUsage: "[run ID]",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name: "conflict",
+					Usage: "use the abort option to abort any runs in the same environment or " +
+						"use the abort-all option to abort all runs in progress.",
+				},
+				cli.BoolFlag{
+					Name: "bg, background",
+					Usage: "run in the background. This option makes cli return after successfully starting a run, " +
+						"without waiting for the run results.",
+				},
+				cli.BoolFlag{
+					Name: "fail-fast, ff",
+					Usage: "fail the build as soon as the first failed result comes in. " +
+						"If you don't pass this it will wait until 100% of the run is done. Use with --fg.",
+				},
+				cli.StringFlag{
+					Name:  "junit-file",
+					Usage: "Create a JUnit XML report `FILE` with the specified name. Must be run in foreground mode.",
+				},
+			},
+		},
+		{
 			Name:         "new",
 			Usage:        "Create a new RFML test",
 			OnUsageError: onCommandUsageErrorHandler("new"),

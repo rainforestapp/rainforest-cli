@@ -268,11 +268,26 @@ func TestMakeRunParams(t *testing.T) {
 }
 
 func TestMakeRerunParams(t *testing.T) {
+	envRunID, isSet := os.LookupEnv("RAINFOREST_RUN_ID")
+	if isSet {
+		defer os.Setenv("RAINFOREST_RUN_ID", envRunID)
+	} else {
+		defer os.Unsetenv("RAINFOREST_RUN_ID")
+	}
+	os.Setenv("RAINFOREST_RUN_ID", "117")
+
 	var testCases = []struct {
 		mappings map[string]interface{}
 		args     cli.Args
 		expected rainforest.RunParams
 	}{
+		{
+			mappings: make(map[string]interface{}),
+			args:     cli.Args{},
+			expected: rainforest.RunParams{
+				RunID: 117,
+			},
+		},
 		{
 			mappings: make(map[string]interface{}),
 			args:     cli.Args{"41"},

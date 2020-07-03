@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -403,9 +404,12 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 func (r *runner) makeRerunParams(c cliContext) (rainforest.RunParams, error) {
 	var err error
 
-	var runIDString string
 	var runID int
-	if runIDString = c.Args().First(); runIDString == "" {
+	runIDString := c.Args().First()
+	if runIDString == "" {
+		runIDString = os.Getenv("RAINFOREST_RUN_ID")
+	}
+	if runIDString == "" {
 		return rainforest.RunParams{}, errors.New("Missing run ID")
 	}
 	runID, err = strconv.Atoi(runIDString)

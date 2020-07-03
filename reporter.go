@@ -150,6 +150,7 @@ type jUnitTestReportFailure struct {
 
 type jUnitTestReportSchema struct {
 	XMLName  xml.Name `xml:"testcase"`
+	ID       int      `xml:"id,attr"`
 	Name     string   `xml:"name,attr"`
 	Time     float64  `xml:"time,attr"`
 	Failures []jUnitTestReportFailure
@@ -157,6 +158,7 @@ type jUnitTestReportSchema struct {
 
 type jUnitReportSchema struct {
 	XMLName   xml.Name `xml:"testsuite"`
+	ID        int      `xml:"id,attr"`
 	Name      string   `xml:"name,attr"`
 	Tests     int      `xml:"tests,attr"`
 	Errors    int      `xml:"errors,attr"`
@@ -182,6 +184,7 @@ func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI)
 
 			testDuration := test.UpdatedAt.Sub(test.CreatedAt).Seconds()
 
+			testCase.ID = test.ID
 			testCase.Name = test.Title
 			testCase.Time = testDuration
 
@@ -260,6 +263,7 @@ func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI)
 	finalStateName := runDetails.StateDetails.Name
 	runDuration := runDetails.Timestamps[finalStateName].Sub(runDetails.Timestamps["created_at"]).Seconds()
 	report := &jUnitReportSchema{
+		ID:        runDetails.ID,
 		Errors:    runDetails.TotalNoResultTests,
 		Failures:  runDetails.TotalFailedTests,
 		Tests:     runDetails.TotalTests,

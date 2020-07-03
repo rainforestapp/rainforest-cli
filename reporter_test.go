@@ -180,6 +180,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 		},
 		Tests: []rainforest.RunTestDetails{
 			{
+				ID:        456,
 				Title:     "My test title",
 				CreatedAt: now.Add(-25 * time.Minute),
 				UpdatedAt: now,
@@ -197,6 +198,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 	}
 
 	expectedSchema := jUnitReportSchema{
+		ID:       runDetails.ID,
 		Name:     runDesc,
 		Errors:   totalNoResultTests,
 		Failures: totalFailedTests,
@@ -204,6 +206,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 		Time:     30 * time.Minute.Seconds(),
 		TestCases: []jUnitTestReportSchema{
 			{
+				ID:   runDetails.Tests[0].ID,
 				Name: runDetails.Tests[0].Title,
 				Time: 25 * time.Minute.Seconds(),
 			},
@@ -291,6 +294,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 	expectedSchema.Failures = 1
 	expectedSchema.TestCases = []jUnitTestReportSchema{
 		{
+			ID:   failedTest.ID,
 			Name: failedTest.Title,
 			Time: 25 * time.Minute.Seconds(),
 			Failures: []jUnitTestReportFailure{
@@ -374,6 +378,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 	expectedSchema.Failures = 1
 	expectedSchema.TestCases = []jUnitTestReportSchema{
 		{
+			ID:   failedTest.ID,
 			Name: failedTest.Title,
 			Time: 25 * time.Minute.Seconds(),
 			Failures: []jUnitTestReportFailure{
@@ -443,6 +448,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 
 	expectedSchema.TestCases = []jUnitTestReportSchema{
 		{
+			ID:   failedTest.ID,
 			Name: failedTest.Title,
 			Time: 25 * time.Minute.Seconds(),
 			Failures: []jUnitTestReportFailure{

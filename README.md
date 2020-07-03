@@ -89,6 +89,12 @@ Run a run group.
 rainforest run --run-group <run_group_id>
 ```
 
+Rerun failed tests from a run.
+
+```bash
+rainforest rerun <failed_run_id>
+```
+
 #### Creating and Managing Tests
 
 Create new Rainforest test in RFML format (Rainforest Markup Language).

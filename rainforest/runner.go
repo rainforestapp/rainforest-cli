@@ -76,20 +76,26 @@ func (c *Client) CreateRun(params RunParams) (*RunStatus, error) {
 }
 
 func validateRerunParams(params RunParams) error {
-	if params.Tags != nil {
-		return errors.New("Tags cannot be specified for rerun")
-	}
-	if params.Browsers != nil {
-		return errors.New("Browsers cannot be specified for rerun")
-	}
 	if params.Tests != nil {
 		return errors.New("Tests cannot be specified for rerun")
 	}
 	if params.RFMLIDs != nil {
 		return errors.New("RFML tests cannot be specified for rerun")
 	}
+	if params.Tags != nil {
+		return errors.New("Tags cannot be specified for rerun")
+	}
+	if params.SmartFolderID != 0 {
+		return errors.New("Folder cannot be specified for rerun")
+	}
+	if params.SiteID != 0 {
+		return errors.New("Site cannot be specified for rerun")
+	}
 	if params.Crowd != "" {
 		return errors.New("Crowd cannot be specified for rerun")
+	}
+	if params.Browsers != nil {
+		return errors.New("Browsers cannot be specified for rerun")
 	}
 	if params.Description != "" {
 		return errors.New("Description cannot be specified for rerun")
@@ -100,14 +106,8 @@ func validateRerunParams(params RunParams) error {
 	if params.EnvironmentID != 0 {
 		return errors.New("Environment cannot be specified for rerun")
 	}
-	if params.SiteID != 0 {
-		return errors.New("Site cannot be specified for rerun")
-	}
 	if params.FeatureID != 0 {
 		return errors.New("Feature cannot be specified for rerun")
-	}
-	if params.SmartFolderID != 0 {
-		return errors.New("Folder cannot be specified for rerun")
 	}
 	if params.RunGroupID != 0 {
 		return errors.New("Run Group cannot be specified for rerun")
@@ -117,23 +117,23 @@ func validateRerunParams(params RunParams) error {
 }
 
 func validateRunGroupParams(params RunParams) error {
+	if params.Tests != nil {
+		return errors.New("Tests cannot be specified alongside run group")
+	}
 	if params.Tags != nil {
 		return errors.New("Tags cannot be specified alongside run group")
 	}
-	if params.Browsers != nil {
-		return errors.New("Browsers cannot be specified alongside run group")
-	}
-	if params.Tests != nil {
-		return errors.New("Tests cannot be specified alongside run group")
+	if params.SmartFolderID != 0 {
+		return errors.New("Folder cannot be specified alongside run group")
 	}
 	if params.SiteID != 0 {
 		return errors.New("Site cannot be specified alongside run group")
 	}
+	if params.Browsers != nil {
+		return errors.New("Browsers cannot be specified alongside run group")
+	}
 	if params.FeatureID != 0 {
 		return errors.New("Feature cannot be specified alongside run group")
-	}
-	if params.SmartFolderID != 0 {
-		return errors.New("Folder cannot be specified alongside run group")
 	}
 
 	return nil

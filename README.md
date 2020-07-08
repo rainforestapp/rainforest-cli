@@ -359,28 +359,33 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 
 ## Release process
 
-Check the `.circleci/config.yml` for the latest, but currently merging to master will build and deploy to the following Equinox channels:
+Check the [`.circleci/config.yml`](.circleci/config.yml) for the latest, but currently merging to master will build and deploy to the following Equinox channels:
 
-Tag                             | Channels
+Tag | Channels
 --------------------------------|-------------
-No tag                          | dev
-vX.Y.Z-alpha.N or vX.Y.Z-beta.N | beta, dev
-vX.Y.Z                          | stable, beta, dev
+No tag | `dev`
+`vX.Y.Z-alpha.N` or `vX.Y.Z-beta.N` | `beta`, `dev`
+`vX.Y.Z` | `stable`, `beta`, `dev`
 
-Development + release process is:
+### Development + release process is:
 
+#### Development PR
 1. Branch from master
-2. Do work
-3. Open PR against master
-4. Merge to master
-5. Branch from master to update `CHANGELOG.md` to include the commit hashes and release date
-6. Update the `version` constant in `rainforest-cli.go` following [semvar](http://semver.org/)
-7. Merge to master
-8. Tag the master branch with the release:
+1. Do work
+1. Open PR against master
+1. Merge to master
+#### Changelog PR
+1. Branch from master to update `CHANGELOG.md` to include the commit hashes and release date
+1. Update the `version` constant in `rainforest-cli.go` following [semantic versioning](http://semver.org/)
+1. Merge to master
+#### Release
+1. Release via [GitHub Releases](https://github.com/rainforestapp/rainforest-cli/releases)
+1. Update https://github.com/rainforestapp/homebrew-public to use the latest stable build url from [equinox](https://equinox.io)
+
+### Releasing a beta version
+
+Simply tag a commit with an alpha or beta version and push to trigger the `deploy_beta` CI job:
 ```bash
-   git tag vX.Y.Z or vX.Y.Z-alpha.N or vX.Y.Z-beta.N
-   git push origin vX.Y.Z
+git tag vX.Y.Z-alpha.N # or vX.Y.Z-beta.N
+git push origin vX.Y.Z-alpha.N
 ```
-9. Merge to master to release to stable/beta/dev
-10. Add release to Github [release page](https://github.com/rainforestapp/rainforest-cli/releases)
-11. Update https://github.com/rainforestapp/homebrew-public to use the latest stable build url from [equinox](https://equinox.io)

@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.16.0 - 2020-07-08
+- Add [`rerun`](README.md#running-tests) command
+  - (b54994797897e98a724a5ae330f9bf0faa88417c, @magni-)
+
 ## 2.15.3 - 2020-05-21
 - Add rainforest-orb and version to UserAgent if CLI is called from CircleCI Orb
   - (da19bb6ad2702aead89f7169504af7286659d621, @magni-)

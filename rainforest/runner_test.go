@@ -159,7 +159,6 @@ func TestCreateRunFromRerun(t *testing.T) {
 			t.Errorf("Expected error for params %v but there was no error", params)
 		}
 	}
-	cleanup()
 }
 
 func TestCreateRunFromRunGroup(t *testing.T) {
@@ -248,7 +247,6 @@ func TestCreateRunFromRunGroup(t *testing.T) {
 			t.Errorf("Expected error for params %v but there was no error", params)
 		}
 	}
-	cleanup()
 }
 
 func TestCheckRunStatus(t *testing.T) {

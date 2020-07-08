@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -28,6 +29,11 @@ type runner struct {
 func startRun(c cliContext) error {
 	r := newRunner()
 	return r.startRun(c)
+}
+
+func rerunRun(c cliContext) error {
+	r := newRunner()
+	return r.rerunRun(c)
 }
 
 func newRunner() *runner {
@@ -84,6 +90,26 @@ func (r *runner) startRun(c cliContext) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
+	runStatus, err := r.client.CreateRun(params)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	log.Printf("Run %v has been created.", runStatus.ID)
+
+	// if background flag is enabled we'll skip monitoring run status
+	if c.Bool("bg") {
+		return nil
+	}
+
+	return monitorRunStatus(c, runStatus.ID)
+}
+
+// rerunRun reruns failed tests from a previous Rainforest run & depending on passed flags monitors its execution
+func (r *runner) rerunRun(c cliContext) error {
+	params, err := r.makeRerunParams(c)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
 	runStatus, err := r.client.CreateRun(params)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
@@ -294,8 +320,8 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 	}
 
 	var conflict string
-	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
-		return rainforest.RunParams{}, errors.New("Invalid conflict option specified")
+	if conflict, err = getConflict(c); err != nil {
+		return rainforest.RunParams{}, err
 	}
 
 	featureID := c.Int("feature")
@@ -375,6 +401,33 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 	}, nil
 }
 
+func (r *runner) makeRerunParams(c cliContext) (rainforest.RunParams, error) {
+	var err error
+
+	var runID int
+	runIDString := c.Args().First()
+	if runIDString == "" {
+		runIDString = os.Getenv("RAINFOREST_RUN_ID")
+	}
+	if runIDString == "" {
+		return rainforest.RunParams{}, errors.New("Missing run ID")
+	}
+	runID, err = strconv.Atoi(runIDString)
+	if err != nil {
+		return rainforest.RunParams{}, errors.New("Invalid run ID specified")
+	}
+
+	var conflict string
+	if conflict, err = getConflict(c); err != nil {
+		return rainforest.RunParams{}, err
+	}
+
+	return rainforest.RunParams{
+		RunID:    runID,
+		Conflict: conflict,
+	}, nil
+}
+
 // stringToIntSlice takes a string of comma separated integers and returns a slice of them
 func stringToIntSlice(s string) ([]int, error) {
 	if s == "" {
@@ -397,6 +450,16 @@ func stringToIntSlice(s string) ([]int, error) {
 func getTags(c cliContext) []string {
 	tags := c.StringSlice("tag")
 	return expandStringSlice(tags)
+}
+
+// getConflict gets conflict from a CLI context. It returns an error if value isn't allowed
+func getConflict(c cliContext) (string, error) {
+	var conflict string
+	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
+		return "", errors.New("Invalid conflict option specified")
+	}
+
+	return conflict, nil
 }
 
 // expandStringSlice takes a slice of strings and expands any comma separated sublists

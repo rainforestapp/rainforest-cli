@@ -267,6 +267,61 @@ func TestMakeRunParams(t *testing.T) {
 	}
 }
 
+func TestMakeRerunParams(t *testing.T) {
+	envRunID, isSet := os.LookupEnv("RAINFOREST_RUN_ID")
+	if isSet {
+		defer os.Setenv("RAINFOREST_RUN_ID", envRunID)
+	} else {
+		defer os.Unsetenv("RAINFOREST_RUN_ID")
+	}
+	os.Setenv("RAINFOREST_RUN_ID", "117")
+
+	var testCases = []struct {
+		mappings map[string]interface{}
+		args     cli.Args
+		expected rainforest.RunParams
+	}{
+		{
+			mappings: make(map[string]interface{}),
+			args:     cli.Args{},
+			expected: rainforest.RunParams{
+				RunID: 117,
+			},
+		},
+		{
+			mappings: make(map[string]interface{}),
+			args:     cli.Args{"41"},
+			expected: rainforest.RunParams{
+				RunID: 41,
+			},
+		},
+		{
+			mappings: map[string]interface{}{
+				"conflict": "abort",
+			},
+			args: cli.Args{"82"},
+			expected: rainforest.RunParams{
+				RunID:    82,
+				Conflict: "abort",
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		c := newFakeContext(testCase.mappings, testCase.args)
+		r := newRunner()
+		fakeEnv := rainforest.Environment{ID: 2401, Name: "the foo environment"}
+		r.client = &fakeRunnerClient{environment: fakeEnv}
+		res, err := r.makeRerunParams(c)
+
+		if err != nil {
+			t.Errorf("Error trying to create params: %v", err)
+		} else if !reflect.DeepEqual(res, testCase.expected) {
+			t.Errorf("Incorrect resulting run params.\nActual: %#v\nExpected: %#v", res, testCase.expected)
+		}
+	}
+}
+
 func TestStartLocalRun(t *testing.T) {
 	rfmlDir := setupTestRFMLDir()
 	defer os.RemoveAll(rfmlDir)

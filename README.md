@@ -81,6 +81,22 @@ Run individual tests in the foreground and report.
 rainforest run <test_id1> <test_id2>
 ```
 
+Run a run group.
+
+⚠️ This uses the configuration defined in the run group (environment, browsers, crowd, location). If you wish to run tests from a run group without using the run group's configuration, you will need to use the Rainforest API directly, passing a `run_group_id` parameter to [the `POST /runs` endpoint](https://app.rainforestqa.com/docs#!/runs/post1Runs). ⚠️
+
+```bash
+rainforest run --run-group <run_group_id>
+```
+
+Rerun failed tests from a run.
+
+If you don't pass in an argument, it will try to get a run ID from the `RAINFOREST_RUN_ID` environment variable.
+
+```bash
+rainforest rerun <failed_run_id>
+```
+
 #### Creating and Managing Tests
 
 Create new Rainforest test in RFML format (Rainforest Markup Language).

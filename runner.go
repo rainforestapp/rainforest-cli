@@ -320,8 +320,8 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 	}
 
 	var conflict string
-	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
-		return rainforest.RunParams{}, errors.New("Invalid conflict option specified")
+	if conflict, err = getConflict(c); err != nil {
+		return rainforest.RunParams{}, err
 	}
 
 	featureID := c.Int("feature")
@@ -418,8 +418,8 @@ func (r *runner) makeRerunParams(c cliContext) (rainforest.RunParams, error) {
 	}
 
 	var conflict string
-	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
-		return rainforest.RunParams{}, errors.New("Invalid conflict option specified")
+	if conflict, err = getConflict(c); err != nil {
+		return rainforest.RunParams{}, err
 	}
 
 	return rainforest.RunParams{
@@ -450,6 +450,16 @@ func stringToIntSlice(s string) ([]int, error) {
 func getTags(c cliContext) []string {
 	tags := c.StringSlice("tag")
 	return expandStringSlice(tags)
+}
+
+// getConflict gets conflict from a CLI context. It returns an error if value isn't allowed
+func getConflict(c cliContext) (string, error) {
+	var conflict string
+	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
+		return "", errors.New("Invalid conflict option specified")
+	}
+
+	return conflict, nil
 }
 
 // expandStringSlice takes a slice of strings and expands any comma separated sublists

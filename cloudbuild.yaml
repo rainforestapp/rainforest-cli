@@ -8,5 +8,8 @@ steps:
     if [ "$BRANCH_NAME" == "master" ]; then
       docker tag "gcr.io/$PROJECT_ID/rainforest-cli:$COMMIT_SHA" gcr.io/$PROJECT_ID/rainforest-cli:latest
     fi
+    if [ -n "$TAG_NAME" ]; then
+      docker tag "gcr.io/$PROJECT_ID/rainforest-cli:$COMMIT_SHA" "gcr.io/$PROJECT_ID/rainforest-cli:$TAG_NAME"
+    fi
 images:
 - 'gcr.io/$PROJECT_ID/rainforest-cli'

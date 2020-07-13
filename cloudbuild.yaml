@@ -4,7 +4,9 @@ steps:
   args:
   - '-c'
   - |
-    tag="$(if [ "$BRANCH_NAME" == "master" ]; then echo latest; else echo "$COMMIT_SHA"; fi)"
-    docker build -t "gcr.io/$PROJECT_ID/rainforest-cli:$tag" .
+    docker build -t "gcr.io/$PROJECT_ID/rainforest-cli:$COMMIT_SHA" .
+    if [ "$BRANCH_NAME" == "master" ]; then
+      docker tag "gcr.io/$PROJECT_ID/rainforest-cli:$COMMIT_SHA" gcr.io/$PROJECT_ID/rainforest-cli:latest
+    fi
 images:
 - 'gcr.io/$PROJECT_ID/rainforest-cli'

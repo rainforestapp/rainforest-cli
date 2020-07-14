@@ -184,8 +184,7 @@ func main() {
 					Usage: "run your tests using specified `ENVIRONMENT`. Otherwise it will use your default one.",
 				},
 				cli.StringFlag{
-					Name:  "crowd",
-					Value: "default",
+					Name: "crowd",
 					Usage: "run your tests using specified `CROWD`. Available choices are: default, automation, automation_and_crowd " +
 						"or on_premise_crowd. Contact your CSM for more details.",
 				},

@@ -1,5 +1,13 @@
 # Rainforest CLI Changelog
 
+## 2.16.1 - 2020-07-14
+- Fix default crowd setting being overridden for Run Group runs
+  - (7d88de2155220694fc1423f9f32df8ee6a2dc59b, @magni-)
+- Fix publishing to secondary Equinox channels when releasing a new stable or beta version
+  - (c8c38d75ee6a1ec37098583e70253ecd170b0ad0, @magni-)
+- Fix GCR image triggering
+  - (05da067539ddce74f2f00729f7ccf7146b77795d, @AntGH)
+
 ## 2.16.0 - 2020-07-08
 - Add [`rerun`](README.md#running-tests) command
   - (b54994797897e98a724a5ae330f9bf0faa88417c, @magni-)

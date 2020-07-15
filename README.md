@@ -89,13 +89,13 @@ Run a run group.
 rainforest run --run-group <run_group_id>
 ```
 
-Rerun failed tests from a run.
-
-If you don't pass in an argument, it will try to get a run ID from the `RAINFOREST_RUN_ID` environment variable.
+#### Rerunning Failed Tests
 
 ```bash
 rainforest rerun <failed_run_id>
 ```
+
+The `failed_run_id` argument is optional. If none is passed in, the CLI will look for a run ID in the `RAINFOREST_RUN_ID` environment variable.
 
 #### Creating and Managing Tests
 

@@ -351,7 +351,6 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 ## Contributing
 
 1. Fork it
-2. Initialize the submodules (`git submodule init && git submodule update`)
 3. Create a feature branch (`git checkout -b my-new-feature`)
 4. Commit your changes (`git commit -am 'Add some feature'`)
 5. Push to the branch (`git push origin my-new-feature`)

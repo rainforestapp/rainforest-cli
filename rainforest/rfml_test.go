@@ -503,12 +503,30 @@ func TestWriteRFMLTest(t *testing.T) {
 		t.Logf("Output:\n%v", output)
 	}
 
-	// Test state omitted
+	// Test enabled state omitted
 	buffer.Reset()
 	test.State = "enabled"
 	output = getOutput()
 	if strings.Contains(output, "state") {
 		t.Error("Test state field not expected to appear")
+		t.Logf("Output:\n%v", output)
+	}
+
+	// Test empty state omitted (rainforest new)
+	buffer.Reset()
+	test.State = ""
+	output = getOutput()
+	if strings.Contains(output, "state") {
+		t.Error("Test state field not expected to appear")
+		t.Logf("Output:\n%v", output)
+	}
+
+	// Test draft state included
+	buffer.Reset()
+	test.State = "draft"
+	output = getOutput()
+	if !strings.Contains(output, "state") {
+		t.Error("Test state expected to appear")
 		t.Logf("Output:\n%v", output)
 	}
 

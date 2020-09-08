@@ -285,8 +285,8 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		}
 	}
 
-	if test.State == "disabled" {
-		_, err = writer.WriteString("# state: disabled\n")
+	if test.State != "" && test.State != "enabled" {
+		_, err = writer.WriteString(fmt.Sprintf("# state: %s\n", test.State))
 		if err != nil {
 			return err
 		}

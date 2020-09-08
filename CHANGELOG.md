@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.17.0 - 2020-09-08
+- Preserve draft state when downloading RFMLs
+  - (f904bdb68de60e2ff213c3d37f7ab7af20c19745, @mikesbrown)
+
 ## 2.16.1 - 2020-07-14
 - Fix default crowd setting being overridden for Run Group runs
   - (7d88de2155220694fc1423f9f32df8ee6a2dc59b, @magni-)

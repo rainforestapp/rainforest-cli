@@ -4,6 +4,8 @@ github.com/gyuho/goraph v0.0.0-20160328020532-d460590d53a9 h1:d04ddWQE6cmZTRPe2s
 github.com/gyuho/goraph v0.0.0-20160328020532-d460590d53a9/go.mod h1:NtSxZCD+s3sZFwbW6WceOcUD83HM9XD5OE2r4c0P8eg=
 github.com/mattn/go-runewidth v0.0.2 h1:UnlwIPBGaTZfPQ6T1IGzPI0EkYAQmT9fAEJ/poFC63o=
 github.com/mattn/go-runewidth v0.0.2/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
+github.com/mattn/go-runewidth v0.0.9 h1:Lm995f3rfxdpd6TSmuVCHVb/QhupuXlYr8sCI/QdE+0=
+github.com/mattn/go-runewidth v0.0.9/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/olekukonko/tablewriter v0.0.0-20160621093029-daf2955e742c h1:1BS19mnpAe7Lm0etRs1uBVaki11WZ8fktvOQGipZPo4=
 github.com/olekukonko/tablewriter v0.0.0-20160621093029-daf2955e742c/go.mod h1:vsDQFd/mU46D+Z4whnwzcISnGGzXWMclvtLoiIKAKIo=
 github.com/rainforestapp/testutil v0.0.0-20170615220520-c9155e7da96e/go.mod h1:wYy1wh1VsTxLVSTvfYS+nOHmZGsvFqOSBJKHVsAYtlM=

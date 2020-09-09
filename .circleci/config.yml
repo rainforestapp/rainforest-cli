@@ -29,7 +29,7 @@ jobs:
           name: Release to Stable Channel
           command: |
             echo -e $EQUINOX_KEY > equinox.key
-            equinox release --version=${CIRCLE_TAG:1} --platforms="darwin_amd64 linux_amd64 darwin_386 linux_386 windows_amd64 windows_386" --signing-key=equinox.key --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel stable -- -ldflags "-X main.releaseChannel=stable -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
+            CGO_ENABLED=0 equinox release --version=${CIRCLE_TAG:1} --platforms="darwin_amd64 linux_amd64 darwin_386 linux_386 windows_amd64 windows_386" --signing-key=equinox.key --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel stable -- -ldflags "-X main.releaseChannel=stable -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
             equinox publish --token=$EQUINOX_ACC_TOKEN --app=$EQUINOX_APP_ID --channel beta --release=${CIRCLE_TAG:1}
             equinox publish --token=$EQUINOX_ACC_TOKEN --app=$EQUINOX_APP_ID --channel dev --release=${CIRCLE_TAG:1}
             rm -f equinox.key
@@ -44,7 +44,7 @@ jobs:
           name: Release to Beta Channel
           command: |
             echo -e $EQUINOX_KEY > equinox.key
-            equinox release --version=${CIRCLE_TAG:1} --platforms="darwin_amd64 linux_amd64 darwin_386 linux_386 windows_amd64 windows_386" --signing-key=equinox.key --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel beta -- -ldflags "-X main.releaseChannel=beta -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
+            CGO_ENABLED=0 equinox release --version=${CIRCLE_TAG:1} --platforms="darwin_amd64 linux_amd64 darwin_386 linux_386 windows_amd64 windows_386" --signing-key=equinox.key --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel beta -- -ldflags "-X main.releaseChannel=beta -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
             equinox publish --token=$EQUINOX_ACC_TOKEN --app=$EQUINOX_APP_ID --channel dev --release=${CIRCLE_TAG:1}
             rm -f equinox.key
 
@@ -58,7 +58,7 @@ jobs:
           name: Release to Dev Channel
           command: |
             echo -e $EQUINOX_KEY > equinox.key
-            equinox release --version=${CIRCLE_SHA1:0:8} --platforms="darwin_amd64 linux_amd64 darwin_386 linux_386 windows_amd64 windows_386" --signing-key=equinox.key --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel dev -- -ldflags "-X main.releaseChannel=dev -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
+            CGO_ENABLED=0 equinox release --version=${CIRCLE_SHA1:0:8} --platforms="darwin_amd64 linux_amd64 darwin_386 linux_386 windows_amd64 windows_386" --signing-key=equinox.key --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel dev -- -ldflags "-X main.releaseChannel=dev -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
             rm -f equinox.key
 
 workflows:

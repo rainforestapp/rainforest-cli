@@ -239,9 +239,9 @@ Upload a mobile app to Rainforest.
 ```bash
 rainforest mobile-upload --site-id <site_id> --environment-id <environment_id> PATH/TO/mobile_app.ipa
 ```
-- `--site-id SITE_ID` - Filter tests by a specific site. You can see a list of your site IDs with `rainforest sites`.
-- `--environment-id` - Run your tests using this environment. Otherwise it will use your default environment.
-- `--app-slot` - An optional flag for specifying the app slot (1-100) of your app, if your site-environment contains multiple apps. Default is 1.
+- `--site-id SITE_ID` - The site ID of the app you are uploading. You can see a list of your site IDs with the `sites` command.
+- `--environment-id ENVIRONMENT_ID` - The environment ID of the app you are uploading. You can see a list of your environment IDs with the `environments` command.
+- `--app-slot SLOT` - An optional flag for specifying the app slot of your app, if your site-environment contains multiple apps. Valid values are from `1` to `100`, and the default value is `1`.
 
 
 ## Options

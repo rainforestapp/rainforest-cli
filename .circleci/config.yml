@@ -9,10 +9,16 @@ steps:
           cd ~/download && curl -O https://bin.equinox.io/c/mBWdkfai63v/release-tool-stable-linux-amd64.zip
           sudo unzip ~/download/release-tool-stable-linux-amd64.zip -d /usr/local/bin
 
+defaults: &defaults
+  docker:
+    - image: circleci/golang:1.12.4-node
+      auth:
+        username: $DOCKERHUB_USERNAME
+        password: $DOCKERHUB_TOKEN
+
 jobs:
   test:
-    docker:
-      - image: circleci/golang:1.12.4-node
+    <<: *defaults
     steps:
       - checkout
       - run:
@@ -20,8 +26,7 @@ jobs:
           command: go test -v -race ./...
 
   deploy_stable:
-    docker:
-      - image: circleci/golang:1.12.4-node
+    <<: *defaults
     steps:
       - checkout
       - *install_equinox
@@ -35,8 +40,7 @@ jobs:
             rm -f equinox.key
 
   deploy_beta:
-    docker:
-      - image: circleci/golang:1.12.4-node
+    <<: *defaults
     steps:
       - checkout
       - *install_equinox
@@ -49,8 +53,7 @@ jobs:
             rm -f equinox.key
 
   deploy_dev:
-    docker:
-      - image: circleci/golang:1.12.4-node
+    <<: *defaults
     steps:
       - checkout
       - *install_equinox
@@ -65,13 +68,17 @@ workflows:
   version: 2
   test_and_deploy:
     jobs:
-      - test
+      - test:
+          context:
+            - DockerHub
       - deploy_dev:
           requires:
             - test
           filters:
             branches:
               only: master
+          context:
+            - DockerHub
       - deploy_beta:
           filters:
             # don't execute on branch pushes, only tag pushes
@@ -79,6 +86,8 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(\-(alpha|beta)\.[0-9]+)$/
+          context:
+            - DockerHub
       - deploy_stable:
           filters:
             # don't execute on branch pushes, only tag pushes
@@ -86,3 +95,5 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v[0-9]+(\.[0-9]+)*$/
+          context:
+            - DockerHub

@@ -246,6 +246,10 @@ func main() {
 					Name:  "wait, reattach",
 					Usage: "monitor existing run with `RUN_ID` instead of starting a new one.",
 				},
+				cli.BoolFlag{
+					Name:  "rerun-if-last-failed",
+					Usage: "if the last run with identical settings failed, re-run instead of starting from scratch",
+				},
 			},
 		},
 		{

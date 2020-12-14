@@ -18,6 +18,7 @@ import (
 type runnerAPI interface {
 	CreateRun(params rainforest.RunParams) (*rainforest.RunStatus, error)
 	CreateTemporaryEnvironment(string) (*rainforest.Environment, error)
+	LastMatchingRun(params rainforest.RunParams) (*rainforest.RunStatus, error)
 	CheckRunStatus(int) (*rainforest.RunStatus, error)
 	rfmlAPI
 }
@@ -63,6 +64,40 @@ func (r *runner) startRun(c cliContext) error {
 	params, err := r.makeRunParams(c, localTests)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
+	}
+
+	// check if we should create a re-run from the last failed run
+	if c.Bool("rerun-if-last-failed") {
+		lastMatchingRun, err := r.client.LastMatchingRun(params)
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+		if lastMatchingRun.Result == "failed" {
+			var conflict string
+			if conflict, err = getConflict(c); err != nil {
+				return err
+			}
+
+			rerunParams := rainforest.RunParams{
+				RunID:    lastMatchingRun.ID,
+				Conflict: conflict,
+			}
+
+			log.Printf("run params %v", rerunParams)
+
+			runStatus, err := r.client.CreateRun(rerunParams)
+			if err != nil {
+				return cli.NewExitError(err.Error(), 1)
+			}
+			log.Printf("Run %v has been created.", runStatus.ID)
+
+			// if background flag is enabled we'll skip monitoring run status
+			if c.Bool("bg") {
+				return nil
+			}
+
+			return monitorRunStatus(c, runStatus.ID)
+		}
 	}
 
 	if c.Bool("git-trigger") {

@@ -120,6 +120,10 @@ func (r *fakeRunnerClient) CreateTemporaryEnvironment(s string) (*rainforest.Env
 	return &r.environment, nil
 }
 
+func (r *fakeRunnerClient) LastMatchingRun(params rainforest.RunParams) (*rainforest.RunStatus, error) {
+	return &rainforest.RunStatus{}, nil
+}
+
 func (r *fakeRunnerClient) CreateRun(p rainforest.RunParams) (*rainforest.RunStatus, error) {
 	r.runParams = p
 	return &rainforest.RunStatus{}, nil

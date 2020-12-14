@@ -271,3 +271,60 @@ func TestCheckRunStatus(t *testing.T) {
 		t.Errorf("Response out = %v, want %v", out, want)
 	}
 }
+
+func TestLastMatchingRun(t *testing.T) {
+	const reqMethod = "GET"
+
+	testCases := []struct {
+		runParams          RunParams
+		wantBodyByRunGroup string
+		wantBodyByRun      string
+		wantStatus         RunStatus
+	}{
+		// When the last identical run passed
+		{
+			runParams:          RunParams{RunGroupID: 123},
+			wantBodyByRunGroup: `[{"id": 111, "result":"passed", "run_group_id": 123}]`,
+			wantBodyByRun:      `[]`,
+			wantStatus:         RunStatus{ID: 111, Result: "passed"},
+		},
+		// When the last identical run failed and its rerun passed
+		{
+			runParams:          RunParams{RunGroupID: 123},
+			wantBodyByRunGroup: `[{"id": 111, "result":"failed", "run_group_id": 123}]`,
+			wantBodyByRun:      `[{"id": 222, "run_id": 111, "result":"passed"}]`,
+			wantStatus:         RunStatus{ID: 222, Result: "passed"},
+		},
+		// When the last identical run failed and its rerun also failed
+		{
+			runParams:          RunParams{RunGroupID: 123},
+			wantBodyByRunGroup: `[{"id": 111, "result":"failed", "run_group_id": 123}]`,
+			wantBodyByRun:      `[{"id": 222, "run_id": 111, "result":"failed"}]`,
+			wantStatus:         RunStatus{ID: 222, Result: "failed"},
+		},
+	}
+
+	for _, tc := range testCases {
+		setup()
+		defer cleanup()
+		mux.HandleFunc("/runs", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != reqMethod {
+				t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+			}
+			if len(r.URL.Query()["run_id"]) > 0 {
+				fmt.Fprint(w, tc.wantBodyByRun)
+			} else {
+				fmt.Fprint(w, tc.wantBodyByRunGroup)
+			}
+		})
+
+		out, err := client.LastMatchingRun(tc.runParams)
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		if !(out.ID == tc.wantStatus.ID && out.Result == tc.wantStatus.Result) {
+			t.Errorf("Response out = %v, want %v", out, tc.wantStatus)
+		}
+	}
+}

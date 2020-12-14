@@ -3,7 +3,6 @@ package rainforest
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 )
 
@@ -161,11 +160,10 @@ func (c *Client) CheckRunStatus(runID int) (*RunStatus, error) {
 func (c *Client) LastMatchingRun(params RunParams) (*RunStatus, error) {
 	var runStatuses []RunStatus
 	var lastMatchingRunStatus RunStatus
-	endpoint := "runs?page=1&page_size=1"
+	endpoint := "/runs?page_size=1"
 
 	// Get the last run with identical params
 	searchParams := fmt.Sprintf("&run_group_id=%v", params.RunGroupID)
-	log.Printf("searchParams: %v", searchParams)
 	req, err := c.NewRequest("GET", endpoint+searchParams, nil)
 	if err != nil {
 		return &lastMatchingRunStatus, err
@@ -180,7 +178,6 @@ func (c *Client) LastMatchingRun(params RunParams) (*RunStatus, error) {
 	// return that instead
 	var rerunStatuses []RunStatus
 	rerunSearchParams := fmt.Sprintf("&run_id=%v", lastMatchingRunStatus.ID)
-	log.Printf("rerunSearchParams: %v", rerunSearchParams)
 	req, err = c.NewRequest("GET", endpoint+rerunSearchParams, nil)
 	if err != nil {
 		return &lastMatchingRunStatus, err

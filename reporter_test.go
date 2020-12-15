@@ -121,6 +121,56 @@ func TestReporterCreateReport(t *testing.T) {
 	}
 }
 
+func TestAugmentJunitFileName(t *testing.T) {
+	testCases := []struct {
+		OriginalName string
+		RerunAttempt uint
+		Want         string
+	}{
+		{
+			OriginalName: "output",
+			RerunAttempt: 1,
+			Want:         "output.1",
+		},
+		{
+			OriginalName: "output.xml",
+			RerunAttempt: 1,
+			Want:         "output.xml.1",
+		},
+		{
+			OriginalName: "output.xml",
+			RerunAttempt: 2,
+			Want:         "output.xml.2",
+		},
+		{
+			OriginalName: "output.xml.1",
+			RerunAttempt: 3,
+			Want:         "output.xml.1.3",
+		},
+		{
+			OriginalName: "some.output.xml.1.2.3",
+			RerunAttempt: 2,
+			Want:         "some.output.xml.1.2.3.2",
+		},
+		{
+			OriginalName: "output.html",
+			RerunAttempt: 1,
+			Want:         "output.html.1",
+		},
+		{
+			OriginalName: "output.1",
+			RerunAttempt: 2,
+			Want:         "output.1.2",
+		},
+	}
+	for _, testCase := range testCases {
+		got := augmentJunitFileName(testCase.OriginalName, testCase.RerunAttempt)
+		if got != testCase.Want {
+			t.Errorf("Wrong name, wanted '%v', got '%v'", testCase.Want, got)
+		}
+	}
+}
+
 type fakeReporterAPI struct {
 	RunMappings map[int][]rainforest.RunTestDetails
 }

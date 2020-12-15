@@ -330,7 +330,7 @@ Popular command line options are:
 - `--bg` - creates a run in the background and rainforest-cli exits immediately after. Do not use if you want rainforest-cli to track your run and exit with an error code upon run failure (ie: using Rainforest in your CI environment).
 - `--crowd [default|automation|automation_and_crowd|on_premise_crowd]` - select automation or your crowd of testers (for clients with on premise testers). For more information, contact us at help@rainforestqa.com.
 - `--wait RUN_ID` - wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.
-- `--fail-fast` - fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Has no effect with `--bg`.
+- `--fail-fast` - return an error as soon as the first failed result comes in (the run always proceeds until completion, but the CLI will return an error code early). If you don't use it, it will wait until 100% of the run is done. Has no effect with `--bg` and cannot be used together with `--max-reruns`.
 - `--custom-url` - use a custom url for this run to use an ad-hoc QA environment on all tests. You will need to specify a `site_id` too for this to work. Note that we will be creating a new environment for your account for this particular run.
 - `--git-trigger` - only trigger a run when the last commit (for a git repo in the current working directory) has contains `@rainforest` and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged `checkout`. This over-rides `--tag` and any tests specified. If no `@rainforest` is detected it will exit 0.
 - `--description "CI automatic run"` - add an arbitrary description for the run.
@@ -343,6 +343,7 @@ api to construct a junit report.  This is useful to track tests in CI such as Je
 - `--import-variable-csv-file /path/to/csv/file.csv` - Use with `run` and `--import-variable-name` to upload new tabular variable values before your run to specify the path to your CSV file.
 - `--import-variable-name NAME` - Use with `run` and `--import-variable-csv-file` to upload new tabular variable values before your run to specify the name of your tabular variable. You may also use this with the `csv-upload` command to update your variable without starting a run.
 - `--single-use` - Use with `run` or `csv-upload` to flag your variable upload as `single-use`. See `--import-variable-csv-file` and `--import-variable-name` options as well.
+- `--max-reruns` - If set to a value > 0 and a test fails, the CLI will re-run failed tests a number of times before reporting failure. If `--junit-file <filename>` is also used, the JUnit reports of reruns will be saved under `<filename>.1`, `<filename>.2` etc. Cannot be used together with `--fail-fast`.
 
 ## Support
 

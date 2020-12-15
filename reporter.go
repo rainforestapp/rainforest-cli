@@ -41,9 +41,10 @@ func postRunJUnitReport(c cliContext, runID int) error {
 	if fileName == "" {
 		return nil
 	}
+	rerunAttempt := c.Uint("rerun-attempt")
 
 	r := newReporter()
-	return r.createJUnitReport(runID, fileName)
+	return r.createJUnitReport(runID, augmentJunitFileName(fileName, rerunAttempt))
 }
 
 func newReporter() *reporter {
@@ -76,7 +77,8 @@ func (r *reporter) createReport(c cliContext) error {
 	}
 
 	if junitFile := c.String("junit-file"); junitFile != "" {
-		err = r.createJUnitReport(runID, junitFile)
+		rerunAttempt := c.Uint("rerun-attempt")
+		err = r.createJUnitReport(runID, augmentJunitFileName(junitFile, rerunAttempt))
 		if err != nil {
 			return cli.NewExitError(err.Error(), 1)
 		}
@@ -87,12 +89,15 @@ func (r *reporter) createReport(c cliContext) error {
 	return nil
 }
 
+func augmentJunitFileName(junitFile string, rerunAttempt uint) string {
+	if rerunAttempt > 0 {
+		junitFile = fmt.Sprintf("%v.%v", junitFile, rerunAttempt)
+	}
+	return junitFile
+}
+
 func (r *reporter) createJUnitReport(runID int, junitFile string) error {
 	log.Print("Creating JUnit report for run #" + strconv.Itoa(runID) + ": " + junitFile)
-
-	if filepath.Ext(junitFile) != ".xml" {
-		return errors.New("JUnit file extension must be .xml")
-	}
 
 	filepath, err := filepath.Abs(junitFile)
 	if err != nil {

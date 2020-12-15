@@ -54,9 +54,15 @@ var (
 // cli.Context, the other is fakeCLIContext which is used for testing.
 type cliContext interface {
 	String(flag string) (val string)
+	GlobalString(flag string) (val string)
 	StringSlice(flag string) (vals []string)
+	GlobalStringSlice(flag string) (vals []string)
 	Bool(flag string) (val bool)
+	GlobalBool(flag string) (val bool)
 	Int(flag string) (val int)
+	GlobalInt(flag string) (val int)
+	Uint(flag string) (val uint)
+	GlobalUint(flag string) (val uint)
 
 	Args() (args cli.Args)
 }
@@ -246,6 +252,10 @@ func main() {
 					Name:  "wait, reattach",
 					Usage: "monitor existing run with `RUN_ID` instead of starting a new one.",
 				},
+				cli.UintFlag{
+					Name:  "max-reruns",
+					Usage: "Rerun `max-reruns` times before reporting failure.",
+				},
 			},
 		},
 		{
@@ -276,6 +286,14 @@ func main() {
 				cli.StringFlag{
 					Name:  "junit-file",
 					Usage: "Create a JUnit XML report `FILE` with the specified name. Must be run in foreground mode.",
+				},
+				cli.UintFlag{
+					Name:  "max-reruns",
+					Usage: "Rerun `max-reruns` times before reporting failure.",
+				},
+				cli.UintFlag{
+					Name:  "rerun-attempt",
+					Usage: "Which rerun attempt this is.",
 				},
 			},
 		},

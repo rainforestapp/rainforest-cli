@@ -127,6 +127,10 @@ func (f fakeContext) String(s string) string {
 	return ""
 }
 
+func (f fakeContext) GlobalString(s string) string {
+	return f.String(s)
+}
+
 func (f fakeContext) StringSlice(s string) []string {
 	val, ok := f.mappings[s].([]string)
 
@@ -134,6 +138,10 @@ func (f fakeContext) StringSlice(s string) []string {
 		return val
 	}
 	return []string{}
+}
+
+func (f fakeContext) GlobalStringSlice(s string) []string {
+	return f.StringSlice(s)
 }
 
 func (f fakeContext) Bool(s string) bool {
@@ -145,6 +153,10 @@ func (f fakeContext) Bool(s string) bool {
 	return false
 }
 
+func (f fakeContext) GlobalBool(s string) bool {
+	return f.Bool(s)
+}
+
 func (f fakeContext) Int(s string) int {
 	val, ok := f.mappings[s].(int)
 
@@ -152,6 +164,23 @@ func (f fakeContext) Int(s string) int {
 		return val
 	}
 	return 0
+}
+
+func (f fakeContext) GlobalInt(s string) int {
+	return f.GlobalInt(s)
+}
+
+func (f fakeContext) Uint(s string) uint {
+	val, ok := f.mappings[s].(uint)
+
+	if ok {
+		return val
+	}
+	return 0
+}
+
+func (f fakeContext) GlobalUint(s string) uint {
+	return f.GlobalUint(s)
 }
 
 func (f fakeContext) Args() cli.Args {

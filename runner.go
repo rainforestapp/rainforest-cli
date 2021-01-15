@@ -52,12 +52,13 @@ func (r *runner) startRun(c cliContext) error {
 		return monitorRunStatus(c, runID)
 	}
 
-	// Validate that --fail-fast and --max-reruns are not used together
+	// verify --max-reruns is not used with either --fail-fast or --background
 	failFast := c.Bool("fail-fast")
+	background := c.Bool("background")
 	maxReruns := c.Uint("max-reruns")
-	if failFast && (maxReruns > 0) {
+	if (maxReruns > 0) && (failFast || background) {
 		return cli.NewExitError(
-			"You can't use --fail-fast when --max-reruns is greater than 0. "+
+			"You can't use --fail-fast or --background when --max-reruns is greater than 0. "+
 				"For the CLI to rerun on failure, it has to wait until completion.",
 			1,
 		)
@@ -313,9 +314,6 @@ func buildRerunArgs(c cliContext, runID int) ([]string, error) {
 	}
 	if conflict := c.String("conflict"); len(conflict) > 0 {
 		cmd = append(cmd, "--conflict", conflict)
-	}
-	if background := c.Bool("background"); background {
-		cmd = append(cmd, "--background")
 	}
 	if junitFile := c.String("junit-file"); len(junitFile) > 0 {
 		cmd = append(cmd, "--junit-file", junitFile)

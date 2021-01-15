@@ -327,7 +327,7 @@ Popular command line options are:
 - `--run-group ID` - run/filter based on a run group. When used with `run`, this trigger a run from the run group; it can't be used in conjunction with other test filters.
 - `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
 - `--conflict OPTION` - use the `abort` option to abort any runs in progress in the same environment as your new run. use the `abort-all` option to abort all runs in progress.
-- `--bg` - creates a run in the background and rainforest-cli exits immediately after. Do not use if you want rainforest-cli to track your run and exit with an error code upon run failure (ie: using Rainforest in your CI environment).
+- `--bg` - creates a run in the background and rainforest-cli exits immediately after. Do not use if you want rainforest-cli to track your run and exit with an error code upon run failure (ie: using Rainforest in your CI environment). Cannot be used together with `--max-reruns`.
 - `--crowd [default|automation|automation_and_crowd|on_premise_crowd]` - select automation or your crowd of testers (for clients with on premise testers). For more information, contact us at help@rainforestqa.com.
 - `--wait RUN_ID` - wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.
 - `--fail-fast` - return an error as soon as the first failed result comes in (the run always proceeds until completion, but the CLI will return an error code early). If you don't use it, it will wait until 100% of the run is done. Has no effect with `--bg` and cannot be used together with `--max-reruns`.

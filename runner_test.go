@@ -434,3 +434,55 @@ func TestStartLocalRun(t *testing.T) {
 		}
 	}
 }
+
+func TestBuildRerunArgs(t *testing.T) {
+	testCases := []struct {
+		Mappings map[string]interface{}
+		Args     cli.Args
+		RunID    int
+		WantArgs []string
+	}{
+		{
+			Mappings: map[string]interface{}{
+				"junit-file":  "result.xml",
+				"max-reruns":  uint(2),
+				"skip-update": true,
+			},
+			Args:  cli.Args{},
+			RunID: 123,
+			WantArgs: []string{
+				"rainforest-cli",
+				"rerun",
+				"123",
+				"--max-reruns", "2",
+				"--rerun-attempt", "1",
+				"--skip-update",
+				"--junit-file", "result.xml",
+			},
+		},
+		{
+			Mappings: map[string]interface{}{
+				"max-reruns": uint(1),
+				"token":      "deadbeef",
+			},
+			Args:  cli.Args{},
+			RunID: 123,
+			WantArgs: []string{
+				"rainforest-cli",
+				"rerun",
+				"123",
+				"--max-reruns", "1",
+				"--rerun-attempt", "1",
+				"--skip-update",
+				"--token", "deadbeef",
+			},
+		},
+	}
+	for _, testCase := range testCases {
+		c := newFakeContext(testCase.Mappings, testCase.Args)
+		gotArgs, _ := buildRerunArgs(c, testCase.RunID)
+		if !reflect.DeepEqual(gotArgs, testCase.WantArgs) {
+			t.Errorf("\nWanted %v\n   got %v", testCase.WantArgs, gotArgs)
+		}
+	}
+}

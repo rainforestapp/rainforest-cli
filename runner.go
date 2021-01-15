@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
@@ -49,6 +50,18 @@ func (r *runner) startRun(c cliContext) error {
 			return cli.NewExitError(err.Error(), 1)
 		}
 		return monitorRunStatus(c, runID)
+	}
+
+	// verify --max-reruns is not used with either --fail-fast or --background
+	failFast := c.Bool("fail-fast")
+	background := c.Bool("background")
+	maxReruns := c.Uint("max-reruns")
+	if (maxReruns > 0) && (failFast || background) {
+		return cli.NewExitError(
+			"You can't use --fail-fast or --background when --max-reruns is greater than 0. "+
+				"For the CLI to rerun on failure, it has to wait until completion.",
+			1,
+		)
 	}
 
 	var localTests []*rainforest.RFTest
@@ -242,14 +255,25 @@ func monitorRunStatus(c cliContext, runID int) error {
 		log.Print(msg)
 
 		if done {
-			if status.FrontendURL != "" {
-				log.Printf("The detailed results are available at %v\n", status.FrontendURL)
-			}
-
 			postRunJUnitReport(c, runID)
 
 			if status.Result != "passed" {
-				return cli.NewExitError("", 1)
+				rerunAttempt := c.Uint("rerun-attempt")
+				remainingReruns := c.Uint("max-reruns") - rerunAttempt
+				if remainingReruns > 0 {
+					cmd, _ := buildRerunArgs(c, runID)
+					log.Printf("Rerunning %v, attempt %v", runID, rerunAttempt+1)
+					exec_err := syscall.Exec("rainforest-cli", cmd, []string{})
+					if exec_err != nil {
+						return cli.NewExitError(exec_err.Error(), 1)
+					}
+				} else {
+					return cli.NewExitError("", 1)
+				}
+			}
+
+			if status.FrontendURL != "" {
+				log.Printf("The detailed results are available at %v\n", status.FrontendURL)
 			}
 
 			return nil
@@ -271,6 +295,31 @@ func monitorRunStatus(c cliContext, runID int) error {
 
 		time.Sleep(runStatusPollInterval)
 	}
+}
+
+func buildRerunArgs(c cliContext, runID int) ([]string, error) {
+	maxReruns := c.Uint("max-reruns")
+	rerunAttempt := c.Uint("rerun-attempt")
+
+	cmd := []string{
+		"rainforest-cli",
+		"rerun", strconv.Itoa(runID),
+		"--max-reruns", fmt.Sprint(maxReruns),
+		"--rerun-attempt", fmt.Sprint(rerunAttempt + 1),
+		"--skip-update", // skip auto-updates for reruns
+	}
+
+	if token := c.GlobalString("token"); len(token) > 0 {
+		cmd = append(cmd, "--token", token)
+	}
+	if conflict := c.String("conflict"); len(conflict) > 0 {
+		cmd = append(cmd, "--conflict", conflict)
+	}
+	if junitFile := c.String("junit-file"); len(junitFile) > 0 {
+		cmd = append(cmd, "--junit-file", junitFile)
+	}
+
+	return cmd, nil
 }
 
 func getRunStatus(failFast bool, runID int, client runnerAPI) (*rainforest.RunStatus, string, bool, error) {

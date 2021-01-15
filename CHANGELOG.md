@@ -2,6 +2,7 @@
 
 ## 2.18.0 - 2021-01-15
 - Add `--max-reruns N` flag, which allows re-trying failed tests in a run up to `N` times.
+  - (b22c33191c5e36342840f5aa22f802083f8eaca9, @maciejgryka)
 
 ## 2.17.0 - 2020-09-08
 - Preserve draft state when downloading RFMLs

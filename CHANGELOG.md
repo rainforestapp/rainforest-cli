@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 2.18.0 - 2021-01-15
+- Add `--max-reruns N` flag, which allows re-trying failed tests in a run up to `N` times.
+
 ## 2.17.0 - 2020-09-08
 - Preserve draft state when downloading RFMLs
   - (f904bdb68de60e2ff213c3d37f7ab7af20c19745, @mikesbrown)

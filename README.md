@@ -312,9 +312,9 @@ tests and the first step of a test.
 using the embedded test's RFML ID.
 
 For more information on embedding inline screenshots and file downloads,
-[see our examples](./examples/inline_files.md)
+[see our examples](./examples/inline_files.md).
 
-For more information on test writing see the [documentation](http://support.rainforestqa.com/hc/en-us/sections/200585603-Writing-Tests).
+For more information on test writing see the [documentation](https://help.rainforestqa.com/docs/writing-tests).
 
 ### Command Line Options
 

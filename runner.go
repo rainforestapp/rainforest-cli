@@ -262,8 +262,13 @@ func monitorRunStatus(c cliContext, runID int) error {
 				remainingReruns := c.Uint("max-reruns") - rerunAttempt
 				if remainingReruns > 0 {
 					cmd, _ := buildRerunArgs(c, runID)
+					path, err := os.Executable()
+					if err != nil {
+						return cli.NewExitError(err.Error(), 1)
+					}
+
 					log.Printf("Rerunning %v, attempt %v", runID, rerunAttempt+1)
-					exec_err := syscall.Exec("rainforest-cli", cmd, []string{})
+					exec_err := syscall.Exec(path, cmd, []string{})
 					if exec_err != nil {
 						return cli.NewExitError(exec_err.Error(), 1)
 					}

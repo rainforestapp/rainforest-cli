@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.18.1 - 2021-01-27
+- Find the CLI's path dynamically for re-exec'ing when using the --max-reruns flag
+  - (4f79806, @jbarber)
+
 ## 2.18.0 - 2021-01-15
 - Add `--max-reruns N` flag, which allows re-trying failed tests in a run up to `N` times.
   - (b22c33191c5e36342840f5aa22f802083f8eaca9, @maciejgryka)

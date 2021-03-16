@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.18.2 - 2021-03-16
+- Update --custom-url documentation
+  - (e492917, @jbarber)
+
 ## 2.18.1 - 2021-01-27
 - Find the CLI's path dynamically for re-exec'ing when using the --max-reruns flag
   - (4f79806, @jbarber)

@@ -211,8 +211,8 @@ func main() {
 				},
 				cli.StringFlag{
 					Name: "custom-url",
-					Usage: "use a custom `URL` for this run. Example use case: an ad-hoc QA environment with Fourchette. " +
-						"You will need to specify a site_id too for this to work.",
+					Usage: "specify the URL for the run to use when testing against an ephemeral QA environment. " +
+						"This will create a new environment for the run.",
 				},
 				cli.BoolFlag{
 					Name: "git-trigger",

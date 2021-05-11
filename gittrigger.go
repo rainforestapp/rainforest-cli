@@ -24,8 +24,8 @@ func newGitTrigger() (gitTrigger, error) {
 }
 
 func (g *gitTrigger) getLatestCommit() error {
-	cmd := exec.Command("git", "log", "-1", "--pretty=%B")
 	var out bytes.Buffer
+	cmd := exec.Command("git", "log", "-1", "--pretty=%B")
 	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
@@ -33,6 +33,30 @@ func (g *gitTrigger) getLatestCommit() error {
 	}
 	g.LastCommit = strings.TrimSpace(out.String())
 	return nil
+}
+
+func (g *gitTrigger) getRemote() (string, error) {
+	var out bytes.Buffer
+	cmd := exec.Command("git", "remote")
+	cmd.Stdout = &out
+	err := cmd.Run()
+	
+	if err != nil {
+		return "", err
+	}
+	remote_name := strings.TrimSpace(out.String())
+
+	out.Reset()
+	cmd.Stdout = &out
+
+	cmd = exec.Command("git", "remote", "get-url", "--all", remote_name)
+	cmd.Stdout = &out
+	err = cmd.Run()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(out.String()), nil
 }
 
 func (g gitTrigger) checkTrigger() bool {

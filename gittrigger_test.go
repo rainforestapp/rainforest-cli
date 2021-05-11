@@ -81,6 +81,17 @@ func makeFakeRepoWithCommit(t *testing.T, commitMsg string) {
 	}
 }
 
+func addFakeGitRemote(t *testing.T, remote_name string, remote_url string) {
+	// create empty commit
+	cmd := exec.Command("git", "remote", "add", remote_name, remote_url)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		t.Fatal("Couldn't add the remote in the test repo.")
+	}
+}
+
 func TestNewGitTrigger(t *testing.T) {
 	const commitMsg = "foo barred baz"
 	makeFakeRepoWithCommit(t, commitMsg)
@@ -105,6 +116,21 @@ func TestGetLatestCommit(t *testing.T) {
 	}
 	if fakeGit.LastCommit != commitMsg {
 		t.Errorf("got wrong commit from GetLatestCommit got: %v, expected: %v", fakeGit.LastCommit, commitMsg)
+	}
+}
+
+func TestGetRemote(t *testing.T) {
+	const expectedRemote = "git@github.com:rainforestapp/rainforest-cli.git"
+	fakeGit := gitTrigger{Trigger: "@rainforest"}
+	makeFakeRepoWithCommit(t, "lol")
+	addFakeGitRemote(t, "lol", expectedRemote)
+	defer deleteFakeRepo(t)
+	remote, err := fakeGit.getRemote()
+	if err != nil {
+		t.Errorf("Unexpected error when doing getRemote(): %v", err)
+	}
+	if remote!= expectedRemote {
+		t.Errorf("got wrong remote from getRemote got: %v, expected: %v", remote, expectedRemote)
 	}
 }
 

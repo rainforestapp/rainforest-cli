@@ -16,6 +16,7 @@ import (
 
 	"github.com/rainforestapp/rainforest-cli/gittrigger"
 	"github.com/ukd1/go.detectci"
+	"github.com/whilp/git-urls"
 )
 
 const (
@@ -45,6 +46,11 @@ type Client struct {
 
 	// Client token used for authenticating requests made to the RF
 	clientToken string
+
+	// Send telemetry with each API request using the user agent
+	// this is used by Rainforest (and not shared or sold) to make
+	// integrations better. See README for more details.
+	SendTelemetry bool
 }
 
 // NewClient constructs a new rainforest API Client. As a parameter takes client token
@@ -118,19 +124,28 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	// Set UserAgent header with appended library version, will look like:
 	// "rainforest-cli/2.1.0 [rainforest golang lib/2.0.0]"
 	userAgent := []string{"rainforest", "golang", "lib/" + libVersion}
-	found, ci_name := detectci.WhichCI()
-	if found {
-		userAgent = append(userAgent, "ci/"+ci_name)
-	}
 
-	var remote string
-	git, err := gitTrigger.NewGitTrigger()
-	if err == nil {
-		remote, err = git.GetRemote()
+	if c.SendTelemetry {
+		found, ci_name := detectci.WhichCI()
+		if found {
+			userAgent = append(userAgent, "ci/"+ci_name)
+		}
+
+		var remote string
+		git, err := gitTrigger.NewGitTrigger()
 		if err == nil {
-			userAgent = append(userAgent, "repo/"+remote)
+			remote, err = git.GetRemote()
+			if err == nil {
+				u, err := giturls.Parse(remote)
+				if err == nil {
+					// Strip the user details, if any
+					u.User = nil
+					userAgent = append(userAgent, "repo/"+u.String())
+				}
+			}
 		}
 	}
+
 	composedUserAgent := c.UserAgent + " [" + strings.Join(userAgent[:], " ") + "]"
 	req.Header.Set("User-Agent", composedUserAgent)
 

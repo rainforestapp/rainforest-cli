@@ -107,6 +107,7 @@ func main() {
 		if build != "" {
 			api.UserAgent += " build: " + build
 		}
+		api.SendTelemetry = !c.Bool("disable-telemetry")
 
 		return nil
 	}
@@ -126,6 +127,10 @@ func main() {
 		cli.BoolFlag{
 			Name:  "skip-update",
 			Usage: "Used to disable auto-updating of the cli",
+		},
+		cli.BoolFlag{
+			Name:  "disable-telemetry",
+			Usage: "Stops the cli sharing information about which CI system you may be using, and where you host your git repo (i.e. your git remote). Rainforest uses this to better integrate with CI tooling, and code hosting companies, it is not sold or shared. Disabling this may affect your Rainforest experience.",
 		},
 		cli.BoolFlag{
 			Name:  "debug",
@@ -581,6 +586,8 @@ func shuffleFlags(originalArgs []string) []string {
 				i++
 			}
 			i--
+		} else if option == "--disable-telemetry" {
+			globalOptions = append(globalOptions, option)
 		} else if option == "--skip-update" {
 			globalOptions = append(globalOptions, option)
 		} else if option == "--debug" {

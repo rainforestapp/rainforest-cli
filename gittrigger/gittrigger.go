@@ -56,7 +56,7 @@ func (g *gitTrigger) GetRemote() (string, error) {
 		return "", err
 	}
 
-	return strings.TrimSpace(out.String()), nil
+	return strings.TrimSpace(strings.Split(strings.ReplaceAll(out.String(), "\r\n", "\n"), "\n")[0]), nil
 }
 
 func (g gitTrigger) CheckTrigger() bool {

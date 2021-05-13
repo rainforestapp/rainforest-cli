@@ -69,6 +69,10 @@ func TestShuffleFlags(t *testing.T) {
 			testArgs: []string{"./rainforest", "run", "-f", "foo.rfml"},
 			want:     []string{"./rainforest", "run", "-f", "foo.rfml"},
 		},
+		{
+			testArgs: []string{"./rainforest", "run", "-f", "foo.rfml", "--disable-telemetry"},
+			want:     []string{"./rainforest", "--disable-telemetry", "run", "-f", "foo.rfml"},
+		},
 	}
 
 	for _, tCase := range testCases {
@@ -91,6 +95,32 @@ func TestUserAgent(t *testing.T) {
 	userAgent := "rainforest-cli/" + version
 	if api.UserAgent != userAgent {
 		t.Errorf("main() didn't set proper UserAgent %+v, want %+v", api.UserAgent, userAgent)
+	}
+}
+
+func TestSendTelemetry(t *testing.T) {
+	os.Args = []string{"./rainforest"}
+	main()
+
+	if api == nil {
+		t.Error("Expected api to be set")
+	}
+
+	if api.SendTelemetry != true {
+		t.Errorf("main() didn't default SendTelemetry - got %+v, want true", api.SendTelemetry)
+	}
+}
+
+func TestDisableTelemetry(t *testing.T) {
+	os.Args = []string{"./rainforest", "--disable-telemetry"}
+	main()
+
+	if api == nil {
+		t.Error("Expected api to be set")
+	}
+
+	if api.SendTelemetry != false {
+		t.Errorf("main() didn't disable SendTelemetry - got %+v, want false", api.SendTelemetry)
 	}
 }
 

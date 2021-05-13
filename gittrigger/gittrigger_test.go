@@ -134,6 +134,19 @@ func TestGetRemote(t *testing.T) {
 	}
 }
 
+func TestGetRemoteMissing(t *testing.T) {
+	fakeGit := gitTrigger{Trigger: "@rainforest"}
+	makeFakeRepoWithCommit(t, "lol")
+	defer deleteFakeRepo(t)
+	remote, err := fakeGit.GetRemote()
+	if err == nil {
+		t.Errorf("Expected GetRemote() to error, but it didn't")
+	}
+	if remote != "" {
+		t.Errorf("got wrong remote from GetRemote got: %v, expected: ''", remote)
+	}
+}
+
 func TestCheckTrigger(t *testing.T) {
 	fakeGit := gitTrigger{Trigger: "@rainforest"}
 	var testCases = []struct {

@@ -34,6 +34,8 @@ github.com/ukd1/go.detectci v0.0.0-20210512015713-5570f6cb6bb1 h1:xiWH1W14cPO/ZI
 github.com/ukd1/go.detectci v0.0.0-20210512015713-5570f6cb6bb1/go.mod h1:YY61fPGXWrgJ7P06q5IF+jWcyyZoiyPzfkNN3bqg0BM=
 github.com/urfave/cli v0.0.0-20160622145533-4205e9c4ee96 h1:UWALEFwlzMxL33kyyW+7VuTGnWe9uWvQ1zGWcCSFD7c=
 github.com/urfave/cli v0.0.0-20160622145533-4205e9c4ee96/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
+github.com/whilp/git-urls v1.0.0 h1:95f6UMWN5FKW71ECsXRUd3FVYiXdrE7aX4NZKcPmIjU=
+github.com/whilp/git-urls v1.0.0/go.mod h1:J16SAmobsqc3Qcy98brfl5f5+e0clUvg1krgwk/qCfE=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/net v0.0.0-20200202094626-16171245cfb2 h1:CCH4IOTTfewWjGOlSp+zGcjutRKlBEZQ6wTn8ozI/nI=
 golang.org/x/net v0.0.0-20200202094626-16171245cfb2/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=

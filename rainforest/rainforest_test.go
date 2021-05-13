@@ -55,7 +55,8 @@ func TestNewRequest(t *testing.T) {
 
 	token := "testToken123"
 	client = NewClient(token, false)
-	userAgent := client.UserAgent + " [rainforest golang lib/" + libVersion + " repo/git@github.com:rainforestapp/rainforest-cli.git]"
+	client.SendTelemetry = true
+	userAgent := client.UserAgent + " [rainforest golang lib/" + libVersion + " repo/ssh://github.com/rainforestapp/rainforest-cli.git]"
 	client.BaseURL, _ = url.Parse("https://example.org")
 	req, _ := client.NewRequest("GET", "test", nil)
 	if out := req.Header.Get(authTokenHeader); out != token {
@@ -72,20 +73,20 @@ func TestNewRequest(t *testing.T) {
 	}
 
 	os.Setenv("CIRCLECI", "1")
-	userAgent = client.UserAgent + " [rainforest golang lib/" + libVersion + " ci/circle-ci repo/git@github.com:rainforestapp/rainforest-cli.git]"
+	userAgent = client.UserAgent + " [rainforest golang lib/" + libVersion + " ci/circle-ci repo/ssh://github.com/rainforestapp/rainforest-cli.git]"
 	client.BaseURL, _ = url.Parse("https://example.org")
 	req, _ = client.NewRequest("GET", "test", nil)
-	if out := req.Header.Get(authTokenHeader); out != token {
-		t.Errorf("NewRequest didn't set proper token header %+v, want %+v", out, token)
-	}
 	if out := req.Header.Get("User-Agent"); out != userAgent {
 		t.Errorf("NewRequest didn't set proper User-Agent header %+v, want %+v", out, userAgent)
 	}
-	if out := req.URL; out.String() != "https://example.org/test" {
-		t.Errorf("NewRequest didn't set proper URL %+v, want %+v", out, "https://example.org/test")
-	}
-	if req.Body != nil {
-		t.Fatalf("constructed request contains a non-nil Body")
+
+	os.Setenv("CIRCLECI", "1")
+	client.SendTelemetry = false
+	userAgent = client.UserAgent + " [rainforest golang lib/" + libVersion + "]"
+	client.BaseURL, _ = url.Parse("https://example.org")
+	req, _ = client.NewRequest("GET", "test", nil)
+	if out := req.Header.Get("User-Agent"); out != userAgent {
+		t.Errorf("NewRequest didn't set proper User-Agent header %+v, want %+v", out, userAgent)
 	}
 
 	// Should not make any HTTP requests without a token

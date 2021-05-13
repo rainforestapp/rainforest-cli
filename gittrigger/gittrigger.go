@@ -1,4 +1,4 @@
-package main
+package gitTrigger
 
 import (
 	"bytes"
@@ -14,16 +14,16 @@ type gitTrigger struct {
 	LastCommit string
 }
 
-func newGitTrigger() (gitTrigger, error) {
+func NewGitTrigger() (gitTrigger, error) {
 	newGit := gitTrigger{Trigger: gitTriggerString}
-	err := newGit.getLatestCommit()
+	err := newGit.GetLatestCommit()
 	if err != nil {
 		return gitTrigger{}, err
 	}
 	return newGit, nil
 }
 
-func (g *gitTrigger) getLatestCommit() error {
+func (g *gitTrigger) GetLatestCommit() error {
 	var out bytes.Buffer
 	cmd := exec.Command("git", "log", "-1", "--pretty=%B")
 	cmd.Stdout = &out
@@ -35,12 +35,12 @@ func (g *gitTrigger) getLatestCommit() error {
 	return nil
 }
 
-func (g *gitTrigger) getRemote() (string, error) {
+func (g *gitTrigger) GetRemote() (string, error) {
 	var out bytes.Buffer
 	cmd := exec.Command("git", "remote")
 	cmd.Stdout = &out
 	err := cmd.Run()
-	
+
 	if err != nil {
 		return "", err
 	}
@@ -59,12 +59,12 @@ func (g *gitTrigger) getRemote() (string, error) {
 	return strings.TrimSpace(out.String()), nil
 }
 
-func (g gitTrigger) checkTrigger() bool {
+func (g gitTrigger) CheckTrigger() bool {
 	shouldTrigger := strings.Contains(g.LastCommit, g.Trigger)
 	return shouldTrigger
 }
 
-func (g gitTrigger) getTags() []string {
+func (g gitTrigger) GetTags() []string {
 	tagRegex, _ := regexp.Compile("#([\\w_-]+)")
 	foundTags := tagRegex.FindAllString(g.LastCommit, -1)
 	strippedTags := make([]string, len(foundTags))

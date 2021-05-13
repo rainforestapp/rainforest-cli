@@ -14,6 +14,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/rainforestapp/rainforest-cli/gittrigger"
 	"github.com/ukd1/go.detectci"
 )
 
@@ -116,12 +117,21 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 
 	// Set UserAgent header with appended library version, will look like:
 	// "rainforest-cli/2.1.0 [rainforest golang lib/2.0.0]"
-	userAgent := []string {"rainforest","golang","lib/" + libVersion}
+	userAgent := []string{"rainforest", "golang", "lib/" + libVersion}
 	found, ci_name := detectci.WhichCI()
 	if found {
 		userAgent = append(userAgent, "ci/"+ci_name)
 	}
-	composedUserAgent := c.UserAgent + " [" +strings.Join(userAgent[:], " ") + "]"
+
+	var remote string
+	git, err := gitTrigger.NewGitTrigger()
+	if err == nil {
+		remote, err = git.GetRemote()
+		if err == nil {
+			userAgent = append(userAgent, "repo/"+remote)
+		}
+	}
+	composedUserAgent := c.UserAgent + " [" + strings.Join(userAgent[:], " ") + "]"
 	req.Header.Set("User-Agent", composedUserAgent)
 
 	return req, nil

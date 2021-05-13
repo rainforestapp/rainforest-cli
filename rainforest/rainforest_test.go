@@ -9,10 +9,10 @@ import (
 	"net/http/httptest"
 	"net/textproto"
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
-	"os"
 
 	"github.com/rainforestapp/testutil"
 )
@@ -55,7 +55,7 @@ func TestNewRequest(t *testing.T) {
 
 	token := "testToken123"
 	client = NewClient(token, false)
-	userAgent := client.UserAgent + " [rainforest golang lib/" + libVersion + "]"
+	userAgent := client.UserAgent + " [rainforest golang lib/" + libVersion + " repo/git@github.com:rainforestapp/rainforest-cli.git]"
 	client.BaseURL, _ = url.Parse("https://example.org")
 	req, _ := client.NewRequest("GET", "test", nil)
 	if out := req.Header.Get(authTokenHeader); out != token {
@@ -72,7 +72,7 @@ func TestNewRequest(t *testing.T) {
 	}
 
 	os.Setenv("CIRCLECI", "1")
-	userAgent = client.UserAgent + " [rainforest golang lib/" + libVersion + " ci/circle-ci]"
+	userAgent = client.UserAgent + " [rainforest golang lib/" + libVersion + " ci/circle-ci repo/git@github.com:rainforestapp/rainforest-cli.git]"
 	client.BaseURL, _ = url.Parse("https://example.org")
 	req, _ = client.NewRequest("GET", "test", nil)
 	if out := req.Header.Get(authTokenHeader); out != token {

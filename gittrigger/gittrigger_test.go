@@ -1,4 +1,4 @@
-package main
+package gitTrigger
 
 import (
 	"bytes"
@@ -96,7 +96,7 @@ func TestNewGitTrigger(t *testing.T) {
 	const commitMsg = "foo barred baz"
 	makeFakeRepoWithCommit(t, commitMsg)
 	defer deleteFakeRepo(t)
-	git, err := newGitTrigger()
+	git, err := NewGitTrigger()
 	if err != nil {
 		t.Error("Unexpected error when doing newGitTrigger()")
 	}
@@ -110,7 +110,7 @@ func TestGetLatestCommit(t *testing.T) {
 	fakeGit := gitTrigger{Trigger: "@rainforest"}
 	makeFakeRepoWithCommit(t, commitMsg)
 	defer deleteFakeRepo(t)
-	err := fakeGit.getLatestCommit()
+	err := fakeGit.GetLatestCommit()
 	if err != nil {
 		t.Error("Unexpected error when doing getLatestCommit()")
 	}
@@ -125,12 +125,12 @@ func TestGetRemote(t *testing.T) {
 	makeFakeRepoWithCommit(t, "lol")
 	addFakeGitRemote(t, "lol", expectedRemote)
 	defer deleteFakeRepo(t)
-	remote, err := fakeGit.getRemote()
+	remote, err := fakeGit.GetRemote()
 	if err != nil {
-		t.Errorf("Unexpected error when doing getRemote(): %v", err)
+		t.Errorf("Unexpected error when doing GetRemote(): %v", err)
 	}
-	if remote!= expectedRemote {
-		t.Errorf("got wrong remote from getRemote got: %v, expected: %v", remote, expectedRemote)
+	if remote != expectedRemote {
+		t.Errorf("got wrong remote from GetRemote got: %v, expected: %v", remote, expectedRemote)
 	}
 }
 
@@ -156,7 +156,7 @@ func TestCheckTrigger(t *testing.T) {
 
 	for _, tCase := range testCases {
 		fakeGit.LastCommit = tCase.fakeCommit
-		got := fakeGit.checkTrigger()
+		got := fakeGit.CheckTrigger()
 		if !reflect.DeepEqual(tCase.want, got) {
 			t.Errorf("checkTrigger returned %+v, want %+v", got, tCase.want)
 		}
@@ -185,7 +185,7 @@ func TestGetTags(t *testing.T) {
 
 	for _, tCase := range testCases {
 		fakeGit.LastCommit = tCase.fakeCommit
-		got := fakeGit.getTags()
+		got := fakeGit.GetTags()
 		if !reflect.DeepEqual(tCase.want, got) {
 			t.Errorf("getTags returned %+v, want %+v", got, tCase.want)
 		}

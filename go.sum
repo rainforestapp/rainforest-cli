@@ -30,6 +30,8 @@ github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdh
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H4=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
+github.com/ukd1/go.detectci v0.0.0-20210512015713-5570f6cb6bb1 h1:xiWH1W14cPO/ZIkygMNBKT3Lsp1glIC2HoMnUEvqtuk=
+github.com/ukd1/go.detectci v0.0.0-20210512015713-5570f6cb6bb1/go.mod h1:YY61fPGXWrgJ7P06q5IF+jWcyyZoiyPzfkNN3bqg0BM=
 github.com/urfave/cli v0.0.0-20160622145533-4205e9c4ee96 h1:UWALEFwlzMxL33kyyW+7VuTGnWe9uWvQ1zGWcCSFD7c=
 github.com/urfave/cli v0.0.0-20160622145533-4205e9c4ee96/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"os"
 
 	"github.com/rainforestapp/testutil"
 )
@@ -49,11 +50,31 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestNewRequest(t *testing.T) {
+	os.Unsetenv("CI")
+	os.Unsetenv("CIRCLECI")
+
 	token := "testToken123"
 	client = NewClient(token, false)
 	userAgent := client.UserAgent + " [rainforest golang lib/" + libVersion + "]"
 	client.BaseURL, _ = url.Parse("https://example.org")
 	req, _ := client.NewRequest("GET", "test", nil)
+	if out := req.Header.Get(authTokenHeader); out != token {
+		t.Errorf("NewRequest didn't set proper token header %+v, want %+v", out, token)
+	}
+	if out := req.Header.Get("User-Agent"); out != userAgent {
+		t.Errorf("NewRequest didn't set proper User-Agent header %+v, want %+v", out, userAgent)
+	}
+	if out := req.URL; out.String() != "https://example.org/test" {
+		t.Errorf("NewRequest didn't set proper URL %+v, want %+v", out, "https://example.org/test")
+	}
+	if req.Body != nil {
+		t.Fatalf("constructed request contains a non-nil Body")
+	}
+
+	os.Setenv("CIRCLECI", "1")
+	userAgent = client.UserAgent + " [rainforest golang lib/" + libVersion + " ci/circle-ci]"
+	client.BaseURL, _ = url.Parse("https://example.org")
+	req, _ = client.NewRequest("GET", "test", nil)
 	if out := req.Header.Get(authTokenHeader); out != token {
 		t.Errorf("NewRequest didn't set proper token header %+v, want %+v", out, token)
 	}

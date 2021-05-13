@@ -98,6 +98,16 @@ func (r *runner) startRun(c cliContext) error {
 		}
 	}
 
+	var git gitTrigger
+	var remote string
+		git, err = newGitTrigger()
+		if err == nil {
+		remote, err = git.getRemote()
+		if err == nil {
+			log.Printf("Git remote: %v", remote)
+		}
+	}
+
 	err = preRunCSVUpload(c, api)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)

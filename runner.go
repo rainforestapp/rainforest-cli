@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/rainforestapp/rainforest-cli/gittrigger"
 	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
@@ -79,16 +80,15 @@ func (r *runner) startRun(c cliContext) error {
 	}
 
 	if c.Bool("git-trigger") {
-		var git gitTrigger
-		git, err = newGitTrigger()
+		git, err := gitTrigger.NewGitTrigger()
 		if err != nil {
 			return cli.NewExitError(err.Error(), 1)
 		}
-		if !git.checkTrigger() {
+		if !git.CheckTrigger() {
 			log.Printf("Git trigger enabled, but %v was not found in latest commit. Exiting...", git.Trigger)
 			return nil
 		}
-		if tags := git.getTags(); len(tags) > 0 {
+		if tags := git.GetTags(); len(tags) > 0 {
 			if len(params.Tags) == 0 {
 				log.Print("Found tag list in the commit message, overwriting argument.")
 			} else {

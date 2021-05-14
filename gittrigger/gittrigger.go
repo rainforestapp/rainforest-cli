@@ -37,7 +37,7 @@ func (g *gitTrigger) getLatestCommit() error {
 
 func (g *gitTrigger) GetRemote() (string, error) {
 	var out bytes.Buffer
-	cmd := exec.Command("git", "remote")
+	cmd := exec.Command("bash", "-c", "git remote | head -n 1")
 	cmd.Stdout = &out
 	err := cmd.Run()
 

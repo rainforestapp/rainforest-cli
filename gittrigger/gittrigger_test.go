@@ -134,6 +134,23 @@ func TestGetRemote(t *testing.T) {
 	}
 }
 
+func TestGetRemoteTwoRemotes(t *testing.T) {
+	const expectedRemote1 = "git@github.com:rainforestapp/rainforest-cli1.git"
+	const expectedRemote2 = "git@github.com:rainforestapp/rainforest-cli2.git"
+	fakeGit := gitTrigger{Trigger: "@rainforest"}
+	makeFakeRepoWithCommit(t, "lol")
+	addFakeGitRemote(t, "lol1", expectedRemote1)
+	addFakeGitRemote(t, "lol2", expectedRemote2)
+	defer deleteFakeRepo(t)
+	remote, err := fakeGit.GetRemote()
+	if err != nil {
+		t.Errorf("Unexpected error when doing GetRemote(): %v", err)
+	}
+	if remote != expectedRemote1 {
+		t.Errorf("got wrong remote from GetRemote got: %v, expected: %v", remote, expectedRemote1)
+	}
+}
+
 func TestGetRemoteMissing(t *testing.T) {
 	fakeGit := gitTrigger{Trigger: "@rainforest"}
 	makeFakeRepoWithCommit(t, "lol")

@@ -15,7 +15,7 @@ The CLI uses the Rainforest API which is documented at https://app.rainforestqa.
 ```bash
 $ docker pull gcr.io/rf-public-images/rainforest-cli
 $ docker run gcr.io/rf-public-images/rainforest-cli --version
-Rainforest CLI version 2.15.1 - build: docker
+Rainforest CLI version 2.18.0 - build: docker
 ```
 
 ### Brew

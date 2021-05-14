@@ -1,6 +1,6 @@
 # Rainforest CLI Changelog
 
-## 2.18.0 - 2021-05-14
+## 2.19.0 - 2021-05-14
 - Update docs, add telemetry + customization based on your CI type & git settings
   - (56a02b6, @ukd1)
 

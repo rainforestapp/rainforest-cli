@@ -16,14 +16,14 @@ type gitTrigger struct {
 
 func NewGitTrigger() (gitTrigger, error) {
 	newGit := gitTrigger{Trigger: gitTriggerString}
-	err := newGit.GetLatestCommit()
+	err := newGit.getLatestCommit()
 	if err != nil {
 		return gitTrigger{}, err
 	}
 	return newGit, nil
 }
 
-func (g *gitTrigger) GetLatestCommit() error {
+func (g *gitTrigger) getLatestCommit() error {
 	var out bytes.Buffer
 	cmd := exec.Command("git", "log", "-1", "--pretty=%B")
 	cmd.Stdout = &out

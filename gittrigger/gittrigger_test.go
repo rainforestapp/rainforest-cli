@@ -110,12 +110,12 @@ func TestGetLatestCommit(t *testing.T) {
 	fakeGit := gitTrigger{Trigger: "@rainforest"}
 	makeFakeRepoWithCommit(t, commitMsg)
 	defer deleteFakeRepo(t)
-	err := fakeGit.GetLatestCommit()
+	err := fakeGit.getLatestCommit()
 	if err != nil {
 		t.Error("Unexpected error when doing getLatestCommit()")
 	}
 	if fakeGit.LastCommit != commitMsg {
-		t.Errorf("got wrong commit from GetLatestCommit got: %v, expected: %v", fakeGit.LastCommit, commitMsg)
+		t.Errorf("got wrong commit from getLatestCommit got: %v, expected: %v", fakeGit.LastCommit, commitMsg)
 	}
 }
 

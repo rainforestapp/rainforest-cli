@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/equinox-io/equinox"
 	"github.com/urfave/cli"
@@ -19,6 +20,17 @@ eiFH+GffIMk09RFqkcMh5rIPu3ykm5V8
 `)
 
 func update(channel string, silent bool) error {
+	now := time.Now()
+	equinoxEOL, _ := time.Parse(time.RFC3339, "2021-09-30T00:00:00Z")
+	if now.After(equinoxEOL) {
+		if !silent {
+			log.Println("Equinox has shut down, update functionality has been disabled. " +
+						"To install the latest version, view our documentation: " +
+						"https://help.rainforestqa.com/docs/how-to-install-the-cli")
+		}
+		return nil
+	}
+
 	opts := equinox.Options{}
 	if channel == "" && releaseChannel != "" {
 		opts.Channel = releaseChannel

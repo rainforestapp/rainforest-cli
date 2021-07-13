@@ -64,6 +64,12 @@ jobs:
             CGO_ENABLED=0 equinox release --version=${CIRCLE_SHA1:0:8} --platforms="darwin_amd64 linux_amd64 darwin_386 linux_386 windows_amd64 windows_386" --signing-key=equinox.key --app=$EQUINOX_APP_ID --token=$EQUINOX_ACC_TOKEN --channel dev -- -ldflags "-X main.releaseChannel=dev -X main.build=${CIRCLE_SHA1:0:8}" github.com/rainforestapp/rainforest-cli
             rm -f equinox.key
 
+  release:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: curl -sL https://git.io/goreleaser | GITHUB_TOKEN=$(GITHUB_ACCESS_TOKEN) bash
+
 workflows:
   version: 2
   test_and_deploy:
@@ -97,3 +103,9 @@ workflows:
               only: /^v[0-9]+(\.[0-9]+)*$/
           context:
             - DockerHub
+      - release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/

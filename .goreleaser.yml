@@ -20,6 +20,12 @@ archives:
       windows: Windows
       386: i386
       amd64: x86_64
+release:
+  github:
+    owner: rainforestapp
+    name: rainforest-cli
+  prerelease: auto
+  draft: true
 checksum:
   name_template: 'checksums.txt'
 snapshot:

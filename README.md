@@ -28,7 +28,7 @@ brew install rainforestapp/public/rainforest-cli
 
 ### Binaries
 
-Get the CLI binaries from our [download page](https://dl.equinox.io/rainforest_qa/rainforest-cli/stable) and follow the instructions.
+Get the CLI binaries from our [Releases page](https://github.com/rainforestapp/rainforest-cli/releases).
 
 The CLI will check for updates and automatically update itself on every use unless the global flag `--skip-update` is used.
 
@@ -358,34 +358,25 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 1. Push to the branch (`git push origin my-new-feature`)
 1. Create a new Pull Request
 
-## Release process
+## Development + release process:
 
-Check the [`.circleci/config.yml`](.circleci/config.yml) for the latest, but currently merging to master will build and deploy to the following Equinox channels:
-
-Tag | Channels
---------------------------------|-------------
-No tag | `dev`
-`vX.Y.Z-alpha.N` or `vX.Y.Z-beta.N` | `beta`, `dev`
-`vX.Y.Z` | `stable`, `beta`, `dev`
-
-### Development + release process is:
-
-#### Development PR
+### Development PR
 1. Branch from master
 1. Do work
 1. Open PR against master
 1. Merge to master
-#### Changelog PR
+### Changelog PR
 1. Branch from master to update `CHANGELOG.md` to include the commit hashes and release date
 1. Update the `version` constant in `rainforest-cli.go` following [semantic versioning](http://semver.org/)
 1. Merge to master
-#### Release
-1. Release via [GitHub Releases](https://github.com/rainforestapp/rainforest-cli/releases)
-1. Update https://github.com/rainforestapp/homebrew-public to use the latest stable build url from [equinox](https://equinox.io)
+### Release
+1. Tag `master` after merging: `git tag vX.Y.Z && git push --tags`
+1. This will create a [draft GitHub Release](https://github.com/rainforestapp/rainforest-cli/releases). Edit the description as appropriate and publish the release.
+1. Update https://github.com/rainforestapp/homebrew-public to use the latest URL and SHA256. Both can be found in the GitHub Release assets. Additionally, the SHA256 is output as part of the CircleCI `Release` job.
 
 ### Releasing a beta version
 
-Simply tag a commit with an alpha or beta version and push to trigger the `deploy_beta` CI job:
+Simply tag a commit with an alpha or beta version.
 ```bash
 git tag vX.Y.Z-alpha.N # or vX.Y.Z-beta.N
 git push origin vX.Y.Z-alpha.N

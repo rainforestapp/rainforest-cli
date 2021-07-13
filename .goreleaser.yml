@@ -14,12 +14,18 @@ builds:
       - windows
       - darwin
 archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+release:
+  github:
+    owner: rainforestapp
+    name: rainforest-cli
+  prerelease: auto
+  draft: true
+source:
+  enabled: true
 checksum:
   name_template: 'checksums.txt'
 snapshot:

@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 2.19.1 - 2021-07-14
+- Publish releases to GitHub via GoReleaser
+  - (ab5f381e0d7c4e2594c37718846fe90d3a76d4c0, @magni-)
 ## 2.19.0 - 2021-05-14
 - Update docs, add telemetry + customization based on your CI type & git settings
   - (56a02b6, @ukd1)

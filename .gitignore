@@ -7,3 +7,4 @@ testing
 
 rainforest-cli
 /vendor
+dist/

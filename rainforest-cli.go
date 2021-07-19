@@ -547,9 +547,8 @@ func main() {
 		},
 		{
 			Name:         "update",
-			Usage:        "Updates application to the latest version on specified release channel (stable/beta)",
+			Usage:        "Updates application to the latest version",
 			OnUsageError: onCommandUsageErrorHandler("update"),
-			ArgsUsage:    "[CHANNEL]",
 			Action:       updateCmd,
 		},
 	}

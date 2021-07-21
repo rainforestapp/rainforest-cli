@@ -179,7 +179,7 @@ func testURL(runID int, testID int) string {
 	return u.String()
 }
 
-func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI) (*jUnitReportSchema, error) {
+func createJUnitReportSchema(runDetails *rainforest.RunDetails, apiReporter reporterAPI) (*jUnitReportSchema, error) {
 	type processedTestCase struct {
 		TestCase jUnitTestReportSchema
 		Error    error
@@ -202,7 +202,7 @@ func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI)
 
 			if test.Result == "failed" {
 				log.Printf("Fetching information for failed test #" + strconv.Itoa(test.ID))
-				testDetails, err := api.GetRunTestDetails(runDetails.ID, test.ID)
+				testDetails, err := apiReporter.GetRunTestDetails(runDetails.ID, test.ID)
 
 				if err != nil {
 					processedTestChan <- processedTestCase{TestCase: jUnitTestReportSchema{}, Error: err}

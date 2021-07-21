@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 
@@ -172,6 +173,12 @@ type jUnitReportSchema struct {
 	TestCases []jUnitTestReportSchema
 }
 
+func testURL(runID int, testID int) string {
+	u := *api.BaseURL
+	u.Path = path.Join("runs", strconv.Itoa(runID), "tests", strconv.Itoa(testID))
+	return u.String()
+}
+
 func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI) (*jUnitReportSchema, error) {
 	type processedTestCase struct {
 		TestCase jUnitTestReportSchema
@@ -205,7 +212,8 @@ func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI)
 				if testDetails.HasRfaResults == true {
 					for _, browser := range testDetails.Browsers {
 						if browser.Result == "failed" {
-							reportFailure := jUnitTestReportFailure{Type: browser.Name}
+							url := testURL(runDetails.ID, test.ID)
+							reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: url}
 							testCase.Failures = append(testCase.Failures, reportFailure)
 						}
 					}
@@ -220,7 +228,8 @@ func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI)
 								}
 
 								if feedback.FailureNote != "" {
-									reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: feedback.FailureNote}
+									url := testURL(runDetails.ID, test.ID)
+									reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: url + " - " + feedback.FailureNote}
 									testCase.Failures = append(testCase.Failures, reportFailure)
 								} else if feedback.CommentReason != "" {
 									// The step failed due to a special comment type being selected
@@ -229,7 +238,8 @@ func createJUnitReportSchema(runDetails *rainforest.RunDetails, api reporterAPI)
 									if feedback.Comment != "" {
 										message += ": " + feedback.Comment
 									}
-									reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: message}
+									url := testURL(runDetails.ID, test.ID)
+									reportFailure := jUnitTestReportFailure{Type: browser.Name, Message: url + " - " + message}
 									testCase.Failures = append(testCase.Failures, reportFailure)
 								}
 							}

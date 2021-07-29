@@ -211,6 +211,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 	totalNoResultTests := 0
 	totalFailedTests := 0
 	stateName := "complete"
+	api = rainforest.NewClient("fake_token", false)
 
 	runDetails := rainforest.RunDetails{
 		ID:                 123,
@@ -240,9 +241,9 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 	}
 
 	// Dummy API - should not be used when there are no failed tests
-	api := newFakeReporterAPI(-1, []rainforest.RunTestDetails{})
+	reporterAPI := newFakeReporterAPI(-1, []rainforest.RunTestDetails{})
 
-	schema, err := createJUnitReportSchema(&runDetails, api)
+	schema, err := createJUnitReportSchema(&runDetails, reporterAPI)
 	if err != nil {
 		t.Errorf("Unexpected error returned by createJunitTestReportSchema: %v", err)
 	}
@@ -271,7 +272,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 
 	// Run has no description
 	runDetails.Description = ""
-	schema, err = createJUnitReportSchema(&runDetails, api)
+	schema, err = createJUnitReportSchema(&runDetails, reporterAPI)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -285,7 +286,6 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 
 	// With automation failures
 	failedBrowser := "chrome_1440_900"
-	failedNote := ""
 
 	runDetails.TotalFailedTests = 1
 
@@ -339,7 +339,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 		},
 	}
 
-	api = newFakeReporterAPI(runDetails.ID, apiTests)
+	reporterAPI = newFakeReporterAPI(runDetails.ID, apiTests)
 
 	expectedSchema.Failures = 1
 	expectedSchema.TestCases = []jUnitTestReportSchema{
@@ -350,7 +350,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 			Failures: []jUnitTestReportFailure{
 				{
 					Type:    failedBrowser,
-					Message: "",
+					Message: "https://app.rainforestqa.com/runs/123/tests/999888",
 				},
 			},
 		},
@@ -358,7 +358,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 
 	var out bytes.Buffer
 	log.SetOutput(&out)
-	schema, err = createJUnitReportSchema(&runDetails, api)
+	schema, err = createJUnitReportSchema(&runDetails, reporterAPI)
 	log.SetOutput(os.Stdout)
 
 	if err != nil {
@@ -373,7 +373,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 
 	// With failures
 	failedBrowser = "chrome"
-	failedNote = "This note should appear"
+	failedNote := "This note should appear"
 
 	runDetails.TotalFailedTests = 1
 
@@ -423,7 +423,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 		},
 	}
 
-	api = newFakeReporterAPI(runDetails.ID, apiTests)
+	reporterAPI = newFakeReporterAPI(runDetails.ID, apiTests)
 
 	expectedSchema.Failures = 1
 	expectedSchema.TestCases = []jUnitTestReportSchema{
@@ -434,7 +434,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 			Failures: []jUnitTestReportFailure{
 				{
 					Type:    failedBrowser,
-					Message: failedNote,
+					Message: "https://app.rainforestqa.com/runs/123/tests/999888 - " + failedNote,
 				},
 			},
 		},
@@ -442,7 +442,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 
 	out = bytes.Buffer{}
 	log.SetOutput(&out)
-	schema, err = createJUnitReportSchema(&runDetails, api)
+	schema, err = createJUnitReportSchema(&runDetails, reporterAPI)
 	log.SetOutput(os.Stdout)
 
 	if err != nil {
@@ -494,7 +494,7 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 		},
 	}
 
-	api = newFakeReporterAPI(runDetails.ID, apiTests)
+	reporterAPI = newFakeReporterAPI(runDetails.ID, apiTests)
 
 	expectedSchema.TestCases = []jUnitTestReportSchema{
 		{
@@ -504,14 +504,14 @@ func TestCreateJUnitReportSchema(t *testing.T) {
 			Failures: []jUnitTestReportFailure{
 				{
 					Type:    failedBrowser,
-					Message: fmt.Sprintf("%v: %v", commentReason, comment),
+					Message: fmt.Sprintf("https://app.rainforestqa.com/runs/123/tests/999888 - %v: %v", commentReason, comment),
 				},
 			},
 		},
 	}
 
 	log.SetOutput(&out)
-	schema, err = createJUnitReportSchema(&runDetails, api)
+	schema, err = createJUnitReportSchema(&runDetails, reporterAPI)
 	log.SetOutput(os.Stdout)
 
 	if err != nil {

@@ -3,72 +3,39 @@ package main
 import (
 	"log"
 
-	"github.com/equinox-io/equinox"
+	"github.com/blang/semver"
+	"github.com/rhysd/go-github-selfupdate/selfupdate"
 	"github.com/urfave/cli"
 )
 
-const equinoxAppID = "app_carcVJmQBRm"
 
-// publicKey is a ECDSA key used to sign the cli binaries
-var publicKey = []byte(`
------BEGIN ECDSA PUBLIC KEY-----
-MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEoTjUnZL6bSXdEV9LKD+0zNekogPp8lwf
-8s/auLQXwCHFii7fH8bLwSW+4a9+eF8bWo8FYk4pfSo3WT5DUqGl9qHcnv22MMCK
-eiFH+GffIMk09RFqkcMh5rIPu3ykm5V8
------END ECDSA PUBLIC KEY-----
-`)
-
-func update(channel string, silent bool) error {
-	opts := equinox.Options{}
-	if channel == "" && releaseChannel != "" {
-		opts.Channel = releaseChannel
-	} else if channel != "" {
-		opts.Channel = channel
-	} else {
-		// fallback to stable
-		opts.Channel = "stable"
-	}
-
-	if err := opts.SetPublicKeyPEM(publicKey); err != nil {
-		return err
-	}
-
-	// check for the update
+func update(silent bool) error {
 	if !silent {
-		log.Printf("Checking for update on %v channel.", opts.Channel)
-	}
-	resp, err := equinox.Check(equinoxAppID, opts)
-	switch {
-	case err == equinox.NotAvailableErr:
-		if !silent {
-			log.Println("No update available, already at the latest version!")
-		}
-		return nil
-	case err != nil:
-		return err
+		log.Printf("Checking for update")
 	}
 
-	// fetch the update and apply it
-	if !silent {
-		log.Print("Found a cli update, applying it.")
-	}
-	err = resp.Apply()
+	v := semver.MustParse(version)
+	updater, err := selfupdate.NewUpdater(selfupdate.Config{BinaryName: "rainforest-cli"})
 	if err != nil {
 		return err
 	}
-
-	if !silent {
-		log.Printf("Updated to new version: %s!\n", resp.ReleaseVersion)
+	latest, err := updater.UpdateSelf(v, "rainforestapp/rainforest-cli")
+	if err != nil {
+		return err
 	}
+	if !silent {
+		if latest.Version.Equals(v) {
+			log.Println("No update available, already at the latest version!")
+		} else {
+			log.Printf("Updated to new version: %s!\n", latest.Version)
+		}
+	}
+
 	return nil
 }
 
 func updateCmd(c cliContext) error {
-	channel := c.Args().First()
-	if !(channel == "beta" || channel == "stable" || channel == "") {
-		return cli.NewExitError("Invalid release channel - use 'stable' or 'beta'", 1)
-	}
-	err := update(channel, false)
+	err := update(false)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -77,7 +44,7 @@ func updateCmd(c cliContext) error {
 
 func autoUpdate(c cliContext, updateFinishedChan chan<- struct{}) {
 	if !c.Bool("skip-update") {
-		update("", true)
+		update(true)
 	}
 	updateFinishedChan <- struct{}{}
 }

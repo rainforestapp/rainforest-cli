@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 2.21.1 - 2021-08-12
+- Stop publishing releases to Equinox.io
+  - (f26fb192f4f4ed957e069582f8eb49b916202fb1, @magni-)
 ## 2.21.0 - 2021-08-09
 - Switch autoupdate functionality provider from Equinox.io to `go-github-selfupdate`
   - (a5937b1ac787063dcdafea483967a81e551e2882, @magni-)

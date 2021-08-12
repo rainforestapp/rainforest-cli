@@ -1,8 +1,13 @@
 # Rainforest CLI Changelog
 
+## 2.21.1 - 2021-08-12
+- Stop publishing releases to Equinox.io
+  - (f26fb192f4f4ed957e069582f8eb49b916202fb1, @magni-)
+
 ## 2.21.0 - 2021-08-09
 - Switch autoupdate functionality provider from Equinox.io to `go-github-selfupdate`
   - (a5937b1ac787063dcdafea483967a81e551e2882, @magni-)
+
 ## 2.20.0 - 2021-07-29
 - Include URLs to test results for failures
   - (5d09380, @jbarber)
@@ -10,6 +15,7 @@
 ## 2.19.1 - 2021-07-14
 - Publish releases to GitHub via GoReleaser
   - (ab5f381e0d7c4e2594c37718846fe90d3a76d4c0, @magni-)
+
 ## 2.19.0 - 2021-05-14
 - Update docs, add telemetry + customization based on your CI type & git settings
   - (56a02b6, @ukd1)

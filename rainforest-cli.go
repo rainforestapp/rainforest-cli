@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.21.1"
+	version = "2.21.2"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -216,8 +216,8 @@ func main() {
 				},
 				cli.StringFlag{
 					Name: "custom-url",
-					Usage: "specify the URL for the run to use when testing against an ephemeral QA environment. " +
-						"This will create a new environment for the run.",
+					Usage: "specify the URL for the run to use when testing against an ephemeral environment. " +
+						"This will create a new temporary environment for the run.",
 				},
 				cli.BoolFlag{
 					Name: "git-trigger",

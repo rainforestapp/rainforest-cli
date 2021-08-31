@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.21.2 - 2021-08-30
+- Support for cleaning up of temporary environments
+  - (ba1846611d08f824f5bd6f4174d9f0ccac725409, @ukd1)
+
 ## 2.21.1 - 2021-08-12
 - Stop publishing releases to Equinox.io
   - (f26fb192f4f4ed957e069582f8eb49b916202fb1, @magni-)

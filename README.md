@@ -369,7 +369,7 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 1. Merge to master
 ### Release
 1. Tag `master` after merging: `git tag vX.Y.Z && git push --tags`
-1. This will create a [draft GitHub Release](https://github.com/rainforestapp/rainforest-cli/releases). Edit the description as appropriate and publish the release.
+1. Wait for the CircleCI build to finish. This will create a [draft GitHub Release](https://github.com/rainforestapp/rainforest-cli/releases). Edit the description as appropriate and publish the release.
 1. Update https://github.com/rainforestapp/homebrew-public to use the latest URL and SHA256. Both can be found in the GitHub Release assets. Additionally, the SHA256 is output as part of the CircleCI `Release` job.
 
 ### Releasing a beta version

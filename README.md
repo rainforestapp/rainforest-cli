@@ -4,7 +4,7 @@
 
 A command line interface to interact with [Rainforest QA](https://www.rainforestqa.com/).
 
-This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation](https://help.rainforestqa.com/en/articles/3113252) on the subject.
+This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation]https://help.rainforestqa.com/docs/rainforest-cli-for-continuous-integration) on the subject.
 
 The CLI uses the Rainforest API which is documented at https://app.rainforestqa.com/docs
 
@@ -313,8 +313,6 @@ using the embedded test's RFML ID.
 
 For more information on embedding inline screenshots and file downloads,
 [see our examples](./examples/inline_files.md).
-
-For more information on test writing see the [documentation](https://help.rainforestqa.com/docs/writing-tests).
 
 ### Command Line Options
 

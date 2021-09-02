@@ -314,8 +314,6 @@ using the embedded test's RFML ID.
 For more information on embedding inline screenshots and file downloads,
 [see our examples](./examples/inline_files.md).
 
-For more information on test writing see the [documentation](https://help.rainforestqa.com/docs/writing-tests).
-
 ### Command Line Options
 
 Popular command line options are:

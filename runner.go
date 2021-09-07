@@ -107,7 +107,7 @@ func (r *runner) startRun(c cliContext) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
-	log.Printf("Run %v has been created.", runStatus.ID)
+	r.showRunCreated(runStatus)
 
 	// if background flag is enabled we'll skip monitoring run status
 	if c.Bool("bg") {
@@ -127,7 +127,7 @@ func (r *runner) rerunRun(c cliContext) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
-	log.Printf("Run %v has been created.", runStatus.ID)
+	r.showRunCreated(runStatus)
 
 	// if background flag is enabled we'll skip monitoring run status
 	if c.Bool("bg") {
@@ -135,6 +135,10 @@ func (r *runner) rerunRun(c cliContext) error {
 	}
 
 	return monitorRunStatus(c, runStatus.ID)
+}
+
+func (r *runner) showRunCreated(runStatus *rainforest.RunStatus) {
+	log.Printf("Run %v has been created. The detailed results are available at %v", runStatus.ID, runStatus.FrontendURL)
 }
 
 func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
@@ -335,11 +339,15 @@ func getRunStatus(failFast bool, runID int, client runnerAPI) (*rainforest.RunSt
 	}
 
 	if newStatus.StateDetails.IsFinalState {
-		msg := fmt.Sprintf("Run %v is now %v and has %v\n", runID, newStatus.State, newStatus.Result)
+		msg := fmt.Sprintf("Run %v is now %v and has %v (%v failed, %v passed)\n", runID, newStatus.State, newStatus.Result, newStatus.CurrentProgress.Passed, newStatus.CurrentProgress.Failed)
 		return newStatus, msg, true, nil
 	}
 
-	msg := fmt.Sprintf("Run %v is %v and is %v%% complete\n", runID, newStatus.State, newStatus.CurrentProgress.Percent)
+	msg := fmt.Sprintf("Run %v is %v\n", runID, newStatus.State)
+	if newStatus.State != "queued" && newStatus.State != "validating" {
+		msg = fmt.Sprintf("Run %v is %v and is %v%% complete (%v tests in progress, %v failed, %v passed)\n", runID, newStatus.State, newStatus.CurrentProgress.Percent, (newStatus.CurrentProgress.Total - newStatus.CurrentProgress.Complete), newStatus.CurrentProgress.Passed, newStatus.CurrentProgress.Failed)
+	}
+
 	if newStatus.Result == "failed" && failFast {
 		return newStatus, msg, true, nil
 	}

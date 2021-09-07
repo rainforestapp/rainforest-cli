@@ -39,6 +39,8 @@ type RunStatus struct {
 		Total    int `json:"total"`
 		Complete int `json:"complete"`
 		NoResult int `json:"no_result"`
+		Passed   int `json:"passed"`
+		Failed   int `json:"failed"`
 	} `json:"current_progress"`
 	FrontendURL string `json:"frontend_url,omitempty"`
 }

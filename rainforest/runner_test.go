@@ -260,12 +260,12 @@ func TestCheckRunStatus(t *testing.T) {
 			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
 		}
 
-		fmt.Fprint(w, `{"id": 123, "state":"in_progress"}`)
+		fmt.Fprint(w, `{"id": 123, "state":"in_progress", "result":"passed"}`)
 	})
 
 	out, _ := client.CheckRunStatus(123)
 
-	want := &RunStatus{ID: 123, State: "in_progress"}
+	want := &RunStatus{ID: 123, State: "in_progress", Result: "passed"}
 
 	if !reflect.DeepEqual(out, want) {
 		t.Errorf("Response out = %v, want %v", out, want)

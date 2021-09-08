@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.21.3 - 2021-09-07
+- Expand the output of the CLI a little, making it easier to get to Rainforest and see progress.
+  - (9f932b75eecc33e3bada7e854022913bcedeed9a, @ukd1)
+
 ## 2.21.2 - 2021-08-30
 - Support for cleaning up of temporary environments
   - (ba1846611d08f824f5bd6f4174d9f0ccac725409, @ukd1)

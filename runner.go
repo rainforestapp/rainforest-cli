@@ -339,13 +339,13 @@ func getRunStatus(failFast bool, runID int, client runnerAPI) (*rainforest.RunSt
 	}
 
 	if newStatus.StateDetails.IsFinalState {
-		msg := fmt.Sprintf("Run %v is now %v and has %v (%v failed, %v passed)\n", runID, newStatus.State, newStatus.Result, newStatus.CurrentProgress.Passed, newStatus.CurrentProgress.Failed)
+		msg := fmt.Sprintf("Run %v is now %v and has %v (%v failed, %v passed)\n", runID, newStatus.State, newStatus.Result, newStatus.CurrentProgress.Failed, newStatus.CurrentProgress.Passed)
 		return newStatus, msg, true, nil
 	}
 
 	msg := fmt.Sprintf("Run %v is %v\n", runID, newStatus.State)
 	if newStatus.State != "queued" && newStatus.State != "validating" {
-		msg = fmt.Sprintf("Run %v is %v and is %v%% complete (%v tests in progress, %v failed, %v passed)\n", runID, newStatus.State, newStatus.CurrentProgress.Percent, (newStatus.CurrentProgress.Total - newStatus.CurrentProgress.Complete), newStatus.CurrentProgress.Passed, newStatus.CurrentProgress.Failed)
+		msg = fmt.Sprintf("Run %v is %v and is %v%% complete (%v tests in progress, %v failed, %v passed)\n", runID, newStatus.State, newStatus.CurrentProgress.Percent, (newStatus.CurrentProgress.Total - newStatus.CurrentProgress.Complete), newStatus.CurrentProgress.Failed, newStatus.CurrentProgress.Passed)
 	}
 
 	if newStatus.Result == "failed" && failFast {

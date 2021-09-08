@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.21.4 - 2021-09-07
+- Fix for passed / failed reporting being in the wrong order 🤦‍♂️
+  - (504c1c129fe1847d85fc6e07f922352f8d9679e4, @ukd1)
+
 ## 2.21.3 - 2021-09-07
 - Expand the output of the CLI a little, making it easier to get to Rainforest and see progress.
   - (9f932b75eecc33e3bada7e854022913bcedeed9a, @ukd1)

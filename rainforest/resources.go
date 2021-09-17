@@ -1,11 +1,11 @@
 package rainforest
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
-	"bytes"
 )
 
 // Folder type represents a single folder returned by the API call for a list of folders
@@ -173,10 +173,10 @@ func (c *Client) GetRunJunit(runID int) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	
-    buf := new(bytes.Buffer)
-    buf.ReadFrom(res.Body)
-    newStr := buf.String()
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(res.Body)
+	newStr := buf.String()
 
 	return &newStr, nil
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/urfave/cli"
 )
 
-
 func update(silent bool) error {
 	if !silent {
 		log.Printf("Checking for update")

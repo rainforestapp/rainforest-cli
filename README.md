@@ -32,6 +32,12 @@ Get the CLI binaries from our [Releases page](https://github.com/rainforestapp/r
 
 The CLI will check for updates and automatically update itself on every use unless the global flag `--skip-update` is used.
 
+You can download the latest (Linux) `rainforest-cli` binary with the following command (requires `curl`, `jq` and `tar`):
+
+```bash
+curl -sL $(curl -s https://api.github.com/repos/rainforestapp/rainforest-cli/releases/latest | jq -r '.assets[].browser_download_url | select(test("linux-amd64.tar.gz"))') | tar zxf - rainforest-cli
+```
+
 ### Migrating from our old CLI
 
 The previous version of our CLI is deprecated and parts of it no longer work. To upgrade, follow our [migration guide](./migration.md).

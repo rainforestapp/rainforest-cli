@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"os"
 	"strconv"
 
 	"github.com/olekukonko/tablewriter"
@@ -32,6 +35,7 @@ type resourceAPI interface {
 	GetEnvironments() ([]rainforest.Environment, error)
 	GetFeatures() ([]rainforest.Feature, error)
 	GetRunGroups() ([]rainforest.RunGroup, error)
+	GetRunJunit(int) (*string, error)
 }
 
 // printFolders fetches and prints out the available folders from the API
@@ -144,5 +148,72 @@ func printRunGroups(api resourceAPI) error {
 	}
 
 	printResourceTable([]string{"Run Group ID", "Run Group Title"}, rows)
+	return nil
+}
+
+func postRunJUnitReport(c cliContext, runID int) error {
+	// Get the csv file path either and skip uploading if it's not present
+	fileName := c.String("junit-file")
+	if fileName == "" {
+		return nil
+	}
+	api = rainforest.NewClient(c.String("token"), c.Bool("debug"))
+
+	return writeJunit(c, api)
+}
+
+func augmentJunitFileName(junitFile string, rerunAttempt uint) string {
+	if rerunAttempt > 0 {
+		junitFile = fmt.Sprintf("%v.%v", junitFile, rerunAttempt)
+	}
+
+	return junitFile
+}
+
+// write writeJunit fetches and writes a junit.xml file
+func writeJunit(c cliContext, api resourceAPI) error {
+	var runID int
+	var err error
+
+	if runIDArg := c.Args().Get(0); runIDArg != "" {
+		runID, err = strconv.Atoi(runIDArg)
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+	} else if deprecatedRunIDArg := c.String("run-id"); deprecatedRunIDArg != "" {
+		runID, err = strconv.Atoi(deprecatedRunIDArg)
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+
+		log.Println("Warning: `run-id` flag is deprecated. Please provide Run ID as an argument.")
+	} else {
+		return cli.NewExitError("No run ID argument found.", 1)
+	}
+
+	junitFile := c.String("junit-file")
+	if junitFile == "" {
+		return cli.NewExitError("JUnit output file not specified", 1)
+	}
+
+	rerunAttempt := c.Uint("rerun-attempt")
+	if rerunAttempt > 0 {
+		junitFile = augmentJunitFileName(junitFile, rerunAttempt)
+	}
+
+	xml, err := api.GetRunJunit(runID)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	file, err := os.Create(junitFile)
+	defer file.Close()
+
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	} else {
+		file.WriteString(*xml)
+	}
+
 	return nil
 }

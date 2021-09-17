@@ -180,7 +180,7 @@ func checkResponse(res *http.Response, debugFlag bool) error {
 	err = json.Unmarshal(body, &out)
 	if err != nil {
 		if debugFlag {
-			fmt.Println("Cannot parse response:\n" + string(body))
+			log.Println("Cannot parse response:\n" + string(body))
 		}
 
 		return errors.New(errPrefix + " - Unable to parse response JSON: " + err.Error())
@@ -198,7 +198,7 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 	}
 
 	if c.DebugFlag {
-		fmt.Print("Trying ", res.Request.URL, "...")
+		log.Print("Trying ", res.Request.URL, "...")
 	}
 
 	// Close the body after we're done with it, to allow connection reuse.
@@ -220,7 +220,7 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 		err = json.NewDecoder(res.Body).Decode(out)
 
 		if err != nil {
-			fmt.Printf("DEBUG - %v\n\n", err.Error())
+			log.Printf("DEBUG - %v\n\n", err.Error())
 			return res, err
 		}
 	}
@@ -228,7 +228,7 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 	c.LastResponseHeaders = res.Header
 
 	if c.DebugFlag {
-		fmt.Println("connected")
+		log.Println("connected")
 		printRequestHeaders(res)
 	}
 
@@ -236,8 +236,8 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 }
 
 func printRequestHeaders(res *http.Response) {
-	fmt.Println(res.Request.Method, res.Request.Proto)
-	fmt.Println("User Agent:", res.Request.UserAgent())
-	fmt.Println("Host:", res.Request.Host)
-	fmt.Println("")
+	log.Println(res.Request.Method, res.Request.Proto)
+	log.Println("User Agent:", res.Request.UserAgent())
+	log.Println("Host:", res.Request.Host)
+	log.Println("")
 }

@@ -259,7 +259,7 @@ func monitorRunStatus(c cliContext, runID int) error {
 		log.Print(msg)
 
 		if done {
-			postRunJUnitReport(c, runID)
+			// postRunJUnitReport(c, runID)
 
 			if status.Result != "passed" {
 				rerunAttempt := c.Uint("rerun-attempt")

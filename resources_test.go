@@ -3,10 +3,12 @@ package main
 import (
 	"bytes"
 	"os"
+	"reflect"
 	"regexp"
 	"testing"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
+	"github.com/urfave/cli"
 )
 
 func regexMatchOut(pattern string, t *testing.T) {
@@ -38,6 +40,7 @@ type testResourceAPI struct {
 	Environments []rainforest.Environment
 	Features     []rainforest.Feature
 	RunGroups    []rainforest.RunGroup
+	Junit        string
 }
 
 func (api testResourceAPI) GetFolders() ([]rainforest.Folder, error) {
@@ -62,6 +65,10 @@ func (api testResourceAPI) GetFeatures() ([]rainforest.Feature, error) {
 
 func (api testResourceAPI) GetRunGroups() ([]rainforest.RunGroup, error) {
 	return api.RunGroups, nil
+}
+
+func (api testResourceAPI) GetRunJunit(run_id int) (*string, error) {
+	return &api.Junit, nil
 }
 
 func TestPrintFolders(t *testing.T) {
@@ -184,4 +191,92 @@ func TestPrintRunGroups(t *testing.T) {
 	regexMatchOut(`\| +123 +\| +My favorite run group +\|`, t)
 	regexMatchOut(`\| +456 +\| +My least favorite run group +\|`, t)
 	regexMatchOut(`\| +789 +\| +An OK run group +\|`, t)
+}
+
+func TestWriteJunit(t *testing.T) {
+	fakeContext := newFakeContext(map[string]interface{}{"junit-file": "junit.xml"}, cli.Args{"1"})
+	testAPI := testResourceAPI{
+		Junit: "<xml>hai</xml>",
+	}
+	err := writeJunit(fakeContext, testAPI)
+
+	if err != nil {
+		t.Errorf("writeJunit returned %+v", err)
+	}
+
+	data, _ := os.ReadFile("junit.xml")
+	if !reflect.DeepEqual(testAPI.Junit, string(data)) {
+		t.Errorf("writeJunit wrote %+v, want %+v", data, testAPI.Junit)
+	}
+
+	fakeContext = newFakeContext(map[string]interface{}{"junit-file": ""}, cli.Args{"1"})
+	err = writeJunit(fakeContext, testAPI)
+	expected := "JUnit output file not specified"
+	if !reflect.DeepEqual(expected, err.Error()) {
+		t.Errorf("writeJunit should have errored: expected '%v', got '%v'", expected, err.Error())
+	}
+
+	fakeContext = newFakeContext(map[string]interface{}{}, cli.Args{"1"})
+	err = writeJunit(fakeContext, testAPI)
+	expected = "JUnit output file not specified"
+	if !reflect.DeepEqual(expected, err.Error()) {
+		t.Errorf("writeJunit should have errored: expected '%v', got '%v'", expected, err.Error())
+	}
+
+	fakeContext = newFakeContext(map[string]interface{}{"junit-file": "junit.xml"}, cli.Args{})
+	err = writeJunit(fakeContext, testAPI)
+	expected = "No run ID argument found."
+	if !reflect.DeepEqual(expected, err.Error()) {
+		t.Errorf("writeJunit should have errored: expected '%v', got '%v'", expected, err.Error())
+	}
+}
+
+func TestAugmentJunitFileName(t *testing.T) {
+	testCases := []struct {
+		OriginalName string
+		RerunAttempt uint
+		Want         string
+	}{
+		{
+			OriginalName: "output",
+			RerunAttempt: 1,
+			Want:         "output.1",
+		},
+		{
+			OriginalName: "output.xml",
+			RerunAttempt: 1,
+			Want:         "output.xml.1",
+		},
+		{
+			OriginalName: "output.xml",
+			RerunAttempt: 2,
+			Want:         "output.xml.2",
+		},
+		{
+			OriginalName: "output.xml.1",
+			RerunAttempt: 3,
+			Want:         "output.xml.1.3",
+		},
+		{
+			OriginalName: "some.output.xml.1.2.3",
+			RerunAttempt: 2,
+			Want:         "some.output.xml.1.2.3.2",
+		},
+		{
+			OriginalName: "output.html",
+			RerunAttempt: 1,
+			Want:         "output.html.1",
+		},
+		{
+			OriginalName: "output.1",
+			RerunAttempt: 2,
+			Want:         "output.1.2",
+		},
+	}
+	for _, testCase := range testCases {
+		got := augmentJunitFileName(testCase.OriginalName, testCase.RerunAttempt)
+		if got != testCase.Want {
+			t.Errorf("Wrong name, wanted '%v', got '%v'", testCase.Want, got)
+		}
+	}
 }

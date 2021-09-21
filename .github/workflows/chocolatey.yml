@@ -7,7 +7,13 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       -
-        name: Choco help
+        name: Choco Build
         uses: crazy-max/ghaction-chocolatey@v1
         with:
-          args: -h
+          args: new rainforest-cli -f -url="https://github.com/rainforestapp/rainforest-cli/releases/download/v2.21.4/rainforest-cli-2.21.4-windows-amd64.zip" --outputdirectory Packages
+      - 
+        name: Save Choco pacakge
+        uses: actions/upload-artifact@v2
+        with:
+          name: rainforest-cli.package
+          path: Pacakges

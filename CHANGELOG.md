@@ -1,5 +1,15 @@
 # Rainforest CLI Changelog
 
+## 2.22.0 - 2021-09-21
+- JUnit output is vastly improved, with steps + results + notes from testers, and actions + results and timing for automation.
+  - (7b911e1c8b48af8220a6290554441e3c8694aed4, @ukd1)
+- Update build process to make it faster
+  - (7b911e1c8b48af8220a6290554441e3c8694aed4, @ukd1)
+- Remove old deprechated way of calling `report`
+  - (e354d477100d4a8b0f6e5b7a446cd5c76bf27527, @ukd1)
+- Fix passing ENV in to reruns, which we do by calling the rainforest-cli itself
+  - (fef5eab5c81e0aa79ea17f0023044b7341b948e3, @ukd1 & with thanks to @magni-)
+
 ## 2.21.4 - 2021-09-07
 - Fix for passed / failed reporting being in the wrong order 🤦‍♂️
   - (504c1c129fe1847d85fc6e07f922352f8d9679e4, @ukd1)

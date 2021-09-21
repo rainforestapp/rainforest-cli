@@ -5,7 +5,7 @@
   - (7b911e1c8b48af8220a6290554441e3c8694aed4, @ukd1)
 - Update build process to make it faster
   - (7b911e1c8b48af8220a6290554441e3c8694aed4, @ukd1)
-- Remove old deprechated way of calling `report`
+- Remove old deprecated way of calling `report`
   - (e354d477100d4a8b0f6e5b7a446cd5c76bf27527, @ukd1)
 - Fix passing ENV in to reruns, which we do by calling the rainforest-cli itself
   - (fef5eab5c81e0aa79ea17f0023044b7341b948e3, @ukd1 & with thanks to @magni-)

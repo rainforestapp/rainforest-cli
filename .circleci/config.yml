@@ -2,10 +2,7 @@ version: 2
 
 defaults: &defaults
   docker:
-    - image: circleci/golang:1.12.4-node
-      auth:
-        username: $DOCKERHUB_USERNAME
-        password: $DOCKERHUB_TOKEN
+    - image: cimg/go:1.17.1-node
 
 jobs:
   test:

@@ -220,7 +220,8 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 		err = json.NewDecoder(res.Body).Decode(out)
 
 		if err != nil {
-			log.Printf("DEBUG - %v\n\n", err.Error())
+			log.Println("ERROR for ", req.Method, req.URL)
+			log.Printf("ERROR PARSING JSON : %v\n\n", err.Error())
 			return res, err
 		}
 	}

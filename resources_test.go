@@ -193,6 +193,16 @@ func TestPrintRunGroups(t *testing.T) {
 	regexMatchOut(`\| +789 +\| +An OK run group +\|`, t)
 }
 
+func TestPostRunJUnitReport(t *testing.T) {
+	// returns nil with no junit setting enabled
+	fakeContext := newFakeContext(map[string]interface{}{"token": "test"}, cli.Args{"1"})
+	err := postRunJUnitReport(fakeContext, 1)
+
+	if err != nil {
+		t.Errorf("postRunJUnitReport returned %+v", err)
+	}
+}
+
 func TestWriteJunit(t *testing.T) {
 	fakeContext := newFakeContext(map[string]interface{}{"junit-file": "junit.xml"}, cli.Args{"1"})
 	testAPI := testResourceAPI{

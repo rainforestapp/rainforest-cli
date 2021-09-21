@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"syscall"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/rainforestapp/rainforest-cli/rainforest"
@@ -158,7 +159,27 @@ func postRunJUnitReport(c cliContext, runID int) error {
 	}
 	api = rainforest.NewClient(c.String("token"), c.Bool("debug"))
 
-	return writeJunit(c, api)
+	cmd := []string{
+		"rainforest-cli",
+		"report", strconv.Itoa(runID),
+		"--skip-update", // skip auto-updates for reports inside a run
+	}
+
+	if token := c.GlobalString("token"); len(token) > 0 {
+		cmd = append(cmd, "--token", token)
+	}
+	cmd = append(cmd, "--junit-file", fileName)
+
+	path, err := os.Executable()
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	exec_err := syscall.Exec(path, cmd, os.Environ())
+	if exec_err != nil {
+		return cli.NewExitError(exec_err.Error(), 1)
+	}
+	return nil
 }
 
 func augmentJunitFileName(junitFile string, rerunAttempt uint) string {

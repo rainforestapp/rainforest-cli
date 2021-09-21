@@ -482,10 +482,6 @@ func main() {
 					Name:  "junit-file",
 					Usage: "`PATH` of file to which write a JUnit report for the specified run.",
 				},
-				cli.StringFlag{
-					Name:  "run-id",
-					Usage: "DEPRECATED: ID of a run for which to generate results. Since v2 please provide the run ID as an argument.",
-				},
 			},
 			Action: func(c *cli.Context) error {
 				return writeJunit(c, api)

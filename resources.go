@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
@@ -180,13 +179,6 @@ func writeJunit(c cliContext, api resourceAPI) error {
 		if err != nil {
 			return cli.NewExitError(err.Error(), 1)
 		}
-	} else if deprecatedRunIDArg := c.String("run-id"); deprecatedRunIDArg != "" {
-		runID, err = strconv.Atoi(deprecatedRunIDArg)
-		if err != nil {
-			return cli.NewExitError(err.Error(), 1)
-		}
-
-		log.Println("Warning: `run-id` flag is deprecated. Please provide Run ID as an argument.")
 	} else {
 		return cli.NewExitError("No run ID argument found.", 1)
 	}

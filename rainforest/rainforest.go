@@ -180,7 +180,7 @@ func checkResponse(res *http.Response, debugFlag bool) error {
 	err = json.Unmarshal(body, &out)
 	if err != nil {
 		if debugFlag {
-			log.Println("Cannot parse response:\n" + string(body))
+			fmt.Println("Cannot parse response:\n" + string(body))
 		}
 
 		return errors.New(errPrefix + " - Unable to parse response JSON: " + err.Error())
@@ -201,12 +201,6 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 		log.Print("Trying ", res.Request.URL, "...")
 	}
 
-	// Close the body after we're done with it, to allow connection reuse.
-	defer func() {
-		io.Copy(ioutil.Discard, res.Body)
-		res.Body.Close()
-	}()
-
 	// We check response for potential errors and return them to the caller.
 	// We do not nil the response, as a caller might want to inspect the response in case of an error.
 	err = checkResponse(res, c.DebugFlag)
@@ -217,6 +211,12 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 	// Here we check for the out pointer, and if it exists we unmarshall JSON there and return any
 	// potential errors to the caller.
 	if out != nil {
+		// Close the body after we're done with it, to allow connection reuse.
+		defer func() {
+			io.Copy(ioutil.Discard, res.Body)
+			res.Body.Close()
+		}()
+
 		err = json.NewDecoder(res.Body).Decode(out)
 
 		if err != nil {

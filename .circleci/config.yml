@@ -1,6 +1,4 @@
 version: 2.1
-orbs:
-  go: circleci/go@1.7.0
 defaults: &defaults
   docker:
     - image: cimg/go:1.17.1-node
@@ -10,13 +8,9 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - go/load-cache
-      - go/mod-download
-      - go/save-cache
-      - go/test:
-          covermode: atomic
-          race: true
-          verbose: true
+      - run:
+          name: Run Unit Tests
+          command: go test -v -race ./...
 
   release:
     <<: *defaults

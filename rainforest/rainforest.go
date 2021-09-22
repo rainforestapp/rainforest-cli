@@ -198,14 +198,8 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 	}
 
 	if c.DebugFlag {
-		fmt.Print("Trying ", res.Request.URL, "...")
+		log.Print("Trying ", res.Request.URL, "...")
 	}
-
-	// Close the body after we're done with it, to allow connection reuse.
-	defer func() {
-		io.Copy(ioutil.Discard, res.Body)
-		res.Body.Close()
-	}()
 
 	// We check response for potential errors and return them to the caller.
 	// We do not nil the response, as a caller might want to inspect the response in case of an error.
@@ -217,10 +211,17 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 	// Here we check for the out pointer, and if it exists we unmarshall JSON there and return any
 	// potential errors to the caller.
 	if out != nil {
+		// Close the body after we're done with it, to allow connection reuse.
+		defer func() {
+			io.Copy(ioutil.Discard, res.Body)
+			res.Body.Close()
+		}()
+
 		err = json.NewDecoder(res.Body).Decode(out)
 
 		if err != nil {
-			fmt.Printf("DEBUG - %v\n\n", err.Error())
+			log.Println("ERROR for ", req.Method, req.URL)
+			log.Printf("ERROR PARSING JSON : %v\n\n", err.Error())
 			return res, err
 		}
 	}
@@ -228,7 +229,7 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 	c.LastResponseHeaders = res.Header
 
 	if c.DebugFlag {
-		fmt.Println("connected")
+		log.Println("connected")
 		printRequestHeaders(res)
 	}
 
@@ -236,8 +237,8 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 }
 
 func printRequestHeaders(res *http.Response) {
-	fmt.Println(res.Request.Method, res.Request.Proto)
-	fmt.Println("User Agent:", res.Request.UserAgent())
-	fmt.Println("Host:", res.Request.Host)
-	fmt.Println("")
+	log.Println(res.Request.Method, res.Request.Proto)
+	log.Println("User Agent:", res.Request.UserAgent())
+	log.Println("Host:", res.Request.Host)
+	log.Println("")
 }

@@ -272,7 +272,7 @@ func monitorRunStatus(c cliContext, runID int) error {
 					}
 
 					log.Printf("Rerunning %v, attempt %v", runID, rerunAttempt+1)
-					exec_err := syscall.Exec(path, cmd, []string{})
+					exec_err := syscall.Exec(path, cmd, os.Environ())
 					if exec_err != nil {
 						return cli.NewExitError(exec_err.Error(), 1)
 					}

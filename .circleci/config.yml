@@ -27,9 +27,15 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install go
+          command: |
+            wget https://golang.org/dl/go1.17.1.darwin-amd64.tar.gz
+            tar -xzf go1.17.1.darwin-amd64.tar.gz
+            ./go/bin/go version
+      - run:
           name: Build
           command: |
-            go build
+            ./go/bin/go  build
       - run:
           name: Start a run that will pass
           command: |

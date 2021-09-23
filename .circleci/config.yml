@@ -12,6 +12,29 @@ jobs:
           name: Run Unit Tests
           command: go test -v -race ./...
 
+  integration_test:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Build
+          command: go build
+      - run:
+          name: Confirm our version
+          command: ./rainforest-cli -v --skip-update
+      - run:
+          name: Start a run that will pass
+          command: ./rainforest-cli --skip-update run --run-group 9502
+      - run:
+          name: Start a run that will pass, with junit
+          command: ./rainforest-cli --skip-update run --run-group 9502 --junit-xml junit-pass.xml
+      - run:
+          name: Start a run that will fail
+          command: !./rainforest-cli --skip-update run --run-group 9503
+      - run:
+          name: Start a run that will fail, with junit
+          command: !./rainforest-cli --skip-update run --run-group 9503 --junit-xml junit-fail.xml
+
   release:
     <<: *defaults
     steps:
@@ -32,8 +55,7 @@ workflows:
   test_and_deploy:
     jobs:
       - test:
-          context:
-            - DockerHub
+      - integration_test:
       - release:
           filters:
             branches:

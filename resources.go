@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
-	"syscall"
+	"strings"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/rainforestapp/rainforest-cli/rainforest"
@@ -175,9 +176,10 @@ func postRunJUnitReport(c cliContext, runID int) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
-	exec_err := syscall.Exec(path, cmd, os.Environ())
-	if exec_err != nil {
-		return cli.NewExitError(exec_err.Error(), 1)
+	rfCmd := exec.Command(path, strings.Join(cmd, " "))
+	_, err = rfCmd.Output()
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
 	}
 	return nil
 }

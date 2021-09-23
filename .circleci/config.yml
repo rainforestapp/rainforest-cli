@@ -55,10 +55,10 @@ jobs:
             ./rainforest-cli -v --skip-update
             ./rainforest-cli --skip-update run --run-group 9503
             if [[ $? != 0 ]]; then
-              echo "Got the expected non-zero exit code."
+              echo "TESTING ::: Got the expected non-zero exit code. ✅"
               echo 0
             else
-              echo "Got UNEXPECTED zero exit code."
+              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
               echo 1
             fi
 
@@ -77,10 +77,10 @@ jobs:
             ./rainforest-cli -v --skip-update
             ./rainforest-cli --skip-update run --run-group 9503 --junit-file junit-fail.xml
             if [[ $? != 0 ]]; then
-              echo "Got the expected non-zero exit code."
+              echo "TESTING ::: Got the expected non-zero exit code. ✅"
               exit 0
             else
-              echo "Got UNEXPECTED zero exit code."
+              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
               exit 1
             fi
 

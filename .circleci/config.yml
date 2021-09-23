@@ -21,19 +21,24 @@ jobs:
           command: go build
       - run:
           name: Confirm our version
-          command: ./rainforest-cli -v --skip-update
+          command: |
+            ./rainforest-cli -v --skip-update
       - run:
           name: Start a run that will pass
-          command: ./rainforest-cli --skip-update run --run-group 9502
+          command: |
+            ./rainforest-cli --skip-update run --run-group 9502
       - run:
           name: Start a run that will pass, with junit
-          command: ./rainforest-cli --skip-update run --run-group 9502 --junit-xml junit-pass.xml
+          command: |
+            ./rainforest-cli --skip-update run --run-group 9502 --junit-xml junit-pass.xml
       - run:
           name: Start a run that will fail
-          command: !./rainforest-cli --skip-update run --run-group 9503
+          command: |
+            !./rainforest-cli --skip-update run --run-group 9503
       - run:
           name: Start a run that will fail, with junit
-          command: !./rainforest-cli --skip-update run --run-group 9503 --junit-xml junit-fail.xml
+          command: |
+            !./rainforest-cli --skip-update run --run-group 9503 --junit-xml junit-fail.xml
 
   release:
     <<: *defaults

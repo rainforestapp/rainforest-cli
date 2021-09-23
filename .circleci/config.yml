@@ -127,10 +127,10 @@ jobs:
             .\rainforest-cli.exe -v --skip-update
             .\rainforest-cli.exe --skip-update run --run-group 9503
             if ($LastExitCode -gt 0) {
-              echo "TESTING ::: Got the expected non-zero exit code. ✅"
+              echo "TESTING ::: Got the expected non-zero exit code."
               # exit 0
             } else {
-              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
+              echo "TESTING ::: Got UNEXPECTED zero exit code."
               # exit 1
             }
 
@@ -146,10 +146,10 @@ jobs:
             .\rainforest-cli.exe -v --skip-update
             .\rainforest-cli.exe --skip-update run --run-group 9503 --junit-file junit-fail.xml
             if ($LastExitCode -gt 0) {
-              echo "TESTING ::: Got the expected non-zero exit code. ✅"
+              echo "TESTING ::: Got the expected non-zero exit code."
               # exit 0
             } else {
-              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
+              echo "TESTING ::: Got UNEXPECTED zero exit code."
               # exit 1
             }
 

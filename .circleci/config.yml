@@ -36,12 +36,91 @@ jobs:
       - run:
           name: Build
           command: |
-            ./go/bin/go  build
+            ./go/bin/go build
       - run:
           name: Start a run that will pass
           command: |
             ./rainforest-cli -v --skip-update
             ./rainforest-cli --skip-update run --run-group 9502
+
+  integration_mac_pass_junit:
+    <<: *mac
+    steps:
+      - checkout
+      - run:
+          name: Install go
+          command: |
+            curl -L https://golang.org/dl/go1.17.1.darwin-amd64.tar.gz > go.tar.gz
+            tar -xzf go.tar.gz
+            rm go.tar.gz
+            ./go/bin/go version
+      - run:
+          name: Build
+          command: |
+            ./go/bin/go build
+      - run:
+          name: Start a run that will pass, with junit
+          command: |
+            ./rainforest-cli -v --skip-update
+            ./rainforest-cli --skip-update run --run-group 9502 --junit-file junit-pass.xml
+
+  integration_mac_fail:
+    <<: *mac
+    steps:
+      - checkout
+      - run:
+          name: Install go
+          command: |
+            curl -L https://golang.org/dl/go1.17.1.darwin-amd64.tar.gz > go.tar.gz
+            tar -xzf go.tar.gz
+            rm go.tar.gz
+            ./go/bin/go version
+      - run:
+          name: Build
+          command: |
+            ./go/bin/go build
+      - run:
+          name: Start a run that will fail
+          command: |
+            set +eo pipefail
+            ./rainforest-cli -v --skip-update
+            ./rainforest-cli --skip-update run --run-group 9503
+            if [[ $? != 0 ]]; then
+              echo "TESTING ::: Got the expected non-zero exit code. ✅"
+              echo 0
+            else
+              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
+              echo 1
+            fi
+
+  integration_mac_fail_junit:
+    <<: *mac
+    steps:
+      - checkout
+      - run:
+          name: Install go
+          command: |
+            curl -L https://golang.org/dl/go1.17.1.darwin-amd64.tar.gz > go.tar.gz
+            tar -xzf go.tar.gz
+            rm go.tar.gz
+            ./go/bin/go version
+      - run:
+          name: Build
+          command: |
+            ./go/bin/go build
+      - run:
+          name: Start a run that will fail, with junit
+          command: |
+            set +eo pipefail
+            ./rainforest-cli -v --skip-update
+            ./rainforest-cli --skip-update run --run-group 9503 --junit-file junit-pass.xml
+            if [[ $? != 0 ]]; then
+              echo "TESTING ::: Got the expected non-zero exit code. ✅"
+              echo 0
+            else
+              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
+              echo 1
+            fi
 
   integration_linux_pass:
     <<: *defaults
@@ -199,6 +278,9 @@ workflows:
     jobs:
       - test
       - integration_mac_pass
+      - integration_mac_pass_junit
+      - integration_mac_fail
+      - integration_mac_fail_junit
       - integration_linux_pass
       - integration_linux_pass_junit
       - integration_linux_fail
@@ -211,6 +293,9 @@ workflows:
           requires:
             - test
             - integration_mac_pass
+            - integration_mac_pass_junit
+            - integration_mac_fail
+            - integration_mac_fail_junit
             - integration_linux_pass
             - integration_linux_pass_junit
             - integration_linux_fail

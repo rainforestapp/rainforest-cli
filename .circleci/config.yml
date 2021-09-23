@@ -18,7 +18,8 @@ jobs:
       - checkout
       - run:
           name: Build
-          command: go build
+          command: |
+            go build
       - run:
           name: Confirm our version
           command: |
@@ -59,8 +60,8 @@ workflows:
   version: 2
   test_and_deploy:
     jobs:
-      - test:
-      - integration_test:
+      - test
+      - integration_test
       - release:
           filters:
             branches:

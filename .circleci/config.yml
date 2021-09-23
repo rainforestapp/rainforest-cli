@@ -12,7 +12,7 @@ jobs:
           name: Run Unit Tests
           command: go test -v -race ./...
 
-  integration_test:
+  integration_test_pass:
     <<: *defaults
     steps:
       - checkout
@@ -21,37 +21,69 @@ jobs:
           command: |
             go build
       - run:
-          name: Confirm our version
-          command: |
-            ./rainforest-cli -v --skip-update
-      - run:
           name: Start a run that will pass
           command: |
+            ./rainforest-cli -v --skip-update
             ./rainforest-cli --skip-update run --run-group 9502
+
+  integration_test_pass_junit:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Build
+          command: |
+            go build
       - run:
           name: Start a run that will pass, with junit
           command: |
+            ./rainforest-cli -v --skip-update
             ./rainforest-cli --skip-update run --run-group 9502 --junit-file junit-pass.xml
+
+  integration_test_fail:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Build
+          command: |
+            go build
       - run:
           name: Start a run that will fail
           command: |
             set +eo pipefail
+            ./rainforest-cli -v --skip-update
             ./rainforest-cli --skip-update run --run-group 9503
             if [[ $? != 0 ]]; then
+              echo "Got the expected non-zero exit code."
               echo 0
             else
+              echo "Got UNEXPECTED zero exit code."
               echo 1
             fi
+
+  integration_test_fail_junit:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Build
+          command: |
+            go build
       - run:
           name: Start a run that will fail, with junit
           command: |
             set +eo pipefail
+            ./rainforest-cli -v --skip-update
             ./rainforest-cli --skip-update run --run-group 9503 --junit-file junit-fail.xml
             if [[ $? != 0 ]]; then
+              echo "Got the expected non-zero exit code."
               exit 0
             else
+              echo "Got UNEXPECTED zero exit code."
               exit 1
             fi
+
 
   release:
     <<: *defaults
@@ -73,7 +105,10 @@ workflows:
   test_and_deploy:
     jobs:
       - test
-      - integration_test
+      - integration_test_pass
+      - integration_test_pass_junit
+      - integration_test_fail
+      - integration_test_fail_junit
       - release:
           filters:
             branches:

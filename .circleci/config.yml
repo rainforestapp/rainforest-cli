@@ -127,6 +127,7 @@ workflows:
       - integration_test_pass_junit
       - integration_test_fail
       - integration_test_fail_junit
+      - windows_pass
       - release:
           requires:
             - test

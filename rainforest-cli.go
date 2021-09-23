@@ -484,7 +484,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				return writeJunit(c, api)
+				return writeJunit(c, api, 0)
 			},
 		},
 		{

@@ -2,6 +2,12 @@ version: 2.1
 defaults: &defaults
   docker:
     - image: cimg/go:1.17.1-node
+windows: &windows
+  executor:
+    name: win/default
+    shell: powershell.exe
+  docker:
+    - image: cimg/go:1.17.1-node
 
 jobs:
   test:
@@ -61,6 +67,18 @@ jobs:
               echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
               echo 1
             fi
+
+  windows_pass:
+    <<: *windows
+    steps:
+      - checkout
+      - run:
+          name: "Build, and run rainforest"
+          shell: powershell.exe
+          command: |
+            go build
+            .\rainforest-cli.exe -v --skip-update
+            .\rainforest-cli.exe --skip-update run --run-group 9502
 
   integration_test_fail_junit:
     <<: *defaults

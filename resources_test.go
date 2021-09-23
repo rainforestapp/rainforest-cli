@@ -193,22 +193,12 @@ func TestPrintRunGroups(t *testing.T) {
 	regexMatchOut(`\| +789 +\| +An OK run group +\|`, t)
 }
 
-func TestPostRunJUnitReport(t *testing.T) {
-	// returns nil with no junit setting enabled
-	fakeContext := newFakeContext(map[string]interface{}{"token": "test"}, cli.Args{"1"})
-	err := postRunJUnitReport(fakeContext, 1)
-
-	if err != nil {
-		t.Errorf("postRunJUnitReport returned %+v", err)
-	}
-}
-
 func TestWriteJunit(t *testing.T) {
 	fakeContext := newFakeContext(map[string]interface{}{"junit-file": "junit.xml"}, cli.Args{"1"})
 	testAPI := testResourceAPI{
 		Junit: "<xml>hai</xml>",
 	}
-	err := writeJunit(fakeContext, testAPI)
+	err := writeJunit(fakeContext, testAPI, 0)
 
 	if err != nil {
 		t.Errorf("writeJunit returned %+v", err)
@@ -219,22 +209,38 @@ func TestWriteJunit(t *testing.T) {
 		t.Errorf("writeJunit wrote %+v, want %+v", data, testAPI.Junit)
 	}
 
+	// uses the passed runID and doesn't error if there are none in the context
+	fakeContext = newFakeContext(map[string]interface{}{"junit-file": "junit.xml"}, cli.Args{})
+	err = writeJunit(fakeContext, testAPI, 1)
+
+	if err != nil {
+		t.Errorf("writeJunit returned %+v", err)
+	}
+
+	data, _ = os.ReadFile("junit.xml")
+	if !reflect.DeepEqual(testAPI.Junit, string(data)) {
+		t.Errorf("writeJunit wrote %+v, want %+v", data, testAPI.Junit)
+	}
+
+	// errors when the junit file is not properly provided
 	fakeContext = newFakeContext(map[string]interface{}{"junit-file": ""}, cli.Args{"1"})
-	err = writeJunit(fakeContext, testAPI)
+	err = writeJunit(fakeContext, testAPI, 0)
 	expected := "JUnit output file not specified"
 	if !reflect.DeepEqual(expected, err.Error()) {
 		t.Errorf("writeJunit should have errored: expected '%v', got '%v'", expected, err.Error())
 	}
 
+	// errors when the junit file is not provided
 	fakeContext = newFakeContext(map[string]interface{}{}, cli.Args{"1"})
-	err = writeJunit(fakeContext, testAPI)
+	err = writeJunit(fakeContext, testAPI, 0)
 	expected = "JUnit output file not specified"
 	if !reflect.DeepEqual(expected, err.Error()) {
 		t.Errorf("writeJunit should have errored: expected '%v', got '%v'", expected, err.Error())
 	}
 
+	// errors when no runID is specified
 	fakeContext = newFakeContext(map[string]interface{}{"junit-file": "junit.xml"}, cli.Args{})
-	err = writeJunit(fakeContext, testAPI)
+	err = writeJunit(fakeContext, testAPI, 0)
 	expected = "No run ID argument found."
 	if !reflect.DeepEqual(expected, err.Error()) {
 		t.Errorf("writeJunit should have errored: expected '%v', got '%v'", expected, err.Error())

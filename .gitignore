@@ -6,5 +6,6 @@ spec
 testing
 
 rainforest-cli
+rainforest-cli.exe
 /vendor
 dist/

@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"strconv"
-	"strings"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/rainforestapp/rainforest-cli/rainforest"
@@ -152,38 +150,6 @@ func printRunGroups(api resourceAPI) error {
 	return nil
 }
 
-func postRunJUnitReport(c cliContext, runID int) error {
-	// Get the csv file path either and skip uploading if it's not present
-	fileName := c.String("junit-file")
-	if fileName == "" {
-		return nil
-	}
-	api = rainforest.NewClient(c.String("token"), c.Bool("debug"))
-
-	cmd := []string{
-		"rainforest-cli",
-		"report", strconv.Itoa(runID),
-		"--skip-update", // skip auto-updates for reports inside a run
-	}
-
-	if token := c.GlobalString("token"); len(token) > 0 {
-		cmd = append(cmd, "--token", token)
-	}
-	cmd = append(cmd, "--junit-file", fileName)
-
-	path, err := os.Executable()
-	if err != nil {
-		return cli.NewExitError(err.Error(), 1)
-	}
-
-	rfCmd := exec.Command(path, strings.Join(cmd, " "))
-	_, err = rfCmd.Output()
-	if err != nil {
-		return cli.NewExitError(err.Error(), 1)
-	}
-	return nil
-}
-
 func augmentJunitFileName(junitFile string, rerunAttempt uint) string {
 	if rerunAttempt > 0 {
 		junitFile = fmt.Sprintf("%v.%v", junitFile, rerunAttempt)
@@ -193,11 +159,12 @@ func augmentJunitFileName(junitFile string, rerunAttempt uint) string {
 }
 
 // write writeJunit fetches and writes a junit.xml file
-func writeJunit(c cliContext, api resourceAPI) error {
-	var runID int
+func writeJunit(c cliContext, api resourceAPI, runID int) error {
 	var err error
 
-	if runIDArg := c.Args().Get(0); runIDArg != "" {
+	if runID > 0 {
+		// noop
+	} else if runIDArg := c.Args().Get(0); runIDArg != "" {
 		runID, err = strconv.Atoi(runIDArg)
 		if err != nil {
 			return cli.NewExitError(err.Error(), 1)

@@ -31,7 +31,7 @@ jobs:
       - run:
           name: Start a run that will pass, with junit
           command: |
-            ./rainforest-cli --skip-update run --run-group 9502 --junit-xml junit-pass.xml
+            ./rainforest-cli --skip-update run --run-group 9502 --junit-file junit-pass.xml
       - run:
           name: Start a run that will fail
           command: |
@@ -39,7 +39,7 @@ jobs:
       - run:
           name: Start a run that will fail, with junit
           command: |
-            ./rainforest-cli --skip-update run --run-group 9503 --junit-xml junit-fail.xml; [[ $? != 0 ]]
+            ./rainforest-cli --skip-update run --run-group 9503 --junit-file junit-fail.xml; [[ $? != 0 ]]
 
   release:
     <<: *defaults

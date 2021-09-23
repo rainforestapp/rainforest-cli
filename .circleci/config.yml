@@ -19,7 +19,7 @@ jobs:
           name: Run Unit Tests
           command: go test -v -race ./...
 
-  integration_test_pass:
+  integration_linux_pass:
     <<: *defaults
     steps:
       - checkout
@@ -33,7 +33,7 @@ jobs:
             ./rainforest-cli -v --skip-update
             ./rainforest-cli --skip-update run --run-group 9502
 
-  integration_test_pass_junit:
+  integration_linux_pass_junit:
     <<: *defaults
     steps:
       - checkout
@@ -47,7 +47,7 @@ jobs:
             ./rainforest-cli -v --skip-update
             ./rainforest-cli --skip-update run --run-group 9502 --junit-file junit-pass.xml
 
-  integration_test_fail:
+  integration_linux_fail:
     <<: *defaults
     steps:
       - checkout
@@ -69,19 +69,7 @@ jobs:
               echo 1
             fi
 
-  windows_pass:
-    <<: *windows
-    steps:
-      - checkout
-      - run:
-          name: "Build, and run rainforest"
-          shell: powershell.exe
-          command: |
-            go build
-            .\rainforest-cli.exe -v --skip-update
-            .\rainforest-cli.exe --skip-update run --run-group 9502
-
-  integration_test_fail_junit:
+  integration_linux_fail_junit:
     <<: *defaults
     steps:
       - checkout
@@ -102,6 +90,54 @@ jobs:
               echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
               exit 1
             fi
+
+  integration_windows_pass:
+    <<: *windows
+    steps:
+      - checkout
+      - run:
+          name: "Build, and run rainforest"
+          shell: powershell.exe
+          command: |
+            go build
+            .\rainforest-cli.exe -v --skip-update
+            .\rainforest-cli.exe --skip-update run --run-group 9502
+
+  integration_windows_pass_junit:
+    <<: *windows
+    steps:
+      - checkout
+      - run:
+          name: "Build, and run rainforest with junit output"
+          shell: powershell.exe
+          command: |
+            go build
+            .\rainforest-cli.exe -v --skip-update
+            .\rainforest-cli.exe --skip-update run --run-group 9502 --junit-file junit-fail.xml
+
+  integration_windows_fail:
+    <<: *windows
+    steps:
+      - checkout
+      - run:
+          name: "Build, and run rainforest"
+          shell: powershell.exe
+          command: |
+            go build
+            .\rainforest-cli.exe -v --skip-update
+            .\rainforest-cli.exe --skip-update run --run-group 9503
+
+  integration_windows_fail_junit:
+    <<: *windows
+    steps:
+      - checkout
+      - run:
+          name: "Build, and run rainforest with junit output"
+          shell: powershell.exe
+          command: |
+            go build
+            .\rainforest-cli.exe -v --skip-update
+            .\rainforest-cli.exe --skip-update run --run-group 9503 --junit-file junit-fail.xml
 
 
   release:
@@ -124,18 +160,19 @@ workflows:
   test_and_deploy:
     jobs:
       - test
-      - integration_test_pass
-      - integration_test_pass_junit
-      - integration_test_fail
-      - integration_test_fail_junit
-      - windows_pass
+      - integration_linux_pass
+      - integration_linux_pass_junit
+      - integration_linux_fail
+      - integration_linux_fail_junit
+      - integration_windows_pass
+      - integration_windows_pass_junit
       - release:
           requires:
             - test
-            - integration_test_pass
-            - integration_test_pass_junit
-            - integration_test_fail
-            - integration_test_fail_junit
+            - integration_linux_pass
+            - integration_linux_pass_junit
+            - integration_linux_fail
+            - integration_linux_fail_junit
           filters:
             branches:
               ignore: /.*/

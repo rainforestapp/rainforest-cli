@@ -35,11 +35,23 @@ jobs:
       - run:
           name: Start a run that will fail
           command: |
-            ./rainforest-cli --skip-update run --run-group 9503; [[ $? != 0 ]]
+            set +eo pipefail
+            ./rainforest-cli --skip-update run --run-group 9503
+            if [[ $? != 0 ]]; then
+              echo 0
+            else
+              echo 1
+            fi
       - run:
           name: Start a run that will fail, with junit
           command: |
-            ./rainforest-cli --skip-update run --run-group 9503 --junit-file junit-fail.xml; [[ $? != 0 ]]
+            set +eo pipefail
+            ./rainforest-cli --skip-update run --run-group 9503 --junit-file junit-fail.xml
+            if [[ $? != 0 ]]; then
+              exit 0
+            else
+              exit 1
+            fi
 
   release:
     <<: *defaults

@@ -110,6 +110,12 @@ workflows:
       - integration_test_fail
       - integration_test_fail_junit
       - release:
+          requires:
+            - test
+            - integration_test_pass
+            - integration_test_pass_junit
+            - integration_test_fail
+            - integration_test_fail_junit
           filters:
             branches:
               ignore: /.*/

@@ -166,6 +166,8 @@ workflows:
       - integration_linux_fail_junit
       - integration_windows_pass
       - integration_windows_pass_junit
+      - integration_windows_fail
+      - integration_windows_fail_junit
       - release:
           requires:
             - test
@@ -173,6 +175,10 @@ workflows:
             - integration_linux_pass_junit
             - integration_linux_fail
             - integration_linux_fail_junit
+            - integration_windows_pass
+            - integration_windows_pass_junit
+            - integration_windows_fail
+            - integration_windows_fail_junit
           filters:
             branches:
               ignore: /.*/

@@ -59,6 +59,8 @@ jobs:
           command: |
             ./rainforest-cli -v --skip-update
             ./rainforest-cli --skip-update run --run-group 9502 --junit-file junit-pass.xml
+      - store_test_results:
+          path: junit-pass.xml
 
   integration_mac_fail:
     <<: *mac
@@ -105,7 +107,7 @@ jobs:
           command: |
             set +eo pipefail
             ./rainforest-cli -v --skip-update
-            ./rainforest-cli --skip-update run --run-group 9503 --junit-file junit-pass.xml
+            ./rainforest-cli --skip-update run --run-group 9503 --junit-file junit-fail.xml
             if [[ $? != 0 ]]; then
               echo "TESTING ::: Got the expected non-zero exit code. ✅"
               echo 0
@@ -113,6 +115,8 @@ jobs:
               echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
               echo 1
             fi
+      - store_test_results:
+          path: junit-fail.xml
 
   integration_linux_pass:
     <<: *defaults
@@ -141,6 +145,8 @@ jobs:
           command: |
             ./rainforest-cli -v --skip-update
             ./rainforest-cli --skip-update run --run-group 9502 --junit-file junit-pass.xml
+      - store_test_results:
+          path: junit-pass.xml
 
   integration_linux_fail:
     <<: *defaults
@@ -185,6 +191,8 @@ jobs:
               echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
               exit 1
             fi
+      - store_test_results:
+          path: junit-fail.xml
 
   integration_windows_pass:
     <<: *windows
@@ -208,7 +216,9 @@ jobs:
           command: |
             go build
             ./rainforest-cli.exe -v --skip-update
-            ./rainforest-cli.exe --skip-update run --run-group 9502 --junit-file junit-fail.xml
+            ./rainforest-cli.exe --skip-update run --run-group 9502 --junit-file junit-pass.xml
+      - store_test_results:
+          path: junit-pass.xml
 
   integration_windows_fail:
     <<: *windows
@@ -247,6 +257,8 @@ jobs:
               echo "TESTING ::: Got UNEXPECTED zero exit code."
               exit 1
             }
+      - store_test_results:
+          path: junit-fail.xml
 
   release:
     <<: *defaults

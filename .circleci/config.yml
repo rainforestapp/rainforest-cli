@@ -13,8 +13,6 @@ mac: &mac
   macos:
     xcode: 11.3.0
 
-
-
 commands:
   install_go_darwin:
     description: "Install Go on Darwin"
@@ -23,14 +21,15 @@ commands:
           name: Install go
           command: |
             curl -L https://golang.org/dl/go1.17.1.darwin-amd64.tar.gz | tar zxf -
-            ./go/bin/go version
+            export $PATH="$PATH:`pwd`/go/bin"
+            go version
   go_build:
     description: "go build, and output cli version"
     steps:
       - run:
           name: Install go
           command: |
-            ./go/bin/go build
+            go build
             ./rainforest-cli -v --skip-update
 
 jobs:

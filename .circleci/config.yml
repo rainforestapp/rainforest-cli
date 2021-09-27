@@ -268,18 +268,42 @@ workflows:
   test_and_deploy:
     jobs:
       - test
-      - integration_mac_pass
-      - integration_mac_pass_junit
-      - integration_mac_fail
-      - integration_mac_fail_junit
-      - integration_linux_pass
-      - integration_linux_pass_junit
-      - integration_linux_fail
-      - integration_linux_fail_junit
-      - integration_windows_pass
-      - integration_windows_pass_junit
-      - integration_windows_fail
-      - integration_windows_fail_junit
+      - integration_mac_pass:
+          requires:
+            - test
+      - integration_mac_pass_junit:
+          requires:
+            - test
+      - integration_mac_fail:
+          requires:
+            - test
+      - integration_mac_fail_junit:
+          requires:
+            - test
+      - integration_linux_pass:
+          requires:
+            - test
+      - integration_linux_pass_junit:
+          requires:
+            - test
+      - integration_linux_fail:
+          requires:
+            - test
+      - integration_linux_fail_junit:
+          requires:
+            - test
+      - integration_windows_pass:
+          requires:
+            - test
+      - integration_windows_pass_junit:
+          requires:
+            - test
+      - integration_windows_fail:
+          requires:
+            - test
+      - integration_windows_fail_junit:
+          requires:
+            - test
       - release:
           requires:
             - test

@@ -1,7 +1,37 @@
 version: 2.1
+orbs:
+  win: circleci/windows@2.2.0
+
 defaults: &defaults
   docker:
     - image: cimg/go:1.17.1-node
+windows: &windows
+  executor:
+    name: win/default
+    shell: powershell.exe
+mac: &mac
+  macos:
+    xcode: 11.3.0
+
+commands:
+  install_go_darwin:
+    description: "Install Go on Darwin"
+    steps:
+      - run:
+          name: Install go
+          command: |
+            curl -L https://golang.org/dl/go1.17.1.darwin-amd64.tar.gz | tar zxf -
+            echo "export PATH=$PATH:`pwd`/go/bin" >> $BASH_ENV
+            source $BASH_ENV
+            go version
+  go_build:
+    description: "go build, and output cli version"
+    steps:
+      - run:
+          name: Build
+          command: |
+            go build
+            ./rainforest-cli -v --skip-update
 
 jobs:
   test:
@@ -9,8 +39,203 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Get Junit Reporter
+          command: go install github.com/jstemmer/go-junit-report@latest
+      - run:
           name: Run Unit Tests
-          command: go test -v -race ./...
+          command: go test -v -race ./... 2>&1 | go-junit-report > report.xml
+      - store_test_results:
+          path: report.xml
+
+  integration_mac_pass:
+    <<: *mac
+    steps:
+      - checkout
+      - install_go_darwin
+      - go_build
+      - run:
+          name: Start a run that will pass
+          command: |
+            ./rainforest-cli --skip-update run --run-group 9502
+
+  integration_mac_pass_junit:
+    <<: *mac
+    steps:
+      - checkout
+      - install_go_darwin
+      - go_build
+      - run:
+          name: Start a run that will pass, with junit
+          command: |
+            ./rainforest-cli --skip-update run --run-group 9502 --junit-file junit-pass.xml
+      - store_test_results:
+          path: junit-pass.xml
+
+  integration_mac_fail:
+    <<: *mac
+    steps:
+      - checkout
+      - install_go_darwin
+      - go_build
+      - run:
+          name: Start a run that will fail
+          command: |
+            set +e
+            ./rainforest-cli --skip-update run --run-group 9503
+            if [[ $? != 0 ]]; then
+              echo "TESTING ::: Got the expected non-zero exit code. ✅"
+              echo 0
+            else
+              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
+              echo 1
+            fi
+
+  integration_mac_fail_junit:
+    <<: *mac
+    steps:
+      - checkout
+      - install_go_darwin
+      - go_build
+      - run:
+          name: Start a run that will fail, with junit
+          command: |
+            set +e
+            ./rainforest-cli --skip-update run --run-group 9503 --junit-file junit-fail.xml
+            if [[ $? != 0 ]]; then
+              echo "TESTING ::: Got the expected non-zero exit code. ✅"
+              echo 0
+            else
+              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
+              echo 1
+            fi
+      - store_test_results:
+          path: junit-fail.xml
+
+  integration_linux_pass:
+    <<: *defaults
+    steps:
+      - checkout
+      - go_build
+      - run:
+          name: Start a run that will pass
+          command: |
+            ./rainforest-cli --skip-update run --run-group 9502
+
+  integration_linux_pass_junit:
+    <<: *defaults
+    steps:
+      - checkout
+      - go_build
+      - run:
+          name: Start a run that will pass, with junit
+          command: |
+            ./rainforest-cli --skip-update run --run-group 9502 --junit-file junit-pass.xml
+      - store_test_results:
+          path: junit-pass.xml
+
+  integration_linux_fail:
+    <<: *defaults
+    steps:
+      - checkout
+      - go_build
+      - run:
+          name: Start a run that will fail
+          command: |
+            set +e
+            ./rainforest-cli --skip-update run --run-group 9503
+            if [[ $? != 0 ]]; then
+              echo "TESTING ::: Got the expected non-zero exit code. ✅"
+              echo 0
+            else
+              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
+              echo 1
+            fi
+
+  integration_linux_fail_junit:
+    <<: *defaults
+    steps:
+      - checkout
+      - go_build
+      - run:
+          name: Start a run that will fail, with junit
+          command: |
+            set +e
+            ./rainforest-cli --skip-update run --run-group 9503 --junit-file junit-fail.xml
+            if [[ $? != 0 ]]; then
+              echo "TESTING ::: Got the expected non-zero exit code. ✅"
+              exit 0
+            else
+              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
+              exit 1
+            fi
+      - store_test_results:
+          path: junit-fail.xml
+
+  integration_windows_pass:
+    <<: *windows
+    steps:
+      - checkout
+      - run:
+          name: "Build, and run rainforest"
+          shell: powershell.exe
+          command: |
+            go build
+            ./rainforest-cli.exe -v --skip-update
+            ./rainforest-cli.exe --skip-update run --run-group 9502
+
+  integration_windows_pass_junit:
+    <<: *windows
+    steps:
+      - checkout
+      - run:
+          name: "Build, and run rainforest with junit output"
+          shell: powershell.exe
+          command: |
+            go build
+            ./rainforest-cli.exe -v --skip-update
+            ./rainforest-cli.exe --skip-update run --run-group 9502 --junit-file junit-pass.xml
+      - store_test_results:
+          path: junit-pass.xml
+
+  integration_windows_fail:
+    <<: *windows
+    steps:
+      - checkout
+      - run:
+          name: "Build, and run rainforest"
+          shell: powershell.exe
+          command: |
+            go build
+            ./rainforest-cli.exe -v --skip-update
+            ./rainforest-cli.exe --skip-update run --run-group 9503
+            if ($LastExitCode -gt 0) {
+              echo "TESTING ::: Got the expected non-zero exit code."
+              exit 0
+            } else {
+              echo "TESTING ::: Got UNEXPECTED zero exit code."
+              exit 1
+            }
+
+  integration_windows_fail_junit:
+    <<: *windows
+    steps:
+      - checkout
+      - run:
+          name: "Build, and run rainforest with junit output"
+          shell: powershell.exe
+          command: |
+            go build
+            ./rainforest-cli.exe -v --skip-update
+            ./rainforest-cli.exe --skip-update run --run-group 9503 --junit-file junit-fail.xml
+            if ($LastExitCode -gt 0) {
+              echo "TESTING ::: Got the expected non-zero exit code."
+              exit 0
+            } else {
+              echo "TESTING ::: Got UNEXPECTED zero exit code."
+              exit 1
+            }
+      - store_test_results:
+          path: junit-fail.xml
 
   release:
     <<: *defaults
@@ -31,10 +256,58 @@ workflows:
   version: 2
   test_and_deploy:
     jobs:
-      - test:
-          context:
-            - DockerHub
+      - test
+      - integration_mac_pass:
+          requires:
+            - test
+      - integration_mac_pass_junit:
+          requires:
+            - test
+      - integration_mac_fail:
+          requires:
+            - test
+      - integration_mac_fail_junit:
+          requires:
+            - test
+      - integration_linux_pass:
+          requires:
+            - test
+      - integration_linux_pass_junit:
+          requires:
+            - test
+      - integration_linux_fail:
+          requires:
+            - test
+      - integration_linux_fail_junit:
+          requires:
+            - test
+      - integration_windows_pass:
+          requires:
+            - test
+      - integration_windows_pass_junit:
+          requires:
+            - test
+      - integration_windows_fail:
+          requires:
+            - test
+      - integration_windows_fail_junit:
+          requires:
+            - test
       - release:
+          requires:
+            - test
+            - integration_mac_pass
+            - integration_mac_pass_junit
+            - integration_mac_fail
+            - integration_mac_fail_junit
+            - integration_linux_pass
+            - integration_linux_pass_junit
+            - integration_linux_fail
+            - integration_linux_fail_junit
+            - integration_windows_pass
+            - integration_windows_pass_junit
+            - integration_windows_fail
+            - integration_windows_fail_junit
           filters:
             branches:
               ignore: /.*/

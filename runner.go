@@ -259,7 +259,9 @@ func monitorRunStatus(c cliContext, runID int) error {
 		log.Print(msg)
 
 		if done {
-			postRunJUnitReport(c, runID)
+			if c.String("junit-file") != "" {
+				writeJunit(c, api, runID)
+			}
 
 			if status.Result != "passed" {
 				rerunAttempt := c.Uint("rerun-attempt")

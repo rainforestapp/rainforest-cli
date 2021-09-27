@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.22.0"
+	version = "2.22.1"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -484,7 +484,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				return writeJunit(c, api)
+				return writeJunit(c, api, 0)
 			},
 		},
 		{

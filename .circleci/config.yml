@@ -28,7 +28,7 @@ commands:
     description: "go build, and output cli version"
     steps:
       - run:
-          name: Install go
+          name: Build
           command: |
             go build
             ./rainforest-cli -v --skip-update

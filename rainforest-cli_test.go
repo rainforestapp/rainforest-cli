@@ -32,6 +32,24 @@ func TestMain(t *testing.T) {
 	}
 }
 
+func TestEmptyToken(t *testing.T) {
+	if os.Getenv("TEST_EXIT") == "1" {
+		os.Args = []string{"./rainforest", "run", "--token", ""}
+		main()
+		return
+	}
+
+	cmd := exec.Command(os.Args[0], "-test.run=EmptyToken")
+	cmd.Env = append(os.Environ(), "TEST_EXIT=1")
+	err := cmd.Run()
+
+	if err == nil {
+		t.Error("Expected exit error was not received")
+	} else if e, ok := err.(*exec.ExitError); !ok || e.Success() {
+		t.Errorf("Unexpected error. Expected an exit error with non-zero status. Got %#v", e.Error())
+	}
+}
+
 func TestShuffleFlags(t *testing.T) {
 	var testCases = []struct {
 		testArgs []string
@@ -68,10 +86,6 @@ func TestShuffleFlags(t *testing.T) {
 		{
 			testArgs: []string{"./rainforest", "run", "-f", "foo.rfml"},
 			want:     []string{"./rainforest", "run", "-f", "foo.rfml"},
-		},
-		{
-			testArgs: []string{"./rainforest", "run", "-t", ""},
-			want:     []string{"./rainforest", "-t", ""},
 		},
 	}
 

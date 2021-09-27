@@ -361,7 +361,7 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 1. Push to the branch (`git push origin my-new-feature`)
 1. Create a new Pull Request
 
-## Development + release process:
+## Development:
 
 ### Development PR
 1. Branch from master
@@ -372,15 +372,25 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 1. Branch from master to update `CHANGELOG.md` to include the commit hashes and release date
 1. Update the `version` constant in `rainforest-cli.go` following [semantic versioning](http://semver.org/)
 1. Merge to master
-### Release
+
+
+## Release:
 1. Tag `master` after merging: `git tag vX.Y.Z && git push --tags`
 1. Wait for the CircleCI build to finish. This will create a [draft GitHub Release](https://github.com/rainforestapp/rainforest-cli/releases). Edit the description as appropriate and publish the release.
 1. Update https://github.com/rainforestapp/homebrew-public to use the latest URL and SHA256. Both can be found in the GitHub Release assets. Additionally, the SHA256 is output as part of the CircleCI `Release` job.
 
 ### Releasing a beta version
-
 Simply tag a commit with an alpha or beta version.
 ```bash
 git tag vX.Y.Z-alpha.N # or vX.Y.Z-beta.N
 git push origin vX.Y.Z-alpha.N
 ```
+
+## Rollback:
+Should you have to rollback, you will need to:
+
+1. Delete the release in question. CLI will 'update' itself to the latest public version, which should downgrade users on the next try
+1. Go to GCP Container Registry:
+  1. delete the release you want to rollback
+  1. set the latest tag on the release you wish to use
+1. Revert the PR that caused the rollback in the first place

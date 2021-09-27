@@ -1,6 +1,7 @@
 package rainforest
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -159,6 +160,25 @@ func (c *Client) GetRunGroupDetails(runGroupID int) (*RunGroupDetails, error) {
 	}
 
 	return &details, nil
+}
+
+// GetRunJunit gets a run JUnit from the API.
+func (c *Client) GetRunJunit(runID int) (*string, error) {
+	req, err := c.NewRequest("GET", "runs/"+strconv.Itoa(runID)+"/junit.xml", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.Do(req, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(res.Body)
+	newStr := buf.String()
+
+	return &newStr, nil
 }
 
 // Site type represents a single site returned by the API call for a list of sites

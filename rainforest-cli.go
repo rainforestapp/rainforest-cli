@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.21.4"
+	version = "2.22.1"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -51,7 +51,7 @@ var (
 
 // cliContext is an interface providing context of running application
 // i.e. command line options and flags. One of the types that provides the interface is
-// cli.Context, the other is fakeCLIContext which is used for testing.
+// cli.Context, the other is fakeContext which is used for testing.
 type cliContext interface {
 	String(flag string) (val string)
 	GlobalString(flag string) (val string)
@@ -482,12 +482,10 @@ func main() {
 					Name:  "junit-file",
 					Usage: "`PATH` of file to which write a JUnit report for the specified run.",
 				},
-				cli.StringFlag{
-					Name:  "run-id",
-					Usage: "DEPRECATED: ID of a run for which to generate results. Since v2 please provide the run ID as an argument.",
-				},
 			},
-			Action: createReport,
+			Action: func(c *cli.Context) error {
+				return writeJunit(c, api, 0)
+			},
 		},
 		{
 			Name:         "sites",

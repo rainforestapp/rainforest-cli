@@ -367,6 +367,7 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 1. Branch from master
 1. Do work
 1. Open PR against master
+1. Get review, and approval
 1. Merge to master
 ### Changelog PR
 1. Branch from master to update `CHANGELOG.md` to include the commit hashes and release date
@@ -394,3 +395,4 @@ Should you have to rollback, you will need to:
   1. delete the release you want to rollback
   1. set the latest tag on the release you wish to use
 1. Revert the PR that caused the rollback in the first place
+1. Check in Rainforest Admin who did (or could have) used the release and notify them via support if there were any critical issues

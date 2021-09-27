@@ -22,6 +22,7 @@ commands:
           command: |
             curl -L https://golang.org/dl/go1.17.1.darwin-amd64.tar.gz | tar zxf -
             echo "export PATH=$PATH:`pwd`/go/bin" >> $BASH_ENV
+            source $BASH_ENV
             go version
   go_build:
     description: "go build, and output cli version"

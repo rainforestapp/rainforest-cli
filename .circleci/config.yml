@@ -20,7 +20,7 @@ jobs:
       - checkout
       - run:
           name: Get Junit Reporter
-          command: go get -u -d github.com/jstemmer/go-junit-report
+          command: go install github.com/jstemmer/go-junit-report@latest
       - run:
           name: Run Unit Tests
           command: go test -v -race ./... 2>&1 | go-junit-report > report.xml

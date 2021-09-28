@@ -7,13 +7,25 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       -
-        name: Choco Build
+        name: Build
+        command: |
+          cd chocolatey
+          ruby main.rb
+      -
+        name: Choco Pack
         uses: crazy-max/ghaction-chocolatey@v1
         with:
-          args: new rainforest-cli -f -url="https://github.com/rainforestapp/rainforest-cli/releases/download/v2.21.4/rainforest-cli-2.21.4-windows-amd64.zip" --outputdirectory Packages
+          args: pack
+      -
+        name: Choco Push
+        uses: crazy-max/ghaction-chocolatey@v1
+        with:
+          args: push @(gci chocolatey/rainforest-cli/*.nupkg)[0] --key $env:CHOCO_API_KEY --source https://push.chocolatey.org/
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
       - 
         name: Save Choco pacakge
         uses: actions/upload-artifact@v2
         with:
           name: rainforest-cli.package
-          path: Packages\rainforest-cli\
+          path: chocolatey/rainforest-cli/*.nupkg

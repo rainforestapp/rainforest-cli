@@ -1,6 +1,6 @@
 on: push
 jobs:
-  test:
+  chocolatey:
     runs-on: windows-latest
     steps:
       -

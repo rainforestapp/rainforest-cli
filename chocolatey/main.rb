@@ -109,8 +109,8 @@ xml = builder.package(xmlns: 'http://schemas.microsoft.com/packaging/2015/06/nus
     metadata.projectSourceUrl('https://github.com/rainforestapp/rainforest-cli')
     metadata.docsUrl('https://github.com/rainforestapp/rainforest-cli/blob/master/README.md')
     metadata.bugTrackerUrl('https://github.com/rainforestapp/rainforest-cli/issues')
-    metadata.description(File.read('../README.md').to_s)
-    metadata.releaseNotes(File.read('../CHANGELOG.md').to_s)
+    metadata.description(File.read('../README.md').to_s[0..4000])
+    metadata.releaseNotes(File.read('../CHANGELOG.md').to_s[0..4000])
   end
 
   package.files do |files|

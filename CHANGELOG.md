@@ -1,8 +1,12 @@
 # Rainforest CLI Changelog
 
-## 2.22.1 - 2021-09-27
+## 2.22.2 - 2021-09-27
 - Add integration tests for Windows, Mac & Linux. Fix bug in exit code that was in 2.22.0.
   - (1240780a2eafc3d2bc6ca3e24940f17feb2e4b8d, @ukd1)
+- Don't run tests on tags, as it's already run on the push anyway
+  - (b9a71341f5f916075cbb524c2f36d9088ca37170, @ukd1)
+- Add rollback instructions for developers
+  - (adaa7f6a59f2e2bebd937e8c44e4db7e40cab4a6, @ukd1)
 
 ## 2.22.0 - 2021-09-21
 - JUnit output is vastly improved, with steps + results + notes from testers, and actions + results and timing for automation.

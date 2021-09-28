@@ -57,8 +57,8 @@ puts "\tFetching #{latest_release.windows_amd64_zip_name}"
 latest_release.download
 
 # unzip, move
-`rm -rf tmp`
-`mkdir tmp`
+`rm -rf tmp rainforest-cli`
+`mkdir -p tmp rainforest-cli/tools`
 `unzip -n #{latest_release.windows_amd64_zip_name} -d tmp`
 `mv tmp/rainforest-cli.exe rainforest-cli/tools/`
 `rm -rf tmp`
@@ -77,7 +77,7 @@ xml = builder.package(xmlns: 'http://schemas.microsoft.com/packaging/2015/06/nus
     metadata.owners('@ukd1')
 
     metadata.packageSourceUrl('https://github.com/rainforestapp/rainforest-cli/tree/master/chocolatey')
-    metadata.author('https://github.com/rainforestapp/rainforest-cli/graphs/contributors')
+    metadata.authors('https://github.com/rainforestapp/rainforest-cli/graphs/contributors')
     metadata.projectUrl('https://github.com/rainforestapp/rainforest-cli')
     metadata.iconUrl('https://assets.website-files.com/60da68c37e57671c365004bd/60da68c37e576749595005ae_favicon-large.svg')
     metadata.copyright('2021 Rainforest QA, Inc')

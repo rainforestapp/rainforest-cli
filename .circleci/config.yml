@@ -294,20 +294,6 @@ workflows:
           requires:
             - test
       - release:
-          requires:
-            - test
-            - integration_mac_pass
-            - integration_mac_pass_junit
-            - integration_mac_fail
-            - integration_mac_fail_junit
-            - integration_linux_pass
-            - integration_linux_pass_junit
-            - integration_linux_fail
-            - integration_linux_fail_junit
-            - integration_windows_pass
-            - integration_windows_pass_junit
-            - integration_windows_fail
-            - integration_windows_fail_junit
           filters:
             branches:
               ignore: /.*/

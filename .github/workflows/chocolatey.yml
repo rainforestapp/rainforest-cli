@@ -7,11 +7,14 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       -
-        name: Build
+        name: Install deps
         run: |
           cd chocolatey
           gem install bundler
           bundle install
+      -
+        name: Build
+        run: |
           ruby main.rb
       -
         name: Choco Pack

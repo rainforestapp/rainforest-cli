@@ -28,25 +28,34 @@ class Release
     "rainforest-cli-#{version}-windows-amd64.zip"
   end
 
-  def asset
-    release['assets'].find do |asset|
-      asset['name'] == windows_amd64_zip_name
+  def windows_amd64
+    find_asset(windows_amd64_zip_name)
+  end
+
+  def checksums
+    find_asset('checksums.txt')
+  end
+
+  def download(asset, checksum = nil)
+    if checksum
+      `aria2c #{asset['browser_download_url']} --allow-overwrite=true --checksum=sha-256=#{checksum}`
+    else
+      `aria2c #{asset['browser_download_url']} --allow-overwrite=true`
     end
   end
 
-  def download
-    File.open(windows_amd64_zip_name, "w") do |file|
-      response = HTTParty.get(asset['browser_download_url'], stream_body: true) do |fragment|
-        if [301, 302].include?(fragment.code)
-          puts "...skipped writing for redirect"
-        elsif fragment.code == 200
-          file.write(fragment)
-        else
-          raise StandardError, "Fail while streaming #{fragment.code}"
-        end
-      end
+  private
+  def find_asset(asset_name)
+    release['assets'].find do |asset|
+      asset['name'] == asset_name
     end
   end
+end
+
+def get_checksum(asset_name)
+  File.read('checksums.txt').split("\n").find do |line|
+    line.split("  ")[1] == asset_name
+  end.split("  ")[0]
 end
 
 latest_release = Release.new(latest_release)
@@ -55,7 +64,8 @@ puts "Building Chocolatey package for #{latest_release.version}"
 puts "\tFetching #{latest_release.windows_amd64_zip_name}"
 
 # fetch
-latest_release.download
+latest_release.download(latest_release.checksums)
+latest_release.download(latest_release.windows_amd64, get_checksum(latest_release.windows_amd64_zip_name))
 
 puts "\tDownloaded"
 

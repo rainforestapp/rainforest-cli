@@ -10,6 +10,7 @@ jobs:
         name: Build
         run: |
           cd chocolatey
+          gem install bundler
           bundle install
           ruby main.rb
       -

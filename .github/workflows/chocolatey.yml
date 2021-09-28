@@ -10,6 +10,7 @@ jobs:
         name: Build
         run: |
           cd chocolatey
+          bundle install
           ruby main.rb
       -
         name: Choco Pack

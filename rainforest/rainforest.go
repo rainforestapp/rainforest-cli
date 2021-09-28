@@ -12,11 +12,16 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
+
+	"github.com/rainforestapp/rainforest-cli/gittrigger"
+	"github.com/ukd1/go.detectci"
+	"github.com/whilp/git-urls"
 )
 
 const (
 	// Version of the lib in SemVer
-	libVersion = "2.0.0"
+	libVersion = "2.0.1"
 
 	currentBaseURL  = "https://app.rainforestqa.com/api/1/"
 	authTokenHeader = "CLIENT_TOKEN"
@@ -41,6 +46,11 @@ type Client struct {
 
 	// Client token used for authenticating requests made to the RF
 	clientToken string
+
+	// Send telemetry with each API request using the user agent
+	// this is used by Rainforest (and not shared or sold) to make
+	// integrations better. See README for more details.
+	SendTelemetry bool
 }
 
 // NewClient constructs a new rainforest API Client. As a parameter takes client token
@@ -113,7 +123,30 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 
 	// Set UserAgent header with appended library version, will look like:
 	// "rainforest-cli/2.1.0 [rainforest golang lib/2.0.0]"
-	composedUserAgent := c.UserAgent + " [rainforest golang lib/" + libVersion + "]"
+	userAgent := []string{"rainforest", "golang", "lib/" + libVersion}
+
+	if c.SendTelemetry {
+		found, ci_name := detectci.WhichCI()
+		if found {
+			userAgent = append(userAgent, "ci/"+ci_name)
+		}
+
+		var remote string
+		git, err := gitTrigger.NewGitTrigger()
+		if err == nil {
+			remote, err = git.GetRemote()
+			if err == nil {
+				u, err := giturls.Parse(remote)
+				if err == nil {
+					// Strip the user details, if any
+					u.User = nil
+					userAgent = append(userAgent, "repo/"+u.String())
+				}
+			}
+		}
+	}
+
+	composedUserAgent := c.UserAgent + " [" + strings.Join(userAgent[:], " ") + "]"
 	req.Header.Set("User-Agent", composedUserAgent)
 
 	return req, nil
@@ -165,14 +198,8 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 	}
 
 	if c.DebugFlag {
-		fmt.Print("Trying ", res.Request.URL, "...")
+		log.Print("Trying ", res.Request.URL, "...")
 	}
-
-	// Close the body after we're done with it, to allow connection reuse.
-	defer func() {
-		io.Copy(ioutil.Discard, res.Body)
-		res.Body.Close()
-	}()
 
 	// We check response for potential errors and return them to the caller.
 	// We do not nil the response, as a caller might want to inspect the response in case of an error.
@@ -184,10 +211,17 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 	// Here we check for the out pointer, and if it exists we unmarshall JSON there and return any
 	// potential errors to the caller.
 	if out != nil {
+		// Close the body after we're done with it, to allow connection reuse.
+		defer func() {
+			io.Copy(ioutil.Discard, res.Body)
+			res.Body.Close()
+		}()
+
 		err = json.NewDecoder(res.Body).Decode(out)
 
 		if err != nil {
-			fmt.Printf("DEBUG - %v\n\n", err.Error())
+			log.Println("ERROR for ", req.Method, req.URL)
+			log.Printf("ERROR PARSING JSON : %v\n\n", err.Error())
 			return res, err
 		}
 	}
@@ -195,7 +229,7 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 	c.LastResponseHeaders = res.Header
 
 	if c.DebugFlag {
-		fmt.Println("connected")
+		log.Println("connected")
 		printRequestHeaders(res)
 	}
 
@@ -203,8 +237,8 @@ func (c *Client) Do(req *http.Request, out interface{}) (*http.Response, error) 
 }
 
 func printRequestHeaders(res *http.Response) {
-	fmt.Println(res.Request.Method, res.Request.Proto)
-	fmt.Println("User Agent:", res.Request.UserAgent())
-	fmt.Println("Host:", res.Request.Host)
-	fmt.Println("")
+	log.Println(res.Request.Method, res.Request.Proto)
+	log.Println("User Agent:", res.Request.UserAgent())
+	log.Println("Host:", res.Request.Host)
+	log.Println("")
 }

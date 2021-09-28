@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
+	"github.com/rainforestapp/rainforest-cli/gittrigger"
 	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
@@ -30,6 +33,11 @@ func startRun(c cliContext) error {
 	return r.startRun(c)
 }
 
+func rerunRun(c cliContext) error {
+	r := newRunner()
+	return r.rerunRun(c)
+}
+
 func newRunner() *runner {
 	return &runner{client: api}
 }
@@ -43,6 +51,18 @@ func (r *runner) startRun(c cliContext) error {
 			return cli.NewExitError(err.Error(), 1)
 		}
 		return monitorRunStatus(c, runID)
+	}
+
+	// verify --max-reruns is not used with either --fail-fast or --background
+	failFast := c.Bool("fail-fast")
+	background := c.Bool("background")
+	maxReruns := c.Uint("max-reruns")
+	if (maxReruns > 0) && (failFast || background) {
+		return cli.NewExitError(
+			"You can't use --fail-fast or --background when --max-reruns is greater than 0. "+
+				"For the CLI to rerun on failure, it has to wait until completion.",
+			1,
+		)
 	}
 
 	var localTests []*rainforest.RFTest
@@ -60,16 +80,15 @@ func (r *runner) startRun(c cliContext) error {
 	}
 
 	if c.Bool("git-trigger") {
-		var git gitTrigger
-		git, err = newGitTrigger()
+		git, err := gitTrigger.NewGitTrigger()
 		if err != nil {
 			return cli.NewExitError(err.Error(), 1)
 		}
-		if !git.checkTrigger() {
+		if !git.CheckTrigger() {
 			log.Printf("Git trigger enabled, but %v was not found in latest commit. Exiting...", git.Trigger)
 			return nil
 		}
-		if tags := git.getTags(); len(tags) > 0 {
+		if tags := git.GetTags(); len(tags) > 0 {
 			if len(params.Tags) == 0 {
 				log.Print("Found tag list in the commit message, overwriting argument.")
 			} else {
@@ -88,7 +107,7 @@ func (r *runner) startRun(c cliContext) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
-	log.Printf("Run %v has been created.", runStatus.ID)
+	r.showRunCreated(runStatus)
 
 	// if background flag is enabled we'll skip monitoring run status
 	if c.Bool("bg") {
@@ -96,6 +115,30 @@ func (r *runner) startRun(c cliContext) error {
 	}
 
 	return monitorRunStatus(c, runStatus.ID)
+}
+
+// rerunRun reruns failed tests from a previous Rainforest run & depending on passed flags monitors its execution
+func (r *runner) rerunRun(c cliContext) error {
+	params, err := r.makeRerunParams(c)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	runStatus, err := r.client.CreateRun(params)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	r.showRunCreated(runStatus)
+
+	// if background flag is enabled we'll skip monitoring run status
+	if c.Bool("bg") {
+		return nil
+	}
+
+	return monitorRunStatus(c, runStatus.ID)
+}
+
+func (r *runner) showRunCreated(runStatus *rainforest.RunStatus) {
+	log.Printf("Run %v has been created. The detailed results are available at %v", runStatus.ID, runStatus.FrontendURL)
 }
 
 func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
@@ -216,14 +259,32 @@ func monitorRunStatus(c cliContext, runID int) error {
 		log.Print(msg)
 
 		if done {
-			if status.FrontendURL != "" {
-				log.Printf("The detailed results are available at %v\n", status.FrontendURL)
+			if c.String("junit-file") != "" {
+				writeJunit(c, api, runID)
 			}
 
-			postRunJUnitReport(c, runID)
-
 			if status.Result != "passed" {
-				return cli.NewExitError("", 1)
+				rerunAttempt := c.Uint("rerun-attempt")
+				remainingReruns := c.Uint("max-reruns") - rerunAttempt
+				if remainingReruns > 0 {
+					cmd, _ := buildRerunArgs(c, runID)
+					path, err := os.Executable()
+					if err != nil {
+						return cli.NewExitError(err.Error(), 1)
+					}
+
+					log.Printf("Rerunning %v, attempt %v", runID, rerunAttempt+1)
+					exec_err := syscall.Exec(path, cmd, os.Environ())
+					if exec_err != nil {
+						return cli.NewExitError(exec_err.Error(), 1)
+					}
+				} else {
+					return cli.NewExitError("", 1)
+				}
+			}
+
+			if status.FrontendURL != "" {
+				log.Printf("The detailed results are available at %v\n", status.FrontendURL)
 			}
 
 			return nil
@@ -247,6 +308,31 @@ func monitorRunStatus(c cliContext, runID int) error {
 	}
 }
 
+func buildRerunArgs(c cliContext, runID int) ([]string, error) {
+	maxReruns := c.Uint("max-reruns")
+	rerunAttempt := c.Uint("rerun-attempt")
+
+	cmd := []string{
+		"rainforest-cli",
+		"rerun", strconv.Itoa(runID),
+		"--max-reruns", fmt.Sprint(maxReruns),
+		"--rerun-attempt", fmt.Sprint(rerunAttempt + 1),
+		"--skip-update", // skip auto-updates for reruns
+	}
+
+	if token := c.GlobalString("token"); len(token) > 0 {
+		cmd = append(cmd, "--token", token)
+	}
+	if conflict := c.String("conflict"); len(conflict) > 0 {
+		cmd = append(cmd, "--conflict", conflict)
+	}
+	if junitFile := c.String("junit-file"); len(junitFile) > 0 {
+		cmd = append(cmd, "--junit-file", junitFile)
+	}
+
+	return cmd, nil
+}
+
 func getRunStatus(failFast bool, runID int, client runnerAPI) (*rainforest.RunStatus, string, bool, error) {
 	newStatus, err := client.CheckRunStatus(runID)
 	if err != nil {
@@ -255,11 +341,15 @@ func getRunStatus(failFast bool, runID int, client runnerAPI) (*rainforest.RunSt
 	}
 
 	if newStatus.StateDetails.IsFinalState {
-		msg := fmt.Sprintf("Run %v is now %v and has %v\n", runID, newStatus.State, newStatus.Result)
+		msg := fmt.Sprintf("Run %v is now %v and has %v (%v failed, %v passed)\n", runID, newStatus.State, newStatus.Result, newStatus.CurrentProgress.Failed, newStatus.CurrentProgress.Passed)
 		return newStatus, msg, true, nil
 	}
 
-	msg := fmt.Sprintf("Run %v is %v and is %v%% complete\n", runID, newStatus.State, newStatus.CurrentProgress.Percent)
+	msg := fmt.Sprintf("Run %v is %v\n", runID, newStatus.State)
+	if newStatus.State != "queued" && newStatus.State != "validating" {
+		msg = fmt.Sprintf("Run %v is %v and is %v%% complete (%v tests in progress, %v failed, %v passed)\n", runID, newStatus.State, newStatus.CurrentProgress.Percent, (newStatus.CurrentProgress.Total - newStatus.CurrentProgress.Complete), newStatus.CurrentProgress.Failed, newStatus.CurrentProgress.Passed)
+	}
+
 	if newStatus.Result == "failed" && failFast {
 		return newStatus, msg, true, nil
 	}
@@ -294,8 +384,8 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 	}
 
 	var conflict string
-	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
-		return rainforest.RunParams{}, errors.New("Invalid conflict option specified")
+	if conflict, err = getConflict(c); err != nil {
+		return rainforest.RunParams{}, err
 	}
 
 	featureID := c.Int("feature")
@@ -375,6 +465,33 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 	}, nil
 }
 
+func (r *runner) makeRerunParams(c cliContext) (rainforest.RunParams, error) {
+	var err error
+
+	var runID int
+	runIDString := c.Args().First()
+	if runIDString == "" {
+		runIDString = os.Getenv("RAINFOREST_RUN_ID")
+	}
+	if runIDString == "" {
+		return rainforest.RunParams{}, errors.New("Missing run ID")
+	}
+	runID, err = strconv.Atoi(runIDString)
+	if err != nil {
+		return rainforest.RunParams{}, errors.New("Invalid run ID specified")
+	}
+
+	var conflict string
+	if conflict, err = getConflict(c); err != nil {
+		return rainforest.RunParams{}, err
+	}
+
+	return rainforest.RunParams{
+		RunID:    runID,
+		Conflict: conflict,
+	}, nil
+}
+
 // stringToIntSlice takes a string of comma separated integers and returns a slice of them
 func stringToIntSlice(s string) ([]int, error) {
 	if s == "" {
@@ -397,6 +514,16 @@ func stringToIntSlice(s string) ([]int, error) {
 func getTags(c cliContext) []string {
 	tags := c.StringSlice("tag")
 	return expandStringSlice(tags)
+}
+
+// getConflict gets conflict from a CLI context. It returns an error if value isn't allowed
+func getConflict(c cliContext) (string, error) {
+	var conflict string
+	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
+		return "", errors.New("Invalid conflict option specified")
+	}
+
+	return conflict, nil
 }
 
 // expandStringSlice takes a slice of strings and expands any comma separated sublists

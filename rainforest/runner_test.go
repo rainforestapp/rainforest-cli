@@ -51,6 +51,116 @@ func TestCreateRun(t *testing.T) {
 	}
 }
 
+func TestCreateRunFromRerun(t *testing.T) {
+	setup()
+	defer cleanup()
+
+	const reqMethod = "POST"
+	runID := 42
+	var completed = false
+
+	runParams := RunParams{
+		RunID:    runID,
+		Conflict: "abort",
+	}
+	wantBody := `{"conflict":"abort"}`
+
+	mux.HandleFunc("/runs", func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("/runs endpoint hit, expected /runs/:id/rerun_failed")
+	})
+
+	wantPath := fmt.Sprintf("/runs/%v/rerun_failed", runID)
+	mux.HandleFunc(wantPath, func(w http.ResponseWriter, r *http.Request) {
+		completed = true
+		if r.Method != reqMethod {
+			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+		}
+
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		s := strings.TrimSpace(buf.String())
+		if s != wantBody {
+			t.Errorf("Request body = %v, want %v", s, wantBody)
+		}
+		fmt.Fprint(w, `{"id": 123, "state":"in_progress"}`)
+	})
+	out, err := client.CreateRun(runParams)
+	if err != nil {
+		t.Error("Error creating run:", err)
+	}
+
+	wantStatus := &RunStatus{ID: 123, State: "in_progress"}
+	if !reflect.DeepEqual(out, wantStatus) {
+		t.Errorf("Response out = %v, want %v", out, wantStatus)
+	}
+
+	if !completed {
+		t.Error("Run API endpoint not hit")
+	}
+
+	runID = 117
+	// Check that you can't combine filters
+	badParams := []RunParams{
+		{
+			RunID: runID,
+			Tags:  []string{"foo"},
+		},
+		{
+			RunID:    runID,
+			Browsers: []string{"chrome"},
+		},
+		{
+			RunID: runID,
+			Tests: "all",
+		},
+		{
+			RunID:   runID,
+			RFMLIDs: []string{"rmfl1"},
+		},
+		{
+			RunID: runID,
+			Crowd: "automation",
+		},
+		{
+			RunID:       runID,
+			Description: "My fancy rerun",
+		},
+		{
+			RunID:   runID,
+			Release: "somerandomsha",
+		},
+		{
+			RunID:         runID,
+			EnvironmentID: 35,
+		},
+		{
+			RunID:  runID,
+			SiteID: 35,
+		},
+		{
+			RunID:     runID,
+			FeatureID: 35,
+		},
+		{
+			RunID:         runID,
+			SmartFolderID: 123,
+		},
+		{
+			RunID:      runID,
+			RunGroupID: 123,
+		},
+	}
+	mux.HandleFunc(fmt.Sprintf("/runs/%v/rerun_failed", runID), func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"id": 123, "state":"in_progress"}`)
+	})
+	for _, params := range badParams {
+		_, err := client.CreateRun(params)
+		if err == nil {
+			t.Errorf("Expected error for params %v but there was no error", params)
+		}
+	}
+}
+
 func TestCreateRunFromRunGroup(t *testing.T) {
 	setup()
 	defer cleanup()
@@ -137,7 +247,6 @@ func TestCreateRunFromRunGroup(t *testing.T) {
 			t.Errorf("Expected error for params %v but there was no error", params)
 		}
 	}
-	cleanup()
 }
 
 func TestCheckRunStatus(t *testing.T) {
@@ -151,12 +260,12 @@ func TestCheckRunStatus(t *testing.T) {
 			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
 		}
 
-		fmt.Fprint(w, `{"id": 123, "state":"in_progress"}`)
+		fmt.Fprint(w, `{"id": 123, "state":"in_progress", "result":"passed"}`)
 	})
 
 	out, _ := client.CheckRunStatus(123)
 
-	want := &RunStatus{ID: 123, State: "in_progress"}
+	want := &RunStatus{ID: 123, State: "in_progress", Result: "passed"}
 
 	if !reflect.DeepEqual(out, want) {
 		t.Errorf("Response out = %v, want %v", out, want)

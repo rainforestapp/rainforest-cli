@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"net/textproto"
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -49,9 +50,13 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestNewRequest(t *testing.T) {
+	os.Unsetenv("CI")
+	os.Unsetenv("CIRCLECI")
+
 	token := "testToken123"
 	client = NewClient(token, false)
-	userAgent := client.UserAgent + " [rainforest golang lib/" + libVersion + "]"
+	client.SendTelemetry = true
+	userAgent := client.UserAgent + " [rainforest golang lib/" + libVersion + " repo/ssh://github.com/rainforestapp/rainforest-cli.git]"
 	client.BaseURL, _ = url.Parse("https://example.org")
 	req, _ := client.NewRequest("GET", "test", nil)
 	if out := req.Header.Get(authTokenHeader); out != token {
@@ -65,6 +70,23 @@ func TestNewRequest(t *testing.T) {
 	}
 	if req.Body != nil {
 		t.Fatalf("constructed request contains a non-nil Body")
+	}
+
+	os.Setenv("CIRCLECI", "1")
+	userAgent = client.UserAgent + " [rainforest golang lib/" + libVersion + " ci/circle-ci repo/ssh://github.com/rainforestapp/rainforest-cli.git]"
+	client.BaseURL, _ = url.Parse("https://example.org")
+	req, _ = client.NewRequest("GET", "test", nil)
+	if out := req.Header.Get("User-Agent"); out != userAgent {
+		t.Errorf("NewRequest didn't set proper User-Agent header %+v, want %+v", out, userAgent)
+	}
+
+	os.Setenv("CIRCLECI", "1")
+	client.SendTelemetry = false
+	userAgent = client.UserAgent + " [rainforest golang lib/" + libVersion + "]"
+	client.BaseURL, _ = url.Parse("https://example.org")
+	req, _ = client.NewRequest("GET", "test", nil)
+	if out := req.Header.Get("User-Agent"); out != userAgent {
+		t.Errorf("NewRequest didn't set proper User-Agent header %+v, want %+v", out, userAgent)
 	}
 
 	// Should not make any HTTP requests without a token

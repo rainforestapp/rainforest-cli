@@ -1,5 +1,83 @@
 # Rainforest CLI Changelog
 
+## 2.22.2 - 2021-09-27
+- Add integration tests for Windows, Mac & Linux. Fix bug in exit code that was in 2.22.0.
+  - (1240780a2eafc3d2bc6ca3e24940f17feb2e4b8d, @ukd1)
+- Don't run tests on tags, as it's already run on the push anyway
+  - (b9a71341f5f916075cbb524c2f36d9088ca37170, @ukd1)
+- Add rollback instructions for developers
+  - (adaa7f6a59f2e2bebd937e8c44e4db7e40cab4a6, @ukd1)
+
+## 2.22.0 - 2021-09-21
+- JUnit output is vastly improved, with steps + results + notes from testers, and actions + results and timing for automation.
+  - (7b911e1c8b48af8220a6290554441e3c8694aed4, @ukd1)
+- Update build process to make it faster
+  - (7b911e1c8b48af8220a6290554441e3c8694aed4, @ukd1)
+- Remove old deprecated way of calling `report`
+  - (e354d477100d4a8b0f6e5b7a446cd5c76bf27527, @ukd1)
+- Fix passing ENV in to reruns, which we do by calling the rainforest-cli itself
+  - (fef5eab5c81e0aa79ea17f0023044b7341b948e3, @ukd1 & with thanks to @magni-)
+
+## 2.21.4 - 2021-09-07
+- Fix for passed / failed reporting being in the wrong order 🤦‍♂️
+  - (504c1c129fe1847d85fc6e07f922352f8d9679e4, @ukd1)
+
+## 2.21.3 - 2021-09-07
+- Expand the output of the CLI a little, making it easier to get to Rainforest and see progress.
+  - (9f932b75eecc33e3bada7e854022913bcedeed9a, @ukd1)
+
+## 2.21.2 - 2021-08-30
+- Support for cleaning up of temporary environments
+  - (ba1846611d08f824f5bd6f4174d9f0ccac725409, @ukd1)
+
+## 2.21.1 - 2021-08-12
+- Stop publishing releases to Equinox.io
+  - (f26fb192f4f4ed957e069582f8eb49b916202fb1, @magni-)
+
+## 2.21.0 - 2021-08-09
+- Switch autoupdate functionality provider from Equinox.io to `go-github-selfupdate`
+  - (a5937b1ac787063dcdafea483967a81e551e2882, @magni-)
+
+## 2.20.0 - 2021-07-29
+- Include URLs to test results for failures
+  - (5d09380, @jbarber)
+
+## 2.19.1 - 2021-07-14
+- Publish releases to GitHub via GoReleaser
+  - (ab5f381e0d7c4e2594c37718846fe90d3a76d4c0, @magni-)
+
+## 2.19.0 - 2021-05-14
+- Update docs, add telemetry + customization based on your CI type & git settings
+  - (56a02b6, @ukd1)
+
+## 2.18.2 - 2021-03-16
+- Update --custom-url documentation
+  - (e492917, @jbarber)
+
+## 2.18.1 - 2021-01-27
+- Find the CLI's path dynamically for re-exec'ing when using the --max-reruns flag
+  - (4f79806, @jbarber)
+
+## 2.18.0 - 2021-01-15
+- Add `--max-reruns N` flag, which allows re-trying failed tests in a run up to `N` times.
+  - (b22c33191c5e36342840f5aa22f802083f8eaca9, @maciejgryka)
+
+## 2.17.0 - 2020-09-08
+- Preserve draft state when downloading RFMLs
+  - (f904bdb68de60e2ff213c3d37f7ab7af20c19745, @mikesbrown)
+
+## 2.16.1 - 2020-07-14
+- Fix default crowd setting being overridden for Run Group runs
+  - (7d88de2155220694fc1423f9f32df8ee6a2dc59b, @magni-)
+- Fix publishing to secondary Equinox channels when releasing a new stable or beta version
+  - (c8c38d75ee6a1ec37098583e70253ecd170b0ad0, @magni-)
+- Fix GCR image triggering
+  - (05da067539ddce74f2f00729f7ccf7146b77795d, @AntGH)
+
+## 2.16.0 - 2020-07-08
+- Add [`rerun`](README.md#running-tests) command
+  - (b54994797897e98a724a5ae330f9bf0faa88417c, @magni-)
+
 ## 2.15.3 - 2020-05-21
 - Add rainforest-orb and version to UserAgent if CLI is called from CircleCI Orb
   - (da19bb6ad2702aead89f7169504af7286659d621, @magni-)

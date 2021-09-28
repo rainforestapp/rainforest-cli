@@ -4,7 +4,7 @@
 
 A command line interface to interact with [Rainforest QA](https://www.rainforestqa.com/).
 
-This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation](https://help.rainforestqa.com/en/articles/3113252) on the subject.
+This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation]https://help.rainforestqa.com/docs/rainforest-cli-for-continuous-integration) on the subject.
 
 The CLI uses the Rainforest API which is documented at https://app.rainforestqa.com/docs
 
@@ -15,7 +15,7 @@ The CLI uses the Rainforest API which is documented at https://app.rainforestqa.
 ```bash
 $ docker pull gcr.io/rf-public-images/rainforest-cli
 $ docker run gcr.io/rf-public-images/rainforest-cli --version
-Rainforest CLI version 2.15.1 - build: docker
+Rainforest CLI version 2.19.0 - build: docker
 ```
 
 ### Brew
@@ -28,9 +28,15 @@ brew install rainforestapp/public/rainforest-cli
 
 ### Binaries
 
-Get the CLI binaries from our [download page](https://dl.equinox.io/rainforest_qa/rainforest-cli/stable) and follow the instructions.
+Get the CLI binaries from our [Releases page](https://github.com/rainforestapp/rainforest-cli/releases).
 
 The CLI will check for updates and automatically update itself on every use unless the global flag `--skip-update` is used.
+
+You can download the latest (Linux) `rainforest-cli` binary with the following command (requires `curl`, `jq` and `tar`):
+
+```bash
+curl -sL $(curl -s https://api.github.com/repos/rainforestapp/rainforest-cli/releases/latest | jq -r '.assets[].browser_download_url | select(test("linux-amd64.tar.gz"))') | tar zxf - rainforest-cli
+```
 
 ### Migrating from our old CLI
 
@@ -80,6 +86,22 @@ Run individual tests in the foreground and report.
 ```bash
 rainforest run <test_id1> <test_id2>
 ```
+
+Run a run group.
+
+⚠️ This uses the configuration defined in the run group (environment, browsers, crowd, location). If you wish to run tests from a run group without using the run group's configuration, you will need to use the Rainforest API directly, passing a `run_group_id` parameter to [the `POST /runs` endpoint](https://app.rainforestqa.com/docs#!/runs/post1Runs). ⚠️
+
+```bash
+rainforest run --run-group <run_group_id>
+```
+
+#### Rerunning Failed Tests
+
+```bash
+rainforest rerun <failed_run_id>
+```
+
+The `failed_run_id` argument is optional. If none is passed in, the CLI will look for a run ID in the `RAINFOREST_RUN_ID` environment variable.
 
 #### Creating and Managing Tests
 
@@ -200,7 +222,7 @@ See a list of all of your run groups and their IDs
 rainforest run-groups
 ```
 
-To generate a junit xml report for a test run which has already completed
+To fetch a junit xml report for a test run which has already completed
 ```bash
 rainforest report <run-id> --junit-file rainforest.xml
 ```
@@ -223,9 +245,9 @@ Upload a mobile app to Rainforest.
 ```bash
 rainforest mobile-upload --site-id <site_id> --environment-id <environment_id> PATH/TO/mobile_app.ipa
 ```
-- `--site-id SITE_ID` - Filter tests by a specific site. You can see a list of your site IDs with `rainforest sites`.
-- `--environment-id` - Run your tests using this environment. Otherwise it will use your default environment.
-- `--app-slot` - An optional flag for specifying the app slot (1-100) of your app, if your site-environment contains multiple apps. Default is 1.
+- `--site-id SITE_ID` - The site ID of the app you are uploading. You can see a list of your site IDs with the `sites` command.
+- `--environment-id ENVIRONMENT_ID` - The environment ID of the app you are uploading. You can see a list of your environment IDs with the `environments` command.
+- `--app-slot SLOT` - An optional flag for specifying the app slot of your app, if your site-environment contains multiple apps. Valid values are from `1` to `100`, and the default value is `1`.
 
 
 ## Options
@@ -296,9 +318,7 @@ tests and the first step of a test.
 using the embedded test's RFML ID.
 
 For more information on embedding inline screenshots and file downloads,
-[see our examples](./examples/inline_files.md)
-
-For more information on test writing see the [documentation](http://support.rainforestqa.com/hc/en-us/sections/200585603-Writing-Tests).
+[see our examples](./examples/inline_files.md).
 
 ### Command Line Options
 
@@ -311,11 +331,11 @@ Popular command line options are:
 - `--run-group ID` - run/filter based on a run group. When used with `run`, this trigger a run from the run group; it can't be used in conjunction with other test filters.
 - `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
 - `--conflict OPTION` - use the `abort` option to abort any runs in progress in the same environment as your new run. use the `abort-all` option to abort all runs in progress.
-- `--bg` - creates a run in the background and rainforest-cli exits immediately after. Do not use if you want rainforest-cli to track your run and exit with an error code upon run failure (ie: using Rainforest in your CI environment).
+- `--bg` - creates a run in the background and rainforest-cli exits immediately after. Do not use if you want rainforest-cli to track your run and exit with an error code upon run failure (ie: using Rainforest in your CI environment). Cannot be used together with `--max-reruns`.
 - `--crowd [default|automation|automation_and_crowd|on_premise_crowd]` - select automation or your crowd of testers (for clients with on premise testers). For more information, contact us at help@rainforestqa.com.
 - `--wait RUN_ID` - wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.
-- `--fail-fast` - fail the build as soon as the first failed result comes in. If you don't pass this it will wait until 100% of the run is done. Has no effect with `--bg`.
-- `--custom-url` - use a custom url for this run to use an ad-hoc QA environment on all tests. You will need to specify a `site_id` too for this to work. Note that we will be creating a new environment for your account for this particular run.
+- `--fail-fast` - return an error as soon as the first failed result comes in (the run always proceeds until completion, but the CLI will return an error code early). If you don't use it, it will wait until 100% of the run is done. Has no effect with `--bg` and cannot be used together with `--max-reruns`.
+- `--custom-url` - specify the URL for the run to use when testing against an ephemeral environment. This will create a new temporary environment for the run. Temporary environments will be automatically deleted 72 hours after they were last used.
 - `--git-trigger` - only trigger a run when the last commit (for a git repo in the current working directory) has contains `@rainforest` and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged `checkout`. This over-rides `--tag` and any tests specified. If no `@rainforest` is detected it will exit 0.
 - `--description "CI automatic run"` - add an arbitrary description for the run.
 - `--release "1a2b3d"` - add an ID to associate the run with a release. Commonly used values are commit SHAs, build IDs, branch names, etc.
@@ -323,10 +343,11 @@ Popular command line options are:
 - `--test-folder /path/to/directory` - Use with `rainforest [new, upload, export]`. If this option is not provided, rainforest-cli will, in the case of 'new' create a directory, or in the case of 'upload' and 'export' use the directory, at the default path `./spec/rainforest/`.
 - `--junit-file` - Create a junit xml report file with the specified name.  Must be run in foreground mode, or with the report command. Uses the rainforest
 api to construct a junit report.  This is useful to track tests in CI such as Jenkins or Bamboo.
-- `--run-id` - Only used with the report command.  Specify a past rainforest run by ID number to generate a report for.
 - `--import-variable-csv-file /path/to/csv/file.csv` - Use with `run` and `--import-variable-name` to upload new tabular variable values before your run to specify the path to your CSV file.
 - `--import-variable-name NAME` - Use with `run` and `--import-variable-csv-file` to upload new tabular variable values before your run to specify the name of your tabular variable. You may also use this with the `csv-upload` command to update your variable without starting a run.
 - `--single-use` - Use with `run` or `csv-upload` to flag your variable upload as `single-use`. See `--import-variable-csv-file` and `--import-variable-name` options as well.
+- `--disable-telemetry` stops the cli sharing information about which CI system you may be using, and where you host your git repo (i.e. your git remote). Rainforest uses this to better integrate with CI tooling, and code hosting companies, it is not sold or shared. Disabling this may affect your Rainforest experience.
+- `--max-reruns` - If set to a value > 0 and a test fails, the CLI will re-run failed tests a number of times before reporting failure. If `--junit-file <filename>` is also used, the JUnit reports of reruns will be saved under `<filename>.1`, `<filename>.2` etc. Cannot be used together with `--fail-fast`.
 
 ## Support
 
@@ -335,36 +356,43 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 ## Contributing
 
 1. Fork it
-2. Initialize the submodules (`git submodule init && git submodule update`)
-3. Create a feature branch (`git checkout -b my-new-feature`)
-4. Commit your changes (`git commit -am 'Add some feature'`)
-5. Push to the branch (`git push origin my-new-feature`)
-6. Create a new Pull Request
+1. Create a feature branch (`git checkout -b my-new-feature`)
+1. Commit your changes (`git commit -am 'Add some feature'`)
+1. Push to the branch (`git push origin my-new-feature`)
+1. Create a new Pull Request
 
-## Release process
+## Development:
 
-Check the `.circleci/config.yml` for the latest, but currently merging to master will build and deploy to the following Equinox channels:
-
-Tag                             | Channels
---------------------------------|-------------
-No tag                          | dev
-vX.Y.Z-alpha.N or vX.Y.Z-beta.N | beta, dev
-vX.Y.Z                          | stable, beta, dev
-
-Development + release process is:
-
+### Development PR
 1. Branch from master
-2. Do work
-3. Open PR against master
-4. Merge to master
-5. Branch from master to update `CHANGELOG.md` to include the commit hashes and release date
-6. Update the `version` constant in `rainforest-cli.go` following [semvar](http://semver.org/)
-7. Merge to master
-8. Tag the master branch with the release:
+1. Do work
+1. Open PR against master
+1. Get review, and approval
+1. Merge to master
+### Changelog PR
+1. Branch from master to update `CHANGELOG.md` to include the commit hashes and release date
+1. Update the `version` constant in `rainforest-cli.go` following [semantic versioning](http://semver.org/)
+1. Merge to master
+
+
+## Release:
+1. Tag `master` after merging: `git tag vX.Y.Z && git push --tags`
+1. Wait for the CircleCI build to finish. This will create a [draft GitHub Release](https://github.com/rainforestapp/rainforest-cli/releases). Edit the description as appropriate and publish the release.
+1. Update https://github.com/rainforestapp/homebrew-public to use the latest URL and SHA256. Both can be found in the GitHub Release assets. Additionally, the SHA256 is output as part of the CircleCI `Release` job.
+
+### Releasing a beta version
+Simply tag a commit with an alpha or beta version.
 ```bash
-   git tag vX.Y.Z or vX.Y.Z-alpha.N or vX.Y.Z-beta.N
-   git push origin vX.Y.Z
+git tag vX.Y.Z-alpha.N # or vX.Y.Z-beta.N
+git push origin vX.Y.Z-alpha.N
 ```
-9. Merge to master to release to stable/beta/dev
-10. Add release to Github [release page](https://github.com/rainforestapp/rainforest-cli/releases)
-11. Update https://github.com/rainforestapp/homebrew-public to use the latest stable build url from [equinox](https://equinox.io)
+
+## Rollback:
+Should you have to rollback, you will need to:
+
+1. Delete the release in question. CLI will 'update' itself to the latest public version, which should downgrade users on the next try
+1. Go to GCP Container Registry:
+  1. delete the release you want to rollback
+  1. set the latest tag on the release you wish to use
+1. Revert the PR that caused the rollback in the first place
+1. Check in Rainforest Admin who did (or could have) used the release and notify them via support if there were any critical issues

@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.15.3"
+	version = "2.22.2"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -51,12 +51,18 @@ var (
 
 // cliContext is an interface providing context of running application
 // i.e. command line options and flags. One of the types that provides the interface is
-// cli.Context, the other is fakeCLIContext which is used for testing.
+// cli.Context, the other is fakeContext which is used for testing.
 type cliContext interface {
 	String(flag string) (val string)
+	GlobalString(flag string) (val string)
 	StringSlice(flag string) (vals []string)
+	GlobalStringSlice(flag string) (vals []string)
 	Bool(flag string) (val bool)
+	GlobalBool(flag string) (val bool)
 	Int(flag string) (val int)
+	GlobalInt(flag string) (val int)
+	Uint(flag string) (val uint)
+	GlobalUint(flag string) (val uint)
 
 	Args() (args cli.Args)
 }
@@ -101,6 +107,7 @@ func main() {
 		if build != "" {
 			api.UserAgent += " build: " + build
 		}
+		api.SendTelemetry = !c.Bool("disable-telemetry")
 
 		return nil
 	}
@@ -120,6 +127,10 @@ func main() {
 		cli.BoolFlag{
 			Name:  "skip-update",
 			Usage: "Used to disable auto-updating of the cli",
+		},
+		cli.BoolFlag{
+			Name:  "disable-telemetry",
+			Usage: "Stops the cli sharing information about which CI system you may be using, and where you host your git repo (i.e. your git remote). Rainforest uses this to better integrate with CI tooling, and code hosting companies, it is not sold or shared. Disabling this may affect your Rainforest experience.",
 		},
 		cli.BoolFlag{
 			Name:  "debug",
@@ -184,8 +195,7 @@ func main() {
 					Usage: "run your tests using specified `ENVIRONMENT`. Otherwise it will use your default one.",
 				},
 				cli.StringFlag{
-					Name:  "crowd",
-					Value: "default",
+					Name: "crowd",
 					Usage: "run your tests using specified `CROWD`. Available choices are: default, automation, automation_and_crowd " +
 						"or on_premise_crowd. Contact your CSM for more details.",
 				},
@@ -206,8 +216,8 @@ func main() {
 				},
 				cli.StringFlag{
 					Name: "custom-url",
-					Usage: "use a custom `URL` for this run. Example use case: an ad-hoc QA environment with Fourchette. " +
-						"You will need to specify a site_id too for this to work.",
+					Usage: "specify the URL for the run to use when testing against an ephemeral environment. " +
+						"This will create a new temporary environment for the run.",
 				},
 				cli.BoolFlag{
 					Name: "git-trigger",
@@ -246,6 +256,49 @@ func main() {
 				cli.StringFlag{
 					Name:  "wait, reattach",
 					Usage: "monitor existing run with `RUN_ID` instead of starting a new one.",
+				},
+				cli.UintFlag{
+					Name:  "max-reruns",
+					Usage: "Rerun `max-reruns` times before reporting failure.",
+				},
+			},
+		},
+		{
+			Name:         "rerun",
+			Aliases:      []string{"rr"},
+			Usage:        "Rerun failed tests from a previous run",
+			OnUsageError: onCommandUsageErrorHandler("rerun"),
+			Action:       rerunRun,
+			Description: "Reruns the failed tests from a previous run on Rainforest platform. " +
+				"Parameters such as 'environment', 'crowd', 'release', etc. are copied from the previous run.",
+			ArgsUsage: "[run ID]",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name: "conflict",
+					Usage: "use the abort option to abort any runs in the same environment or " +
+						"use the abort-all option to abort all runs in progress.",
+				},
+				cli.BoolFlag{
+					Name: "bg, background",
+					Usage: "run in the background. This option makes cli return after successfully starting a run, " +
+						"without waiting for the run results.",
+				},
+				cli.BoolFlag{
+					Name: "fail-fast, ff",
+					Usage: "fail the build as soon as the first failed result comes in. " +
+						"If you don't pass this it will wait until 100% of the run is done. Use with --fg.",
+				},
+				cli.StringFlag{
+					Name:  "junit-file",
+					Usage: "Create a JUnit XML report `FILE` with the specified name. Must be run in foreground mode.",
+				},
+				cli.UintFlag{
+					Name:  "max-reruns",
+					Usage: "Rerun `max-reruns` times before reporting failure.",
+				},
+				cli.UintFlag{
+					Name:  "rerun-attempt",
+					Usage: "Which rerun attempt this is.",
 				},
 			},
 		},
@@ -429,12 +482,10 @@ func main() {
 					Name:  "junit-file",
 					Usage: "`PATH` of file to which write a JUnit report for the specified run.",
 				},
-				cli.StringFlag{
-					Name:  "run-id",
-					Usage: "DEPRECATED: ID of a run for which to generate results. Since v2 please provide the run ID as an argument.",
-				},
 			},
-			Action: createReport,
+			Action: func(c *cli.Context) error {
+				return writeJunit(c, api, 0)
+			},
 		},
 		{
 			Name:         "sites",
@@ -494,9 +545,8 @@ func main() {
 		},
 		{
 			Name:         "update",
-			Usage:        "Updates application to the latest version on specified release channel (stable/beta)",
+			Usage:        "Updates application to the latest version",
 			OnUsageError: onCommandUsageErrorHandler("update"),
-			ArgsUsage:    "[CHANNEL]",
 			Action:       updateCmd,
 		},
 	}
@@ -533,6 +583,8 @@ func shuffleFlags(originalArgs []string) []string {
 				i++
 			}
 			i--
+		} else if option == "--disable-telemetry" {
+			globalOptions = append(globalOptions, option)
 		} else if option == "--skip-update" {
 			globalOptions = append(globalOptions, option)
 		} else if option == "--debug" {

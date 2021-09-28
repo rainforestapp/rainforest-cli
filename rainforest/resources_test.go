@@ -254,3 +254,27 @@ func TestGetRunGroups(t *testing.T) {
 		t.Errorf("Response out = %v, want %v", out, want)
 	}
 }
+
+func TestGetRunJunit(t *testing.T) {
+	setup()
+	defer cleanup()
+
+	const reqMethod = "GET"
+	want := "<xml>ya</xml>"
+
+	mux.HandleFunc("/runs/1/junit.xml", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != reqMethod {
+			t.Errorf("Request method = %v, want %v", r.Method, reqMethod)
+		}
+		fmt.Fprint(w, want)
+	})
+
+	got, err := client.GetRunJunit(1)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if !reflect.DeepEqual(*got, want) {
+		t.Errorf("Response out = %v, want %v", *got, want)
+	}
+}

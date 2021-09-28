@@ -26,7 +26,7 @@ func TestCreateTemporaryEnvironment(t *testing.T) {
 				t.Errorf("Error unmarshalling request body: %v", err.Error())
 			}
 
-			resJSON := fmt.Sprintf(`{"id":%v,"name":"%v"}`, expectedID, p.Name)
+			resJSON := fmt.Sprintf(`{"id":%v,"name":"%v","temporary":true}`, expectedID, p.Name)
 			w.Write([]byte(resJSON))
 		} else {
 			t.Errorf("Unexpected request method: %v", r.Method)

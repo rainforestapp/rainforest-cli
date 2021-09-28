@@ -11,7 +11,7 @@ import (
 )
 
 func TestMain(t *testing.T) {
-	commands := []string{"run", "new", "validate", "upload", "rm", "download", "csv-upload", "mobile-upload", "report", "sites", "environments", "folders", "filters", "browsers", "features", "run-groups", "update"}
+	commands := []string{"run", "rerun", "new", "validate", "upload", "rm", "download", "csv-upload", "mobile-upload", "report", "sites", "environments", "folders", "filters", "browsers", "features", "run-groups", "update"}
 
 	for _, command := range commands {
 		if os.Getenv("TEST_EXIT") == "1" {
@@ -87,6 +87,10 @@ func TestShuffleFlags(t *testing.T) {
 			testArgs: []string{"./rainforest", "run", "-f", "foo.rfml"},
 			want:     []string{"./rainforest", "run", "-f", "foo.rfml"},
 		},
+		{
+			testArgs: []string{"./rainforest", "run", "-f", "foo.rfml", "--disable-telemetry"},
+			want:     []string{"./rainforest", "--disable-telemetry", "run", "-f", "foo.rfml"},
+		},
 	}
 
 	for _, tCase := range testCases {
@@ -109,6 +113,32 @@ func TestUserAgent(t *testing.T) {
 	userAgent := "rainforest-cli/" + version
 	if api.UserAgent != userAgent {
 		t.Errorf("main() didn't set proper UserAgent %+v, want %+v", api.UserAgent, userAgent)
+	}
+}
+
+func TestSendTelemetry(t *testing.T) {
+	os.Args = []string{"./rainforest"}
+	main()
+
+	if api == nil {
+		t.Error("Expected api to be set")
+	}
+
+	if api.SendTelemetry != true {
+		t.Errorf("main() didn't default SendTelemetry - got %+v, want true", api.SendTelemetry)
+	}
+}
+
+func TestDisableTelemetry(t *testing.T) {
+	os.Args = []string{"./rainforest", "--disable-telemetry"}
+	main()
+
+	if api == nil {
+		t.Error("Expected api to be set")
+	}
+
+	if api.SendTelemetry != false {
+		t.Errorf("main() didn't disable SendTelemetry - got %+v, want false", api.SendTelemetry)
 	}
 }
 
@@ -145,6 +175,10 @@ func (f fakeContext) String(s string) string {
 	return ""
 }
 
+func (f fakeContext) GlobalString(s string) string {
+	return f.String(s)
+}
+
 func (f fakeContext) StringSlice(s string) []string {
 	val, ok := f.mappings[s].([]string)
 
@@ -152,6 +186,10 @@ func (f fakeContext) StringSlice(s string) []string {
 		return val
 	}
 	return []string{}
+}
+
+func (f fakeContext) GlobalStringSlice(s string) []string {
+	return f.StringSlice(s)
 }
 
 func (f fakeContext) Bool(s string) bool {
@@ -163,6 +201,10 @@ func (f fakeContext) Bool(s string) bool {
 	return false
 }
 
+func (f fakeContext) GlobalBool(s string) bool {
+	return f.Bool(s)
+}
+
 func (f fakeContext) Int(s string) int {
 	val, ok := f.mappings[s].(int)
 
@@ -170,6 +212,23 @@ func (f fakeContext) Int(s string) int {
 		return val
 	}
 	return 0
+}
+
+func (f fakeContext) GlobalInt(s string) int {
+	return f.GlobalInt(s)
+}
+
+func (f fakeContext) Uint(s string) uint {
+	val, ok := f.mappings[s].(uint)
+
+	if ok {
+		return val
+	}
+	return 0
+}
+
+func (f fakeContext) GlobalUint(s string) uint {
+	return f.GlobalUint(s)
 }
 
 func (f fakeContext) Args() cli.Args {

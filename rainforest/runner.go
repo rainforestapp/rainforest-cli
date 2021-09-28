@@ -22,6 +22,7 @@ type RunParams struct {
 	EnvironmentID int         `json:"environment_id,omitempty"`
 	FeatureID     int         `json:"feature_id,omitempty"`
 	RunGroupID    int         `json:"-"`
+	RunID         int         `json:"-"`
 }
 
 // RunStatus represents a status of a RF run in progress.
@@ -38,6 +39,8 @@ type RunStatus struct {
 		Total    int `json:"total"`
 		Complete int `json:"complete"`
 		NoResult int `json:"no_result"`
+		Passed   int `json:"passed"`
+		Failed   int `json:"failed"`
 	} `json:"current_progress"`
 	FrontendURL string `json:"frontend_url,omitempty"`
 }
@@ -47,7 +50,13 @@ func (c *Client) CreateRun(params RunParams) (*RunStatus, error) {
 	var runStatus RunStatus
 
 	endpoint := "runs"
-	if params.RunGroupID > 0 {
+	if params.RunID > 0 {
+		err := validateRerunParams(params)
+		if err != nil {
+			return &runStatus, err
+		}
+		endpoint = fmt.Sprintf("runs/%v/rerun_failed", params.RunID)
+	} else if params.RunGroupID > 0 {
 		err := validateRunGroupParams(params)
 		if err != nil {
 			return &runStatus, err
@@ -68,24 +77,65 @@ func (c *Client) CreateRun(params RunParams) (*RunStatus, error) {
 	return &runStatus, nil
 }
 
+func validateRerunParams(params RunParams) error {
+	if params.Tests != nil {
+		return errors.New("Tests cannot be specified for rerun")
+	}
+	if params.RFMLIDs != nil {
+		return errors.New("RFML tests cannot be specified for rerun")
+	}
+	if params.Tags != nil {
+		return errors.New("Tags cannot be specified for rerun")
+	}
+	if params.SmartFolderID != 0 {
+		return errors.New("Folder cannot be specified for rerun")
+	}
+	if params.SiteID != 0 {
+		return errors.New("Site cannot be specified for rerun")
+	}
+	if params.Crowd != "" {
+		return errors.New("Crowd cannot be specified for rerun")
+	}
+	if params.Browsers != nil {
+		return errors.New("Browsers cannot be specified for rerun")
+	}
+	if params.Description != "" {
+		return errors.New("Description cannot be specified for rerun")
+	}
+	if params.Release != "" {
+		return errors.New("Release cannot be specified for rerun")
+	}
+	if params.EnvironmentID != 0 {
+		return errors.New("Environment cannot be specified for rerun")
+	}
+	if params.FeatureID != 0 {
+		return errors.New("Feature cannot be specified for rerun")
+	}
+	if params.RunGroupID != 0 {
+		return errors.New("Run Group cannot be specified for rerun")
+	}
+
+	return nil
+}
+
 func validateRunGroupParams(params RunParams) error {
+	if params.Tests != nil {
+		return errors.New("Tests cannot be specified alongside run group")
+	}
 	if params.Tags != nil {
 		return errors.New("Tags cannot be specified alongside run group")
 	}
-	if params.Browsers != nil {
-		return errors.New("Browsers cannot be specified alongside run group")
-	}
-	if params.Tests != nil {
-		return errors.New("Tests cannot be specified alongside run group")
+	if params.SmartFolderID != 0 {
+		return errors.New("Folder cannot be specified alongside run group")
 	}
 	if params.SiteID != 0 {
 		return errors.New("Site cannot be specified alongside run group")
 	}
+	if params.Browsers != nil {
+		return errors.New("Browsers cannot be specified alongside run group")
+	}
 	if params.FeatureID != 0 {
 		return errors.New("Feature cannot be specified alongside run group")
-	}
-	if params.SmartFolderID != 0 {
-		return errors.New("Folder cannot be specified alongside run group")
 	}
 
 	return nil

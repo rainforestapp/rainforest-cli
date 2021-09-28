@@ -57,15 +57,24 @@ puts "\tFetching #{latest_release.windows_amd64_zip_name}"
 # fetch
 latest_release.download
 
+puts "\tDownloaded"
+
+puts
+puts "Setting up folders"
 # unzip, move
 FileUtils.rm_rf('tmp')
 FileUtils.rm_rf('rainforest-cli')
 FileUtils.mkdir_p('tmp')
 FileUtils.mkdir_p(File.join('rainforest-cli', 'tools'))
+
+puts "Unzipping #{latest_release.windows_amd64_zip_name}"
 `unzip -n #{latest_release.windows_amd64_zip_name} -d tmp`
+
+puts "Moving exe --> package"
 FileUtils.mv(File.join('tmp', 'rainforest-cli.exe'), File.join('rainforest-cli', 'tools'))
 FileUtils.rm_rf('tmp')
 
+puts "Making rainforest-cli.nuspec"
 # write the nuget
 builder = Builder::XmlMarkup.new(indent: 2)
 builder.instruct!(:xml, version: '1.0', encoding: 'UTF-8')
@@ -99,4 +108,4 @@ xml = builder.package(xmlns: 'http://schemas.microsoft.com/packaging/2015/06/nus
   end
 end
 
-File.write('rainforest-cli/rainforest-cli.nuspec', xml)
+File.write(File.join('rainforest-cli', 'rainforest-cli.nuspec'), xml)

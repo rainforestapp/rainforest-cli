@@ -15,6 +15,7 @@ jobs:
       -
         name: Build
         run: |
+          cd chocolatey
           ruby main.rb
       -
         name: Choco Pack

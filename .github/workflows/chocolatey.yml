@@ -15,14 +15,14 @@ jobs:
           ruby main.rb
       -
         name: Choco Pack
-        uses: crazy-max/ghaction-chocolatey@v1
-        with:
-          args: pack
+        run: |
+          cd chocolatey/rainforest-cli/
+          choco pack
       -
         name: Choco Push
-        uses: crazy-max/ghaction-chocolatey@v1
-        with:
-          args: push @(gci chocolatey/rainforest-cli/*.nupkg)[0] --key $env:CHOCO_API_KEY --source https://push.chocolatey.org/
+        run: |
+          cd chocolatey/rainforest-cli/
+          choco push @(gci *.nupkg)[0] --key $env:CHOCO_API_KEY --source https://push.chocolatey.org/
         env:
           CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
       - 

@@ -1,6 +1,7 @@
 require 'builder'
 require 'httparty'
 require 'json'
+require 'fileutils'
 
 res = HTTParty.get('https://api.github.com/repos/rainforestapp/rainforest-cli/releases')
 raise StandardError, "Error #{res.code} while fetching releases:\n#{res.body}" unless res.code == 200
@@ -57,11 +58,13 @@ puts "\tFetching #{latest_release.windows_amd64_zip_name}"
 latest_release.download
 
 # unzip, move
-`rm -rf tmp rainforest-cli`
-`mkdir -p tmp rainforest-cli/tools`
+FileUtils.rm_rf('tmp')
+FileUtils.rm_rf('rainforest-cli')
+FileUtils.mkdir_p('tmp')
+FileUtils.mkdir_p(File.join('rainforest-cli', 'tools'))
 `unzip -n #{latest_release.windows_amd64_zip_name} -d tmp`
-`mv tmp/rainforest-cli.exe rainforest-cli/tools/`
-`rm -rf tmp`
+FileUtils.mv(File.join('tmp', 'rainforest-cli.exe'), File.join('rainforest-cli', 'tools'))
+FileUtils.rm_rf('tmp')
 
 # write the nuget
 builder = Builder::XmlMarkup.new(indent: 2)

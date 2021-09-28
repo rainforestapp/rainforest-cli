@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 2.22.3 - 2021-09-29
+- Make the CLI error instead of panic if you provide an empty token
+  - (e5d48917733568f1a64316376808797d0a414b54, @jbarber)
+
 ## 2.22.2 - 2021-09-27
 - Add integration tests for Windows, Mac & Linux. Fix bug in exit code that was in 2.22.0.
   - (1240780a2eafc3d2bc6ca3e24940f17feb2e4b8d, @ukd1)

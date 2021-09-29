@@ -3,6 +3,10 @@
 ## 2.22.3 - 2021-09-29
 - Make the CLI error instead of panic if you provide an empty token
   - (e5d48917733568f1a64316376808797d0a414b54, @jbarber)
+- Rename the binary in releases back to `rainforest`
+  - (3bc8022ec4e031b613b8ec3f0753e5caac1c1e88, @ukd1)
+- Add validation checks for goreleaser's config
+  - (c477bec4c2e5f078ba62067c8c4561e92e51cb9b, @ukd1)
 
 ## 2.22.2 - 2021-09-27
 - Add integration tests for Windows, Mac & Linux. Fix bug in exit code that was in 2.22.0.

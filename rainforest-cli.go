@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.22.2"
+	version = "2.22.3"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -568,7 +568,7 @@ func shuffleFlags(originalArgs []string) []string {
 	for i := 1; i < len(originalArgs); i++ {
 		option := originalArgs[i]
 		if option == "--token" || option == "-t" {
-			if i+1 < len(originalArgs) && originalArgs[i+1][:1] != "-" {
+			if i+1 < len(originalArgs) && len(originalArgs[i+1]) > 0 && originalArgs[i+1][:1] != "-" {
 				globalOptions = append(globalOptions, originalArgs[i:i+2]...)
 				i++
 			} else {

@@ -34,6 +34,16 @@ commands:
             ./rainforest-cli -v --skip-update
 
 jobs:
+  validate_goreleaser_config:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Install GoReleaser
+          command: go install github.com/goreleaser/goreleaser@latest
+      - run:
+          name: Check GoReleaser Config
+          command: goreleaser check
   test:
     <<: *defaults
     steps:
@@ -257,42 +267,54 @@ workflows:
   test_and_deploy:
     jobs:
       - test
+      - validate_goreleaser_config
       - integration_mac_pass:
           requires:
             - test
+            - validate_goreleaser_config
       - integration_mac_pass_junit:
           requires:
             - test
       - integration_mac_fail:
           requires:
             - test
+            - validate_goreleaser_config
       - integration_mac_fail_junit:
           requires:
             - test
+            - validate_goreleaser_config
       - integration_linux_pass:
           requires:
             - test
+            - validate_goreleaser_config
       - integration_linux_pass_junit:
           requires:
             - test
+            - validate_goreleaser_config
       - integration_linux_fail:
           requires:
             - test
+            - validate_goreleaser_config
       - integration_linux_fail_junit:
           requires:
             - test
+            - validate_goreleaser_config
       - integration_windows_pass:
           requires:
             - test
+            - validate_goreleaser_config
       - integration_windows_pass_junit:
           requires:
             - test
+            - validate_goreleaser_config
       - integration_windows_fail:
           requires:
             - test
+            - validate_goreleaser_config
       - integration_windows_fail_junit:
           requires:
             - test
+            - validate_goreleaser_config
       - release:
           filters:
             branches:

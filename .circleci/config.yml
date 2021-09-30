@@ -26,12 +26,37 @@ commands:
             go version
   go_build:
     description: "go build, and output cli version"
+    parameters:
+      windows:
+        description: Whether this is running on Windows
+        type: boolean
+        default: false
     steps:
       - run:
           name: Build
-          command: |
-            go build
-            ./rainforest-cli -v --skip-update
+          command: go build -o build/rainforest<<# parameters.windows >>.exe<</ parameters.windows >>
+      - when:
+          condition: << parameters.windows >>
+          steps:
+            - run:
+                name: Move executable
+                command: |
+                  Move-Item rainforest rainforest-dir
+                  Move-Item build\./rainforest.exe .
+            - run:
+                name: Show CLI version
+                command: ./rainforest.exe -v --skip-update
+      - unless:
+          condition: << parameters.windows >>
+          steps:
+            - run:
+                name: Move executable
+                command: |
+                  mv rainforest rainforest-dir
+                  mv build/rainforest .
+            - run:
+                name: Show CLI version
+                command: ./rainforest -v --skip-update
 
 jobs:
   validate_goreleaser_config:
@@ -66,7 +91,7 @@ jobs:
       - run:
           name: Start a run that will pass
           command: |
-            ./rainforest-cli --skip-update run --run-group 9502
+            ./rainforest --skip-update run --run-group 9502
 
   integration_mac_pass_junit:
     <<: *mac
@@ -77,7 +102,7 @@ jobs:
       - run:
           name: Start a run that will pass, with junit
           command: |
-            ./rainforest-cli --skip-update run --run-group 9502 --junit-file junit-pass.xml
+            ./rainforest --skip-update run --run-group 9502 --junit-file junit-pass.xml
       - store_test_results:
           path: junit-pass.xml
 
@@ -91,7 +116,7 @@ jobs:
           name: Start a run that will fail
           command: |
             set +e
-            ./rainforest-cli --skip-update run --run-group 9503
+            ./rainforest --skip-update run --run-group 9503
             if [[ $? != 0 ]]; then
               echo "TESTING ::: Got the expected non-zero exit code. ✅"
               echo 0
@@ -110,7 +135,7 @@ jobs:
           name: Start a run that will fail, with junit
           command: |
             set +e
-            ./rainforest-cli --skip-update run --run-group 9503 --junit-file junit-fail.xml
+            ./rainforest --skip-update run --run-group 9503 --junit-file junit-fail.xml
             if [[ $? != 0 ]]; then
               echo "TESTING ::: Got the expected non-zero exit code. ✅"
               echo 0
@@ -129,7 +154,7 @@ jobs:
       - run:
           name: Start a run that will pass
           command: |
-            ./rainforest-cli --skip-update run --run-group 9502
+            ./rainforest --skip-update run --run-group 9502
 
   integration_linux_pass_junit:
     <<: *defaults
@@ -139,7 +164,7 @@ jobs:
       - run:
           name: Start a run that will pass, with junit
           command: |
-            ./rainforest-cli --skip-update run --run-group 9502 --junit-file junit-pass.xml
+            ./rainforest --skip-update run --run-group 9502 --junit-file junit-pass.xml
       - store_test_results:
           path: junit-pass.xml
 
@@ -152,7 +177,7 @@ jobs:
           name: Start a run that will fail
           command: |
             set +e
-            ./rainforest-cli --skip-update run --run-group 9503
+            ./rainforest --skip-update run --run-group 9503
             if [[ $? != 0 ]]; then
               echo "TESTING ::: Got the expected non-zero exit code. ✅"
               echo 0
@@ -170,7 +195,7 @@ jobs:
           name: Start a run that will fail, with junit
           command: |
             set +e
-            ./rainforest-cli --skip-update run --run-group 9503 --junit-file junit-fail.xml
+            ./rainforest --skip-update run --run-group 9503 --junit-file junit-fail.xml
             if [[ $? != 0 ]]; then
               echo "TESTING ::: Got the expected non-zero exit code. ✅"
               exit 0
@@ -185,25 +210,23 @@ jobs:
     <<: *windows
     steps:
       - checkout
+      - go_build:
+          windows: true
       - run:
-          name: "Build, and run rainforest"
-          shell: powershell.exe
+          name: Run rainforest
           command: |
-            go build
-            ./rainforest-cli.exe -v --skip-update
-            ./rainforest-cli.exe --skip-update run --run-group 9502
+            ./rainforest.exe --skip-update run --run-group 9502
 
   integration_windows_pass_junit:
     <<: *windows
     steps:
       - checkout
+      - go_build:
+          windows: true
       - run:
-          name: "Build, and run rainforest with junit output"
-          shell: powershell.exe
+          name: Run rainforest with junit output
           command: |
-            go build
-            ./rainforest-cli.exe -v --skip-update
-            ./rainforest-cli.exe --skip-update run --run-group 9502 --junit-file junit-pass.xml
+            ./rainforest.exe --skip-update run --run-group 9502 --junit-file junit-pass.xml
       - store_test_results:
           path: junit-pass.xml
 
@@ -211,13 +234,12 @@ jobs:
     <<: *windows
     steps:
       - checkout
+      - go_build:
+          windows: true
       - run:
-          name: "Build, and run rainforest"
-          shell: powershell.exe
+          name: Run rainforest
           command: |
-            go build
-            ./rainforest-cli.exe -v --skip-update
-            ./rainforest-cli.exe --skip-update run --run-group 9503
+            ./rainforest.exe --skip-update run --run-group 9503
             if ($LastExitCode -gt 0) {
               echo "TESTING ::: Got the expected non-zero exit code."
               exit 0
@@ -230,13 +252,12 @@ jobs:
     <<: *windows
     steps:
       - checkout
+      - go_build:
+          windows: true
       - run:
-          name: "Build, and run rainforest with junit output"
-          shell: powershell.exe
+          name: Run rainforest with junit output
           command: |
-            go build
-            ./rainforest-cli.exe -v --skip-update
-            ./rainforest-cli.exe --skip-update run --run-group 9503 --junit-file junit-fail.xml
+            ./rainforest.exe --skip-update run --run-group 9503 --junit-file junit-fail.xml
             if ($LastExitCode -gt 0) {
               echo "TESTING ::: Got the expected non-zero exit code."
               exit 0

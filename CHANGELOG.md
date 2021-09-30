@@ -1,5 +1,8 @@
 # Rainforest CLI Changelog
 
+## 2.23.0 - 2021-09-30
+- Rename the CLI executable to `rainforest` in our `gcr.io/rf-public-images/rainforest-cli` Docker image
+  - (deec4ac3131e86d3172441ea84f9e4d62829cf59, @magni-)
 ## 2.22.3 - 2021-09-29
 - Make the CLI error instead of panic if you provide an empty token
   - (e5d48917733568f1a64316376808797d0a414b54, @jbarber)

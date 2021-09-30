@@ -8,4 +8,5 @@ testing
 rainforest-cli
 rainforest-cli.exe
 /vendor
+build/
 dist/

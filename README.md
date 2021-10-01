@@ -20,10 +20,18 @@ Rainforest CLI version 2.19.0 - build: docker
 
 ### Brew
 
-If you are on OSX and use Brew, you can install the CLI with the command:
+If you are on OSX and use Brew, you can [install the CLI](https://github.com/rainforestapp/homebrew-public) with the command:
 
 ```bash
 brew install rainforestapp/public/rainforest-cli
+```
+
+### Chocolately
+
+If you are on Windows and use Chocolatey, you can [install the CLI](https://community.chocolatey.org/packages/rainforest-cli/) with the command:
+
+```bash
+choco install rainforest-cli
 ```
 
 ### Binaries

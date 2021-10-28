@@ -1,4 +1,7 @@
 # Rainforest CLI Changelog
+## 2.23.1 - 2021-10-27
+- Fix updating, by having both expected binary names
+  - (29228c478e6f9df3aaccb72627f2cb3c74715044, @ukd1 @magni-)
 
 ## 2.23.0 - 2021-09-30
 - Rename the CLI executable to `rainforest` in our `gcr.io/rf-public-images/rainforest-cli` Docker image

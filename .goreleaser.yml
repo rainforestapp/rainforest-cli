@@ -6,15 +6,28 @@ before:
     # you may remove this if you don't need go generate
     - go generate ./...
 builds:
-  - env:
+  - id: rainforest
+    env:
       - CGO_ENABLED=0
     binary: rainforest
     goos:
       - linux
       - windows
       - darwin
+  - id: rainforest-cli
+    env:
+      - CGO_ENABLED=0
+    binary: rainforest-cli
+    goos:
+      - linux
+      - windows
+      - darwin
 archives:
-  - name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+  - 
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    builds:
+      - rainforest
+      - rainforest-cli
     format_overrides:
       - goos: windows
         format: zip

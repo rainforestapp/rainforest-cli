@@ -14,7 +14,7 @@ func update(silent bool) error {
 	}
 
 	v := semver.MustParse(version)
-	updater, err := selfupdate.NewUpdater(selfupdate.Config{BinaryName: "rainforest-cli"})
+	updater, err := selfupdate.NewUpdater(selfupdate.Config{BinaryName: "rainforest"})
 	if err != nil {
 		return err
 	}

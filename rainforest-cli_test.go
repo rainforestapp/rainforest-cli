@@ -103,6 +103,7 @@ func TestShuffleFlags(t *testing.T) {
 
 func TestUserAgent(t *testing.T) {
 	os.Unsetenv("ORB_VERSION")
+	os.Unsetenv("GH_ACTION_VERSION")
 	os.Args = []string{"./rainforest"}
 	main()
 
@@ -143,6 +144,7 @@ func TestDisableTelemetry(t *testing.T) {
 }
 
 func TestUserAgentWithOrb(t *testing.T) {
+	os.Unsetenv("GH_ACTION_VERSION")
 	os.Setenv("ORB_VERSION", "1.3.1")
 	os.Args = []string{"./rainforest"}
 
@@ -155,6 +157,23 @@ func TestUserAgentWithOrb(t *testing.T) {
 	userAgent := "rainforest-cli/" + version + " rainforest-orb/1.3.1"
 	if api.UserAgent != userAgent {
 		t.Errorf("main() with orb didn't set proper UserAgent %+v, want %+v", api.UserAgent, userAgent)
+	}
+}
+
+func TestUserAgentWithGitHubAction(t *testing.T) {
+	os.Unsetenv("ORB_VERSION")
+	os.Setenv("GH_ACTION_VERSION", "0.4.2")
+	os.Args = []string{"./rainforest"}
+
+	main()
+
+	if api == nil {
+		t.Error("Expected api to be set")
+	}
+
+	userAgent := "rainforest-cli/" + version + " rainforest-gh-action/0.4.2"
+	if api.UserAgent != userAgent {
+		t.Errorf("main() with GH action didn't set proper UserAgent %+v, want %+v", api.UserAgent, userAgent)
 	}
 }
 

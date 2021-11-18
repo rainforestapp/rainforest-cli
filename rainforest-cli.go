@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.23.1"
+	version = "2.24.0"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -32,6 +32,8 @@ var (
 
 	// CircleCI Orb version
 	orbVersion string
+	// GitHub Action version
+	ghActionVersion string
 
 	// default output for printing resource tables
 	tablesOut io.Writer = os.Stdout
@@ -101,8 +103,11 @@ func main() {
 		// Set the User-Agent that will be used for api calls
 		api.UserAgent = "rainforest-cli/" + version
 		orbVersion = os.Getenv("ORB_VERSION")
+		ghActionVersion = os.Getenv("GH_ACTION_VERSION")
 		if orbVersion != "" {
 			api.UserAgent += " rainforest-orb/" + orbVersion
+		} else if ghActionVersion != "" {
+			api.UserAgent += " rainforest-gh-action/" + ghActionVersion
 		}
 		if build != "" {
 			api.UserAgent += " build: " + build

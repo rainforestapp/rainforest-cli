@@ -1,7 +1,11 @@
 # Rainforest CLI Changelog
+## 2.24.0 - 2021-11-18
+- Add support for upcoming GitHub Action
+  - (e00cc08571ba66b2d0cc5e982de7d28f850bde4a, @magni-)
+
 ## 2.23.1 - 2021-10-27
 - Fix updating, by having both expected binary names
-  - (29228c478e6f9df3aaccb72627f2cb3c74715044, @ukd1 @magni-)
+  - (8a6bb0e16109e23930200a7c1ee638fc49ed6d68, @ukd1 @magni-)
 
 ## 2.23.0 - 2021-09-30
 - Rename the CLI executable to `rainforest` in our `gcr.io/rf-public-images/rainforest-cli` Docker image

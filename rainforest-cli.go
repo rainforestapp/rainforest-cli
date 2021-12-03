@@ -268,6 +268,10 @@ func main() {
 					Name:  "max-reruns",
 					Usage: "Rerun `max-reruns` times before reporting failure.",
 				},
+				cli.StringFlag{
+					Name:  "save-run-id",
+					Usage: "Save the created run's ID to `FILE`",
+				},
 			},
 		},
 		{
@@ -308,6 +312,11 @@ func main() {
 				cli.UintFlag{
 					Name:  "rerun-attempt",
 					Usage: "Which rerun attempt this is.",
+				},
+				cli.StringFlag{
+					Name:  "save-run-id",
+					Usage: "Save the created run's ID to `FILE`",
+					Value: ".rainforest_run_id",
 				},
 			},
 		},

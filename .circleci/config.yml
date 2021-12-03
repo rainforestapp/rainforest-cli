@@ -81,6 +81,30 @@ commands:
       - store_test_results:
           path: junit-pass.xml
 
+  pass_save_run_id:
+    parameters:
+      <<: *windows-param
+    description: Start a run that will pass, saving the run ID
+    steps:
+      - when:
+          condition: << parameters.windows >>
+          steps:
+            - run:
+                name: Start a run that will pass, saving the run ID
+                command: |
+                  ./rainforest.exe --skip-update run --run-group 9502 --save-run-id rf_run_id
+                  Get-Content rf_run_id | Select-String -Pattern "^\d+$"
+      - unless:
+          condition: << parameters.windows >>
+          steps:
+            - run:
+                name: Start a run that will pass, saving the run ID
+                command: |
+                  ./rainforest --skip-update run --run-group 9502 --save-run-id rf_run_id
+                  cat rf_run_id | grep -E "^[0-9]+$"
+      - store_artifacts:
+          path: rf_run_id
+
   fail:
     parameters:
       <<: *windows-param
@@ -237,6 +261,7 @@ workflows:
               test:
                 - [pass]
                 - [pass_junit]
+                - [pass_save_run_id]
                 - [fail]
                 - [fail_junit]
       - integration_test:
@@ -249,6 +274,7 @@ workflows:
               test:
                 - [pass: { windows: true }]
                 - [pass_junit: { windows: true }]
+                - [pass_save_run_id: { windows: true }]
                 - [fail: { windows: true }]
                 - [fail_junit: { windows: true }]
       - release:

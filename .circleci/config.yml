@@ -1,17 +1,21 @@
 version: 2.1
 orbs:
-  win: circleci/windows@2.2.0
+  win: circleci/windows@2.3.0
 
-defaults: &defaults
-  docker:
-    - image: cimg/go:1.17.1-node
-windows: &windows
-  executor:
-    name: win/default
-    shell: powershell.exe
-mac: &mac
-  macos:
-    xcode: 11.3.0
+windows-param: &windows-param
+  windows:
+    description: Whether this is running on Windows
+    type: boolean
+    default: false
+
+executors:
+  mac:
+    macos:
+      xcode: 11.3.0
+  linux:
+    docker:
+      - image: cimg/go:1.17.1-node
+  windows: win/default
 
 commands:
   install_go_darwin:
@@ -27,10 +31,7 @@ commands:
   go_build:
     description: "go build, and output cli version"
     parameters:
-      windows:
-        description: Whether this is running on Windows
-        type: boolean
-        default: false
+      <<: *windows-param
     steps:
       - run:
           name: Build
@@ -58,9 +59,103 @@ commands:
                 name: Show CLI version
                 command: ./rainforest -v --skip-update
 
+  pass:
+    parameters:
+      <<: *windows-param
+    description: Start a run that will pass
+    steps:
+      - run:
+          name: Start a run that will pass
+          command: |
+            ./rainforest<<# parameters.windows >>.exe<</ parameters.windows >> --skip-update run --run-group 9502
+
+  pass_junit:
+    parameters:
+      <<: *windows-param
+    description: Start a run that will pass, with junit
+    steps:
+      - run:
+          name: Start a run that will pass, with junit
+          command: |
+            ./rainforest<<# parameters.windows >>.exe<</ parameters.windows >> --skip-update run --run-group 9502 --junit-file junit-pass.xml
+      - store_test_results:
+          path: junit-pass.xml
+
+  fail:
+    parameters:
+      <<: *windows-param
+    description: Start a run that will fail
+    steps:
+      - when:
+          condition: << parameters.windows >>
+          steps:
+            - run:
+                name: Start a run that will fail
+                command: |
+                  ./rainforest.exe --skip-update run --run-group 9503
+                  if ($LastExitCode -gt 0) {
+                    echo "TESTING ::: Got the expected non-zero exit code."
+                    exit 0
+                  } else {
+                    echo "TESTING ::: Got UNEXPECTED zero exit code."
+                    exit 1
+                  }
+      - unless:
+          condition: << parameters.windows >>
+          steps:
+            - run:
+                name: Start a run that will fail
+                command: |
+                  set +e
+                  ./rainforest --skip-update run --run-group 9503
+                  if [[ $? != 0 ]]; then
+                    echo "TESTING ::: Got the expected non-zero exit code. ✅"
+                    echo 0
+                  else
+                    echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
+                    echo 1
+                  fi
+
+  fail_junit:
+    parameters:
+      <<: *windows-param
+    description: Start a run that will fail
+    steps:
+      - when:
+          condition: << parameters.windows >>
+          steps:
+            - run:
+                name: Start a run that will fail
+                command: |
+                  ./rainforest.exe --skip-update run --run-group 9503 --junit-file junit-fail.xml
+                  if ($LastExitCode -gt 0) {
+                    echo "TESTING ::: Got the expected non-zero exit code."
+                    exit 0
+                  } else {
+                    echo "TESTING ::: Got UNEXPECTED zero exit code."
+                    exit 1
+                  }
+      - unless:
+          condition: << parameters.windows >>
+          steps:
+            - run:
+                name: Start a run that will fail, with junit
+                command: |
+                  set +e
+                  ./rainforest --skip-update run --run-group 9503 --junit-file junit-fail.xml
+                  if [[ $? != 0 ]]; then
+                    echo "TESTING ::: Got the expected non-zero exit code. ✅"
+                    echo 0
+                  else
+                    echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
+                    echo 1
+                  fi
+      - store_test_results:
+          path: junit-fail.xml
+
 jobs:
   validate_goreleaser_config:
-    <<: *defaults
+    executor: linux
     steps:
       - checkout
       - run:
@@ -70,7 +165,7 @@ jobs:
           name: Check GoReleaser Config
           command: goreleaser check
   test:
-    <<: *defaults
+    executor: linux
     steps:
       - checkout
       - run:
@@ -82,194 +177,37 @@ jobs:
       - store_test_results:
           path: report.xml
 
-  integration_mac_pass:
-    <<: *mac
+  integration_test:
+    parameters:
+      platform:
+        # type: string rather than executor; otherwise the conditions used below won't work
+        # See https://discuss.circleci.com/t/condition-on-executor-type/39711
+        type: string
+      test:
+        type: steps
+    executor: << parameters.platform >>
     steps:
       - checkout
-      - install_go_darwin
-      - go_build
-      - run:
-          name: Start a run that will pass
-          command: |
-            ./rainforest --skip-update run --run-group 9502
-
-  integration_mac_pass_junit:
-    <<: *mac
-    steps:
-      - checkout
-      - install_go_darwin
-      - go_build
-      - run:
-          name: Start a run that will pass, with junit
-          command: |
-            ./rainforest --skip-update run --run-group 9502 --junit-file junit-pass.xml
-      - store_test_results:
-          path: junit-pass.xml
-
-  integration_mac_fail:
-    <<: *mac
-    steps:
-      - checkout
-      - install_go_darwin
-      - go_build
-      - run:
-          name: Start a run that will fail
-          command: |
-            set +e
-            ./rainforest --skip-update run --run-group 9503
-            if [[ $? != 0 ]]; then
-              echo "TESTING ::: Got the expected non-zero exit code. ✅"
-              echo 0
-            else
-              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
-              echo 1
-            fi
-
-  integration_mac_fail_junit:
-    <<: *mac
-    steps:
-      - checkout
-      - install_go_darwin
-      - go_build
-      - run:
-          name: Start a run that will fail, with junit
-          command: |
-            set +e
-            ./rainforest --skip-update run --run-group 9503 --junit-file junit-fail.xml
-            if [[ $? != 0 ]]; then
-              echo "TESTING ::: Got the expected non-zero exit code. ✅"
-              echo 0
-            else
-              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
-              echo 1
-            fi
-      - store_test_results:
-          path: junit-fail.xml
-
-  integration_linux_pass:
-    <<: *defaults
-    steps:
-      - checkout
-      - go_build
-      - run:
-          name: Start a run that will pass
-          command: |
-            ./rainforest --skip-update run --run-group 9502
-
-  integration_linux_pass_junit:
-    <<: *defaults
-    steps:
-      - checkout
-      - go_build
-      - run:
-          name: Start a run that will pass, with junit
-          command: |
-            ./rainforest --skip-update run --run-group 9502 --junit-file junit-pass.xml
-      - store_test_results:
-          path: junit-pass.xml
-
-  integration_linux_fail:
-    <<: *defaults
-    steps:
-      - checkout
-      - go_build
-      - run:
-          name: Start a run that will fail
-          command: |
-            set +e
-            ./rainforest --skip-update run --run-group 9503
-            if [[ $? != 0 ]]; then
-              echo "TESTING ::: Got the expected non-zero exit code. ✅"
-              echo 0
-            else
-              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
-              echo 1
-            fi
-
-  integration_linux_fail_junit:
-    <<: *defaults
-    steps:
-      - checkout
-      - go_build
-      - run:
-          name: Start a run that will fail, with junit
-          command: |
-            set +e
-            ./rainforest --skip-update run --run-group 9503 --junit-file junit-fail.xml
-            if [[ $? != 0 ]]; then
-              echo "TESTING ::: Got the expected non-zero exit code. ✅"
-              exit 0
-            else
-              echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
-              exit 1
-            fi
-      - store_test_results:
-          path: junit-fail.xml
-
-  integration_windows_pass:
-    <<: *windows
-    steps:
-      - checkout
-      - go_build:
-          windows: true
-      - run:
-          name: Run rainforest
-          command: |
-            ./rainforest.exe --skip-update run --run-group 9502
-
-  integration_windows_pass_junit:
-    <<: *windows
-    steps:
-      - checkout
-      - go_build:
-          windows: true
-      - run:
-          name: Run rainforest with junit output
-          command: |
-            ./rainforest.exe --skip-update run --run-group 9502 --junit-file junit-pass.xml
-      - store_test_results:
-          path: junit-pass.xml
-
-  integration_windows_fail:
-    <<: *windows
-    steps:
-      - checkout
-      - go_build:
-          windows: true
-      - run:
-          name: Run rainforest
-          command: |
-            ./rainforest.exe --skip-update run --run-group 9503
-            if ($LastExitCode -gt 0) {
-              echo "TESTING ::: Got the expected non-zero exit code."
-              exit 0
-            } else {
-              echo "TESTING ::: Got UNEXPECTED zero exit code."
-              exit 1
-            }
-
-  integration_windows_fail_junit:
-    <<: *windows
-    steps:
-      - checkout
-      - go_build:
-          windows: true
-      - run:
-          name: Run rainforest with junit output
-          command: |
-            ./rainforest.exe --skip-update run --run-group 9503 --junit-file junit-fail.xml
-            if ($LastExitCode -gt 0) {
-              echo "TESTING ::: Got the expected non-zero exit code."
-              exit 0
-            } else {
-              echo "TESTING ::: Got UNEXPECTED zero exit code."
-              exit 1
-            }
-      - store_test_results:
-          path: junit-fail.xml
+      - when:
+          condition:
+            equal: [ << parameters.platform >>,  mac ]
+          steps:
+            - install_go_darwin
+      - when:
+          condition:
+            equal: [ << parameters.platform >>,  windows ]
+          steps:
+            - go_build:
+                windows: true
+      - unless:
+          condition:
+            equal: [ << parameters.platform >>,  windows ]
+          steps:
+            - go_build
+      - steps: << parameters.test >>
 
   release:
-    <<: *defaults
+    executor: linux
     steps:
       - checkout
       - run:
@@ -289,53 +227,30 @@ workflows:
     jobs:
       - test
       - validate_goreleaser_config
-      - integration_mac_pass:
+      - integration_test:
           requires:
             - test
             - validate_goreleaser_config
-      - integration_mac_pass_junit:
-          requires:
-            - test
-      - integration_mac_fail:
-          requires:
-            - test
-            - validate_goreleaser_config
-      - integration_mac_fail_junit:
-          requires:
-            - test
-            - validate_goreleaser_config
-      - integration_linux_pass:
+          matrix:
+            parameters:
+              platform: [linux, mac]
+              test:
+                - [pass]
+                - [pass_junit]
+                - [fail]
+                - [fail_junit]
+      - integration_test:
           requires:
             - test
             - validate_goreleaser_config
-      - integration_linux_pass_junit:
-          requires:
-            - test
-            - validate_goreleaser_config
-      - integration_linux_fail:
-          requires:
-            - test
-            - validate_goreleaser_config
-      - integration_linux_fail_junit:
-          requires:
-            - test
-            - validate_goreleaser_config
-      - integration_windows_pass:
-          requires:
-            - test
-            - validate_goreleaser_config
-      - integration_windows_pass_junit:
-          requires:
-            - test
-            - validate_goreleaser_config
-      - integration_windows_fail:
-          requires:
-            - test
-            - validate_goreleaser_config
-      - integration_windows_fail_junit:
-          requires:
-            - test
-            - validate_goreleaser_config
+          matrix:
+            parameters:
+              platform: [windows]
+              test:
+                - [pass: { windows: true }]
+                - [pass_junit: { windows: true }]
+                - [fail: { windows: true }]
+                - [fail_junit: { windows: true }]
       - release:
           filters:
             branches:

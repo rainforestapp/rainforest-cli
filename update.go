@@ -22,12 +22,10 @@ func update(silent bool) error {
 	if err != nil {
 		return err
 	}
-	if !silent {
-		if latest.Version.Equals(v) {
-			log.Println("No update available, already at the latest version!")
-		} else {
-			log.Printf("Updated to new version: %s!\n", latest.Version)
-		}
+	if !silent && latest.Version.Equals(v) {
+		log.Println("No update available, already at the latest version!")
+	} else if latest.Version.NE(v) {
+		log.Printf("Updated to new version: %s!\n", latest.Version)
 	}
 
 	return nil

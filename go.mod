@@ -14,7 +14,7 @@ require (
 	github.com/rhysd/go-github-selfupdate v1.2.3
 	github.com/satori/go.uuid v1.2.0
 	github.com/ukd1/go.detectci v0.0.0-20210512015713-5570f6cb6bb1
-	github.com/urfave/cli v0.0.0-20160622145533-4205e9c4ee96
+	github.com/urfave/cli v1.22.5
 	github.com/whilp/git-urls v1.0.0
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 )

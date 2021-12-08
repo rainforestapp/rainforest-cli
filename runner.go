@@ -108,6 +108,7 @@ func (r *runner) startRun(c cliContext) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 	r.showRunCreated(runStatus)
+	writeRunID(c, runStatus)
 
 	// if background flag is enabled we'll skip monitoring run status
 	if c.Bool("bg") {
@@ -128,6 +129,7 @@ func (r *runner) rerunRun(c cliContext) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 	r.showRunCreated(runStatus)
+	writeRunID(c, runStatus)
 
 	// if background flag is enabled we'll skip monitoring run status
 	if c.Bool("bg") {
@@ -537,4 +539,23 @@ func expandStringSlice(slice []string) []string {
 		}
 	}
 	return result
+}
+
+// writeRunID writes the run ID to a file if the flag is set
+func writeRunID(c cliContext, runStatus *rainforest.RunStatus) error {
+	filePath := c.String("save-run-id")
+	if filePath == "" {
+		return nil
+	}
+
+	file, err := os.Create(filePath)
+	defer file.Close()
+
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	} else {
+		file.WriteString(fmt.Sprintf("%v\n", runStatus.ID))
+	}
+
+	return nil
 }

@@ -1,4 +1,9 @@
 # Rainforest CLI Changelog
+## 2.25.0 - 2021-12-03
+- Add `--save-run-id` flag to `run` and `rerun` commands
+  - (febe8f4a24426a17cc6fd2cdb1485da3e9e9a763, @magni-)
+- Output logging when CLI is autoupdated
+  - (c99798c17582625e0e3c499a523740408b1907a2, @magni-)
 ## 2.24.0 - 2021-11-18
 - Add support for upcoming GitHub Action
   - (e00cc08571ba66b2d0cc5e982de7d28f850bde4a, @magni-)

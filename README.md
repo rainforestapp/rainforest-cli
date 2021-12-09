@@ -30,7 +30,7 @@ If you are on OSX and use Brew, you can [install the CLI](https://github.com/rai
 brew install rainforestapp/public/rainforest-cli
 ```
 
-### Chocolately
+### Chocolatey
 
 If you are on Windows and use Chocolatey, you can [install the CLI](https://community.chocolatey.org/packages/rainforest-cli/) with the command:
 

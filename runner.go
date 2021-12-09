@@ -44,7 +44,7 @@ func newRunner() *runner {
 
 // startRun starts a new Rainforest run & depending on passed flags monitors its execution
 func (r *runner) startRun(c cliContext) error {
-	// First check if we even want to crate new run or just monitor the existing one.
+	// First check if we even want to create a new run or just monitor the existing one.
 	if runIDStr := c.String("reattach"); runIDStr != "" {
 		runID, err := strconv.Atoi(runIDStr)
 		if err != nil {

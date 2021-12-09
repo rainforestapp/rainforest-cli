@@ -6,7 +6,11 @@ A command line interface to interact with [Rainforest QA](https://www.rainforest
 
 This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation](https://help.rainforestqa.com/docs/rainforest-cli-for-continuous-integration) on the subject.
 
-The CLI uses the Rainforest API which is documented at https://app.rainforestqa.com/docs
+The CLI uses the Rainforest API which is documented at https://help.rainforestqa.com/reference.
+
+### Wrappers
+
+For users of CircleCI and GitHub Actions, we have platform-specific wrappers you can use: our [CircleCI Orb](https://circleci.com/developer/orbs/orb/rainforest-qa/rainforest) and our [GitHub Action](https://github.com/marketplace/actions/rainforest-qa-github-action).
 
 ## Installation
 

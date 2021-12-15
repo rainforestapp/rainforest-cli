@@ -6,7 +6,11 @@ A command line interface to interact with [Rainforest QA](https://www.rainforest
 
 This is the easiest way to integrate Rainforest with your deploy scripts or CI server. See [our documentation](https://help.rainforestqa.com/docs/rainforest-cli-for-continuous-integration) on the subject.
 
-The CLI uses the Rainforest API which is documented at https://app.rainforestqa.com/docs
+The CLI uses the Rainforest API which is documented at https://help.rainforestqa.com/reference.
+
+### Wrappers
+
+For users of CircleCI and GitHub Actions, we have platform-specific wrappers you can use: our [CircleCI Orb](https://circleci.com/developer/orbs/orb/rainforest-qa/rainforest) and our [GitHub Action](https://github.com/marketplace/actions/rainforest-qa-github-action).
 
 ## Installation
 
@@ -26,7 +30,7 @@ If you are on OSX and use Brew, you can [install the CLI](https://github.com/rai
 brew install rainforestapp/public/rainforest-cli
 ```
 
-### Chocolately
+### Chocolatey
 
 If you are on Windows and use Chocolatey, you can [install the CLI](https://community.chocolatey.org/packages/rainforest-cli/) with the command:
 
@@ -369,7 +373,7 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 1. Push to the branch (`git push origin my-new-feature`)
 1. Create a new Pull Request
 
-## Development:
+## Release Process
 
 ### Development PR
 1. Branch from master
@@ -382,26 +386,25 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 1. Update the `version` constant in `rainforest-cli.go` following [semantic versioning](http://semver.org/)
 1. Merge to master
 
+### Releasing
+1. **Docker** Tag `master` after merging: `git tag vX.Y.Z && git push --tags`
+1. **GitHub** Wait for the CircleCI build to finish. This will create a [draft GitHub Release](https://github.com/rainforestapp/rainforest-cli/releases). Edit the description as appropriate and publish the release.
+1. **Homebrew** Update https://github.com/rainforestapp/homebrew-public to use the latest URL and SHA256. Both can be found in the GitHub Release assets. Additionally, the SHA256 is output as part of the CircleCI `Release` job.
+1. **Chocolatey** [Run the workflow here](https://github.com/rainforestapp/rainforest-cli-chocolatey/actions/workflows/chocolatey.yml) to build & release an updated Chocolatey package. Note, this uses the release you published earlier.
 
-## Release:
-1. Tag `master` after merging: `git tag vX.Y.Z && git push --tags`
-1. Wait for the CircleCI build to finish. This will create a [draft GitHub Release](https://github.com/rainforestapp/rainforest-cli/releases). Edit the description as appropriate and publish the release.
-1. Update https://github.com/rainforestapp/homebrew-public to use the latest URL and SHA256. Both can be found in the GitHub Release assets. Additionally, the SHA256 is output as part of the CircleCI `Release` job.
-1. [Run the workflow here](https://github.com/rainforestapp/rainforest-cli-chocolatey/actions/workflows/chocolatey.yml) to build & release an updated Chocolatey package. Note, this uses the release you published earlier.
-
-### Releasing a beta version
+### Releasing a beta version (Docker / GitHub)
 Simply tag a commit with an alpha or beta version.
 ```bash
 git tag vX.Y.Z-alpha.N # or vX.Y.Z-beta.N
 git push origin vX.Y.Z-alpha.N
 ```
 
-## Rollback:
+### Rolling back
 Should you have to rollback, you will need to:
 
-1. Delete the release in question. CLI will 'update' itself to the latest public version, which should downgrade users on the next try
+1. Delete the GitHub release you need to rollback. When run without the `--skip-autoupdate` flag, the CLI will download the latest version from GitHub, thus auto-downgrading itself.
 1. Go to GCP Container Registry:
-  1. delete the release you want to rollback
-  1. set the latest tag on the release you wish to use
+    1. Delete the container you want to rollback
+    1. Set the `latest` tag on the release you wish to rollback to
 1. Revert the PR that caused the rollback in the first place
-1. Check in Rainforest Admin who did (or could have) used the release and notify them via support if there were any critical issues
+1. Check in Rainforest Admin who did (or could have) used the release and notify them via Support if there were any critical issues

@@ -236,6 +236,14 @@ func TestMakeRunParams(t *testing.T) {
 		},
 		{
 			mappings: map[string]interface{}{
+				"automation-max-retries": 2,
+			},
+			expected: rainforest.RunParams{
+				AutomationMaxRetries: 2,
+			},
+		},
+		{
+			mappings: map[string]interface{}{
 				"crowd": "automation",
 			},
 			expected: rainforest.RunParams{

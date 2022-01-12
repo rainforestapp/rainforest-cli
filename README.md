@@ -359,7 +359,8 @@ api to construct a junit report.  This is useful to track tests in CI such as Je
 - `--import-variable-name NAME` - Use with `run` and `--import-variable-csv-file` to upload new tabular variable values before your run to specify the name of your tabular variable. You may also use this with the `csv-upload` command to update your variable without starting a run.
 - `--single-use` - Use with `run` or `csv-upload` to flag your variable upload as `single-use`. See `--import-variable-csv-file` and `--import-variable-name` options as well.
 - `--disable-telemetry` stops the cli sharing information about which CI system you may be using, and where you host your git repo (i.e. your git remote). Rainforest uses this to better integrate with CI tooling, and code hosting companies, it is not sold or shared. Disabling this may affect your Rainforest experience.
-- `--max-reruns` - If set to a value > 0 and a test fails, the CLI will re-run failed tests a number of times before reporting failure. If `--junit-file <filename>` is also used, the JUnit reports of reruns will be saved under `<filename>.1`, `<filename>.2` etc. Cannot be used together with `--fail-fast`.
+- `--max-reruns` - If set to a value > 0 and one or more tests fail, the CLI will create a new run with the failed tests a number of times before reporting failure. If `--junit-file <filename>` is also used, the JUnit reports of reruns will be saved under `<filename>.1`, `<filename>.2` etc. Cannot be used together with `--fail-fast`.
+- `--automation-max-retries` - If set to a value > 0 and a test fails, it will be retried within the same run, up to that number of times. If all retries fail, we report failure, if there is a pass, we report that and stop retrying. The failed-then-passed attempts do not affect the final result of the run, but can be inspected in the web interface. See [our docs](https://help.rainforestqa.com/docs/test-retries) for more detail.
 
 ## Support
 

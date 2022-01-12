@@ -1,4 +1,7 @@
 # Rainforest CLI Changelog
+## 2.26.0 - 2022-01-12
+- Add `--automation-max-retries` flag to the `run` command.
+  - (70061750b7675c7e4ee1c422ac2c914a3ef7cc8e, @maciejgryka)
 ## 2.25.0 - 2021-12-03
 - Add `--save-run-id` flag to `run` and `rerun` commands
   - (febe8f4a24426a17cc6fd2cdb1485da3e9e9a763, @magni-)

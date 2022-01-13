@@ -9,20 +9,21 @@ import (
 // RunParams is a struct holding all potential parameters needed to start a new RF run.
 type RunParams struct {
 	// This can be eiter []int or string containing 'all'
-	Tests         interface{} `json:"tests,omitempty"`
-	RFMLIDs       []string    `json:"rfml_ids,omitempty"`
-	Tags          []string    `json:"tags,omitempty"`
-	SmartFolderID int         `json:"smart_folder_id,omitempty"`
-	SiteID        int         `json:"site_id,omitempty"`
-	Crowd         string      `json:"crowd,omitempty"`
-	Conflict      string      `json:"conflict,omitempty"`
-	Browsers      []string    `json:"browsers,omitempty"`
-	Description   string      `json:"description,omitempty"`
-	Release       string      `json:"release,omitempty"`
-	EnvironmentID int         `json:"environment_id,omitempty"`
-	FeatureID     int         `json:"feature_id,omitempty"`
-	RunGroupID    int         `json:"-"`
-	RunID         int         `json:"-"`
+	Tests                interface{} `json:"tests,omitempty"`
+	RFMLIDs              []string    `json:"rfml_ids,omitempty"`
+	Tags                 []string    `json:"tags,omitempty"`
+	SmartFolderID        int         `json:"smart_folder_id,omitempty"`
+	SiteID               int         `json:"site_id,omitempty"`
+	Crowd                string      `json:"crowd,omitempty"`
+	Conflict             string      `json:"conflict,omitempty"`
+	Browsers             []string    `json:"browsers,omitempty"`
+	Description          string      `json:"description,omitempty"`
+	Release              string      `json:"release,omitempty"`
+	EnvironmentID        int         `json:"environment_id,omitempty"`
+	FeatureID            int         `json:"feature_id,omitempty"`
+	RunGroupID           int         `json:"-"`
+	RunID                int         `json:"-"`
+	AutomationMaxRetries int         `json:"automation_max_retries,omitempty"`
 }
 
 // RunStatus represents a status of a RF run in progress.

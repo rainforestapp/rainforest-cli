@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.25.0"
+	version = "2.26.0"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -267,6 +267,10 @@ func main() {
 				cli.UintFlag{
 					Name:  "max-reruns",
 					Usage: "Rerun `max-reruns` times before reporting failure.",
+				},
+				cli.UintFlag{
+					Name:  "automation-max-retries",
+					Usage: "Try to pass a test `automation-max-retries` times within the same run before reporting run failure.",
 				},
 				cli.StringFlag{
 					Name:  "save-run-id",

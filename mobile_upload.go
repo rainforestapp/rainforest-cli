@@ -42,13 +42,13 @@ func uploadMobileApp(api mobileUploadAPI, filePath string, siteID int, environme
 
 func isAllowedExtension(extension string) bool {
 	switch extension {
-	case ".apk", ".ipa", ".zip", ".gz", ".tar.gz":
+	case ".apk", ".aab", ".ipa", ".zip", ".gz", ".tar.gz":
 		return true
 	}
 	return false
 }
 
-const allowedExtensionsPretty = ".apk, .ipa, .zip, .gz, .tar.gz"
+const allowedExtensionsPretty = ".apk, .aab, .ipa, .zip, .gz, .tar.gz"
 
 // mobileAppUpload is a wrapper around uploadMobileApp to function with mobile-upload cli command
 func mobileAppUpload(c cliContext, api mobileUploadAPI) error {

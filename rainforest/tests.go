@@ -340,6 +340,7 @@ type RFEmbeddedTest struct {
 // RFTestFilters are used to translate test filters to a proper query string
 type RFTestFilters struct {
 	Tags          []string
+	Tests         []string
 	SiteID        int
 	SmartFolderID int
 	FeatureID     int
@@ -361,6 +362,9 @@ func (f *RFTestFilters) toQuery() string {
 	}
 	if f.RunGroupID > 0 {
 		v.Add("run_group_id", strconv.Itoa(f.RunGroupID))
+	}
+	if len(f.Tests) > 0 {
+		v.Add("tests", strings.Join(f.Tests, ","))
 	}
 
 	return v.Encode()

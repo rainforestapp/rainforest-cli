@@ -241,7 +241,7 @@ func (t *testRfmlAPI) GetTestIDs() ([]rainforest.TestIDPair, error) {
 	return t.testIDs, nil
 }
 
-func (t *testRfmlAPI) GetTest(testID int) (*rainforest.RFTest, error) {
+func (t *testRfmlAPI) GetTest(testID int, _ bool) (*rainforest.RFTest, error) {
 	for _, test := range t.tests {
 		if test.TestID == testID {
 			return &test, nil

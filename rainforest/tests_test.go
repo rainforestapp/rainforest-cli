@@ -286,7 +286,7 @@ func TestGetTest(t *testing.T) {
 		w.Write(b)
 	})
 
-	test, err := client.GetTest(123)
+	test, err := client.GetTest(123, false)
 	if err != nil {
 		t.Error("Error fetching test:", err)
 	}
@@ -295,6 +295,39 @@ func TestGetTest(t *testing.T) {
 	}
 	if !test.Execute {
 		t.Error("GetTest didn't set execute: true by default")
+	}
+}
+
+func TestGetTestWisp(t *testing.T) {
+	setup()
+	defer cleanup()
+
+	mux.HandleFunc("/tests/123", func(w http.ResponseWriter, r *http.Request) {
+		test := &RFTest{
+			TestID: 123,
+			RFMLID: "123",
+			Title:  "A test",
+		}
+		options := r.URL.Query().Get("options[]")
+		if options != "wisp" {
+			t.Error("Options param wasn't set to wisp.")
+		}
+
+		exclude := r.URL.Query().Get("exclude[]")
+		if exclude != "elements" {
+			t.Error("Exclude param wasn't set to elements.")
+		}
+
+		b, err := json.Marshal(test)
+		if err != nil {
+			t.Fatal("Error marshalling test:", err)
+		}
+		w.Write(b)
+	})
+
+	_, err := client.GetTest(123, true)
+	if err != nil {
+		t.Error("Error fetching test:", err)
 	}
 }
 

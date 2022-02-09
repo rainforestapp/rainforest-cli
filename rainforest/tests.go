@@ -438,10 +438,16 @@ func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
 }
 
 // GetTest gets a test from RF specified by the given test ID
-func (c *Client) GetTest(testID int) (*RFTest, error) {
+func (c *Client) GetTest(testID int, hasWisp bool) (*RFTest, error) {
+	params := ""
+
+	if hasWisp {
+		params = "&options[]=wisp&exclude[]=elements"
+	}
+
 	req, err := c.NewRequest(
 		"GET",
-		fmt.Sprintf("tests/%d?slim=true", testID),
+		fmt.Sprintf("tests/%d?slim=true%v", testID, params),
 		nil,
 	)
 	if err != nil {

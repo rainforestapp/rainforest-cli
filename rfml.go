@@ -561,7 +561,7 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) er
 type rfmlAPI interface {
 	GetTestIDs() ([]rainforest.TestIDPair, error)
 	GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, error)
-	GetTest(int) (*rainforest.RFTest, error)
+	GetTest(int, bool) (*rainforest.RFTest, error)
 	CreateTest(*rainforest.RFTest) error
 	UpdateTest(*rainforest.RFTest) error
 	ParseEmbeddedFiles(*rainforest.RFTest) error
@@ -671,7 +671,7 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 
 func downloadRFTestWorker(testIDChan chan int, errorsChan chan error, testChan chan *rainforest.RFTest, client rfmlAPI) {
 	for testID := range testIDChan {
-		test, err := client.GetTest(testID)
+		test, err := client.GetTest(testID, false)
 		if err != nil {
 			errorsChan <- err
 			return

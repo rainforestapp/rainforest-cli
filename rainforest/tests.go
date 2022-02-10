@@ -98,6 +98,8 @@ type RFTest struct {
 	Tags        []string                 `json:"tags"`
 	BrowsersMap []map[string]interface{} `json:"browsers"`
 	Elements    []testElement            `json:"elements,omitempty"`
+	Wisp        *Wisp                    `json:"wisp,omitempty"`
+	HasWisp     bool                     `json:"has_wisp"`
 	FeatureID   FeatureIDInt             `json:"feature_id,omitempty"`
 
 	// Browsers and Steps are helper fields
@@ -126,6 +128,56 @@ type testElementDetails struct {
 	Action   string        `json:"action,omitempty"`
 	Response string        `json:"response,omitempty"`
 	Elements []testElement `json:"elements,omitempty"` // for embedded tests
+}
+
+type Wisp struct {
+	Version string `json:"version"`
+	Verbs   []Verb `json:"verbs"`
+}
+
+type Verb struct {
+	// Currently restoring a test with the action id
+	// present doesn't work on backend
+	// ID             *int    `json:"id,omitempty"`
+	EmbeddedTestID *int    `json:"embedded_test_id,omitempty"`
+	Action         string  `json:"action"`
+	DelayAfter     *int    `json:"delay_after,omitempty"`
+	Target         *Noun   `json:"target,omitempty"`
+	Object         *Noun   `json:"object,omitempty"`
+	Option         *Noun   `json:"option,omitempty"`
+	Hold           *bool   `json:"hold,omitempty"`
+	Visibility     *bool   `json:"visibility,omitempty"`
+	HoldSeconds    *int    `json:"hold_seconds,omitempty"`
+	TestID         *int    `json:"test_id,omitempty"`
+	Seconds        *int    `json:"seconds,omitempty"`
+	Button         *string `json:"button,omitempty"`
+	Text           *string `json:"text,omitempty"`
+	Key            *string `json:"key,omitempty"`
+	Modifier       *string `json:"modifier,omitempty"`
+	URL            *string `json:"url,omitempty"`
+	Tab            *string `json:"tab,omitempty"`
+	Direction      *string `json:"direction,omitempty"`
+	Instruction    *string `json:"instruction,omitempty"`
+	Confirmation   *string `json:"confirmation,omitempty"`
+}
+
+type Noun struct {
+	Type          string  `json:"type"`
+	ID            *int    `json:"id,omitempty"`
+	Element       *string `json:"element,omitempty"`
+	MatchMode     *string `json:"match_mode,omitempty"`
+	FocusX        *int    `json:"focus_x,omitempty"`
+	FocusY        *int    `json:"focus_y,omitempty"`
+	OCRExpression *string `json:"ocr_expression,omitempty"`
+	OCRStatus     *string `json:"ocr_status,omitempty"`
+	OCRBox        *OCRBox `json:"ocr_box,omitempty"`
+}
+
+type OCRBox struct {
+	X int `json:x`
+	Y int `json:y`
+	W int `json:w`
+	H int `json:h`
 }
 
 // mapBrowsers fills the browsers field with format recognized by the API

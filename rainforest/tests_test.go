@@ -558,3 +558,83 @@ func TestUpdateTest(t *testing.T) {
 		t.Error(err.Error())
 	}
 }
+
+func TestUpdateWisp(t *testing.T) {
+	button := "left"
+	elementID := 123
+	seconds := 1
+	hold := false
+	visibility := false
+
+	verbs := []Verb{
+		{
+			Action: "click",
+			Button: &button,
+			Target: &Noun{
+				Type: "ui_element_reference",
+				ID:   &elementID,
+			},
+			Hold:        &hold,
+			HoldSeconds: &seconds,
+		},
+		{
+			Action: "observe",
+			Object: &Noun{
+				Type: "ui_element_reference",
+				ID:   &elementID,
+			},
+			Visibility: &visibility,
+		},
+	}
+
+	wisp := Wisp{
+		Version: "0.0.1",
+		Verbs:   verbs,
+	}
+
+	wispJson := WispJson{
+		TestID: 123,
+		Title:  "title",
+		Wisp:   wisp,
+	}
+
+	marshaledWispJson, _ := json.Marshal(wispJson)
+	validWispString := string(marshaledWispJson)
+
+	setup()
+	defer cleanup()
+
+	var data []byte
+	var err error
+	var bodyStr string
+	mux.HandleFunc("/tests/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "PUT" {
+			t.Errorf("Incorrect HTTP method - expected PUT, got %v", r.Method)
+			return
+		}
+		slim := r.URL.Query().Get("slim")
+		if slim != "true" {
+			t.Error("Slim param wasn't true: ", slim)
+		}
+
+		data, err = ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+		}
+
+		bodyStr = string(data)
+		if !strings.Contains(bodyStr, "\"id\":123") {
+			t.Errorf("Correct test ID not received. Got: %v", bodyStr)
+		} else if !strings.Contains(bodyStr, "\"title\":\"title\"") {
+			t.Errorf("Unexpected title received. Expected: \"title\", Got:%v", bodyStr)
+		} else if !strings.Contains(bodyStr, "\"wisp\":") {
+			t.Errorf("Unexpected wisp received. Expected: \"%v\", Got:%v", validWispString, bodyStr)
+		}
+	})
+
+	err = client.UpdateWisp(&wispJson)
+	if err != nil {
+		t.Error(err.Error())
+	}
+}

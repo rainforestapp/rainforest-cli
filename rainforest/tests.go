@@ -587,3 +587,27 @@ func (c *Client) UpdateTest(test *RFTest) error {
 	}
 	return nil
 }
+
+// UpdateWisp updates existing test's wisp and title on RF, requires WispJson struct to be prepared to upload using helpers
+func (c *Client) UpdateWisp(wisp *WispJson) error {
+	if wisp.TestID == 0 {
+		return errors.New("Couldn't update the test TestID not specified in RFTest")
+	}
+
+	// Prepare request
+	req, err := c.NewRequest(
+		"PUT",
+		fmt.Sprintf("tests/%d?slim=true", wisp.TestID),
+		wisp,
+	)
+	if err != nil {
+		return err
+	}
+
+	// Send request and process response
+	_, err = c.Do(req, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}

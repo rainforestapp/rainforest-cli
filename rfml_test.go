@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -457,8 +458,53 @@ func TestDownloadRFML(t *testing.T) {
 		State:     "enabled",
 	}
 
+	button := "left"
+	elementID := 123
+	seconds := 1
+	hold := false
+	visibility := false
+
+	verbs := []rainforest.Verb{
+		{
+			Action: "click",
+			Button: &button,
+			Target: &rainforest.Noun{
+				Type: "ui_element_reference",
+				ID:   &elementID,
+			},
+			Hold:        &hold,
+			HoldSeconds: &seconds,
+		},
+		{
+			Action: "observe",
+			Object: &rainforest.Noun{
+				Type: "ui_element_reference",
+				ID:   &elementID,
+			},
+			Visibility: &visibility,
+		},
+	}
+
+	wisp := rainforest.Wisp{
+		Version: "0.0.1",
+		Verbs:   verbs,
+	}
+
+	wispJson := rainforest.WispJson{
+		TestID: 221133,
+		Title:  "wisp_title",
+		Wisp:   wisp,
+	}
+
+	rfWispTest := rainforest.RFTest{
+		TestID:  wispJson.TestID,
+		Title:   wispJson.Title,
+		Wisp:    &wispJson.Wisp,
+		HasWisp: true,
+	}
+
 	testAPI.testIDs = []rainforest.TestIDPair{{ID: testID, RFMLID: rfmlID}}
-	testAPI.tests = []rainforest.RFTest{rfTest}
+	testAPI.tests = []rainforest.RFTest{rfTest, rfWispTest}
 
 	paddedTestID := fmt.Sprintf("%010d", testID)
 	sanitizedTitle := "my_test_title"
@@ -508,6 +554,37 @@ func TestDownloadRFML(t *testing.T) {
 
 	if strings.Contains(rfmlText, "state") {
 		t.Errorf("Did not expect state field in RFML test. Got %v", rfmlText)
+	}
+
+	// Wisp test
+	paddedWispTestID := fmt.Sprintf("%010d", rfWispTest.TestID)
+	sanitizedWispTitle := rfWispTest.Title
+	expectedWispFileName := fmt.Sprintf("%v_%v.json", paddedWispTestID, sanitizedWispTitle)
+	expectedWispPath := filepath.Join(testDefaultSpecFolder, expectedWispFileName)
+
+	wispFileInfo, err := os.Stat(expectedWispPath)
+	if os.IsNotExist(err) {
+		t.Fatalf("Expected wisp test does not exist: %v", expectedWispPath)
+	}
+
+	if wispFileInfo.Name() != expectedWispFileName {
+		t.Errorf("Expected json file path %v, got %v", expectedWispPath, wispFileInfo.Name())
+	} else if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	contents, err = ioutil.ReadFile(expectedWispPath)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	wispJsonString := string(contents)
+
+	marshaledWispJson, _ := json.Marshal(wispJson)
+	expectedWispJsonString := string(marshaledWispJson)
+
+	if wispJsonString != expectedWispJsonString {
+		t.Errorf("Incorrect values for Wisp.\nGot %#v\nWant %#v", wispJsonString, expectedWispJsonString)
 	}
 
 	// Test is disabled

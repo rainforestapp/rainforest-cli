@@ -348,7 +348,14 @@ func uploadRFML(c cliContext, api rfmlAPI) error {
 		rfmlUploadConcurrency = 1
 	}
 	if path := c.Args().First(); path != "" {
-		err := uploadSingleRFMLFile(path)
+		var err error
+
+		if strings.HasSuffix(path, ".rfml") {
+			err = uploadSingleRFMLFile(path)
+		} else {
+			err = uploadSingleWispFile(path)
+		}
+
 		if err != nil {
 			return cli.NewExitError(err.Error(), 1)
 		}
@@ -362,6 +369,112 @@ func uploadRFML(c cliContext, api rfmlAPI) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
+
+	wisp_tests, err := readWispFiles([]string{c.String("test-folder")})
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+	err = uploadWisps(wisp_tests, api)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	return nil
+}
+
+// uploadSingleWispFile uploads wisp file syntax by
+// trying to parse the file and sending any parse errors to the caller
+func uploadSingleWispFile(filePath string) error {
+	wisp, err := readWispFile(filePath)
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Updating existing wisp test: %v", wisp.TestID)
+	err = api.UpdateWisp(wisp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func readWispFile(filePath string) (*rainforest.WispJson, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	wispReader := rainforest.NewWispReader(file)
+	wisp, err := wispReader.Read()
+	if err != nil {
+		return nil, fileParseError{filePath, err}
+	}
+
+	return wisp, err
+}
+
+// readWispFiles takes in a list of files and/or directories and a list of tags
+// and returns a list of the parsed tests, or an error if it is encountered. To
+// allow all tags, pass in nil for tags.
+func readWispFiles(files []string) ([]*rainforest.WispJson, error) {
+	fileList := []string{}
+	for _, file := range files {
+		stat, err := os.Stat(file)
+		if err != nil {
+			return nil, err
+		}
+		if !stat.IsDir() {
+			if strings.HasSuffix(file, ".json") {
+				fileList = append(fileList, file)
+				continue
+			} else {
+				log.Printf("%s is not a valid json file", file)
+				continue
+			}
+		}
+
+		// We have a directory, walk through and find wisp files
+		err = filepath.Walk(file, func(path string, f os.FileInfo, err error) error {
+			if strings.HasSuffix(path, ".json") {
+				fileList = append(fileList, path)
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	tests := []*rainforest.WispJson{}
+	seenPaths := map[string]bool{}
+	for _, filePath := range fileList {
+		// No dups!
+		if seenPaths[filePath] {
+			continue
+		}
+		seenPaths[filePath] = true
+		wisp, err := readWispFile(filePath)
+		if err != nil {
+			return nil, err
+		}
+		tests = append(tests, wisp)
+	}
+	return tests, nil
+}
+
+func uploadWisps(tests []*rainforest.WispJson, api rfAPI) error {
+	for _, wisp := range tests {
+		log.Printf("Updating existing wisp test: %v", wisp.TestID)
+		err := api.UpdateWisp(wisp)
+
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -569,6 +682,7 @@ type rfmlAPI interface {
 	GetTest(int, bool) (*rainforest.RFTest, error)
 	CreateTest(*rainforest.RFTest) error
 	UpdateTest(*rainforest.RFTest) error
+	UpdateWisp(*rainforest.WispJson) error
 	ParseEmbeddedFiles(*rainforest.RFTest) error
 	ClientToken() string
 }

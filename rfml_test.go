@@ -236,6 +236,7 @@ type testRfmlAPI struct {
 	testIDs          []rainforest.TestIDPair
 	tests            []rainforest.RFTest
 	handleUpdateTest func(*rainforest.RFTest)
+	handleUpdateWisp func(*rainforest.WispJson)
 }
 
 func (t *testRfmlAPI) GetTestIDs() ([]rainforest.TestIDPair, error) {
@@ -266,6 +267,11 @@ func (t *testRfmlAPI) CreateTest(_ *rainforest.RFTest) error {
 
 func (t *testRfmlAPI) UpdateTest(test *rainforest.RFTest) error {
 	t.handleUpdateTest(test)
+	return nil
+}
+
+func (t *testRfmlAPI) UpdateWisp(wisp *rainforest.WispJson) error {
+	t.handleUpdateWisp(wisp)
 	return nil
 }
 
@@ -366,6 +372,80 @@ func TestUploadRFML(t *testing.T) {
 	err = ioutil.WriteFile(testPath, []byte(testContents), os.ModePerm)
 	if err != nil {
 		t.Fatal(err.Error())
+	}
+
+	err = uploadRFML(context, testAPI)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	// Wisp test
+	button := "left"
+	elementID := 123
+	seconds := 1
+	hold := false
+	visibility := false
+
+	verbs := []rainforest.Verb{
+		{
+			Action: "click",
+			Button: &button,
+			Target: &rainforest.Noun{
+				Type: "ui_element_reference",
+				ID:   &elementID,
+			},
+			Hold:        &hold,
+			HoldSeconds: &seconds,
+		},
+		{
+			Action: "observe",
+			Object: &rainforest.Noun{
+				Type: "ui_element_reference",
+				ID:   &elementID,
+			},
+			Visibility: &visibility,
+		},
+	}
+
+	wisp := rainforest.Wisp{
+		Version: "0.0.1",
+		Verbs:   verbs,
+	}
+
+	wispJson := rainforest.WispJson{
+		TestID: 333,
+		Title:  "my_title",
+		Wisp:   wisp,
+	}
+
+	wispTestPath := filepath.Join(testDefaultSpecFolder, "valid_test.json")
+	marshaledJson, _ := json.Marshal(wispJson)
+	err = ioutil.WriteFile(wispTestPath, marshaledJson, os.ModePerm)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	testAPI.handleUpdateWisp = func(wisp *rainforest.WispJson) {
+		marshaledWispValues, _ := json.Marshal(wisp.Wisp)
+		marshaledExpectedWispValues, _ := json.Marshal(wispJson.Wisp)
+		wispValues := string(marshaledWispValues)
+		expectedWispValues := string(marshaledExpectedWispValues)
+
+		testCases := []struct {
+			fieldName string
+			expected  interface{}
+			got       interface{}
+		}{
+			{"test ID", wispJson.TestID, wisp.TestID},
+			{"title", wispJson.Title, wisp.Title},
+			{"wisp", wispValues, expectedWispValues},
+		}
+
+		for _, testCase := range testCases {
+			if testCase.got != testCase.expected {
+				t.Errorf("Incorrect value for %v. Expected %v, Got %v", testCase.fieldName, testCase.expected, testCase.got)
+			}
+		}
 	}
 
 	err = uploadRFML(context, testAPI)

@@ -67,7 +67,7 @@ func readRFMLFiles(files []string) ([]*rainforest.RFTest, error) {
 		}
 
 		// We have a directory, walk through and find RFML files
-		err = filepath.Walk(file, func(path string, f os.FileInfo, err error) error {
+		err = filepath.WalkDir(file, func(path string, d os.DirEntry, err error) error {
 			if strings.HasSuffix(path, ".rfml") {
 				fileList = append(fileList, path)
 			}
@@ -435,7 +435,7 @@ func readWispFiles(files []string) ([]*rainforest.WispJson, error) {
 		}
 
 		// We have a directory, walk through and find wisp files
-		err = filepath.Walk(file, func(path string, f os.FileInfo, err error) error {
+		err = filepath.WalkDir(file, func(path string, d os.DirEntry, err error) error {
 			if strings.HasSuffix(path, ".json") {
 				fileList = append(fileList, path)
 			}

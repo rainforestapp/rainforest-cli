@@ -28,7 +28,7 @@ func (e fileParseError) Error() string {
 
 // validateRFML is a wrapper around two other validation functions
 // first one for the single file and the other for whole directory
-func validateRFML(c cliContext, api rfmlAPI) error {
+func validateRFML(c cliContext, api rfAPI) error {
 	if path := c.Args().First(); path != "" {
 		err := validateSingleRFMLFile(path)
 		if err != nil {
@@ -47,9 +47,8 @@ func validateRFML(c cliContext, api rfmlAPI) error {
 	return nil
 }
 
-// readRFMLFiles takes in a list of files and/or directories and a list of tags
-// and returns a list of the parsed tests, or an error if it is encountered. To
-// allow all tags, pass in nil for tags.
+// readRFMLFiles takes in a list of files and/or directories and
+// returns a list of the parsed tests, or an error if it is encountered.
 func readRFMLFiles(files []string) ([]*rainforest.RFTest, error) {
 	fileList := []string{}
 	for _, file := range files {
@@ -154,7 +153,7 @@ var errValidation = errors.New("Validation failed")
 
 // validateRFMLFiles validates RFML file syntax, embedded rfml ids, checks for
 // circular dependiences and all other cool things in the specified directory
-func validateRFMLFiles(parsedTests []*rainforest.RFTest, localOnly bool, api rfmlAPI) error {
+func validateRFMLFiles(parsedTests []*rainforest.RFTest, localOnly bool, api rfAPI) error {
 	// parse all of them files
 	var validationErrors []error
 	var err error
@@ -342,8 +341,8 @@ func deleteRFML(c cliContext) error {
 	return nil
 }
 
-// uploadRFML is a wrapper around test creating/updating functions
-func uploadRFML(c cliContext, api rfmlAPI) error {
+// uploadTests is a wrapper around test creating/updating functions
+func uploadTests(c cliContext, api rfAPI) error {
 	if c.Bool("synchronous-upload") {
 		rfmlUploadConcurrency = 1
 	}
@@ -416,9 +415,8 @@ func readWispFile(filePath string) (*rainforest.WispJson, error) {
 	return wisp, err
 }
 
-// readWispFiles takes in a list of files and/or directories and a list of tags
-// and returns a list of the parsed tests, or an error if it is encountered. To
-// allow all tags, pass in nil for tags.
+// readWispFiles takes in a list of files and/or directories and returns
+// a list of the parsed tests, or an error if it is encountered.
 func readWispFiles(files []string) ([]*rainforest.WispJson, error) {
 	fileList := []string{}
 	for _, file := range files {
@@ -565,7 +563,7 @@ func uploadSingleRFMLFile(filePath string) error {
 	return nil
 }
 
-func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfmlAPI) error {
+func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfAPI) error {
 	err := validateRFMLFiles(tests, localOnly, api)
 	if err != nil {
 		return err
@@ -676,7 +674,7 @@ type RFTestInfo struct {
 	HasWisp bool
 }
 
-type rfmlAPI interface {
+type rfAPI interface {
 	GetTestIDs() ([]rainforest.TestIDPair, error)
 	GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, error)
 	GetTest(int, bool) (*rainforest.RFTest, error)
@@ -687,7 +685,7 @@ type rfmlAPI interface {
 	ClientToken() string
 }
 
-func downloadRFML(c cliContext, client rfmlAPI) error {
+func downloadTests(c cliContext, client rfAPI) error {
 	testDirectory := c.String("test-folder")
 	absTestDirectory, err := prepareTestDirectory(testDirectory)
 	if err != nil {
@@ -810,7 +808,7 @@ func downloadRFML(c cliContext, client rfmlAPI) error {
 	return nil
 }
 
-func downloadRFTestWorker(testInfoChan chan RFTestInfo, errorsChan chan error, testChan chan *rainforest.RFTest, client rfmlAPI) {
+func downloadRFTestWorker(testInfoChan chan RFTestInfo, errorsChan chan error, testChan chan *rainforest.RFTest, client rfAPI) {
 	for testInfo := range testInfoChan {
 		test, err := client.GetTest(testInfo.ID, testInfo.HasWisp)
 		if err != nil {
@@ -861,7 +859,7 @@ func sanitizeTestTitle(title string) string {
 	return title
 }
 
-func testCreationWorker(api rfmlAPI,
+func testCreationWorker(api rfAPI,
 	testsToCreate <-chan *rainforest.RFTest, errorsChan chan<- error) {
 	for test := range testsToCreate {
 		log.Printf("Creating new test: %v", test.RFMLID)
@@ -870,7 +868,7 @@ func testCreationWorker(api rfmlAPI,
 	}
 }
 
-func testUpdateWorker(api rfmlAPI,
+func testUpdateWorker(api rfAPI,
 	testsToUpdate <-chan *rainforest.RFTest, errorsChan chan<- error) {
 	for test := range testsToUpdate {
 		log.Printf("Updating existing test: %v", test.RFMLID)

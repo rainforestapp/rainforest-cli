@@ -313,7 +313,7 @@ func cleanUpTestFolder(testFolderPath string) error {
 	return nil
 }
 
-func TestUploadRFML(t *testing.T) {
+func TestUploadTests(t *testing.T) {
 	context := new(fakeContext)
 	testAPI := new(testRfmlAPI)
 	testDefaultSpecFolder := "testing/" + defaultSpecFolder
@@ -374,7 +374,7 @@ func TestUploadRFML(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	err = uploadRFML(context, testAPI)
+	err = uploadTests(context, testAPI)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -448,7 +448,7 @@ func TestUploadRFML(t *testing.T) {
 		}
 	}
 
-	err = uploadRFML(context, testAPI)
+	err = uploadTests(context, testAPI)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -470,7 +470,7 @@ func TestUploadRFML(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	err = uploadRFML(context, testAPI)
+	err = uploadTests(context, testAPI)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -513,7 +513,7 @@ func TestDeleteRFML(t *testing.T) {
 	}
 }
 
-func TestDownloadRFML(t *testing.T) {
+func TestDownloadTests(t *testing.T) {
 	context := new(fakeContext)
 	testAPI := new(testRfmlAPI)
 	testDefaultSpecFolder := "testing/" + defaultSpecFolder
@@ -596,7 +596,7 @@ func TestDownloadRFML(t *testing.T) {
 	}
 
 	// basic test
-	err := downloadRFML(context, testAPI)
+	err := downloadTests(context, testAPI)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -671,7 +671,7 @@ func TestDownloadRFML(t *testing.T) {
 	rfTest.State = "disabled"
 	testAPI.tests = []rainforest.RFTest{rfTest}
 
-	err = downloadRFML(context, testAPI)
+	err = downloadTests(context, testAPI)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

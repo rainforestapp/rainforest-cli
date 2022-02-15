@@ -369,7 +369,7 @@ func uploadTests(c cliContext, api rfAPI) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
-	wisp_tests, err := readWispFiles([]string{c.String("test-folder")})
+	wisp_tests, err := readWisps([]string{c.String("test-folder")})
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -417,8 +417,26 @@ func readWispFile(filePath string) (*rainforest.WispJson, error) {
 
 // readWispFiles takes in a list of files and/or directories and returns
 // a list of the parsed tests, or an error if it is encountered.
-func readWispFiles(files []string) ([]*rainforest.WispJson, error) {
+func readWisps(files []string) ([]*rainforest.WispJson, error) {
+	wispFiles, err := findWispFiles(files)
+
+	if err != nil {
+		return nil, err
+	}
+
+	wispFiles = filterDups(wispFiles)
+	wisps, err := readWispFiles(wispFiles)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return wisps, nil
+}
+
+func findWispFiles(files []string) ([]string, error) {
 	fileList := []string{}
+
 	for _, file := range files {
 		stat, err := os.Stat(file)
 		if err != nil {
@@ -446,20 +464,36 @@ func readWispFiles(files []string) ([]*rainforest.WispJson, error) {
 		}
 	}
 
-	tests := []*rainforest.WispJson{}
+	return fileList, nil
+}
+
+func filterDups(files []string) []string {
+	var uniqFiles []string
 	seenPaths := map[string]bool{}
-	for _, filePath := range fileList {
-		// No dups!
+
+	for _, filePath := range files {
 		if seenPaths[filePath] {
 			continue
 		}
+
 		seenPaths[filePath] = true
+		uniqFiles = append(uniqFiles, filePath)
+	}
+
+	return uniqFiles
+}
+
+func readWispFiles(files []string) ([]*rainforest.WispJson, error) {
+	tests := []*rainforest.WispJson{}
+
+	for _, filePath := range files {
 		wisp, err := readWispFile(filePath)
 		if err != nil {
 			return nil, err
 		}
 		tests = append(tests, wisp)
 	}
+
 	return tests, nil
 }
 

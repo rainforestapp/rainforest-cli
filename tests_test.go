@@ -231,17 +231,17 @@ func TestNewRFMLTest(t *testing.T) {
 	}
 }
 
-type testRfmlAPI struct {
+type testRfAPI struct {
 	testIDs          []rainforest.TestIDPair
 	tests            []rainforest.RFTest
 	handleUpdateTest func(*rainforest.RFTest)
 }
 
-func (t *testRfmlAPI) GetTestIDs() ([]rainforest.TestIDPair, error) {
+func (t *testRfAPI) GetTestIDs() ([]rainforest.TestIDPair, error) {
 	return t.testIDs, nil
 }
 
-func (t *testRfmlAPI) GetTest(testID int) (*rainforest.RFTest, error) {
+func (t *testRfAPI) GetTest(testID int) (*rainforest.RFTest, error) {
 	for _, test := range t.tests {
 		if test.TestID == testID {
 			return &test, nil
@@ -250,25 +250,25 @@ func (t *testRfmlAPI) GetTest(testID int) (*rainforest.RFTest, error) {
 	return nil, errors.New("Test ID not found")
 }
 
-func (t *testRfmlAPI) GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, error) {
+func (t *testRfAPI) GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, error) {
 	return t.tests, nil
 }
 
-func (t *testRfmlAPI) ClientToken() string {
+func (t *testRfAPI) ClientToken() string {
 	return "abc123"
 }
 
-func (t *testRfmlAPI) CreateTest(_ *rainforest.RFTest) error {
+func (t *testRfAPI) CreateTest(_ *rainforest.RFTest) error {
 	// implement when needed
 	return errStub
 }
 
-func (t *testRfmlAPI) UpdateTest(test *rainforest.RFTest) error {
+func (t *testRfAPI) UpdateTest(test *rainforest.RFTest) error {
 	t.handleUpdateTest(test)
 	return nil
 }
 
-func (t *testRfmlAPI) ParseEmbeddedFiles(_ *rainforest.RFTest) error {
+func (t *testRfAPI) ParseEmbeddedFiles(_ *rainforest.RFTest) error {
 	// implement when needed
 	return errStub
 }
@@ -306,9 +306,9 @@ func cleanUpTestFolder(testFolderPath string) error {
 	return nil
 }
 
-func TestUploadRFML(t *testing.T) {
+func TestUploadTests(t *testing.T) {
 	context := new(fakeContext)
-	testAPI := new(testRfmlAPI)
+	testAPI := new(testRfAPI)
 	testDefaultSpecFolder := "testing/" + defaultSpecFolder
 
 	defer func() {
@@ -367,7 +367,7 @@ func TestUploadRFML(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	err = uploadRFML(context, testAPI)
+	err = uploadTests(context, testAPI)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -389,7 +389,7 @@ func TestUploadRFML(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	err = uploadRFML(context, testAPI)
+	err = uploadTests(context, testAPI)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -432,9 +432,9 @@ func TestDeleteRFML(t *testing.T) {
 	}
 }
 
-func TestDownloadRFML(t *testing.T) {
+func TestDownloadTests(t *testing.T) {
 	context := new(fakeContext)
-	testAPI := new(testRfmlAPI)
+	testAPI := new(testRfAPI)
 	testDefaultSpecFolder := "testing/" + defaultSpecFolder
 
 	defer func() {
@@ -470,7 +470,7 @@ func TestDownloadRFML(t *testing.T) {
 	}
 
 	// basic test
-	err := downloadRFML(context, testAPI)
+	err := downloadTests(context, testAPI)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -510,11 +510,26 @@ func TestDownloadRFML(t *testing.T) {
 		t.Errorf("Did not expect state field in RFML test. Got %v", rfmlText)
 	}
 
+	// Wisp test
+	rfWispTest := rainforest.RFTest{
+		TestID:  123,
+		Title:   "Wisp test title",
+		HasWisp: true,
+	}
+
+	testAPI.tests = []rainforest.RFTest{rfTest, rfWispTest}
+
+	err = downloadTests(context, testAPI)
+
+	if err == nil {
+		t.Errorf("Expected an error warning that a wisp test was requested, but none was raised")
+	}
+
 	// Test is disabled
 	rfTest.State = "disabled"
 	testAPI.tests = []rainforest.RFTest{rfTest}
 
-	err = downloadRFML(context, testAPI)
+	err = downloadTests(context, testAPI)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -573,7 +588,7 @@ func TestValidateEmbedded(t *testing.T) {
 		},
 	}
 
-	testAPI := new(testRfmlAPI)
+	testAPI := new(testRfAPI)
 	testAPI.testIDs = []rainforest.TestIDPair{
 		{ID: t1.TestID, RFMLID: t1.RFMLID},
 		{ID: t2.TestID, RFMLID: t2.RFMLID},

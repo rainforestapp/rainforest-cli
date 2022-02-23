@@ -80,8 +80,8 @@ type fakeRunnerClient struct {
 	createdTests []*rainforest.RFTest
 	// got some potential race conditions!
 	mu sync.Mutex
-	// "inherit" from RFML API
-	testRfmlAPI
+	// "inherit" from RF API
+	testRfAPI
 }
 
 func (r *fakeRunnerClient) CheckRunStatus(runID int) (*rainforest.RunStatus, error) {

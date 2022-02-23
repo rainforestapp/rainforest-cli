@@ -365,11 +365,11 @@ func main() {
 		},
 		{
 			Name:         "upload",
-			Usage:        "Upload your RFML tests",
+			Usage:        "Upload your tests",
 			OnUsageError: onCommandUsageErrorHandler("upload"),
-			ArgsUsage:    "[path to RFML file]",
+			ArgsUsage:    "[path to file]",
 			Description: "Uploads specified test to Rainforest. " +
-				"If no filepath is given it uploads all RFML tests.",
+				"If no filepath is given it uploads all tests.",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "test-folder",
@@ -383,7 +383,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				return uploadRFML(c, api)
+				return uploadTests(c, api)
 			},
 		},
 		{
@@ -400,10 +400,10 @@ func main() {
 			Name: "download",
 			// Left for legacy reason, should nuke?
 			Aliases:      []string{"export"},
-			Usage:        "Download your remote Rainforest tests to RFML",
+			Usage:        "Download your Rainforest tests",
 			OnUsageError: onCommandUsageErrorHandler("download"),
 			ArgsUsage:    "[test IDs]",
-			Description: "Download your remote tests from Rainforest to RFML. " +
+			Description: "Download your Rainforest tests. " +
 				"You may specify list of test IDs or download all tests by default. " +
 				"Alternatively you can use one of the filtering options.",
 			Flags: []cli.Flag{
@@ -439,7 +439,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				return downloadRFML(c, api)
+				return downloadTests(c, api)
 			},
 		},
 		{

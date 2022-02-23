@@ -98,6 +98,7 @@ type RFTest struct {
 	Tags        []string                 `json:"tags"`
 	BrowsersMap []map[string]interface{} `json:"browsers"`
 	Elements    []testElement            `json:"elements,omitempty"`
+	HasWisp     bool                     `json:"has_wisp"`
 	FeatureID   FeatureIDInt             `json:"feature_id,omitempty"`
 
 	// Browsers and Steps are helper fields
@@ -340,6 +341,7 @@ type RFEmbeddedTest struct {
 // RFTestFilters are used to translate test filters to a proper query string
 type RFTestFilters struct {
 	Tags          []string
+	Tests         []string
 	SiteID        int
 	SmartFolderID int
 	FeatureID     int
@@ -361,6 +363,9 @@ func (f *RFTestFilters) toQuery() string {
 	}
 	if f.RunGroupID > 0 {
 		v.Add("run_group_id", strconv.Itoa(f.RunGroupID))
+	}
+	if len(f.Tests) > 0 {
+		v.Add("tests", strings.Join(f.Tests, ","))
 	}
 
 	return v.Encode()

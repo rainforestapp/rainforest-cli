@@ -138,6 +138,7 @@ func TestGetTests(t *testing.T) {
 		{
 			rfFilters: RFTestFilters{
 				Tags:          []string{"foo", "bar"},
+				Tests:         []string{"987", "789"},
 				SiteID:        123,
 				SmartFolderID: 321,
 				RunGroupID:    237,
@@ -149,6 +150,7 @@ func TestGetTests(t *testing.T) {
 				"site_id":         []string{"123"},
 				"smart_folder_id": []string{"321"},
 				"run_group_id":    []string{"237"},
+				"tests":           []string{"987,789"},
 			},
 		},
 

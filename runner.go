@@ -21,7 +21,7 @@ type runnerAPI interface {
 	CreateRun(params rainforest.RunParams) (*rainforest.RunStatus, error)
 	CreateTemporaryEnvironment(string) (*rainforest.Environment, error)
 	CheckRunStatus(int) (*rainforest.RunStatus, error)
-	rfmlAPI
+	rfAPI
 }
 
 type runner struct {

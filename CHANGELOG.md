@@ -1,4 +1,8 @@
 # Rainforest CLI Changelog
+## 2.28.0 - 2022-02-24
+- Provide better error message when trying to download unsupported tests.
+  - (5908c8ee15187ed69c37aa5d92a678e211ee14ac, @pyromaniackeca)
+
 ## 2.27.0 - 2022-01-20
 - Update allowed extensions for mobile app uploads to include `.aab`
   - (45ed97d1e6b05637d8325f7dcbf98de4f2e7ab61, @ubergeek42)

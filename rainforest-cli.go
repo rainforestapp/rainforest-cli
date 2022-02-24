@@ -152,7 +152,7 @@ func main() {
 			Aliases:      []string{"r"},
 			Usage:        "Run your tests on Rainforest",
 			OnUsageError: onCommandUsageErrorHandler("run"),
-			Action:       func(c *cli.Context) error {
+			Action: func(c *cli.Context) error {
 				return startRun(c)
 			},
 			Description: "Runs your tests on Rainforest platform. " +
@@ -283,7 +283,7 @@ func main() {
 			Aliases:      []string{"rr"},
 			Usage:        "Rerun failed tests from a previous run",
 			OnUsageError: onCommandUsageErrorHandler("rerun"),
-			Action:       func(c *cli.Context) error {
+			Action: func(c *cli.Context) error {
 				return rerunRun(c)
 			},
 			Description: "Reruns the failed tests from a previous run on Rainforest platform. " +
@@ -392,7 +392,7 @@ func main() {
 			OnUsageError: onCommandUsageErrorHandler("rm"),
 			ArgsUsage:    "[path to RFML file]",
 			Description:  "Remove RFML file and remove test from Rainforest test suite.",
-			Action:       func(c *cli.Context) error {
+			Action: func(c *cli.Context) error {
 				return deleteRFML(c)
 			},
 		},
@@ -573,7 +573,7 @@ func main() {
 			Name:         "update",
 			Usage:        "Updates application to the latest version",
 			OnUsageError: onCommandUsageErrorHandler("update"),
-			Action:       func(c *cli.Context) error {
+			Action: func(c *cli.Context) error {
 				return updateCmd(c)
 			},
 		},

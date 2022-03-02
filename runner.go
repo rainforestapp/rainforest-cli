@@ -452,20 +452,20 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 	automationMaxRetries := c.Int("automation-max-retries")
 
 	return rainforest.RunParams{
-		Tests:                   testIDs,
-		RFMLIDs:                 rfmlIDs,
-		Tags:                    tags,
-		SmartFolderID:           smartFolderID,
-		SiteID:                  siteID,
-		Crowd:                   crowd,
-		Conflict:                conflict,
-		Browsers:                expandedBrowsers,
-		Description:             description,
-		Release:                 release,
-		EnvironmentID:           environmentID,
-		FeatureID:               featureID,
-		RunGroupID:              runGroupID,
-		AutomationMaxRetries:    automationMaxRetries,
+		Tests:                testIDs,
+		RFMLIDs:              rfmlIDs,
+		Tags:                 tags,
+		SmartFolderID:        smartFolderID,
+		SiteID:               siteID,
+		Crowd:                crowd,
+		Conflict:             conflict,
+		Browsers:             expandedBrowsers,
+		Description:          description,
+		Release:              release,
+		EnvironmentID:        environmentID,
+		FeatureID:            featureID,
+		RunGroupID:           runGroupID,
+		AutomationMaxRetries: automationMaxRetries,
 	}, nil
 }
 

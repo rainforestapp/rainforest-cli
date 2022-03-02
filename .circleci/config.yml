@@ -188,6 +188,13 @@ jobs:
       - run:
           name: Check GoReleaser Config
           command: goreleaser check
+  validate_formatting:
+    executor: linux
+    steps:
+      - checkout
+      - run:
+          name: Validate code formatting
+          command: ./script/validate_formatting
   test:
     executor: linux
     steps:
@@ -249,10 +256,12 @@ workflows:
   version: 2
   test_and_deploy:
     jobs:
+      - validate_formatting
       - test
       - validate_goreleaser_config
       - integration_test:
           requires:
+            - validate_formatting
             - test
             - validate_goreleaser_config
           matrix:
@@ -266,6 +275,7 @@ workflows:
                 - [fail_junit]
       - integration_test:
           requires:
+            - validate_formatting
             - test
             - validate_goreleaser_config
           matrix:

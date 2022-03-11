@@ -81,7 +81,7 @@ Run all your tests in the background and exit the process immediately.
 rainforest run all --bg
 ```
 
-Run all tests with tag 'run-me' and abort previous in-progress runs.
+Run all tests with tag 'run-me' and cancel previous in-progress runs.
 
 ```bash
 rainforest run --tag run-me --conflict abort
@@ -101,7 +101,7 @@ rainforest run <test_id1> <test_id2>
 
 Run a run group.
 
-⚠️ This uses the configuration defined in the run group (environment, browsers, crowd, location). If you wish to run tests from a run group without using the run group's configuration, you will need to use the Rainforest API directly, passing a `run_group_id` parameter to [the `POST /runs` endpoint](https://app.rainforestqa.com/docs#!/runs/post1Runs). ⚠️
+⚠️ This uses the configuration defined in the run group (environment, platforms, crowd, location). If you wish to run tests from a run group without using the run group's configuration, you will need to use the Rainforest API directly, passing a `run_group_id` parameter to [the `POST /runs` endpoint](https://app.rainforestqa.com/docs#!/runs/post1Runs). ⚠️
 
 ```bash
 rainforest run --run-group <run_group_id>
@@ -219,7 +219,7 @@ See a list of all of your smart folders and their IDs
 rainforest folders
 ```
 
-See a list of all of your browsers and their IDs
+See a list of all of your platforms and their IDs
 ```bash
 rainforest browsers
 ```
@@ -278,7 +278,7 @@ Rainforest Tests written using RFML have the following format
 # start_uri: [START_URI]
 # tags: [TAGS]
 # site_id: [SITE ID]
-# browsers: [BROWSER IDS]
+# browsers: [PLATFORM IDS]
 # feature_id: [FEATURE_ID]
 # state: [STATE]
 # [OTHER COMMENTS]
@@ -313,9 +313,9 @@ Optional Fields:
 - `SITE ID` - Site ID for the site this test is for. You can find your available
 site IDs with the `sites` command. Sites can be configured at
 https://app.rainforestqa.com/settings/sites.
-- `BROWSER IDS` - Comma separated list of browsers for this test. You can reference
-your available browsers with the `browsers` command. If left empty or omitted,
-your test will default to using your account's default browsers.
+- `PLATFORM IDS` - Comma separated list of platforms for this test. You can reference
+your available platforms with the `browsers` command. If left empty or omitted,
+your test will default to using your account's default platforms.
 - `TAGS` - Comma separated list of your desired tags for this test.
 - `FEATURE_ID` - Feature ID for the feature that this test is a part of. You can
 find your available feature IDs with the `features` command.
@@ -335,14 +335,14 @@ For more information on embedding inline screenshots and file downloads,
 ### Command Line Options
 
 Popular command line options are:
-- `--browsers ie8` or `--browsers ie8,chrome` - specify the browsers you wish to run against. This overrides the test level settings. Valid browsers can be found in your account settings.
+- `--browsers ie8` or `--browsers ie8,chrome` - specify the platforms you wish to run against. This overrides the test level settings. Valid platforms can be found in your account settings.
 - `--tag TAG_NAME` - filter tests by tag. Can be used multiple times for filtering by multiple tags.
 - `--site-id SITE_ID` - filter tests by a specific site. You can see a list of your site IDs with `rainforest sites`.
 - `--folder ID/--filter ID` - filter tests in specified folder.
 - `--feature ID` - filter tests in a feature.
 - `--run-group ID` - run/filter based on a run group. When used with `run`, this trigger a run from the run group; it can't be used in conjunction with other test filters.
 - `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
-- `--conflict OPTION` - use the `abort` option to abort any runs in progress in the same environment as your new run. use the `abort-all` option to abort all runs in progress.
+- `--conflict OPTION` - use the `abort` option to cancel any runs in progress in the same environment as your new run. Use the `abort-all` option to cancel all runs in progress.
 - `--bg` - creates a run in the background and rainforest-cli exits immediately after. Do not use if you want rainforest-cli to track your run and exit with an error code upon run failure (ie: using Rainforest in your CI environment). Cannot be used together with `--max-reruns`.
 - `--crowd [default|automation|automation_and_crowd|on_premise_crowd]` - select automation or your crowd of testers (for clients with on premise testers). For more information, contact us at help@rainforestqa.com.
 - `--wait RUN_ID` - wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.

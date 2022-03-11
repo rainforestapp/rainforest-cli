@@ -194,8 +194,8 @@ func main() {
 				},
 				cli.StringSliceFlag{
 					Name: "browser, browsers",
-					Usage: "Specify the `BROWSER` you wish to run against. This overrides test level settings." +
-						"Can be used multiple times to run against multiple browsers.",
+					Usage: "Specify the `PLATFORM` you wish to run against. This overrides test level settings." +
+						"Can be used multiple times to run against multiple platforms.",
 				},
 				cli.StringFlag{
 					Name:  "environment-id",
@@ -208,8 +208,8 @@ func main() {
 				},
 				cli.StringFlag{
 					Name: "conflict",
-					Usage: "Use the abort option to abort any runs in the same environment or " +
-						"use the abort-all option to abort all runs in progress.",
+					Usage: "Use the abort option to cancel any runs in the same environment or " +
+						"use the abort-all option to cancel all runs in progress.",
 				},
 				cli.BoolFlag{
 					Name: "bg, background",
@@ -292,8 +292,8 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name: "conflict",
-					Usage: "Use the abort option to abort any runs in the same environment or " +
-						"use the abort-all option to abort all runs in progress.",
+					Usage: "Use the abort option to cancel any runs in the same environment or " +
+						"use the abort-all option to cancel all runs in progress.",
 				},
 				cli.BoolFlag{
 					Name: "bg, background",
@@ -547,7 +547,7 @@ func main() {
 		},
 		{
 			Name:         "browsers",
-			Usage:        "Lists available browsers",
+			Usage:        "Lists available platforms",
 			OnUsageError: onCommandUsageErrorHandler("browsers"),
 			Action: func(c *cli.Context) error {
 				return printBrowsers(api)

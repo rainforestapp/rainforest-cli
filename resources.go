@@ -29,7 +29,7 @@ func printResourceTable(headers []string, rows [][]string) {
 // resourceAPI is part of the API connected to available resources
 type resourceAPI interface {
 	GetFolders() ([]rainforest.Folder, error)
-	GetBrowsers() ([]rainforest.Browser, error)
+	GetPlatforms() ([]rainforest.Platform, error)
 	GetSites() ([]rainforest.Site, error)
 	GetEnvironments() ([]rainforest.Environment, error)
 	GetFeatures() ([]rainforest.Feature, error)
@@ -54,20 +54,20 @@ func printFolders(api resourceAPI) error {
 	return nil
 }
 
-// printBrowsers fetches and prints out the browsers available to the client
-func printBrowsers(api resourceAPI) error {
-	// Fetch the list of browsers from the Rainforest
-	browsers, err := api.GetBrowsers()
+// printPlatforms fetches and prints out the platforms available to the client
+func printPlatforms(api resourceAPI) error {
+	// Fetch the list of platforms from the Rainforest
+	platforms, err := api.GetPlatforms()
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
-	rows := make([][]string, len(browsers))
-	for i, browser := range browsers {
-		rows[i] = []string{browser.Name, browser.Description}
+	rows := make([][]string, len(platforms))
+	for i, platform := range platforms {
+		rows[i] = []string{platform.Name, platform.Description}
 	}
 
-	printResourceTable([]string{"Browser ID", "Browser Name"}, rows)
+	printResourceTable([]string{"Platform ID", "Platform Name"}, rows)
 	return nil
 }
 

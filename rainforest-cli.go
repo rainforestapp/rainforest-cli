@@ -546,11 +546,20 @@ func main() {
 			},
 		},
 		{
-			Name:         "browsers",
+			Name:         "platforms",
 			Usage:        "Lists available platforms",
-			OnUsageError: onCommandUsageErrorHandler("browsers"),
+			OnUsageError: onCommandUsageErrorHandler("platforms"),
 			Action: func(c *cli.Context) error {
-				return printBrowsers(api)
+				return printPlatforms(api)
+			},
+		},
+		{
+			Name:         "browsers",
+			Hidden:       true,
+			OnUsageError: onCommandUsageErrorHandler("platforms"),
+			Action: func(c *cli.Context) error {
+				fmt.Println("RF CLI Deprecation: browsers is deprecated; use platforms instead")
+				return printPlatforms(api)
 			},
 		},
 		{

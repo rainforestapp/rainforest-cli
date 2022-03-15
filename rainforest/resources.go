@@ -77,32 +77,32 @@ func (c *Client) GetFolders() ([]Folder, error) {
 	return folders, err
 }
 
-// Browser type represents a single browser returned by the API call for a list of browsers
-type Browser struct {
+// Platform type represents a single platform returned by the API call for a list of platforms
+type Platform struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
-// GetBrowsers returns a slice of Browsers which are available for the client to run
+// GetPlatforms returns a slice of Platforms which are available for the client to run
 // RF tests against.
-func (c *Client) GetBrowsers() ([]Browser, error) {
+func (c *Client) GetPlatforms() ([]Platform, error) {
 	// Prepare request
 	req, err := c.NewRequest("GET", "clients", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// browsersResp is a type returned by the API call for list of browsers
-	type browsersResponse struct {
-		AvailableBrowsers []Browser `json:"available_browsers"`
+	// platformsResp is a type returned by the API call for list of platforms
+	type platformsResponse struct {
+		AvailablePlatforms []Platform `json:"available_browsers"`
 	}
-	var browsersResp browsersResponse
+	var platformsResp platformsResponse
 	// Send request and process response
-	_, err = c.Do(req, &browsersResp)
+	_, err = c.Do(req, &platformsResp)
 	if err != nil {
 		return nil, err
 	}
-	return browsersResp.AvailableBrowsers, nil
+	return platformsResp.AvailablePlatforms, nil
 }
 
 // RunGroupDetails shows the details for a particular run group.

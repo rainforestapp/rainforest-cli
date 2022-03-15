@@ -221,7 +221,7 @@ rainforest folders
 
 See a list of all of your platforms and their IDs
 ```bash
-rainforest browsers
+rainforest platforms
 ```
 
 See a list of all of your features and their IDs
@@ -313,8 +313,8 @@ Optional Fields:
 - `SITE ID` - Site ID for the site this test is for. You can find your available
 site IDs with the `sites` command. Sites can be configured at
 https://app.rainforestqa.com/settings/sites.
-- `PLATFORM IDS` - Comma separated list of platforms for this test. You can reference
-your available platforms with the `browsers` command. If left empty or omitted,
+- `PLATFORMS IDS` - Comma separated list of platforms for this test. You can reference
+your available platforms with the `platforms` command. If left empty or omitted,
 your test will default to using your account's default platforms.
 - `TAGS` - Comma separated list of your desired tags for this test.
 - `FEATURE_ID` - Feature ID for the feature that this test is a part of. You can

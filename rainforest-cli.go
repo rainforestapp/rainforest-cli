@@ -193,9 +193,13 @@ func main() {
 					Usage: "Start a run using a run group. You can see a list of your `RUN-GROUP-ID`s with the run-groups command. This option cannot be used in conjunction with other filtering options.",
 				},
 				cli.StringSliceFlag{
-					Name: "browser, browsers",
+					Name: "platform, platforms",
 					Usage: "Specify the `PLATFORM` you wish to run against. This overrides test level settings." +
 						"Can be used multiple times to run against multiple platforms.",
+				},
+				cli.StringSliceFlag{
+					Name:   "browser, browsers",
+					Hidden: true,
 				},
 				cli.StringFlag{
 					Name:  "environment-id",

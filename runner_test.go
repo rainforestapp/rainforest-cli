@@ -188,7 +188,7 @@ func TestMakeRunParams(t *testing.T) {
 				"site":           "456",
 				"crowd":          "on_premise_crowd",
 				"conflict":       "cancel",
-				"browser":        []string{"chrome", "firefox,safari"},
+				"platform":       []string{"chrome", "firefox,safari"},
 				"description":    "my awesome description",
 				"release":        "1a2b3c",
 				"environment-id": "1337",

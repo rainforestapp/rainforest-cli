@@ -200,7 +200,7 @@ The following options are specific to `run -f` or behave differently:
 - `--exclude FILE`: exclude the test in `FILE` from being run, even if `# execute: true` is specified.
 - `--force-execute FILE`: execute the test in `FILE` even if `# execute: false` is specified.
 
-Run-level setting options (`--browsers`, `--environment_id`, etc) behave the same for `run -f`. Other test filtering options (such as `--run-group`, `--site`, etc) cannot be used in conjunction with `run -f`.
+Run-level setting options (`--platforms`, `--environment_id`, etc) behave the same for `run -f`. Other test filtering options (such as `--run-group`, `--site`, etc) cannot be used in conjunction with `run -f`.
 
 #### Viewing Account Specific Information
 
@@ -335,7 +335,7 @@ For more information on embedding inline screenshots and file downloads,
 ### Command Line Options
 
 Popular command line options are:
-- `--browsers ie8` or `--browsers ie8,chrome` - specify the platforms you wish to run against. This overrides the test level settings. Valid platforms can be found in your account settings.
+- `--platform ie8` or `--platforms ie8,chrome` - specify the platform(s) you wish to run against. This overrides the test level settings. Valid platforms can be found in your account settings.
 - `--tag TAG_NAME` - filter tests by tag. Can be used multiple times for filtering by multiple tags.
 - `--site-id SITE_ID` - filter tests by a specific site. You can see a list of your site IDs with `rainforest sites`.
 - `--folder ID/--filter ID` - filter tests in specified folder.

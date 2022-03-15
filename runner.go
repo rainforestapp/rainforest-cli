@@ -523,7 +523,7 @@ func getTags(c cliContext) []string {
 // getConflict gets conflict from a CLI context. It returns an error if value isn't allowed
 func getConflict(c cliContext) (string, error) {
 	var conflict string
-	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
+	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" && conflict != "cancel" && conflict != "cancel-all" {
 		return "", errors.New("Invalid conflict option specified")
 	}
 

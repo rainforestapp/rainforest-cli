@@ -208,8 +208,8 @@ func main() {
 				},
 				cli.StringFlag{
 					Name: "conflict",
-					Usage: "Use the abort option to cancel any runs in the same environment or " +
-						"use the abort-all option to cancel all runs in progress.",
+					Usage: "Use the cancel option to cancel any runs in the same environment or " +
+						"use the cancel-all option to cancel all runs in progress.",
 				},
 				cli.BoolFlag{
 					Name: "bg, background",
@@ -292,8 +292,8 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name: "conflict",
-					Usage: "Use the abort option to cancel any runs in the same environment or " +
-						"use the abort-all option to cancel all runs in progress.",
+					Usage: "Use the cancel option to cancel any runs in the same environment or " +
+						"use the cancel-all option to cancel all runs in progress.",
 				},
 				cli.BoolFlag{
 					Name: "bg, background",

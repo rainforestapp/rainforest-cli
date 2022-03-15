@@ -84,7 +84,7 @@ rainforest run all --bg
 Run all tests with tag 'run-me' and cancel previous in-progress runs.
 
 ```bash
-rainforest run --tag run-me --conflict abort
+rainforest run --tag run-me --conflict cancel
 ```
 
 Run all tests and generate a junit xml report.
@@ -342,7 +342,7 @@ Popular command line options are:
 - `--feature ID` - filter tests in a feature.
 - `--run-group ID` - run/filter based on a run group. When used with `run`, this trigger a run from the run group; it can't be used in conjunction with other test filters.
 - `--environment-id` - run your tests using this environment. Otherwise it will use your default environment
-- `--conflict OPTION` - use the `abort` option to cancel any runs in progress in the same environment as your new run. Use the `abort-all` option to cancel all runs in progress.
+- `--conflict OPTION` - use the `cancel` option to cancel any runs in progress in the same environment as your new run. Use the `cancel-all` option to cancel all runs in progress.
 - `--bg` - creates a run in the background and rainforest-cli exits immediately after. Do not use if you want rainforest-cli to track your run and exit with an error code upon run failure (ie: using Rainforest in your CI environment). Cannot be used together with `--max-reruns`.
 - `--crowd [default|automation|automation_and_crowd|on_premise_crowd]` - select automation or your crowd of testers (for clients with on premise testers). For more information, contact us at help@rainforestqa.com.
 - `--wait RUN_ID` - wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.

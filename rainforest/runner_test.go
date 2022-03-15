@@ -61,9 +61,9 @@ func TestCreateRunFromRerun(t *testing.T) {
 
 	runParams := RunParams{
 		RunID:    runID,
-		Conflict: "abort",
+		Conflict: "cancel",
 	}
-	wantBody := `{"conflict":"abort"}`
+	wantBody := `{"conflict":"cancel"}`
 
 	mux.HandleFunc("/runs", func(w http.ResponseWriter, r *http.Request) {
 		t.Errorf("/runs endpoint hit, expected /runs/:id/rerun_failed")
@@ -171,10 +171,10 @@ func TestCreateRunFromRunGroup(t *testing.T) {
 
 	runParams := RunParams{
 		EnvironmentID: 23,
-		Conflict:      "abort",
+		Conflict:      "cancel",
 		RunGroupID:    runGroupID,
 	}
-	wantBody := `{"conflict":"abort","environment_id":23}`
+	wantBody := `{"conflict":"cancel","environment_id":23}`
 
 	mux.HandleFunc("/runs", func(w http.ResponseWriter, r *http.Request) {
 		t.Errorf("/runs endpoint hit, expected /run_groups/:id/runs")

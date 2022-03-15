@@ -278,7 +278,7 @@ Rainforest Tests written using RFML have the following format
 # start_uri: [START_URI]
 # tags: [TAGS]
 # site_id: [SITE ID]
-# browsers: [PLATFORM IDS]
+# platforms: [PLATFORM IDS]
 # feature_id: [FEATURE_ID]
 # state: [STATE]
 # [OTHER COMMENTS]

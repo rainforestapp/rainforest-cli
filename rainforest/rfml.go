@@ -107,19 +107,19 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 						strippedTags[i] = strings.TrimSpace(tag)
 					}
 					parsedRFTest.Tags = strippedTags
-				case "browsers":
+				case "platforms", "browsers":
 					// If you split the empty string instead, you will get: []string{""}
 					if len(value) == 0 {
-						parsedRFTest.Browsers = []string{}
+						parsedRFTest.Platforms = []string{}
 						continue
 					}
 
-					splitBrowsers := strings.Split(value, ",")
-					strippedBrowsers := make([]string, len(splitBrowsers))
-					for i, tag := range splitBrowsers {
-						strippedBrowsers[i] = strings.TrimSpace(tag)
+					splitPlatforms := strings.Split(value, ",")
+					strippedPlatforms := make([]string, len(splitPlatforms))
+					for i, tag := range splitPlatforms {
+						strippedPlatforms[i] = strings.TrimSpace(tag)
 					}
-					parsedRFTest.Browsers = strippedBrowsers
+					parsedRFTest.Platforms = strippedPlatforms
 				case "redirect":
 					redirect, err := strconv.ParseBool(value)
 					if err != nil {
@@ -274,11 +274,11 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		}
 	}
 
-	if len(test.Browsers) > 0 {
-		browsers := strings.Join(test.Browsers, ", ")
-		browsersHeader := fmt.Sprintf("# browsers: %v\n", browsers)
+	if len(test.Platforms) > 0 {
+		platforms := strings.Join(test.Platforms, ", ")
+		platformsHeader := fmt.Sprintf("# platforms: %v\n", platforms)
 
-		_, err = writer.WriteString(browsersHeader)
+		_, err = writer.WriteString(platformsHeader)
 
 		if err != nil {
 			return err

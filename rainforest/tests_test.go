@@ -14,7 +14,7 @@ import (
 func TestPrepareToWriteAsRFML(t *testing.T) {
 	test := RFTest{
 		StartURI: "",
-		BrowsersMap: []map[string]interface{}{
+		PlatformsMap: []map[string]interface{}{
 			{
 				"name":  "foo",
 				"state": "enabled",
@@ -76,9 +76,9 @@ func TestPrepareToWriteAsRFML(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	expectedBrowsers := []string{"foo", "baz"}
-	if !reflect.DeepEqual(test.Browsers, expectedBrowsers) {
-		t.Errorf("Expected browsers to be %v, got %v", expectedBrowsers, test.Browsers)
+	expectedPlatforms := []string{"foo", "baz"}
+	if !reflect.DeepEqual(test.Platforms, expectedPlatforms) {
+		t.Errorf("Expected browsers to be %v, got %v", expectedPlatforms, test.Platforms)
 	}
 
 	if len(test.Steps) != 3 {
@@ -441,13 +441,13 @@ func TestUpdateTest(t *testing.T) {
 	}
 
 	// // With extra attributes
-	rfTest.Browsers = []string{"chrome", "firefox"}
+	rfTest.Platforms = []string{"chrome", "firefox"}
 	rfTest.Tags = []string{"foo", "bar"}
 	rfTest.FeatureID = 909
 	rfTest.State = "disabled"
 	rfTest.Priority = "P1"
 
-	rfTest.mapBrowsers()
+	rfTest.mapPlatforms()
 
 	cleanup()
 	setup()
@@ -490,9 +490,9 @@ func TestUpdateTest(t *testing.T) {
 
 	// Deleted feature ID, empty browsers and tags list
 	rfTest.FeatureID = deleteFeature
-	rfTest.Browsers = []string{}
+	rfTest.Platforms = []string{}
 	rfTest.Tags = []string{}
-	rfTest.mapBrowsers()
+	rfTest.mapPlatforms()
 
 	cleanup()
 	setup()

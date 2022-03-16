@@ -1,4 +1,14 @@
 # Rainforest CLI Changelog
+## 2.29.0 - 2022-03-16
+- Add `cancel` and `cancel-all` options for `--conflict` flag to replace deprecated `abort` and `abort-all`
+  - (88882b0b27a5665c552d6c60459f11076be59a41, @magni-)
+- Replace `browsers` command with `platforms`
+  - (419484b877cb79591e601b8f739e6f6e148bf20b, @magni-)
+- Add new `--platform` (also aliased as `--platforms`) flag to replace deprecated `--browser` and `--browsers` flags
+  - (33b9d9e54b547d19f659e6c5e6402d88c812fe0f, @magni-)
+- Replace `# browsers:` RFML magic comment with `# platforms:`
+  - (81f79648a22e7d95b21738789ec6f672ec2152c9, @magni-)
+
 ## 2.28.0 - 2022-02-24
 - Provide better error message when trying to download unsupported tests.
   - (5908c8ee15187ed69c37aa5d92a678e211ee14ac, @pyromaniackeca)

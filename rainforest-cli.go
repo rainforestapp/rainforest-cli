@@ -194,7 +194,7 @@ func main() {
 				},
 				cli.StringSliceFlag{
 					Name: "platform, platforms",
-					Usage: "Specify the `PLATFORM` you wish to run against. This overrides test level settings." +
+					Usage: "Specify the `PLATFORM` you wish to run against. This overrides test level settings. " +
 						"Can be used multiple times to run against multiple platforms.",
 				},
 				cli.StringSliceFlag{
@@ -262,7 +262,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "single-use",
-					Usage: "This option marks uploaded variable as single-use",
+					Usage: "This option marks uploaded variable as single-use.",
 				},
 				cli.StringFlag{
 					Name:  "wait, reattach",
@@ -270,15 +270,15 @@ func main() {
 				},
 				cli.UintFlag{
 					Name:  "max-reruns",
-					Usage: "Rerun `max-reruns` times before reporting failure.",
+					Usage: "Rerun `MAX-RERUNS` times before reporting failure.",
 				},
 				cli.UintFlag{
 					Name:  "automation-max-retries",
-					Usage: "Try to pass a test `automation-max-retries` times within the same run before reporting run failure.",
+					Usage: "Try to pass a test `AUTOMATION-MAX-RETRIES` times within the same run before reporting run failure.",
 				},
 				cli.StringFlag{
 					Name:  "save-run-id",
-					Usage: "Save the created run's ID to `FILE`",
+					Usage: "Save the created run's ID to `FILE`.",
 				},
 			},
 		},
@@ -315,7 +315,7 @@ func main() {
 				},
 				cli.UintFlag{
 					Name:  "max-reruns",
-					Usage: "Rerun `max-reruns` times before reporting failure.",
+					Usage: "Rerun `MAX-RERUNS` times before reporting failure.",
 				},
 				cli.UintFlag{
 					Name:  "rerun-attempt",
@@ -323,7 +323,7 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:  "save-run-id",
-					Usage: "Save the created run's ID to `FILE`",
+					Usage: "Save the created run's ID to `FILE`.",
 					Value: ".rainforest_run_id",
 				},
 			},

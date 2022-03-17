@@ -35,7 +35,7 @@ func TestPrintResourceTable(t *testing.T) {
 
 type testResourceAPI struct {
 	Folders      []rainforest.Folder
-	Browsers     []rainforest.Browser
+	Platforms    []rainforest.Platform
 	Sites        []rainforest.Site
 	Environments []rainforest.Environment
 	Features     []rainforest.Feature
@@ -47,8 +47,8 @@ func (api testResourceAPI) GetFolders() ([]rainforest.Folder, error) {
 	return api.Folders, nil
 }
 
-func (api testResourceAPI) GetBrowsers() ([]rainforest.Browser, error) {
-	return api.Browsers, nil
+func (api testResourceAPI) GetPlatforms() ([]rainforest.Platform, error) {
+	return api.Platforms, nil
 }
 
 func (api testResourceAPI) GetSites() ([]rainforest.Site, error) {
@@ -90,21 +90,21 @@ func TestPrintFolders(t *testing.T) {
 	regexMatchOut(`\| +456 +\| +Second Folder Title +\|`, t)
 }
 
-func TestPrintBrowsers(t *testing.T) {
+func TestPrintPlatforms(t *testing.T) {
 	tablesOut = &bytes.Buffer{}
 	defer func() {
 		tablesOut = os.Stdout
 	}()
 
 	testAPI := testResourceAPI{
-		Browsers: []rainforest.Browser{
+		Platforms: []rainforest.Platform{
 			{Name: "chrome", Description: "Google Chrome"},
 			{Name: "firefox", Description: "Mozilla Firefox"},
 		},
 	}
 
-	printBrowsers(testAPI)
-	regexMatchOut(`\| +BROWSER ID +\| +BROWSER NAME +\|`, t)
+	printPlatforms(testAPI)
+	regexMatchOut(`\| +PLATFORM ID +\| +PLATFORM NAME +\|`, t)
 	regexMatchOut(`\| +chrome +\| +Google Chrome +\|`, t)
 	regexMatchOut(`\| +firefox +\| +Mozilla Firefox +\|`, t)
 }

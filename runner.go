@@ -393,8 +393,7 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 	featureID := c.Int("feature")
 	runGroupID := c.Int("run-group")
 
-	browsers := c.StringSlice("browser")
-	expandedBrowsers := expandStringSlice(browsers)
+	platforms := getPlatforms(c)
 
 	description := c.String("description")
 	release := c.String("release")
@@ -459,7 +458,7 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 		SiteID:               siteID,
 		Crowd:                crowd,
 		Conflict:             conflict,
-		Browsers:             expandedBrowsers,
+		Browsers:             platforms,
 		Description:          description,
 		Release:              release,
 		EnvironmentID:        environmentID,
@@ -520,10 +519,21 @@ func getTags(c cliContext) []string {
 	return expandStringSlice(tags)
 }
 
+func getPlatforms(c cliContext) []string {
+	var platforms []string
+	if platforms = c.StringSlice("browser"); len(platforms) > 0 {
+		fmt.Println("RF CLI Deprecation: --browser(s) is deprecated, use --platform (or --platforms) instead")
+	} else {
+		platforms = c.StringSlice("platform")
+	}
+
+	return expandStringSlice(platforms)
+}
+
 // getConflict gets conflict from a CLI context. It returns an error if value isn't allowed
 func getConflict(c cliContext) (string, error) {
 	var conflict string
-	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" {
+	if conflict = c.String("conflict"); conflict != "" && conflict != "abort" && conflict != "abort-all" && conflict != "cancel" && conflict != "cancel-all" {
 		return "", errors.New("Invalid conflict option specified")
 	}
 

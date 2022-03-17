@@ -69,7 +69,7 @@ func TestGetFolders(t *testing.T) {
 	}
 }
 
-func TestGetBrowsers(t *testing.T) {
+func TestGetPlatforms(t *testing.T) {
 	setup()
 	defer cleanup()
 
@@ -82,9 +82,9 @@ func TestGetBrowsers(t *testing.T) {
 		fmt.Fprint(w, `{"available_browsers": [{"name": "firefox", "description": "Mozilla Firefox"}]}`)
 	})
 
-	out, _ := client.GetBrowsers()
+	out, _ := client.GetPlatforms()
 
-	want := []Browser{{Name: "firefox", Description: "Mozilla Firefox"}}
+	want := []Platform{{Name: "firefox", Description: "Mozilla Firefox"}}
 
 	if !reflect.DeepEqual(out, want) {
 		t.Errorf("Response out = %v, want %v", out, want)

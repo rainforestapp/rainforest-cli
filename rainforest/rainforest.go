@@ -155,6 +155,13 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 // checkResponse checks if we received vaild response with code 200,
 // returns error otherwise
 func checkResponse(res *http.Response, debugFlag bool) error {
+	// Log any deprecation warnings returned by the backend
+	if deprecations := res.Header.Get("X-RF-Deprecation"); deprecations != "" {
+		for _, deprecation := range strings.Split(deprecations, "\n") {
+			fmt.Println("RF API Deprecation:", deprecation)
+		}
+	}
+
 	// If we are on a happy path just return nil
 	if res.StatusCode >= 200 && res.StatusCode < 300 {
 		return nil

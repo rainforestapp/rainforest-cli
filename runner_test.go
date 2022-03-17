@@ -187,8 +187,8 @@ func TestMakeRunParams(t *testing.T) {
 				"folder":         "123",
 				"site":           "456",
 				"crowd":          "on_premise_crowd",
-				"conflict":       "abort",
-				"browser":        []string{"chrome", "firefox,safari"},
+				"conflict":       "cancel",
+				"platform":       []string{"chrome", "firefox,safari"},
 				"description":    "my awesome description",
 				"release":        "1a2b3c",
 				"environment-id": "1337",
@@ -199,7 +199,7 @@ func TestMakeRunParams(t *testing.T) {
 				SmartFolderID: 123,
 				SiteID:        456,
 				Crowd:         "on_premise_crowd",
-				Conflict:      "abort",
+				Conflict:      "cancel",
 				Browsers:      []string{"chrome", "firefox", "safari"},
 				Description:   "my awesome description",
 				Release:       "1a2b3c",
@@ -305,12 +305,12 @@ func TestMakeRerunParams(t *testing.T) {
 		},
 		{
 			mappings: map[string]interface{}{
-				"conflict": "abort",
+				"conflict": "cancel",
 			},
 			args: cli.Args{"82"},
 			expected: rainforest.RunParams{
 				RunID:    82,
-				Conflict: "abort",
+				Conflict: "cancel",
 			},
 		},
 	}

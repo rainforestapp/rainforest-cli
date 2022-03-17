@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "2.28.0"
+	version = "2.29.0"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -193,9 +193,13 @@ func main() {
 					Usage: "Start a run using a run group. You can see a list of your `RUN-GROUP-ID`s with the run-groups command. This option cannot be used in conjunction with other filtering options.",
 				},
 				cli.StringSliceFlag{
-					Name: "browser, browsers",
-					Usage: "Specify the `BROWSER` you wish to run against. This overrides test level settings." +
-						"Can be used multiple times to run against multiple browsers.",
+					Name: "platform, platforms",
+					Usage: "Specify the `PLATFORM` you wish to run against. This overrides test level settings. " +
+						"Can be used multiple times to run against multiple platforms.",
+				},
+				cli.StringSliceFlag{
+					Name:   "browser, browsers",
+					Hidden: true,
 				},
 				cli.StringFlag{
 					Name:  "environment-id",
@@ -208,8 +212,8 @@ func main() {
 				},
 				cli.StringFlag{
 					Name: "conflict",
-					Usage: "Use the abort option to abort any runs in the same environment or " +
-						"use the abort-all option to abort all runs in progress.",
+					Usage: "Use the cancel option to cancel any runs in the same environment or " +
+						"use the cancel-all option to cancel all runs in progress.",
 				},
 				cli.BoolFlag{
 					Name: "bg, background",
@@ -258,7 +262,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "single-use",
-					Usage: "This option marks uploaded variable as single-use",
+					Usage: "This option marks uploaded variable as single-use.",
 				},
 				cli.StringFlag{
 					Name:  "wait, reattach",
@@ -266,15 +270,15 @@ func main() {
 				},
 				cli.UintFlag{
 					Name:  "max-reruns",
-					Usage: "Rerun `max-reruns` times before reporting failure.",
+					Usage: "Rerun `MAX-RERUNS` times before reporting failure.",
 				},
 				cli.UintFlag{
 					Name:  "automation-max-retries",
-					Usage: "Try to pass a test `automation-max-retries` times within the same run before reporting run failure.",
+					Usage: "Try to pass a test `AUTOMATION-MAX-RETRIES` times within the same run before reporting run failure.",
 				},
 				cli.StringFlag{
 					Name:  "save-run-id",
-					Usage: "Save the created run's ID to `FILE`",
+					Usage: "Save the created run's ID to `FILE`.",
 				},
 			},
 		},
@@ -292,8 +296,8 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name: "conflict",
-					Usage: "Use the abort option to abort any runs in the same environment or " +
-						"use the abort-all option to abort all runs in progress.",
+					Usage: "Use the cancel option to cancel any runs in the same environment or " +
+						"use the cancel-all option to cancel all runs in progress.",
 				},
 				cli.BoolFlag{
 					Name: "bg, background",
@@ -311,7 +315,7 @@ func main() {
 				},
 				cli.UintFlag{
 					Name:  "max-reruns",
-					Usage: "Rerun `max-reruns` times before reporting failure.",
+					Usage: "Rerun `MAX-RERUNS` times before reporting failure.",
 				},
 				cli.UintFlag{
 					Name:  "rerun-attempt",
@@ -319,7 +323,7 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:  "save-run-id",
-					Usage: "Save the created run's ID to `FILE`",
+					Usage: "Save the created run's ID to `FILE`.",
 					Value: ".rainforest_run_id",
 				},
 			},
@@ -546,11 +550,20 @@ func main() {
 			},
 		},
 		{
-			Name:         "browsers",
-			Usage:        "Lists available browsers",
-			OnUsageError: onCommandUsageErrorHandler("browsers"),
+			Name:         "platforms",
+			Usage:        "Lists available platforms",
+			OnUsageError: onCommandUsageErrorHandler("platforms"),
 			Action: func(c *cli.Context) error {
-				return printBrowsers(api)
+				return printPlatforms(api)
+			},
+		},
+		{
+			Name:         "browsers",
+			Hidden:       true,
+			OnUsageError: onCommandUsageErrorHandler("platforms"),
+			Action: func(c *cli.Context) error {
+				fmt.Println("RF CLI Deprecation: browsers is deprecated; use platforms instead")
+				return printPlatforms(api)
 			},
 		},
 		{

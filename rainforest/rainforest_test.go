@@ -115,6 +115,7 @@ func (res *unreadableResponseBody) Close() error {
 
 func TestCheckResponse(t *testing.T) {
 	contentTypeHeader := textproto.CanonicalMIMEHeaderKey("Content-Type")
+	deprecationHeader := textproto.CanonicalMIMEHeaderKey("X-RF-Deprecation")
 
 	var testCases = []struct {
 		httpResp      *http.Response
@@ -166,6 +167,20 @@ func TestCheckResponse(t *testing.T) {
 			},
 			expectedError: "RF API Error (400) - Unable to parse response JSON: invalid character '(' looking for beginning of value",
 			expectedDebug: "Cannot parse response:\n(this is not json)",
+		},
+		{
+			httpResp: &http.Response{
+				StatusCode: 200,
+				Header:     http.Header{deprecationHeader: {"Stop using that"}},
+			},
+			expectedDebug: "RF API Deprecation: Stop using that",
+		},
+		{
+			httpResp: &http.Response{
+				StatusCode: 200,
+				Header:     http.Header{deprecationHeader: {"Stop using this\nAnd stop using that"}},
+			},
+			expectedDebug: "RF API Deprecation: Stop using this\nRF API Deprecation: And stop using that",
 		},
 	}
 

@@ -45,7 +45,7 @@ func TestReadAll(t *testing.T) {
 		State:     "enabled",
 		Priority:  "P1",
 		Tags:      []string{"foo", "bar"},
-		Browsers:  []string{"chrome", "firefox"},
+		Platforms: []string{"chrome", "firefox"},
 		Steps:     validSteps,
 		Execute:   true,
 	}
@@ -55,7 +55,7 @@ func TestReadAll(t *testing.T) {
 # start_uri: %v
 # site_id: %v
 # tags: %v
-# browsers: %v
+# platforms: %v
 # feature_id: %v
 # state: %v
 # priority: %v
@@ -72,7 +72,7 @@ func TestReadAll(t *testing.T) {
 		validTestValues.StartURI,
 		validTestValues.SiteID,
 		strings.Join(validTestValues.Tags, ", "),
-		strings.Join(validTestValues.Browsers, ", "),
+		strings.Join(validTestValues.Platforms, ", "),
 		validTestValues.FeatureID,
 		validTestValues.State,
 		validTestValues.Priority,
@@ -300,11 +300,11 @@ func TestReadAll(t *testing.T) {
 		t.Errorf("Wrong error reported. Expected error for title field. Returned error: %v", err.Error())
 	}
 
-	// empty feature_id, browser list, and tag list
+	// empty feature_id, platforms list, and tag list
 	testText = fmt.Sprintf(`#! %v
 # title: %v
 # start_uri: %v
-# browsers:
+# platforms:
 # tags:
 # feature_id:
 
@@ -324,8 +324,8 @@ func TestReadAll(t *testing.T) {
 		t.Fatalf("Unexpected error from ReadAll: %v", err.Error())
 	}
 
-	if browserCount := len(rfTest.Browsers); browserCount != 0 {
-		t.Errorf("Unexpected browsers, expected 0, got %v: %v", browserCount, rfTest.Browsers)
+	if platformCount := len(rfTest.Platforms); platformCount != 0 {
+		t.Errorf("Unexpected platforms, expected 0, got %v: %v", platformCount, rfTest.Platforms)
 	}
 
 	if tagCount := len(rfTest.Tags); tagCount != 0 {
@@ -378,7 +378,7 @@ func TestWriteRFMLTest(t *testing.T) {
 		}
 	}
 
-	mustNotHaves := []string{"site_id", "tags", "browsers", "execute"}
+	mustNotHaves := []string{"site_id", "tags", "platforms", "execute"}
 
 	for _, mustNotHave := range mustNotHaves {
 		if strings.Contains(output, mustNotHave) {
@@ -392,12 +392,12 @@ func TestWriteRFMLTest(t *testing.T) {
 	siteID := 1989
 	featureID := 2017
 	tags := []string{"foo", "bar"}
-	browsers := []string{"chrome", "firefox"}
+	platforms := []string{"chrome", "firefox"}
 	description := "This is my description\nand it spans multiple\nlines!"
 
 	test.SiteID = siteID
 	test.Tags = tags
-	test.Browsers = browsers
+	test.Platforms = platforms
 	test.Description = description
 	test.FeatureID = FeatureIDInt(featureID)
 	test.State = "disabled"
@@ -408,12 +408,12 @@ func TestWriteRFMLTest(t *testing.T) {
 	siteIDStr := "# site_id: " + strconv.Itoa(siteID)
 	featureIDStr := "# feature_id: " + strconv.Itoa(featureID)
 	tagsStr := "# tags: " + strings.Join(tags, ", ")
-	browsersStr := "# browsers: " + strings.Join(browsers, ", ")
+	platformsStr := "# platforms: " + strings.Join(platforms, ", ")
 	descStr := "# " + strings.Replace(description, "\n", "\n# ", -1)
 	stateStr := "# state: " + test.State
 	priorityStr := "# priority: " + test.Priority
 
-	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, browsersStr, descStr, stateStr, priorityStr}...)
+	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, platformsStr, descStr, stateStr, priorityStr}...)
 	for _, mustHave := range mustHaves {
 		if !strings.Contains(output, mustHave) {
 			t.Errorf("Missing expected string in writer output: %v", mustHave)

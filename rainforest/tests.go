@@ -86,24 +86,24 @@ func (id *FeatureIDInt) MarshalJSON() ([]byte, error) {
 
 // RFTest is a struct representing the Rainforest Test with its settings and steps
 type RFTest struct {
-	TestID      int                      `json:"id"`
-	RFMLID      string                   `json:"rfml_id"`
-	Source      string                   `json:"source"`
-	Title       string                   `json:"title,omitempty"`
-	State       string                   `json:"state,omitempty"`
-	Priority    string                   `json:"priority,omitempty"`
-	StartURI    string                   `json:"start_uri"`
-	SiteID      int                      `json:"site_id,omitempty"`
-	Description string                   `json:"description,omitempty"`
-	Tags        []string                 `json:"tags"`
-	BrowsersMap []map[string]interface{} `json:"browsers"`
-	Elements    []testElement            `json:"elements,omitempty"`
-	HasWisp     bool                     `json:"has_wisp"`
-	FeatureID   FeatureIDInt             `json:"feature_id,omitempty"`
+	TestID       int                      `json:"id"`
+	RFMLID       string                   `json:"rfml_id"`
+	Source       string                   `json:"source"`
+	Title        string                   `json:"title,omitempty"`
+	State        string                   `json:"state,omitempty"`
+	Priority     string                   `json:"priority,omitempty"`
+	StartURI     string                   `json:"start_uri"`
+	SiteID       int                      `json:"site_id,omitempty"`
+	Description  string                   `json:"description,omitempty"`
+	Tags         []string                 `json:"tags"`
+	PlatformsMap []map[string]interface{} `json:"browsers"`
+	Elements     []testElement            `json:"elements,omitempty"`
+	HasWisp      bool                     `json:"has_wisp"`
+	FeatureID    FeatureIDInt             `json:"feature_id,omitempty"`
 
-	// Browsers and Steps are helper fields
-	Browsers []string      `json:"-"`
-	Steps    []interface{} `json:"-"`
+	// Platforms and Steps are helper fields
+	Platforms []string      `json:"-"`
+	Steps     []interface{} `json:"-"`
 	// RFMLPath is a helper field for keeping track of the filepath to the
 	// test's RFML file.
 	RFMLPath string `json:"-"`
@@ -129,24 +129,24 @@ type testElementDetails struct {
 	Elements []testElement `json:"elements,omitempty"` // for embedded tests
 }
 
-// mapBrowsers fills the browsers field with format recognized by the API
-func (t *RFTest) mapBrowsers() {
-	t.BrowsersMap = make([]map[string]interface{}, len(t.Browsers))
-	for i, browser := range t.Browsers {
-		mappedBrowser := map[string]interface{}{
+// mapPlatforms fills the browsers field with format recognized by the API
+func (t *RFTest) mapPlatforms() {
+	t.PlatformsMap = make([]map[string]interface{}, len(t.Platforms))
+	for i, platform := range t.Platforms {
+		mappedPlatform := map[string]interface{}{
 			"state": "enabled",
-			"name":  browser,
+			"name":  platform,
 		}
-		t.BrowsersMap[i] = mappedBrowser
+		t.PlatformsMap[i] = mappedPlatform
 	}
 }
 
-// unmapBrowsers parses browsers from the API format to internal go one
-func (t *RFTest) unmapBrowsers() {
-	t.Browsers = []string{}
-	for _, browserMap := range t.BrowsersMap {
-		if browserMap["state"] == "enabled" {
-			t.Browsers = append(t.Browsers, browserMap["name"].(string))
+// unmapPlatforms parses browsers from the API format to internal go one
+func (t *RFTest) unmapPlatforms() {
+	t.Platforms = []string{}
+	for _, platformMap := range t.PlatformsMap {
+		if platformMap["state"] == "enabled" {
+			t.Platforms = append(t.Platforms, platformMap["name"].(string))
 		}
 	}
 }
@@ -238,7 +238,7 @@ func (t *RFTest) PrepareToUploadFromRFML(coll TestIDCollection) error {
 		t.Tags = []string{}
 	}
 
-	t.mapBrowsers()
+	t.mapPlatforms()
 	err := t.marshallElements(coll)
 	if err != nil {
 		return err
@@ -252,7 +252,7 @@ func (t *RFTest) PrepareToWriteAsRFML(coll TestIDCollection, flattenedSteps bool
 	if err != nil {
 		return err
 	}
-	t.unmapBrowsers()
+	t.unmapPlatforms()
 	return nil
 }
 

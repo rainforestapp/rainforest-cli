@@ -1,4 +1,8 @@
 # Rainforest CLI Changelog
+## 3.0.0 - 2022-09-01
+- Drop support for deprecated `abort` and `abort-all` options for `--conflict` flag
+  - (33912ac48263de45a6d8ce5a62c75818be748b96, @magni-)
+
 ## 2.29.0 - 2022-03-16
 - Add `cancel` and `cancel-all` options for `--conflict` flag to replace deprecated `abort` and `abort-all`
   - (88882b0b27a5665c552d6c60459f11076be59a41, @magni-)

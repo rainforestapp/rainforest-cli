@@ -184,7 +184,7 @@ jobs:
       - checkout
       - run:
           name: Install GoReleaser
-          command: go install github.com/goreleaser/goreleaser@latest
+          command: go install github.com/goreleaser/goreleaser@v1.6.3
       - run:
           name: Check GoReleaser Config
           command: goreleaser check
@@ -245,7 +245,7 @@ jobs:
           name: Release via GoReleaser
           command: |
             export GITHUB_TOKEN=$GITHUB_ACCESS_TOKEN
-            curl -sL https://git.io/goreleaser | bash
+            curl -sfL https://goreleaser.com/static/run | VERSION=v1.6.3 bash
       - run:
           name: Show checksums
           command: cat dist/checksums.txt

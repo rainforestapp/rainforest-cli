@@ -1,4 +1,10 @@
 # Rainforest CLI Changelog
+## 3.1.0 - 2022-09-20
+- Update output of `run-groups` command to show execution method rather than crowd
+  - (7198e7c0835dc68ee02c03c7be6ed22e0b7c0edb, @magni-)
+- Add `--execution-method` flag to `run` command, deprecate `--crowd` flag it replaces
+  - (0515241776b4252888ed8c2302ff50359e5c5a4e, @magni-)
+
 ## 3.0.0 - 2022-09-01
 - Drop support for deprecated `abort` and `abort-all` options for `--conflict` flag
   - (33912ac48263de45a6d8ce5a62c75818be748b96, @magni-)

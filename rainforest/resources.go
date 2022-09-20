@@ -107,14 +107,14 @@ func (c *Client) GetPlatforms() ([]Platform, error) {
 
 // RunGroupDetails shows the details for a particular run group.
 type RunGroupDetails struct {
-	ID          int    `json:"id"`
-	Title       string `json:"title"`
-	Environment struct {
+	ID              int    `json:"id"`
+	Title           string `json:"title"`
+	Environment     struct {
 		Name string `json:"name"`
 	} `json:"environment"`
-	Crowd      string `json:"crowd"`
-	RerouteGeo string `json:"reroute_geo"`
-	Schedule   struct {
+	ExecutionMethod string `json:"execution_method"`
+	RerouteGeo      string `json:"reroute_geo"`
+	Schedule        struct {
 		RepeatRules []struct {
 			Day  string `json:"day"`
 			Time string `json:"time"`
@@ -127,10 +127,10 @@ func (rgd *RunGroupDetails) Print() {
 	fmt.Printf(`Details for Run Group #%v:
 Name: %v
 Environment: %v
-Tester Crowd: %v
+Execution Method: %v
 Location: %v
 `,
-		rgd.ID, rgd.Title, rgd.Environment.Name, rgd.Crowd, rgd.RerouteGeo)
+		rgd.ID, rgd.Title, rgd.Environment.Name, rgd.ExecutionMethod, rgd.RerouteGeo)
 	sched := rgd.Schedule
 
 	if daysQuantity := len(sched.RepeatRules); daysQuantity > 0 {

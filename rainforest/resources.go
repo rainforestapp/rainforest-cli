@@ -107,9 +107,9 @@ func (c *Client) GetPlatforms() ([]Platform, error) {
 
 // RunGroupDetails shows the details for a particular run group.
 type RunGroupDetails struct {
-	ID              int    `json:"id"`
-	Title           string `json:"title"`
-	Environment     struct {
+	ID          int    `json:"id"`
+	Title       string `json:"title"`
+	Environment struct {
 		Name string `json:"name"`
 	} `json:"environment"`
 	ExecutionMethod string `json:"execution_method"`

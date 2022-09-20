@@ -118,8 +118,8 @@ func TestCreateRunFromRerun(t *testing.T) {
 			RFMLIDs: []string{"rmfl1"},
 		},
 		{
-			RunID: runID,
-			Crowd: "automation",
+			RunID:           runID,
+			ExecutionMethod: "automation",
 		},
 		{
 			RunID:       runID,

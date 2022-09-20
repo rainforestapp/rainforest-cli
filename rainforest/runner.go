@@ -14,7 +14,7 @@ type RunParams struct {
 	Tags                 []string    `json:"tags,omitempty"`
 	SmartFolderID        int         `json:"smart_folder_id,omitempty"`
 	SiteID               int         `json:"site_id,omitempty"`
-	Crowd                string      `json:"crowd,omitempty"`
+	ExecutionMethod      string      `json:"execution_method,omitempty"`
 	Conflict             string      `json:"conflict,omitempty"`
 	Browsers             []string    `json:"browsers,omitempty"`
 	Description          string      `json:"description,omitempty"`
@@ -94,8 +94,8 @@ func validateRerunParams(params RunParams) error {
 	if params.SiteID != 0 {
 		return errors.New("Site cannot be specified for rerun")
 	}
-	if params.Crowd != "" {
-		return errors.New("Crowd cannot be specified for rerun")
+	if params.ExecutionMethod != "" {
+		return errors.New("Execution Method cannot be specified for rerun")
 	}
 	if params.Browsers != nil {
 		return errors.New("Browsers cannot be specified for rerun")

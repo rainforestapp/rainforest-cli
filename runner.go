@@ -380,9 +380,9 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 		}
 	}
 
-	var crowd string
-	if crowd = c.String("crowd"); crowd != "" && crowd != "default" && crowd != "on_premise_crowd" && crowd != "automation" && crowd != "automation_and_crowd" {
-		return rainforest.RunParams{}, errors.New("Invalid crowd option specified")
+	var executionMethod string
+	if executionMethod, err = getExecutionMethod(c); err != nil {
+		return rainforest.RunParams{}, err
 	}
 
 	var conflict string
@@ -456,7 +456,7 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 		Tags:                 tags,
 		SmartFolderID:        smartFolderID,
 		SiteID:               siteID,
-		Crowd:                crowd,
+		ExecutionMethod:      executionMethod,
 		Conflict:             conflict,
 		Browsers:             platforms,
 		Description:          description,
@@ -528,6 +528,32 @@ func getPlatforms(c cliContext) []string {
 	}
 
 	return expandStringSlice(platforms)
+}
+
+func getExecutionMethod(c cliContext) (string, error) {
+	var crowd string
+	if crowd = c.String("crowd"); crowd != "" {
+		fmt.Println("RF CLI Deprecation: --crowd is deprecated, use --execution-method instead")
+	}
+	executionMethod := c.String("execution-method")
+
+	if crowd != "" && executionMethod != "" {
+		return "", errors.New("execution-method and crowd are mutually exclusive")
+	} else if crowd == "default" || executionMethod == "crowd" {
+		return "crowd", nil
+	} else if crowd == "automation" || executionMethod == "automation" {
+		return "automation", nil
+	} else if crowd == "automation_and_crowd" || executionMethod == "automation_and_crowd" {
+		return "automation_and_crowd", nil
+	} else if crowd == "on_premise_crowd" || executionMethod == "on_premise" {
+		return "on_premise", nil
+	} else if crowd != "" {
+		return "", errors.New("Invalid crowd option specified")
+	} else if executionMethod != "" {
+		return "", errors.New("Invalid execution-method option specified")
+	}
+
+	return "", nil
 }
 
 // getConflict gets conflict from a CLI context. It returns an error if value isn't allowed

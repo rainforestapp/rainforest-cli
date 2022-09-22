@@ -196,16 +196,16 @@ func TestMakeRunParams(t *testing.T) {
 			},
 			args: cli.Args{"12", "34", "56, 78"},
 			expected: rainforest.RunParams{
-				SmartFolderID: 123,
-				SiteID:        456,
-				Crowd:         "on_premise_crowd",
-				Conflict:      "cancel",
-				Browsers:      []string{"chrome", "firefox", "safari"},
-				Description:   "my awesome description",
-				Release:       "1a2b3c",
-				EnvironmentID: 1337,
-				Tags:          []string{"tag", "tag2", "tag3"},
-				Tests:         []int{12, 34, 56, 78},
+				SmartFolderID:   123,
+				SiteID:          456,
+				ExecutionMethod: "on_premise",
+				Conflict:        "cancel",
+				Browsers:        []string{"chrome", "firefox", "safari"},
+				Description:     "my awesome description",
+				Release:         "1a2b3c",
+				EnvironmentID:   1337,
+				Tags:            []string{"tag", "tag2", "tag3"},
+				Tests:           []int{12, 34, 56, 78},
 			},
 		},
 		{
@@ -244,18 +244,18 @@ func TestMakeRunParams(t *testing.T) {
 		},
 		{
 			mappings: map[string]interface{}{
-				"crowd": "automation",
+				"execution-method": "automation",
 			},
 			expected: rainforest.RunParams{
-				Crowd: "automation",
+				ExecutionMethod: "automation",
 			},
 		},
 		{
 			mappings: map[string]interface{}{
-				"crowd": "automation_and_crowd",
+				"execution-method": "automation_and_crowd",
 			},
 			expected: rainforest.RunParams{
-				Crowd: "automation_and_crowd",
+				ExecutionMethod: "automation_and_crowd",
 			},
 		},
 	}

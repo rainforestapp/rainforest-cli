@@ -84,7 +84,7 @@ func (c *Client) ClientToken() string {
 // NewRequest creates an API request. Provided url will be resolved using ResolveReference,
 // which works in a similar way to the hrefs in a browser (most important takeaway is to
 // not add preceeding slash to the link as it resolves to a root path of domain).
-// The body argument is JSON endoded and attached as a request body.
+// The body argument is JSON encoded and attached as a request body.
 // This function also attaches auth token from the client to the request.
 func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
 	// Resolve the relative URL path

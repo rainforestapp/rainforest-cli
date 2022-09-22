@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "3.0.0"
+	version = "3.1.0"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -206,9 +206,13 @@ func main() {
 					Usage: "Run your tests using specified `ENVIRONMENT`. Otherwise it will use your default one.",
 				},
 				cli.StringFlag{
-					Name: "crowd",
-					Usage: "Run your tests using specified `CROWD`. Available choices are: default, automation, automation_and_crowd " +
-						"or on_premise_crowd. Contact your CSM for more details.",
+					Name: "execution-method",
+					Usage: "Run your tests using specified `EXECUTION_METHOD`. Available choices are: crowd, automation, automation_and_crowd, " +
+						"and on_premise. Some methods may not be available for your account. For more information, contact us at help@rainforestqa.com.",
+				},
+				cli.StringFlag{
+					Name:  "crowd",
+					Usage: "DEPRECATED: Use --execution-method instead",
 				},
 				cli.StringFlag{
 					Name: "conflict",

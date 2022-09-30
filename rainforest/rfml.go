@@ -274,6 +274,14 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 		}
 	}
 
+	if test.Type != "" {
+		_, err = writer.WriteString("# type: " + test.Type)
+
+		if err != nil {
+			return err
+		}
+	}
+
 	if len(test.Platforms) > 0 {
 		platforms := strings.Join(test.Platforms, ", ")
 		platformsHeader := fmt.Sprintf("# platforms: %v\n", platforms)

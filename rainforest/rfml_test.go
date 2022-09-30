@@ -345,12 +345,14 @@ func TestWriteRFMLTest(t *testing.T) {
 	rfmlID := "fake_rfml_id"
 	title := "fake_title"
 	startURI := "/path/to/nowhere"
+	testType := "snippet"
 
 	test := RFTest{
 		RFMLID:   rfmlID,
 		Title:    title,
 		StartURI: startURI,
 		Execute:  true,
+		Type:     testType,
 	}
 
 	getOutput := func() string {
@@ -412,8 +414,9 @@ func TestWriteRFMLTest(t *testing.T) {
 	descStr := "# " + strings.Replace(description, "\n", "\n# ", -1)
 	stateStr := "# state: " + test.State
 	priorityStr := "# priority: " + test.Priority
+	typeStr := "# type: " + test.Type
 
-	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, platformsStr, descStr, stateStr, priorityStr}...)
+	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, platformsStr, descStr, stateStr, priorityStr, typeStr}...)
 	for _, mustHave := range mustHaves {
 		if !strings.Contains(output, mustHave) {
 			t.Errorf("Missing expected string in writer output: %v", mustHave)

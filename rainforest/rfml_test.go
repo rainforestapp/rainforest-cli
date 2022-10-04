@@ -182,6 +182,29 @@ func TestReadAll(t *testing.T) {
 		t.Errorf("Incorrect test priority. Got %v, Want empty string", rfTest.Priority)
 	}
 
+	// Test type is present
+	testText = fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+# type: %v
+`,
+		validTestValues.RFMLID,
+		validTestValues.Title,
+		validTestValues.StartURI,
+		"test",
+	)
+
+	r = strings.NewReader(testText)
+	reader = NewRFMLReader(r)
+	rfTest, err = reader.ReadAll()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if rfTest.Type != "test" {
+		t.Errorf("Incorrect test type. Got %v, Want %v", rfTest.Type, "'test'")
+	}
+
 	// Comment with a colon
 	expectedComment := "this_should: be a comment"
 	testText = fmt.Sprintf(`#! %v

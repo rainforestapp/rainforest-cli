@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-// RFMLReader reads form RFML formatted file.
+// RFMLReader reads from an RFML formatted file.
 // It exports some settings that can be set before parsing.
 type RFMLReader struct {
 	r *bufio.Reader
@@ -154,6 +154,8 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 						return parsedRFTest, &parseError{lineNumStr, "Execute value must be a valid boolean"}
 					}
 					parsedRFTest.Execute = execute
+				case "type":
+					parsedRFTest.Type = value
 				default:
 					// If it doesn't match known key add it to description
 					parsedRFTest.Description += strings.TrimSpace(content) + "\n"

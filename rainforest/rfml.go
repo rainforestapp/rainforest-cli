@@ -277,7 +277,7 @@ func (r *RFMLWriter) WriteRFMLTest(test *RFTest) error {
 	}
 
 	if test.Type != "" {
-		_, err = writer.WriteString("# type: " + test.Type)
+		_, err = writer.WriteString("# type: " + test.Type + "\n")
 
 		if err != nil {
 			return err

@@ -276,6 +276,7 @@ func newRFMLTest(c cliContext) error {
 		RFMLID:   uuid.NewV4().String(),
 		Title:    title,
 		StartURI: "/",
+		Type:     "test",
 		Execute:  true,
 		Steps: []interface{}{
 			rainforest.RFTestStep{

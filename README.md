@@ -281,6 +281,7 @@ Rainforest Tests written using RFML have the following format
 # platforms: [PLATFORM IDS]
 # feature_id: [FEATURE_ID]
 # state: [STATE]
+# type: [TYPE]
 # [OTHER COMMENTS]
 
 [ACTION 1]
@@ -304,6 +305,11 @@ be a UUID, but you are free to change it for easier reference (for example, your
 login test might have the id `login_test`).
 - `TITLE` - The title of your test.
 - `START_URI` - The path used to direct the tester to the correct page to begin the test.
+- `TYPE` - The type of test represented. Must be one of either `test` for regular, top-level
+tests or `snippet` for any test that is meant to be embedded within another test. In other
+words, if you're going to execute the test directly, it should be of type `test`; if you're
+going to refer to it from another file (via a `- [EMBEDDED TEST RFML ID]` directive) it should
+be of type `snippet`.
 - `ACTION 1`, `ACTION 2`, ... - The directions for your tester to follow in this
 step. You must have at least one step in your test.
 - `QUESTION 1`, `QUESTION 2`, ... - The question you would like your tester to

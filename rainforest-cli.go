@@ -594,6 +594,21 @@ func main() {
 				return updateCmd(c)
 			},
 		},
+		{
+			Name:         "branch",
+			Usage:        "Manage branches",
+			ArgsUsage:    "[command] [branch name]",
+			OnUsageError: onCommandUsageErrorHandler("branch"),
+			Subcommands: []cli.Command{
+				{
+					Name:  "new",
+					Usage: "Create a new branch",
+					Action: func(c *cli.Context) error {
+						return newBranch(c, api)
+					},
+				},
+			},
+		},
 	}
 
 	app.Run(shuffleFlags(os.Args))

@@ -409,6 +409,7 @@ func TestUploadTabularVar_Exists_Overwrite(t *testing.T) {
 	defer deleteFakeCSV(t)
 	tabularBatchSize = 2
 	variableName := "testVar"
+	variableDescription := "testVar description"
 	variableOverwrite := true
 	variableSingleUse := false
 	// Data from csv
@@ -417,8 +418,9 @@ func TestUploadTabularVar_Exists_Overwrite(t *testing.T) {
 	secondBatch := [][]string{{"qwe", "asd"}, {"zxc", "jkl"}}
 	// Fake responses Data
 	fakeNewGen := rainforest.Generator{
-		ID:   123,
-		Name: variableName,
+		ID:          123,
+		Name:        variableName,
+		Description: variableDescription,
 		Columns: []rainforest.GeneratorColumn{
 			{
 				ID:   456,
@@ -474,6 +476,9 @@ func TestUploadTabularVar_Exists_Overwrite(t *testing.T) {
 			singleUse bool) (*rainforest.Generator, error) {
 			if variableName != name {
 				t.Errorf("Incorrect value of name passed to newTabVar. Got: %v, expected: %v", name, variableName)
+			}
+			if variableDescription != description {
+				t.Errorf("Incorrect value of description passed to newTabVar. Got: %v, expected: %v", description, variableDescription)
 			}
 			if !reflect.DeepEqual(columns, cols) {
 				t.Errorf("Incorrect value of columns passed to newTabVar. Got: %v, expected: %v", columns, cols)

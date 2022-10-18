@@ -19,16 +19,6 @@ type Generator struct {
 	RowCount    int               `json:"row_count,omitempty"`
 }
 
-// GetID returns the Generator name
-func (g Generator) GetID() string {
-	return g.Name
-}
-
-// GetDescription returns the Generator's description
-func (g Generator) GetDescription() string {
-	return g.Description
-}
-
 // GeneratorColumn is a type of column in a generator
 type GeneratorColumn struct {
 	ID        int       `json:"id,omitempty"`

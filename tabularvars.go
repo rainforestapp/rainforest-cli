@@ -43,6 +43,7 @@ func uploadTabularVar(api tabularVariablesAPI, pathToCSV, name string, overwrite
 
 	// Check if the variable exists in RF
 	var existingGenID int
+	var description string
 	generators, err := api.GetGenerators()
 	if err != nil {
 		return err
@@ -51,6 +52,7 @@ func uploadTabularVar(api tabularVariablesAPI, pathToCSV, name string, overwrite
 	for _, gen := range generators {
 		if gen.Name == name {
 			existingGenID = gen.ID
+			description = gen.Description
 		}
 	}
 
@@ -67,6 +69,8 @@ func uploadTabularVar(api tabularVariablesAPI, pathToCSV, name string, overwrite
 			return errors.New("Tabular variable: " + name +
 				" already exists, use different name or choose an option to override it")
 		}
+	} else {
+		description = "Uploaded via the CLI"
 	}
 
 	// prepare input data
@@ -79,7 +83,6 @@ func uploadTabularVar(api tabularVariablesAPI, pathToCSV, name string, overwrite
 	}
 
 	// create new generator for the tabular variable
-	description := "Variable " + name + " uploded through cli client."
 	newGenerator, err := api.CreateTabularVar(name, description, parsedColumnNames, singleUse)
 	if err != nil {
 		return err

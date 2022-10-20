@@ -78,6 +78,22 @@ func (c *Client) CreateBranch(branch *Branch) error {
 	return nil
 }
 
+// MergeBranch merges an existing branch into the client's main branch
+func (c *Client) MergeBranch(branchID int) error {
+	// Prepare request
+	req, err := c.NewRequest("PUT", "branches/"+strconv.Itoa(branchID)+"/merge", nil)
+	if err != nil {
+		return err
+	}
+
+	// Send request and process response
+	_, err = c.Do(req, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // DeleteBranch deletes an existing branch on RF specified by ID
 func (c *Client) DeleteBranch(branchID int) error {
 	// Prepare request

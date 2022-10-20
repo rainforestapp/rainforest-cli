@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -45,19 +46,13 @@ func mergeBranch(c cliContext, api branchAPI) error {
 		return cli.NewExitError("Branch name cannot be blank", 1)
 	}
 
-	branches, err := api.GetBranches(name)
+	branchID, err := getBranchID(name, api)
 
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
-	if len(branches) == 0 {
-		return cli.NewExitError("Cannot find branch", 1)
-	}
-
-	branch := branches[0]
-
-	err = api.MergeBranch(branch.ID)
+	err = api.MergeBranch(branchID)
 
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
@@ -75,19 +70,13 @@ func deleteBranch(c cliContext, api branchAPI) error {
 		return cli.NewExitError("Branch name cannot be blank", 1)
 	}
 
-	branches, err := api.GetBranches(name)
+	branchID, err := getBranchID(name, api)
 
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
-	if len(branches) == 0 {
-		return cli.NewExitError("Cannot find branch", 1)
-	}
-
-	branch := branches[0]
-
-	err = api.DeleteBranch(branch.ID)
+	err = api.DeleteBranch(branchID)
 
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
@@ -95,4 +84,21 @@ func deleteBranch(c cliContext, api branchAPI) error {
 
 	fmt.Printf("Deleted branch %q.\n", name)
 	return nil
+}
+
+// getBranchID gets branchID by using the branch name to query the API
+func getBranchID(name string, api branchAPI) (int, error) {
+	branches, err := api.GetBranches(name)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if len(branches) == 0 {
+		return 0, errors.New("Cannot find branch")
+	}
+
+	branch := branches[0]
+
+	return branch.ID, nil
 }

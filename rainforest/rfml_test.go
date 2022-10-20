@@ -182,6 +182,29 @@ func TestReadAll(t *testing.T) {
 		t.Errorf("Incorrect test priority. Got %v, Want empty string", rfTest.Priority)
 	}
 
+	// Test type is present
+	testText = fmt.Sprintf(`#! %v
+# title: %v
+# start_uri: %v
+# type: %v
+`,
+		validTestValues.RFMLID,
+		validTestValues.Title,
+		validTestValues.StartURI,
+		"test",
+	)
+
+	r = strings.NewReader(testText)
+	reader = NewRFMLReader(r)
+	rfTest, err = reader.ReadAll()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if rfTest.Type != "test" {
+		t.Errorf("Incorrect test type. Got %v, Want %v", rfTest.Type, "'test'")
+	}
+
 	// Comment with a colon
 	expectedComment := "this_should: be a comment"
 	testText = fmt.Sprintf(`#! %v
@@ -345,12 +368,14 @@ func TestWriteRFMLTest(t *testing.T) {
 	rfmlID := "fake_rfml_id"
 	title := "fake_title"
 	startURI := "/path/to/nowhere"
+	testType := "snippet"
 
 	test := RFTest{
 		RFMLID:   rfmlID,
 		Title:    title,
 		StartURI: startURI,
 		Execute:  true,
+		Type:     testType,
 	}
 
 	getOutput := func() string {
@@ -412,8 +437,9 @@ func TestWriteRFMLTest(t *testing.T) {
 	descStr := "# " + strings.Replace(description, "\n", "\n# ", -1)
 	stateStr := "# state: " + test.State
 	priorityStr := "# priority: " + test.Priority
+	typeStr := "# type: " + test.Type
 
-	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, platformsStr, descStr, stateStr, priorityStr}...)
+	mustHaves = append(mustHaves, []string{siteIDStr, featureIDStr, tagsStr, platformsStr, descStr, stateStr, priorityStr, typeStr}...)
 	for _, mustHave := range mustHaves {
 		if !strings.Contains(output, mustHave) {
 			t.Errorf("Missing expected string in writer output: %v", mustHave)

@@ -325,6 +325,7 @@ func TestUploadTests(t *testing.T) {
 	testID := 666
 	rfmlID := "unique_rfml_id"
 	title := "a very descriptive title"
+	testType := "test"
 	var featureID rainforest.FeatureIDInt = 777
 
 	err := createTestFolder(testDefaultSpecFolder)
@@ -346,6 +347,7 @@ func TestUploadTests(t *testing.T) {
 			{"test ID", testID, rfTest.TestID},
 			{"RFML ID", rfmlID, rfTest.RFMLID},
 			{"title", title, rfTest.Title},
+			{"test type", testType, rfTest.Type},
 			{"feature ID", featureID, rfTest.FeatureID},
 			{"disabled state", "enabled", rfTest.State},
 		}
@@ -360,7 +362,8 @@ func TestUploadTests(t *testing.T) {
 	testContents := fmt.Sprintf(`#! %v
 # title: %v
 # feature_id: %v
-`, rfmlID, title, featureID)
+# type: %v
+`, rfmlID, title, featureID, testType)
 
 	err = ioutil.WriteFile(testPath, []byte(testContents), os.ModePerm)
 	if err != nil {

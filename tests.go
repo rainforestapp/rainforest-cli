@@ -276,6 +276,7 @@ func newRFMLTest(c cliContext) error {
 		RFMLID:   uuid.NewV4().String(),
 		Title:    title,
 		StartURI: "/",
+		Type:     "test",
 		Execute:  true,
 		Steps: []interface{}{
 			rainforest.RFTestStep{
@@ -405,6 +406,7 @@ func uploadSingleRFMLFile(filePath string) error {
 		emptyTest := rainforest.RFTest{
 			RFMLID: parsedTest.RFMLID,
 			Title:  parsedTest.Title,
+			Type:   parsedTest.Type,
 		}
 
 		err = emptyTest.PrepareToUploadFromRFML(*testIDCollection)

@@ -100,6 +100,7 @@ type RFTest struct {
 	Elements     []testElement            `json:"elements,omitempty"`
 	HasWisp      bool                     `json:"has_wisp"`
 	FeatureID    FeatureIDInt             `json:"feature_id,omitempty"`
+	Type         string                   `json:"type"`
 
 	// Platforms and Steps are helper fields
 	Platforms []string      `json:"-"`

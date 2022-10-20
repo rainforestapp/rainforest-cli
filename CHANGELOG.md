@@ -1,4 +1,10 @@
 # Rainforest CLI Changelog
+## 3.2.0 - 2022-10-20
+- Fix `csv-upload` command to not overwrite an existing `description`
+  - (c7b9f584dea7ca53be6ec09aa929bda90778d913, @magni-)
+- Add `snippet` support to RFML files.
+  - (4298da491ea40ef2bb9e2eb64f4fa0e5d6a00426, @jaytennier)
+
 ## 3.1.0 - 2022-09-20
 - Update output of `run-groups` command to show execution method rather than crowd
   - (7198e7c0835dc68ee02c03c7be6ed22e0b7c0edb, @magni-)

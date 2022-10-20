@@ -348,8 +348,23 @@ func uploadTests(c cliContext, api rfAPI) error {
 		rfmlUploadConcurrency = 1
 	}
 
+	var err error
+	var branchID int
+	branchName := c.String("branch")
+	branchName = strings.TrimSpace(branchName)
+	if branchName != "" {
+		branchID, err = getBranchID(branchName, api)
+	} else {
+		branchID = 0
+		err = nil
+	}
+
+	if err != nil {
+		return err
+	}
+
 	if path := c.Args().First(); path != "" {
-		err := uploadSingleRFMLFile(path)
+		err := uploadSingleRFMLFile(path, branchID)
 
 		if err != nil {
 			return cli.NewExitError(err.Error(), 1)
@@ -362,7 +377,7 @@ func uploadTests(c cliContext, api rfAPI) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
-	err = uploadRFMLFiles(tests, false, api)
+	err = uploadRFMLFiles(tests, branchID, false, api)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -372,7 +387,7 @@ func uploadTests(c cliContext, api rfAPI) error {
 
 // uploadSingleRFMLFile uploads RFML file syntax by
 // trying to parse the file and sending any parse errors to the caller
-func uploadSingleRFMLFile(filePath string) error {
+func uploadSingleRFMLFile(filePath string, branchID int) error {
 	// Validate first before uploading
 	err := validateSingleRFMLFile(filePath)
 	if err != nil {
@@ -451,14 +466,14 @@ func uploadSingleRFMLFile(filePath string) error {
 
 	// Update the steps
 	log.Printf("Updating steps for test: %v", parsedTest.RFMLID)
-	err = api.UpdateTest(parsedTest)
+	err = api.UpdateTest(parsedTest, branchID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfAPI) error {
+func uploadRFMLFiles(tests []*rainforest.RFTest, branchID int, localOnly bool, api rfAPI) error {
 	err := validateRFMLFiles(tests, localOnly, api)
 	if err != nil {
 		return err
@@ -551,7 +566,7 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, localOnly bool, api rfAPI) erro
 
 	// spawn workers to create the tests
 	for i := 0; i < rfmlUploadConcurrency; i++ {
-		go testUpdateWorker(api, testsToUpdate, errorsChan)
+		go testUpdateWorker(api, testsToUpdate, branchID, errorsChan)
 	}
 
 	// Read out the workers results
@@ -574,9 +589,10 @@ type rfAPI interface {
 	GetTests(*rainforest.RFTestFilters) ([]rainforest.RFTest, error)
 	GetTest(int) (*rainforest.RFTest, error)
 	CreateTest(*rainforest.RFTest) error
-	UpdateTest(*rainforest.RFTest) error
+	UpdateTest(*rainforest.RFTest, int) error
 	ParseEmbeddedFiles(*rainforest.RFTest) error
 	ClientToken() string
+	branchAPI
 }
 
 func downloadTests(c cliContext, client rfAPI) error {
@@ -756,10 +772,10 @@ func testCreationWorker(api rfAPI,
 }
 
 func testUpdateWorker(api rfAPI,
-	testsToUpdate <-chan *rainforest.RFTest, errorsChan chan<- error) {
+	testsToUpdate <-chan *rainforest.RFTest, branchID int, errorsChan chan<- error) {
 	for test := range testsToUpdate {
 		log.Printf("Updating existing test: %v", test.RFMLID)
-		err := api.UpdateTest(test)
+		err := api.UpdateTest(test, branchID)
 		errorsChan <- err
 	}
 }

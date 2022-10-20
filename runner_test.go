@@ -111,7 +111,7 @@ func (r *fakeRunnerClient) CreateTest(t *rainforest.RFTest) error {
 	return nil
 }
 
-func (r *fakeRunnerClient) UpdateTest(t *rainforest.RFTest) error {
+func (r *fakeRunnerClient) UpdateTest(t *rainforest.RFTest, branchID int) error {
 	// meh
 	return nil
 }

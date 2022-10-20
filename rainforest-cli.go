@@ -385,6 +385,10 @@ func main() {
 					Usage:  "`PATH` where to look for a tests to upload.",
 					EnvVar: "RAINFOREST_TEST_FOLDER",
 				},
+				cli.StringFlag{
+					Name:  "branch, branch-name",
+					Usage: "Uploads tests on a specific branch.",
+				},
 				cli.BoolFlag{
 					Name:  "synchronous-upload",
 					Usage: "Uploads your test in a synchronous manner i.e. not using concurrency.",

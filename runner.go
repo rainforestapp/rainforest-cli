@@ -161,7 +161,7 @@ func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = uploadRFMLFiles(uploads, true, r.client)
+	err = uploadRFMLFiles(uploads, 0, true, r.client)
 	if err != nil {
 		return nil, err
 	}

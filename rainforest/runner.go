@@ -21,6 +21,7 @@ type RunParams struct {
 	Release              string      `json:"release,omitempty"`
 	EnvironmentID        int         `json:"environment_id,omitempty"`
 	FeatureID            int         `json:"feature_id,omitempty"`
+	BranchID             int         `json:"branch_id,omitempty"`
 	RunGroupID           int         `json:"-"`
 	RunID                int         `json:"-"`
 	AutomationMaxRetries int         `json:"automation_max_retries,omitempty"`
@@ -114,6 +115,9 @@ func validateRerunParams(params RunParams) error {
 	}
 	if params.RunGroupID != 0 {
 		return errors.New("Run Group cannot be specified for rerun")
+	}
+	if params.BranchID != 0 {
+		return errors.New("Branch cannot be specified for rerun")
 	}
 
 	return nil

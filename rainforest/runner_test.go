@@ -149,6 +149,10 @@ func TestCreateRunFromRerun(t *testing.T) {
 			RunID:      runID,
 			RunGroupID: 123,
 		},
+		{
+			RunID:    runID,
+			BranchID: 123,
+		},
 	}
 	mux.HandleFunc(fmt.Sprintf("/runs/%v/rerun_failed", runID), func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, `{"id": 123, "state":"in_progress"}`)

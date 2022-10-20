@@ -284,6 +284,10 @@ func main() {
 					Name:  "save-run-id",
 					Usage: "Save the created run's ID to `FILE`.",
 				},
+				cli.StringFlag{
+					Name:  "branch, branch-name",
+					Usage: "Starts the run on a specific branch.",
+				},
 			},
 		},
 		{

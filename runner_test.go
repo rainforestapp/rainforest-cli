@@ -265,7 +265,7 @@ func TestMakeRunParams(t *testing.T) {
 		r := newRunner()
 		fakeEnv := rainforest.Environment{ID: fakeEnvID, Name: "the foo environment"}
 		r.client = &fakeRunnerClient{environment: fakeEnv}
-		res, err := r.makeRunParams(c, nil)
+		res, err := r.makeRunParams(c, nil, 0)
 
 		if err != nil {
 			t.Errorf("Error trying to create params: %v", err)
@@ -343,8 +343,9 @@ func TestStartLocalRun(t *testing.T) {
 	}{
 		{
 			mappings: map[string]interface{}{
-				"f":   true,
-				"tag": []string{"foo", "bar"},
+				"f":      true,
+				"tag":    []string{"foo", "bar"},
+				"branch": "ranch",
 				// There's less to stub with bg
 				"bg": true,
 			},

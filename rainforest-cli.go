@@ -607,6 +607,13 @@ func main() {
 						return newBranch(c, api)
 					},
 				},
+				{
+					Name:  "delete",
+					Usage: "Delete an existing branch",
+					Action: func(c *cli.Context) error {
+						return deleteBranch(c, api)
+					},
+				},
 			},
 		},
 	}

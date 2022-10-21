@@ -72,7 +72,7 @@ func (r *runner) startRun(c cliContext) error {
 	if branchName != "" {
 		branchID, err = getBranchID(branchName, r.client)
 	} else {
-		branchID = 0
+		branchID = rainforest.NO_BRANCH
 		err = nil
 	}
 

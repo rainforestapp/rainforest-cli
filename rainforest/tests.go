@@ -516,7 +516,7 @@ func (c *Client) UpdateTest(test *RFTest, branchID int) error {
 
 	url := fmt.Sprintf("tests/%d?slim=true", test.TestID)
 
-	if branchID != 0 {
+	if branchID != NO_BRANCH {
 		url += fmt.Sprintf("&branch_id=%d", branchID)
 	}
 

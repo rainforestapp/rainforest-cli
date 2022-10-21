@@ -5,6 +5,8 @@ import (
 	"strconv"
 )
 
+const NO_BRANCH = 0
+
 // Branch is a struct representing a Rainforest Branch
 type Branch struct {
 	ID   int    `json:"id,omitempty"`

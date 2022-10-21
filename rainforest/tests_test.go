@@ -440,7 +440,7 @@ func TestUpdateTest(t *testing.T) {
 		}
 	})
 
-	err = client.UpdateTest(&rfTest, 0)
+	err = client.UpdateTest(&rfTest, NO_BRANCH)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -488,7 +488,7 @@ func TestUpdateTest(t *testing.T) {
 		}
 	})
 
-	err = client.UpdateTest(&rfTest, 0)
+	err = client.UpdateTest(&rfTest, NO_BRANCH)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -547,7 +547,7 @@ func TestUpdateTest(t *testing.T) {
 		}
 	})
 
-	err = client.UpdateTest(&rfTest, 0)
+	err = client.UpdateTest(&rfTest, NO_BRANCH)
 	if err != nil {
 		t.Error(err.Error())
 	}

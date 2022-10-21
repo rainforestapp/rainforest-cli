@@ -399,8 +399,24 @@ func TestUploadTests(t *testing.T) {
 	}
 
 	// with a branch
+	testAPI.handleGetBranches = func(params ...string) ([]rainforest.Branch, error) {
+		branches := []rainforest.Branch{}
+		name := params[0]
+
+		if name != "non-existing-branch" {
+			branch := rainforest.Branch{
+				ID:   123,
+				Name: name,
+			}
+
+			branches = append(branches, branch)
+		}
+
+		return branches, nil
+	}
+
 	testAPI.handleUpdateTest = func(rfTest *rainforest.RFTest, branchID int) {
-		if branchID != 1 {
+		if branchID != 123 {
 			t.Errorf("Incorrect value for branchID. Expected 123, Got %v", branchID)
 		}
 	}

@@ -7,22 +7,13 @@ import (
 )
 
 type testBranchAPI struct {
+	handleGetBranches func(params ...string) ([]rainforest.Branch, error)
 }
 
 func (t *testBranchAPI) GetBranches(params ...string) ([]rainforest.Branch, error) {
-	branches := []rainforest.Branch{}
-	name := params[0]
+	branches, err := t.handleGetBranches(params...)
 
-	if name != "non-existing-branch" {
-		branch := rainforest.Branch{
-			ID:   1,
-			Name: name,
-		}
-
-		branches = append(branches, branch)
-	}
-
-	return branches, nil
+	return branches, err
 }
 
 func (t *testBranchAPI) CreateBranch(branch *rainforest.Branch) error {
@@ -79,6 +70,22 @@ func TestDeleteBranch(t *testing.T) {
 	context := new(fakeContext)
 	testAPI := new(testBranchAPI)
 
+	testAPI.handleGetBranches = func(params ...string) ([]rainforest.Branch, error) {
+		branches := []rainforest.Branch{}
+		name := params[0]
+
+		if name != "non-existing-branch" {
+			branch := rainforest.Branch{
+				ID:   1,
+				Name: name,
+			}
+
+			branches = append(branches, branch)
+		}
+
+		return branches, nil
+	}
+
 	testCases := []struct {
 		branchName    string
 		errorExpected bool
@@ -117,6 +124,22 @@ func TestDeleteBranch(t *testing.T) {
 func TestMergeBranch(t *testing.T) {
 	context := new(fakeContext)
 	testAPI := new(testBranchAPI)
+
+	testAPI.handleGetBranches = func(params ...string) ([]rainforest.Branch, error) {
+		branches := []rainforest.Branch{}
+		name := params[0]
+
+		if name != "non-existing-branch" {
+			branch := rainforest.Branch{
+				ID:   1,
+				Name: name,
+			}
+
+			branches = append(branches, branch)
+		}
+
+		return branches, nil
+	}
 
 	testCases := []struct {
 		branchName    string

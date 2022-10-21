@@ -415,6 +415,22 @@ func TestStartLocalRun(t *testing.T) {
 		r := newRunner()
 		fakeEnv := rainforest.Environment{ID: 123, Name: "the foo environment"}
 		client := &fakeRunnerClient{environment: fakeEnv}
+		client.handleGetBranches = func(params ...string) ([]rainforest.Branch, error) {
+			branches := []rainforest.Branch{}
+			name := params[0]
+
+			if name != "non-existing-branch" {
+				branch := rainforest.Branch{
+					ID:   1,
+					Name: name,
+				}
+
+				branches = append(branches, branch)
+			}
+
+			return branches, nil
+		}
+
 		r.client = client
 
 		err := r.startRun(c)

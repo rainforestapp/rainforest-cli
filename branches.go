@@ -17,18 +17,17 @@ type branchAPI interface {
 }
 
 func newBranch(c cliContext, api branchAPI) error {
-	name := c.Args().First()
-	name = strings.TrimSpace(name)
+	name, err := getBranchName(c)
 
-	if name == "" {
-		return cli.NewExitError("Branch name cannot be blank", 1)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
 	}
 
 	branch := rainforest.Branch{
 		Name: name,
 	}
 
-	err := api.CreateBranch(&branch)
+	err = api.CreateBranch(&branch)
 
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
@@ -39,11 +38,10 @@ func newBranch(c cliContext, api branchAPI) error {
 }
 
 func mergeBranch(c cliContext, api branchAPI) error {
-	name := c.Args().First()
-	name = strings.TrimSpace(name)
+	name, err := getBranchName(c)
 
-	if name == "" {
-		return cli.NewExitError("Branch name cannot be blank", 1)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
 	}
 
 	branchID, err := getBranchID(name, api)
@@ -63,11 +61,10 @@ func mergeBranch(c cliContext, api branchAPI) error {
 }
 
 func deleteBranch(c cliContext, api branchAPI) error {
-	name := c.Args().First()
-	name = strings.TrimSpace(name)
+	name, err := getBranchName(c)
 
-	if name == "" {
-		return cli.NewExitError("Branch name cannot be blank", 1)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
 	}
 
 	branchID, err := getBranchID(name, api)
@@ -101,4 +98,16 @@ func getBranchID(name string, api branchAPI) (int, error) {
 	branch := branches[0]
 
 	return branch.ID, nil
+}
+
+// getBranchName gets branchName from the cli
+func getBranchName(c cliContext) (string, error) {
+	name := c.Args().First()
+	name = strings.TrimSpace(name)
+
+	if name == "" {
+		return "", errors.New("Branch name cannot be blank")
+	}
+
+	return name, nil
 }

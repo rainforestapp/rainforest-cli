@@ -284,6 +284,10 @@ func main() {
 					Name:  "save-run-id",
 					Usage: "Save the created run's ID to `FILE`.",
 				},
+				cli.StringFlag{
+					Name:  "branch, branch-name",
+					Usage: "Starts the run on a specific branch.",
+				},
 			},
 		},
 		{
@@ -384,6 +388,10 @@ func main() {
 					Value:  "./spec/rainforest/",
 					Usage:  "`PATH` where to look for a tests to upload.",
 					EnvVar: "RAINFOREST_TEST_FOLDER",
+				},
+				cli.StringFlag{
+					Name:  "branch, branch-name",
+					Usage: "Uploads tests on a specific branch.",
 				},
 				cli.BoolFlag{
 					Name:  "synchronous-upload",
@@ -592,6 +600,35 @@ func main() {
 			OnUsageError: onCommandUsageErrorHandler("update"),
 			Action: func(c *cli.Context) error {
 				return updateCmd(c)
+			},
+		},
+		{
+			Name:         "branch",
+			Usage:        "Manage branches",
+			ArgsUsage:    "[command] [branch name]",
+			OnUsageError: onCommandUsageErrorHandler("branch"),
+			Subcommands: []cli.Command{
+				{
+					Name:  "new",
+					Usage: "Create a new branch",
+					Action: func(c *cli.Context) error {
+						return newBranch(c, api)
+					},
+				},
+				{
+					Name:  "merge",
+					Usage: "Merge an existing branch into main",
+					Action: func(c *cli.Context) error {
+						return mergeBranch(c, api)
+					},
+				},
+				{
+					Name:  "delete",
+					Usage: "Delete an existing branch",
+					Action: func(c *cli.Context) error {
+						return deleteBranch(c, api)
+					},
+				},
 			},
 		},
 	}

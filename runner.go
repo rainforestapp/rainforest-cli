@@ -65,16 +65,30 @@ func (r *runner) startRun(c cliContext) error {
 		)
 	}
 
-	var localTests []*rainforest.RFTest
 	var err error
+	var branchID int
+	branchName := c.String("branch")
+	branchName = strings.TrimSpace(branchName)
+	if branchName != "" {
+		branchID, err = getBranchID(branchName, r.client)
+	} else {
+		branchID = rainforest.NO_BRANCH
+		err = nil
+	}
+
+	if err != nil {
+		return cli.NewExitError(err.Error(), 1)
+	}
+
+	var localTests []*rainforest.RFTest
 	if c.Bool("f") {
-		localTests, err = r.prepareLocalRun(c)
+		localTests, err = r.prepareLocalRun(c, branchID)
 		if err != nil {
 			return cli.NewExitError(err.Error(), 1)
 		}
 	}
 
-	params, err := r.makeRunParams(c, localTests)
+	params, err := r.makeRunParams(c, localTests, branchID)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -143,7 +157,7 @@ func (r *runner) showRunCreated(runStatus *rainforest.RunStatus) {
 	log.Printf("Run %v has been created. The detailed results are available at %v", runStatus.ID, runStatus.FrontendURL)
 }
 
-func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
+func (r *runner) prepareLocalRun(c cliContext, branchID int) ([]*rainforest.RFTest, error) {
 	invalidFilters := []string{"folder", "feature", "run-group", "site"}
 	for _, filter := range invalidFilters {
 		if c.Int(filter) != 0 || (c.String(filter) != "" && c.String(filter) != "0") {
@@ -161,7 +175,7 @@ func (r *runner) prepareLocalRun(c cliContext) ([]*rainforest.RFTest, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = uploadRFMLFiles(uploads, true, r.client)
+	err = uploadRFMLFiles(uploads, branchID, true, r.client)
 	if err != nil {
 		return nil, err
 	}
@@ -360,7 +374,7 @@ func getRunStatus(failFast bool, runID int, client runnerAPI) (*rainforest.RunSt
 
 // makeRunParams parses and validates command line arguments + options
 // and makes RunParams struct out of them
-func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (rainforest.RunParams, error) {
+func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest, branchID int) (rainforest.RunParams, error) {
 	var err error
 	localOnly := localTests != nil
 
@@ -463,6 +477,7 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest) (r
 		Release:              release,
 		EnvironmentID:        environmentID,
 		FeatureID:            featureID,
+		BranchID:             branchID,
 		RunGroupID:           runGroupID,
 		AutomationMaxRetries: automationMaxRetries,
 	}, nil

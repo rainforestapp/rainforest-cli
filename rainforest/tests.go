@@ -509,17 +509,19 @@ func (c *Client) CreateTest(test *RFTest) error {
 }
 
 // UpdateTest updates existing test on RF, requires RFTest struct to be prepared to upload using helpers
-func (c *Client) UpdateTest(test *RFTest) error {
+func (c *Client) UpdateTest(test *RFTest, branchID int) error {
 	if test.TestID == 0 {
 		return errors.New("Couldn't update the test TestID not specified in RFTest")
 	}
 
+	url := fmt.Sprintf("tests/%d?slim=true", test.TestID)
+
+	if branchID != NO_BRANCH {
+		url += fmt.Sprintf("&branch_id=%d", branchID)
+	}
+
 	// Prepare request
-	req, err := c.NewRequest(
-		"PUT",
-		fmt.Sprintf("tests/%d?slim=true", test.TestID),
-		test,
-	)
+	req, err := c.NewRequest("PUT", url, test)
 	if err != nil {
 		return err
 	}

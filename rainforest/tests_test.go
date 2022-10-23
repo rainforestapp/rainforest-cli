@@ -433,9 +433,14 @@ func TestUpdateTest(t *testing.T) {
 		} else if strings.Contains(bodyStr, "\"feature_id\"") {
 			t.Errorf("Unexpected parameter found: \"feature_id\" in:\n%v", bodyStr)
 		}
+
+		branchID := r.URL.Query().Get("branch_id")
+		if branchID != "" {
+			t.Error("Branch ID present in URL when it shouldn't be.")
+		}
 	})
 
-	err = client.UpdateTest(&rfTest)
+	err = client.UpdateTest(&rfTest, NO_BRANCH)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -483,7 +488,29 @@ func TestUpdateTest(t *testing.T) {
 		}
 	})
 
-	err = client.UpdateTest(&rfTest)
+	err = client.UpdateTest(&rfTest, NO_BRANCH)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	// With a branch id
+	cleanup()
+	setup()
+
+	mux.HandleFunc("/tests/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "PUT" {
+			t.Errorf("Incorrect HTTP method - expected PUT, got %v", r.Method)
+			return
+		}
+
+		branchID := r.URL.Query().Get("branch_id")
+
+		if branchID != "123" {
+			t.Errorf("Unexpected Branch ID received. Expected: 123, Got: %v", branchID)
+		}
+	})
+
+	err = client.UpdateTest(&rfTest, 123)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -520,7 +547,7 @@ func TestUpdateTest(t *testing.T) {
 		}
 	})
 
-	err = client.UpdateTest(&rfTest)
+	err = client.UpdateTest(&rfTest, NO_BRANCH)
 	if err != nil {
 		t.Error(err.Error())
 	}

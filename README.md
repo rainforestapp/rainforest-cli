@@ -99,6 +99,12 @@ Run individual tests in the foreground and report.
 rainforest run <test_id1> <test_id2>
 ```
 
+Run all tests on a branch.
+
+```bash
+rainforest run all --branch branch-name
+```
+
 Run a run group.
 
 ⚠️ This uses the configuration defined in the run group (environment, platforms, execution method, location). If you wish to run tests from a run group without using the run group's configuration, you will need to use the Rainforest API directly, passing a `run_group_id` parameter to [the `POST /runs` endpoint](https://help.rainforestqa.com/reference/post-runs). ⚠️
@@ -156,6 +162,12 @@ Upload a specific test to Rainforest
 
 ```bash
 rainforest upload /path/to/test/file.rfml
+```
+
+Upload a specific test to Rainforest on a branch
+
+```bash
+rainforest upload --branch branch-name /path/to/test/file.rfml
 ```
 
 Remove RFML file and remove test from Rainforest test suite.
@@ -249,6 +261,23 @@ rainforest csv-upload --import-variable-name my_variable PATH/TO/CSV.csv
 Upload a CSV to update an existing tabular variables.
 ```bash
 rainforest csv-upload --import-variable-name my_variable --overwrite-variable PATH/TO/CSV.csv
+```
+
+#### Managing branches
+
+Create a new branch.
+```bash
+rainforest branch new branch-name
+```
+
+Delete an existing branch.
+```bash
+rainforest branch delete branch-name
+```
+
+Merge an existing branch into the `main` branch.
+```bash
+rainforest branch merge branch-name
 ```
 
 #### Uploading Mobile Apps

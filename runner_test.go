@@ -111,7 +111,7 @@ func (r *fakeRunnerClient) CreateTest(t *rainforest.RFTest) error {
 	return nil
 }
 
-func (r *fakeRunnerClient) UpdateTest(t *rainforest.RFTest) error {
+func (r *fakeRunnerClient) UpdateTest(t *rainforest.RFTest, branchID int) error {
 	// meh
 	return nil
 }
@@ -265,7 +265,7 @@ func TestMakeRunParams(t *testing.T) {
 		r := newRunner()
 		fakeEnv := rainforest.Environment{ID: fakeEnvID, Name: "the foo environment"}
 		r.client = &fakeRunnerClient{environment: fakeEnv}
-		res, err := r.makeRunParams(c, nil)
+		res, err := r.makeRunParams(c, nil, 0)
 
 		if err != nil {
 			t.Errorf("Error trying to create params: %v", err)
@@ -343,8 +343,9 @@ func TestStartLocalRun(t *testing.T) {
 	}{
 		{
 			mappings: map[string]interface{}{
-				"f":   true,
-				"tag": []string{"foo", "bar"},
+				"f":      true,
+				"tag":    []string{"foo", "bar"},
+				"branch": "ranch",
 				// There's less to stub with bg
 				"bg": true,
 			},
@@ -414,6 +415,22 @@ func TestStartLocalRun(t *testing.T) {
 		r := newRunner()
 		fakeEnv := rainforest.Environment{ID: 123, Name: "the foo environment"}
 		client := &fakeRunnerClient{environment: fakeEnv}
+		client.handleGetBranches = func(params ...string) ([]rainforest.Branch, error) {
+			branches := []rainforest.Branch{}
+			name := params[0]
+
+			if name != "non-existing-branch" {
+				branch := rainforest.Branch{
+					ID:   1,
+					Name: name,
+				}
+
+				branches = append(branches, branch)
+			}
+
+			return branches, nil
+		}
+
 		r.client = client
 
 		err := r.startRun(c)

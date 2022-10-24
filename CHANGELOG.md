@@ -1,4 +1,10 @@
 # Rainforest CLI Changelog
+## 3.3.0 - 2022-10-24
+- Add commands for creating/merging/deleting branches
+  - (676bb8478340ada9da35091762d5a3c0f767dd3c, @pyromaniackeca)
+- Add support for `--branch` parameter when starting a run and uploading RFML
+  - (676bb8478340ada9da35091762d5a3c0f767dd3c, @pyromaniackeca)
+
 ## 3.2.0 - 2022-10-20
 - Fix `csv-upload` command to not overwrite an existing `description`
   - (c7b9f584dea7ca53be6ec09aa929bda90778d913, @magni-)

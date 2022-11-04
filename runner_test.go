@@ -116,7 +116,7 @@ func (r *fakeRunnerClient) UpdateTest(t *rainforest.RFTest, branchID int) error 
 	return nil
 }
 
-func (r *fakeRunnerClient) CreateTemporaryEnvironment(s string) (*rainforest.Environment, error) {
+func (r *fakeRunnerClient) CreateTemporaryEnvironment(n string, s string) (*rainforest.Environment, error) {
 	return &r.environment, nil
 }
 

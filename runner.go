@@ -19,7 +19,7 @@ import (
 
 type runnerAPI interface {
 	CreateRun(params rainforest.RunParams) (*rainforest.RunStatus, error)
-	CreateTemporaryEnvironment(string) (*rainforest.Environment, error)
+	CreateTemporaryEnvironment(string, string) (*rainforest.Environment, error)
 	CheckRunStatus(int) (*rainforest.RunStatus, error)
 	rfAPI
 }
@@ -425,7 +425,7 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest, br
 		}
 
 		var environment *rainforest.Environment
-		environment, err = r.client.CreateTemporaryEnvironment(customURL.String())
+		environment, err = r.client.CreateTemporaryEnvironment(description, customURL.String())
 		if err != nil {
 			return rainforest.RunParams{}, err
 		}

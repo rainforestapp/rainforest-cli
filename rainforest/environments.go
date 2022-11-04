@@ -1,5 +1,7 @@
 package rainforest
 
+import "fmt"
+
 // EnvironmentParams are the parameters used to create a new Environment
 type EnvironmentParams struct {
 	Name        string `json:"name"`
@@ -16,9 +18,17 @@ type Environment struct {
 
 // CreateTemporaryEnvironment creates a new temporary environment and returns the
 // Environment.
-func (c *Client) CreateTemporaryEnvironment(urlString string) (*Environment, error) {
+func (c *Client) CreateTemporaryEnvironment(runDescription string, urlString string) (*Environment, error) {
+	name := "temporary-env-for-custom-url-via-CLI"
+	if runDescription != "" {
+		if len(runDescription) > 241 {
+			runDescription = runDescription[:241]
+		}
+		name = fmt.Sprintf("%v-temporary-env", runDescription)
+	}
+
 	body := EnvironmentParams{
-		Name:        "temporary-env-for-custom-url-via-CLI",
+		Name:        name,
 		URL:         urlString,
 		IsTemporary: true,
 	}

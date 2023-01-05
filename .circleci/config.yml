@@ -260,6 +260,8 @@ workflows:
       - test
       - validate_goreleaser_config
       - integration_test:
+          context:
+            - RainforestQA
           requires:
             - validate_formatting
             - test
@@ -274,6 +276,8 @@ workflows:
                 - [fail]
                 - [fail_junit]
       - integration_test:
+          context:
+            - RainforestQA
           requires:
             - validate_formatting
             - test
@@ -293,3 +297,5 @@ workflows:
               ignore: /.*/
             tags:
               only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+          context:
+            - circlemator

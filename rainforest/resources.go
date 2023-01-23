@@ -190,36 +190,32 @@ type Site struct {
 
 // GetSites fetches sites available to use during the RF runs.
 func (c *Client) GetSites() ([]Site, error) {
-	// Prepare request
-	req, err := c.NewRequest("GET", "sites", nil)
-	if err != nil {
-		return nil, err
+	var sites []Site
+
+	collect := func(coll interface{}) {
+		newSites := coll.(*[]Site)
+		for _, site := range *newSites {
+			sites = append(sites, site)
+		}
 	}
 
-	// Send request and process response
-	var sitesResp []Site
-	_, err = c.Do(req, &sitesResp)
-	if err != nil {
-		return nil, err
-	}
-	return sitesResp, nil
+	err := c.getPaginatedResource("sites", &[]Site{}, collect)
+	return sites, err
 }
 
 // GetEnvironments fetches environments available to use during the RF runs.
 func (c *Client) GetEnvironments() ([]Environment, error) {
-	// Prepare request
-	req, err := c.NewRequest("GET", "environments", nil)
-	if err != nil {
-		return nil, err
+	var environments []Environment
+
+	collect := func(coll interface{}) {
+		newEnvironments := coll.(*[]Environment)
+		for _, environment := range *newEnvironments {
+			environments = append(environments, environment)
+		}
 	}
 
-	// Send request and process response
-	var envsResp []Environment
-	_, err = c.Do(req, &envsResp)
-	if err != nil {
-		return nil, err
-	}
-	return envsResp, nil
+	err := c.getPaginatedResource("environments", &[]Environment{}, collect)
+	return environments, err
 }
 
 // Feature represents a single feature returned by the API.

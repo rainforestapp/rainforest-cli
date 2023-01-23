@@ -19,7 +19,7 @@ For users of CircleCI and GitHub Actions, we have platform-specific wrappers you
 ```bash
 $ docker pull gcr.io/rf-public-images/rainforest-cli
 $ docker run gcr.io/rf-public-images/rainforest-cli --version
-Rainforest CLI version 2.19.0 - build: docker
+Rainforest CLI version 3.4.1 - build: docker
 ```
 
 ### Brew

@@ -1,4 +1,8 @@
 # Rainforest CLI Changelog
+## 3.4.1 - 2021-01-23
+- Handle paginated responses from backend when fetching sites and environments
+  - (9f9a438d99d1ac646da1034707b88a33f5be64c2, @magni-)
+
 ## 3.4.0 - 2022-11-04
 - Use run description for temporary environment name if it is set
   - (9e6caf7a0ee5221d53997e2d93a44d6635a81361, @magni-)

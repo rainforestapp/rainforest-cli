@@ -36,7 +36,7 @@ func (c *Client) getPaginatedResource(endpoint string, coll interface{}, collect
 
 	totalPagesHeader := res.Header.Get("X-Total-Pages")
 	if totalPagesHeader == "" {
-		return fmt.Errorf("Missing X-Total-Pages header in HTTP Response")
+		totalPagesHeader = "1"
 	}
 
 	totalPages, err := strconv.Atoi(totalPagesHeader)

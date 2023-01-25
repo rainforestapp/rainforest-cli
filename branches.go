@@ -91,13 +91,13 @@ func getBranchID(name string, api branchAPI) (int, error) {
 		return 0, err
 	}
 
-	if len(branches) == 0 {
-		return 0, errors.New("Cannot find branch")
+	for _, branch := range branches {
+		if branch.Name == name {
+			return branch.ID, nil
+		}
 	}
 
-	branch := branches[0]
-
-	return branch.ID, nil
+	return 0, errors.New("Cannot find branch")
 }
 
 // getBranchName gets branchName from the cli

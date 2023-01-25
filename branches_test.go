@@ -1,13 +1,17 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/rainforestapp/rainforest-cli/rainforest"
 )
 
 type testBranchAPI struct {
-	handleGetBranches func(params ...string) ([]rainforest.Branch, error)
+	handleGetBranches  func(params ...string) ([]rainforest.Branch, error)
+	handleDeleteBranch func(branchID int) error
+	handleMergeBranch  func(branchID int) error
 }
 
 func (t *testBranchAPI) GetBranches(params ...string) ([]rainforest.Branch, error) {
@@ -21,11 +25,15 @@ func (t *testBranchAPI) CreateBranch(branch *rainforest.Branch) error {
 }
 
 func (t *testBranchAPI) MergeBranch(branchID int) error {
-	return nil
+	err := t.handleMergeBranch(branchID)
+
+	return err
 }
 
 func (t *testBranchAPI) DeleteBranch(branchID int) error {
-	return nil
+	err := t.handleDeleteBranch(branchID)
+
+	return err
 }
 
 func TestNewBranch(t *testing.T) {
@@ -75,15 +83,29 @@ func TestDeleteBranch(t *testing.T) {
 		name := params[0]
 
 		if name != "non-existing-branch" {
-			branch := rainforest.Branch{
+			otherBranch := rainforest.Branch{
 				ID:   1,
+				Name: "also matched " + name,
+			}
+			branch := rainforest.Branch{
+				ID:   2,
 				Name: name,
 			}
 
-			branches = append(branches, branch)
+			branches = append(branches, otherBranch, branch)
 		}
 
 		return branches, nil
+	}
+
+	testAPI.handleDeleteBranch = func(branchID int) (err error) {
+		err = nil
+
+		if branchID != 2 {
+			err = errors.New(fmt.Sprintf("deleteBranch deleted wrong branch %d, want 2", branchID))
+		}
+
+		return err
 	}
 
 	testCases := []struct {
@@ -134,11 +156,25 @@ func TestMergeBranch(t *testing.T) {
 				ID:   1,
 				Name: name,
 			}
+			otherBranch := rainforest.Branch{
+				ID:   2,
+				Name: "also matched " + name,
+			}
 
-			branches = append(branches, branch)
+			branches = append(branches, branch, otherBranch)
 		}
 
 		return branches, nil
+	}
+
+	testAPI.handleMergeBranch = func(branchID int) (err error) {
+		err = nil
+
+		if branchID != 1 {
+			err = errors.New(fmt.Sprintf("mergeBranch merged wrong branch %d, want 1", branchID))
+		}
+
+		return err
 	}
 
 	testCases := []struct {

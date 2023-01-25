@@ -1,4 +1,8 @@
 # Rainforest CLI Changelog
+## Unreleased
+- Handle multiple matching branches when merging or deleting a branch
+  - (8c16acc9dcffdbf7a3cff509bcef143e7d915cc3, @magni-)
+
 ## 3.4.1 - 2021-01-23
 - Handle paginated responses from backend when fetching sites and environments
   - (9f9a438d99d1ac646da1034707b88a33f5be64c2, @magni-)

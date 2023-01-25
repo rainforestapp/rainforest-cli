@@ -21,8 +21,10 @@ type Folder struct {
 // empty slice of the appropriate type, and collect is called every time
 // resources are added to the collection. The caller should handle collecting
 // the collection.
-func (c *Client) getPaginatedResource(endpoint string, coll interface{}, collect func(interface{})) error {
-	req, err := c.NewRequest("GET", endpoint+"?page_size=100", nil)
+func (c *Client) getPaginatedResource(endpoint string, coll interface{}, collect func(interface{}), params ...string) error {
+	params = append(params, "page_size=100")
+	query := strings.Join(params, "&")
+	req, err := c.NewRequest("GET", endpoint+"?"+query, nil)
 	if err != nil {
 		return err
 	}
@@ -46,7 +48,9 @@ func (c *Client) getPaginatedResource(endpoint string, coll interface{}, collect
 
 	for i := 1; i < totalPages; i++ {
 		page := strconv.Itoa(i + 1)
-		req, err = c.NewRequest("GET", endpoint+"?page_size=100&page="+page, nil)
+		pageParams := append(params, "page="+page)
+		query = strings.Join(pageParams, "&")
+		req, err = c.NewRequest("GET", endpoint+"?"+query, nil)
 		if err != nil {
 			return err
 		}

@@ -1,7 +1,6 @@
 package rainforest
 
 import (
-	"fmt"
 	"strconv"
 )
 
@@ -15,51 +14,20 @@ type Branch struct {
 
 // GetBranches returns all branches optionally filtered by name
 func (c *Client) GetBranches(params ...string) ([]Branch, error) {
-	name := ""
-	branches := []Branch{}
-	page := 1
-
 	if len(params) > 0 {
-		name = params[0]
+		params = []string{"name=" + params[0]}
 	}
 
-	for {
-		branchesURL := "branches?page_size=50&page=" + strconv.Itoa(page)
-
-		if name != "" {
-			branchesURL = branchesURL + "&name=" + name
+	var branches []Branch
+	collect := func(coll interface{}) {
+		newBranches := coll.(*[]Branch)
+		for _, branch := range *newBranches {
+			branches = append(branches, branch)
 		}
-
-		req, err := c.NewRequest("GET", branchesURL, nil)
-
-		if err != nil {
-			return nil, err
-		}
-
-		var branchResp []Branch
-		_, err = c.Do(req, &branchResp)
-		if err != nil {
-			return nil, err
-		}
-
-		branches = append(branches, branchResp...)
-
-		totalPagesHeader := c.LastResponseHeaders.Get("X-Total-Pages")
-		if totalPagesHeader == "" {
-			return nil, fmt.Errorf("Rainforest API error: Total pages header missing from response")
-		}
-
-		totalPages, err := strconv.Atoi(totalPagesHeader)
-		if err != nil {
-			return nil, err
-		}
-
-		if page == totalPages {
-			return branches, nil
-		}
-
-		page++
 	}
+
+	err := c.getPaginatedResource("branches", &[]Branch{}, collect, params...)
+	return branches, err
 }
 
 // CreateBranch creates new branch on RF, requires Branch struct to be prepared to upload using helpers

@@ -33,7 +33,7 @@ type GeneratorRelatedTests struct {
 }
 
 // GetGenerators fetches a list of all available generators for the account
-func (c *Client) GetGenerators() ([]Generator, error) {
+func (c *Client) GetGenerators(params ...string) ([]Generator, error) {
 	var generators []Generator
 
 	collect := func(coll interface{}) {
@@ -43,7 +43,7 @@ func (c *Client) GetGenerators() ([]Generator, error) {
 		}
 	}
 
-	err := c.getPaginatedResource("generators", &[]Generator{}, collect)
+	err := c.getPaginatedResource("generators", &[]Generator{}, collect, params...)
 	return generators, err
 }
 

@@ -34,19 +34,17 @@ type GeneratorRelatedTests struct {
 
 // GetGenerators fetches a list of all available generators for the account
 func (c *Client) GetGenerators() ([]Generator, error) {
-	// Prepare request
-	req, err := c.NewRequest("GET", "generators", nil)
-	if err != nil {
-		return nil, err
+	var generators []Generator
+
+	collect := func(coll interface{}) {
+		newGenerators := coll.(*[]Generator)
+		for _, generator := range *newGenerators {
+			generators = append(generators, generator)
+		}
 	}
 
-	// Send request and process response
-	var generatorResp []Generator
-	_, err = c.Do(req, &generatorResp)
-	if err != nil {
-		return nil, err
-	}
-	return generatorResp, nil
+	err := c.getPaginatedResource("generators", &[]Generator{}, collect)
+	return generators, err
 }
 
 // DeleteGenerator deletes generator with specified ID

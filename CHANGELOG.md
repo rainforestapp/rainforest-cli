@@ -1,9 +1,13 @@
 # Rainforest CLI Changelog
-## Unreleased
+## 3.4.2 - 2023-01-26
+- Narrow down query when fetching fetching generators (tabular variables)
+  - (4df4734009a8c7a461bb8e0f6ee92082d91a4451, @magni-)
+- Handle paginated responses from backend when fetching generators (tabular variables)
+  - (668e5245cd8884e5e1322499d0843c5388ba87d9, @magni-)
 - Handle multiple matching branches when merging or deleting a branch
   - (8c16acc9dcffdbf7a3cff509bcef143e7d915cc3, @magni-)
 
-## 3.4.1 - 2021-01-23
+## 3.4.1 - 2023-01-23
 - Handle paginated responses from backend when fetching sites and environments
   - (9f9a438d99d1ac646da1034707b88a33f5be64c2, @magni-)
 

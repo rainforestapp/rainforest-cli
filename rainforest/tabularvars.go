@@ -74,12 +74,13 @@ func (c *Client) CreateTabularVar(name, description string,
 	columns []string, singleUse bool) (*Generator, error) {
 	//Prepare request
 	type genCreateRequest struct {
-		Name        string   `json:"name,omitempty"`
-		Description string   `json:"description,omitempty"`
-		SingleUse   bool     `json:"single_use,omitempty"`
-		Columns     []string `json:"columns,omitempty"`
+		Name          string   `json:"name,omitempty"`
+		Description   string   `json:"description,omitempty"`
+		GeneratorType string   `json:"generator_type,omitempty"`
+		SingleUse     bool     `json:"single_use,omitempty"`
+		Columns       []string `json:"columns,omitempty"`
 	}
-	body := genCreateRequest{name, description, singleUse, columns}
+	body := genCreateRequest{name, description, "tabular", singleUse, columns}
 	req, err := c.NewRequest("POST", "generators", body)
 	if err != nil {
 		return &Generator{}, err

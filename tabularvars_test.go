@@ -52,8 +52,8 @@ func TestMin(t *testing.T) {
 	}
 }
 
-type fakePI struct {
-	getGenerators    func() ([]rainforest.Generator, error)
+type fakeAPI struct {
+	getGenerators    func(params ...string) ([]rainforest.Generator, error)
 	deleteGenerator  func(genID int) error
 	createTabularVar func(name, description string,
 		columns []string, singleUse bool) (*rainforest.Generator, error)
@@ -61,21 +61,21 @@ type fakePI struct {
 		targetColumns []string, rowData [][]string) error
 }
 
-func (f fakePI) GetGenerators() ([]rainforest.Generator, error) {
+func (f fakeAPI) GetGenerators(params ...string) ([]rainforest.Generator, error) {
 	if f.getGenerators != nil {
-		return f.getGenerators()
+		return f.getGenerators(params...)
 	}
 	return nil, nil
 }
 
-func (f fakePI) DeleteGenerator(genID int) error {
+func (f fakeAPI) DeleteGenerator(genID int) error {
 	if f.deleteGenerator != nil {
 		return f.deleteGenerator(genID)
 	}
 	return nil
 }
 
-func (f fakePI) CreateTabularVar(name, description string,
+func (f fakeAPI) CreateTabularVar(name, description string,
 	columns []string, singleUse bool) (*rainforest.Generator, error) {
 	if f.createTabularVar != nil {
 		return f.createTabularVar(name, description, columns, singleUse)
@@ -83,7 +83,7 @@ func (f fakePI) CreateTabularVar(name, description string,
 	return &rainforest.Generator{}, nil
 }
 
-func (f fakePI) AddGeneratorRowsFromTable(targetGenerator *rainforest.Generator,
+func (f fakeAPI) AddGeneratorRowsFromTable(targetGenerator *rainforest.Generator,
 	targetColumns []string, rowData [][]string) error {
 	if f.addGeneratorRowsFromTable != nil {
 		return f.addGeneratorRowsFromTable(targetGenerator, targetColumns, rowData)
@@ -103,7 +103,7 @@ func TestRowUploadWorker(t *testing.T) {
 	close(inChan)
 	errorsChan := make(chan error, testBatchesCount)
 	var callCount int
-	f := fakePI{
+	f := fakeAPI{
 		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
 			if !reflect.DeepEqual(targetGenerator, gen) {
@@ -148,7 +148,7 @@ func TestRowUploadWorker_Error(t *testing.T) {
 	close(inChan)
 	errorsChan := make(chan error, testBatchesCount)
 	var callCount int
-	f := fakePI{
+	f := fakeAPI{
 		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
 			if !reflect.DeepEqual(targetGenerator, gen) {
@@ -222,7 +222,7 @@ func TestUploadTabularVar(t *testing.T) {
 		},
 	}
 	callCount := make(map[string]int)
-	f := fakePI{
+	f := fakeAPI{
 		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
 			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
@@ -240,7 +240,11 @@ func TestUploadTabularVar(t *testing.T) {
 			callCount["addGeneratorRowsFromTable"] = callCount["addGeneratorRowsFromTable"] + 1
 			return nil
 		},
-		getGenerators: func() ([]rainforest.Generator, error) {
+		getGenerators: func(params ...string) ([]rainforest.Generator, error) {
+			expectedParams := []string{"generator_type=tabular", "name=" + variableName}
+			if !reflect.DeepEqual(params, expectedParams) {
+				t.Errorf("Incorrect parameters passed to GetGenerators. Got %v, expected: %v", expectedParams, params)
+			}
 			callCount["getGenerators"] = callCount["getGenerators"] + 1
 			return []rainforest.Generator{
 				{
@@ -331,7 +335,7 @@ func TestUploadTabularVar_Exists_NoOverwrite(t *testing.T) {
 		},
 	}
 	callCount := make(map[string]int)
-	f := fakePI{
+	f := fakeAPI{
 		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
 			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
@@ -349,7 +353,12 @@ func TestUploadTabularVar_Exists_NoOverwrite(t *testing.T) {
 			callCount["addGeneratorRowsFromTable"] = callCount["addGeneratorRowsFromTable"] + 1
 			return nil
 		},
-		getGenerators: func() ([]rainforest.Generator, error) {
+		getGenerators: func(params ...string) ([]rainforest.Generator, error) {
+			expectedParams := []string{"generator_type=tabular", "name=" + variableName}
+			if !reflect.DeepEqual(params, expectedParams) {
+				t.Errorf("Incorrect parameters passed to GetGenerators. Got %v, expected: %v", expectedParams, params)
+			}
+
 			callCount["getGenerators"] = callCount["getGenerators"] + 1
 			return []rainforest.Generator{
 				{
@@ -433,7 +442,7 @@ func TestUploadTabularVar_Exists_Overwrite(t *testing.T) {
 		},
 	}
 	callCount := make(map[string]int)
-	f := fakePI{
+	f := fakeAPI{
 		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
 			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
@@ -451,7 +460,11 @@ func TestUploadTabularVar_Exists_Overwrite(t *testing.T) {
 			callCount["addGeneratorRowsFromTable"] = callCount["addGeneratorRowsFromTable"] + 1
 			return nil
 		},
-		getGenerators: func() ([]rainforest.Generator, error) {
+		getGenerators: func(params ...string) ([]rainforest.Generator, error) {
+			expectedParams := []string{"generator_type=tabular", "name=" + variableName}
+			if !reflect.DeepEqual(params, expectedParams) {
+				t.Errorf("Incorrect parameters passed to GetGenerators. Got %v, expected: %v", expectedParams, params)
+			}
 			callCount["getGenerators"] = callCount["getGenerators"] + 1
 			return []rainforest.Generator{
 				{
@@ -549,7 +562,7 @@ func TestCSVUpload(t *testing.T) {
 		},
 	}
 	callCount := make(map[string]int)
-	f := fakePI{
+	f := fakeAPI{
 		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
 			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
@@ -567,7 +580,11 @@ func TestCSVUpload(t *testing.T) {
 			callCount["addGeneratorRowsFromTable"] = callCount["addGeneratorRowsFromTable"] + 1
 			return nil
 		},
-		getGenerators: func() ([]rainforest.Generator, error) {
+		getGenerators: func(params ...string) ([]rainforest.Generator, error) {
+			expectedParams := []string{"generator_type=tabular", "name=" + variableName}
+			if !reflect.DeepEqual(params, expectedParams) {
+				t.Errorf("Incorrect parameters passed to GetGenerators. Got %v, expected: %v", expectedParams, params)
+			}
 			callCount["getGenerators"] = callCount["getGenerators"] + 1
 			return []rainforest.Generator{
 				{
@@ -669,7 +686,7 @@ func TestCSVUpload_MissingName(t *testing.T) {
 		},
 	}
 	callCount := make(map[string]int)
-	f := fakePI{
+	f := fakeAPI{
 		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
 			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
@@ -687,7 +704,11 @@ func TestCSVUpload_MissingName(t *testing.T) {
 			callCount["addGeneratorRowsFromTable"] = callCount["addGeneratorRowsFromTable"] + 1
 			return nil
 		},
-		getGenerators: func() ([]rainforest.Generator, error) {
+		getGenerators: func(params ...string) ([]rainforest.Generator, error) {
+			expectedParams := []string{"generator_type=tabular", "name=" + variableName}
+			if !reflect.DeepEqual(params, expectedParams) {
+				t.Errorf("Incorrect parameters passed to GetGenerators. Got %v, expected: %v", expectedParams, params)
+			}
 			callCount["getGenerators"] = callCount["getGenerators"] + 1
 			return []rainforest.Generator{
 				{
@@ -781,7 +802,7 @@ func TestPreRunCSVUpload(t *testing.T) {
 		},
 	}
 	callCount := make(map[string]int)
-	f := fakePI{
+	f := fakeAPI{
 		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
 			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
@@ -799,7 +820,11 @@ func TestPreRunCSVUpload(t *testing.T) {
 			callCount["addGeneratorRowsFromTable"] = callCount["addGeneratorRowsFromTable"] + 1
 			return nil
 		},
-		getGenerators: func() ([]rainforest.Generator, error) {
+		getGenerators: func(params ...string) ([]rainforest.Generator, error) {
+			expectedParams := []string{"generator_type=tabular", "name=" + variableName}
+			if !reflect.DeepEqual(params, expectedParams) {
+				t.Errorf("Incorrect parameters passed to GetGenerators. Got %v, expected: %v", expectedParams, params)
+			}
 			callCount["getGenerators"] = callCount["getGenerators"] + 1
 			return []rainforest.Generator{
 				{
@@ -902,7 +927,7 @@ func TestPreRunCSVUpload_MissingName(t *testing.T) {
 		},
 	}
 	callCount := make(map[string]int)
-	f := fakePI{
+	f := fakeAPI{
 		addGeneratorRowsFromTable: func(targetGenerator *rainforest.Generator,
 			targetColumns []string, rowData [][]string) error {
 			if !reflect.DeepEqual(targetGenerator, &fakeNewGen) {
@@ -920,7 +945,11 @@ func TestPreRunCSVUpload_MissingName(t *testing.T) {
 			callCount["addGeneratorRowsFromTable"] = callCount["addGeneratorRowsFromTable"] + 1
 			return nil
 		},
-		getGenerators: func() ([]rainforest.Generator, error) {
+		getGenerators: func(params ...string) ([]rainforest.Generator, error) {
+			expectedParams := []string{"generator_type=tabular", "name=" + variableName}
+			if !reflect.DeepEqual(params, expectedParams) {
+				t.Errorf("Incorrect parameters passed to GetGenerators. Got %v, expected: %v", expectedParams, params)
+			}
 			callCount["getGenerators"] = callCount["getGenerators"] + 1
 			return []rainforest.Generator{
 				{

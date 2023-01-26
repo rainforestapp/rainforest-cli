@@ -33,20 +33,18 @@ type GeneratorRelatedTests struct {
 }
 
 // GetGenerators fetches a list of all available generators for the account
-func (c *Client) GetGenerators() ([]Generator, error) {
-	// Prepare request
-	req, err := c.NewRequest("GET", "generators", nil)
-	if err != nil {
-		return nil, err
+func (c *Client) GetGenerators(params ...string) ([]Generator, error) {
+	var generators []Generator
+
+	collect := func(coll interface{}) {
+		newGenerators := coll.(*[]Generator)
+		for _, generator := range *newGenerators {
+			generators = append(generators, generator)
+		}
 	}
 
-	// Send request and process response
-	var generatorResp []Generator
-	_, err = c.Do(req, &generatorResp)
-	if err != nil {
-		return nil, err
-	}
-	return generatorResp, nil
+	err := c.getPaginatedResource("generators", &[]Generator{}, collect, params...)
+	return generators, err
 }
 
 // DeleteGenerator deletes generator with specified ID
@@ -74,12 +72,13 @@ func (c *Client) CreateTabularVar(name, description string,
 	columns []string, singleUse bool) (*Generator, error) {
 	//Prepare request
 	type genCreateRequest struct {
-		Name        string   `json:"name,omitempty"`
-		Description string   `json:"description,omitempty"`
-		SingleUse   bool     `json:"single_use,omitempty"`
-		Columns     []string `json:"columns,omitempty"`
+		Name          string   `json:"name,omitempty"`
+		Description   string   `json:"description,omitempty"`
+		GeneratorType string   `json:"generator_type,omitempty"`
+		SingleUse     bool     `json:"single_use,omitempty"`
+		Columns       []string `json:"columns,omitempty"`
 	}
-	body := genCreateRequest{name, description, singleUse, columns}
+	body := genCreateRequest{name, description, "tabular", singleUse, columns}
 	req, err := c.NewRequest("POST", "generators", body)
 	if err != nil {
 		return &Generator{}, err

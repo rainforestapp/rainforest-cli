@@ -18,7 +18,7 @@ import (
 
 // tabularVariablesAPI is part of the API connected to the tabular variables
 type tabularVariablesAPI interface {
-	GetGenerators() ([]rainforest.Generator, error)
+	GetGenerators(params ...string) ([]rainforest.Generator, error)
 	DeleteGenerator(genID int) error
 	CreateTabularVar(name, description string,
 		columns []string, singleUse bool) (*rainforest.Generator, error)
@@ -44,7 +44,7 @@ func uploadTabularVar(api tabularVariablesAPI, pathToCSV, name string, overwrite
 	// Check if the variable exists in RF
 	var existingGenID int
 	var description string
-	generators, err := api.GetGenerators()
+	generators, err := api.GetGenerators("generator_type=tabular", "name="+name)
 	if err != nil {
 		return err
 	}

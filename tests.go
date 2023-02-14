@@ -503,7 +503,7 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, branchID int, localOnly bool, a
 	errorsChan := make(chan error)
 
 	// prepare empty tests to upload, we will fill the steps later on in case there are some
-	// dependiences between them, we want all of the IDs in place
+	// dependencies between them, we want all of the IDs in place
 	testsToCreate := make(chan *rainforest.RFTest, len(newTests))
 	for _, newTest := range newTests {
 		emptyTest := rainforest.RFTest{
@@ -527,7 +527,7 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, branchID int, localOnly bool, a
 
 	// Read out the workers results
 	for i := 0; i < len(newTests); i++ {
-		if err = <-errorsChan; err != nil {
+		if err := <-errorsChan; err != nil {
 			return err
 		}
 	}
@@ -763,8 +763,7 @@ func sanitizeTestTitle(title string) string {
 	return title
 }
 
-func testCreationWorker(api rfAPI,
-	testsToCreate <-chan *rainforest.RFTest, errorsChan chan<- error) {
+func testCreationWorker(api rfAPI, testsToCreate <-chan *rainforest.RFTest, errorsChan chan<- error) {
 	for test := range testsToCreate {
 		log.Printf("Creating new test: %v", test.RFMLID)
 		err := api.CreateTest(test)
@@ -772,8 +771,7 @@ func testCreationWorker(api rfAPI,
 	}
 }
 
-func testUpdateWorker(api rfAPI,
-	testsToUpdate <-chan *rainforest.RFTest, branchID int, errorsChan chan<- error) {
+func testUpdateWorker(api rfAPI, testsToUpdate <-chan *rainforest.RFTest, branchID int, errorsChan chan<- error) {
 	for test := range testsToUpdate {
 		log.Printf("Updating existing test: %v", test.RFMLID)
 		err := api.UpdateTest(test, branchID)

@@ -234,6 +234,7 @@ func TestNewRFMLTest(t *testing.T) {
 type testRfAPI struct {
 	testIDs          []rainforest.TestIDPair
 	tests            []rainforest.RFTest
+	handleCreateTest func(*rainforest.RFTest)
 	handleUpdateTest func(*rainforest.RFTest, int)
 	testBranchAPI
 }
@@ -259,9 +260,9 @@ func (t *testRfAPI) ClientToken() string {
 	return "abc123"
 }
 
-func (t *testRfAPI) CreateTest(_ *rainforest.RFTest) error {
-	// implement when needed
-	return errStub
+func (t *testRfAPI) CreateTest(test *rainforest.RFTest) error {
+	t.handleCreateTest(test)
+	return nil
 }
 
 func (t *testRfAPI) UpdateTest(test *rainforest.RFTest, branchID int) error {
@@ -419,7 +420,147 @@ func TestUploadSingleTest(t *testing.T) {
 	}
 
 	context.mappings = map[string]interface{}{
-		"branch":      "existing-branch",
+		"branch": "existing-branch",
+	}
+
+	err = uploadTests(context, testAPI)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+}
+
+func TestUploadSingleNewTest(t *testing.T) {
+	context := new(fakeContext)
+	testAPI := new(testRfAPI)
+	testDefaultSpecFolder := "testing/" + defaultSpecFolder
+
+	defer func() {
+		err := cleanUpTestFolder("testing")
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+	}()
+
+	testID := 666
+	rfmlID := "unique_rfml_id"
+	title := "a very descriptive title"
+	testType := "test"
+	var featureID rainforest.FeatureIDInt = 777
+
+	err := createTestFolder(testDefaultSpecFolder)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	testPath := filepath.Join(testDefaultSpecFolder, "valid_test.rfml")
+	context.args = []string{testPath}
+
+	testAPI.testIDs = []rainforest.TestIDPair{}
+
+	// basic test
+	testAPI.handleCreateTest = func(rfTest *rainforest.RFTest) {
+		testCases := []struct {
+			fieldName string
+			expected  interface{}
+			got       interface{}
+		}{
+			{"RFML ID", rfmlID, rfTest.RFMLID},
+			{"title", title, rfTest.Title},
+			{"test type", testType, rfTest.Type},
+		}
+
+		for _, testCase := range testCases {
+			if testCase.got != testCase.expected {
+				t.Errorf("Incorrect value for %v. Expected %v, Got %v", testCase.fieldName, testCase.expected, testCase.got)
+			}
+		}
+
+		testAPI.testIDs = append(testAPI.testIDs, rainforest.TestIDPair{ID: testID, RFMLID: rfTest.RFMLID})
+	}
+	testAPI.handleUpdateTest = func(rfTest *rainforest.RFTest, branchID int) {
+		testCases := []struct {
+			fieldName string
+			expected  interface{}
+			got       interface{}
+		}{
+			{"test ID", testID, rfTest.TestID},
+			{"RFML ID", rfmlID, rfTest.RFMLID},
+			{"title", title, rfTest.Title},
+			{"test type", testType, rfTest.Type},
+			{"feature ID", featureID, rfTest.FeatureID},
+			{"disabled state", "enabled", rfTest.State},
+		}
+
+		for _, testCase := range testCases {
+			if testCase.got != testCase.expected {
+				t.Errorf("Incorrect value for %v. Expected %v, Got %v", testCase.fieldName, testCase.expected, testCase.got)
+			}
+		}
+	}
+
+	testContents := fmt.Sprintf(`#! %v
+# title: %v
+# feature_id: %v
+# type: %v
+`, rfmlID, title, featureID, testType)
+
+	err = ioutil.WriteFile(testPath, []byte(testContents), os.ModePerm)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	err = uploadTests(context, testAPI)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	// state is specified
+	testAPI.handleUpdateTest = func(rfTest *rainforest.RFTest, branchID int) {
+		if rfTest.State != "disabled" {
+			t.Errorf("Incorrect value for state. Expected \"disabled\", Got %v", rfTest.State)
+		}
+	}
+
+	testContents = fmt.Sprintf(`#! %v
+# title: %v
+# state: disabled
+`, rfmlID, title)
+
+	err = ioutil.WriteFile(testPath, []byte(testContents), os.ModePerm)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	err = uploadTests(context, testAPI)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	// with a branch
+	testAPI.handleGetBranches = func(params ...string) ([]rainforest.Branch, error) {
+		branches := []rainforest.Branch{}
+		name := params[0]
+
+		if name != "non-existing-branch" {
+			branch := rainforest.Branch{
+				ID:   123,
+				Name: name,
+			}
+
+			branches = append(branches, branch)
+		}
+
+		return branches, nil
+	}
+
+	testAPI.handleUpdateTest = func(rfTest *rainforest.RFTest, branchID int) {
+		if branchID != 123 {
+			t.Errorf("Incorrect value for branchID. Expected 123, Got %v", branchID)
+		}
+	}
+
+	context.mappings = map[string]interface{}{
+		"branch": "existing-branch",
 	}
 
 	err = uploadTests(context, testAPI)

@@ -624,6 +624,24 @@ func TestUploadTests(t *testing.T) {
 			Type:      "snippet",
 			FeatureID: 0,
 		},
+		"new_test": rainforest.RFTest{
+			TestID:    0,
+			RFMLID:    "new_test",
+			Title:     "New Test",
+			Type:      "test",
+			FeatureID: 777,
+		},
+		"new_snippet": rainforest.RFTest{
+			TestID:    0,
+			RFMLID:    "new_snippet",
+			Title:     "New Snippet",
+			Type:      "snippet",
+			FeatureID: 0,
+		},
+	}
+	newIDs := map[string]int{
+		"new_test":    1010,
+		"new_snippet": 1011,
 	}
 
 	err := createTestFolder(testDefaultSpecFolder)
@@ -638,13 +656,39 @@ func TestUploadTests(t *testing.T) {
 
 	updatedTests := 0
 	// basic test
-	testAPI.handleUpdateTest = func(rfTest *rainforest.RFTest, branchID int) {
+	testAPI.handleCreateTest = func(rfTest *rainforest.RFTest) {
 		testCases := []struct {
 			fieldName string
 			expected  interface{}
 			got       interface{}
 		}{
-			{"test ID", tests[rfTest.RFMLID].TestID, rfTest.TestID},
+			{"RFML ID", tests[rfTest.RFMLID].RFMLID, rfTest.RFMLID},
+			{"title", tests[rfTest.RFMLID].Title, rfTest.Title},
+			{"test type", tests[rfTest.RFMLID].Type, rfTest.Type},
+		}
+
+		for _, testCase := range testCases {
+			if testCase.got != testCase.expected {
+				t.Errorf("Incorrect value for %v. Expected %v, Got %v", testCase.fieldName, testCase.expected, testCase.got)
+			}
+		}
+
+		apiMutex.Lock()
+		defer apiMutex.Unlock()
+		testAPI.testIDs = append(testAPI.testIDs, rainforest.TestIDPair{ID: newIDs[rfTest.RFMLID], RFMLID: rfTest.RFMLID})
+	}
+
+	testAPI.handleUpdateTest = func(rfTest *rainforest.RFTest, branchID int) {
+		expectedTestID := tests[rfTest.RFMLID].TestID
+		if expectedTestID == 0 {
+			expectedTestID = newIDs[rfTest.RFMLID]
+		}
+		testCases := []struct {
+			fieldName string
+			expected  interface{}
+			got       interface{}
+		}{
+			{"test ID", expectedTestID, rfTest.TestID},
 			{"RFML ID", tests[rfTest.RFMLID].RFMLID, rfTest.RFMLID},
 			{"title", tests[rfTest.RFMLID].Title, rfTest.Title},
 			{"test type", tests[rfTest.RFMLID].Type, rfTest.Type},
@@ -675,8 +719,8 @@ func TestUploadTests(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	if updatedTests != 2 {
-		t.Errorf("Incorrect amount of uploaded tests. Expected 2, Got %v", updatedTests)
+	if updatedTests != 4 {
+		t.Errorf("Incorrect amount of uploaded tests. Expected 4, Got %v", updatedTests)
 	}
 
 	// state is specified

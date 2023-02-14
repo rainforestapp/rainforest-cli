@@ -510,6 +510,7 @@ func uploadRFMLFiles(tests []*rainforest.RFTest, branchID int, localOnly bool, a
 			RFMLID:      newTest.RFMLID,
 			Description: newTest.Description,
 			Title:       newTest.Title,
+			Type:        newTest.Type,
 		}
 		err = emptyTest.PrepareToUploadFromRFML(*testIDCollection)
 		if err != nil {

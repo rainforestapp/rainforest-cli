@@ -364,7 +364,7 @@ func uploadTests(c cliContext, api rfAPI) error {
 	}
 
 	if path := c.Args().First(); path != "" {
-		err := uploadSingleRFMLFile(path, branchID)
+		err := uploadSingleRFMLFile(path, branchID, api)
 
 		if err != nil {
 			return cli.NewExitError(err.Error(), 1)
@@ -387,7 +387,7 @@ func uploadTests(c cliContext, api rfAPI) error {
 
 // uploadSingleRFMLFile uploads RFML file syntax by
 // trying to parse the file and sending any parse errors to the caller
-func uploadSingleRFMLFile(filePath string, branchID int) error {
+func uploadSingleRFMLFile(filePath string, branchID int, api rfAPI) error {
 	// Validate first before uploading
 	err := validateSingleRFMLFile(filePath)
 	if err != nil {

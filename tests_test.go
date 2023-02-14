@@ -319,10 +319,6 @@ func TestUploadSingleTest(t *testing.T) {
 		}
 	}()
 
-	context.mappings = map[string]interface{}{
-		"test-folder": testDefaultSpecFolder,
-	}
-
 	testID := 666
 	rfmlID := "unique_rfml_id"
 	title := "a very descriptive title"
@@ -335,6 +331,7 @@ func TestUploadSingleTest(t *testing.T) {
 	}
 
 	testPath := filepath.Join(testDefaultSpecFolder, "valid_test.rfml")
+	context.args = []string{testPath}
 
 	testAPI.testIDs = []rainforest.TestIDPair{{ID: testID, RFMLID: rfmlID}}
 
@@ -422,7 +419,6 @@ func TestUploadSingleTest(t *testing.T) {
 	}
 
 	context.mappings = map[string]interface{}{
-		"test-folder": testDefaultSpecFolder,
 		"branch":      "existing-branch",
 	}
 

@@ -1,4 +1,7 @@
 # Rainforest CLI Changelog
+## 3.4.3 - 2023-02-14
+- Fix `rainforest upload` command when uploading multiple tests including at least one new test
+  - (888fe5b10cfb4e7c9acd7164fbf24a41b6c755be, @magni-)
 ## 3.4.2 - 2023-01-26
 - Narrow down query when fetching fetching generators (tabular variables)
   - (4df4734009a8c7a461bb8e0f6ee92082d91a4451, @magni-)

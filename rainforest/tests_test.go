@@ -131,7 +131,7 @@ func TestGetTests(t *testing.T) {
 		// Empty query
 		{
 			rfFilters:     RFTestFilters{},
-			expectedQuery: url.Values{"page": []string{"1"}, "page_size": []string{"50"}},
+			expectedQuery: url.Values{"page": []string{"1"}, "page_size": []string{"50"}, "slimmer": []string{"true"}},
 		},
 
 		// Non-empty query
@@ -148,6 +148,7 @@ func TestGetTests(t *testing.T) {
 				"page_size":       []string{"50"},
 				"tags":            []string{"foo", "bar"},
 				"site_id":         []string{"123"},
+				"slimmer":         []string{"true"},
 				"smart_folder_id": []string{"321"},
 				"run_group_id":    []string{"237"},
 				"tests":           []string{"987,789"},
@@ -165,6 +166,7 @@ func TestGetTests(t *testing.T) {
 				"page_size":    []string{"50"},
 				"feature_id":   []string{"123"},
 				"run_group_id": []string{"75"},
+				"slimmer":      []string{"true"},
 			},
 		},
 	}

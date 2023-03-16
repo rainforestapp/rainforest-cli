@@ -397,7 +397,7 @@ func (c *Client) GetTests(params *RFTestFilters) ([]RFTest, error) {
 	page := 1
 
 	for {
-		testsURL := "tests?page_size=50&page=" + strconv.Itoa(page)
+		testsURL := "tests?page_size=50&slimmer=true&page=" + strconv.Itoa(page)
 
 		queryString := params.toQuery()
 		if queryString != "" {

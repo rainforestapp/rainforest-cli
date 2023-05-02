@@ -116,7 +116,7 @@ func (r *fakeRunnerClient) UpdateTest(t *rainforest.RFTest, branchID int) error 
 	return nil
 }
 
-func (r *fakeRunnerClient) CreateTemporaryEnvironment(n string, s string) (*rainforest.Environment, error) {
+func (r *fakeRunnerClient) CreateTemporaryEnvironment(n string, s string, t string) (*rainforest.Environment, error) {
 	return &r.environment, nil
 }
 
@@ -211,6 +211,16 @@ func TestMakeRunParams(t *testing.T) {
 		{
 			mappings: map[string]interface{}{
 				"custom-url": "https://www.rainforestqa.com",
+			},
+			args: cli.Args{},
+			expected: rainforest.RunParams{
+				EnvironmentID: fakeEnvID,
+			},
+		},
+		{
+			mappings: map[string]interface{}{
+				"custom-url": "https://www.rainforestqa.com",
+				"webhook":    "https://www.rainforestqa.com/endpoint",
 			},
 			args: cli.Args{},
 			expected: rainforest.RunParams{

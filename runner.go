@@ -12,14 +12,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/rainforestapp/rainforest-cli/gittrigger"
+	gitTrigger "github.com/rainforestapp/rainforest-cli/gittrigger"
 	"github.com/rainforestapp/rainforest-cli/rainforest"
 	"github.com/urfave/cli"
 )
 
 type runnerAPI interface {
 	CreateRun(params rainforest.RunParams) (*rainforest.RunStatus, error)
-	CreateTemporaryEnvironment(string, string) (*rainforest.Environment, error)
+	CreateTemporaryEnvironment(string, string, string) (*rainforest.Environment, error)
 	CheckRunStatus(int) (*rainforest.RunStatus, error)
 	rfAPI
 }
@@ -411,11 +411,13 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest, br
 
 	description := c.String("description")
 	release := c.String("release")
+	customURLParam := c.String("custom-url")
+	webhookParam := c.String("webhook")
 
 	var environmentID int
-	if s := c.String("custom-url"); s != "" {
+	if customURLParam != "" {
 		var customURL *url.URL
-		customURL, err = url.Parse(s)
+		customURL, err = url.Parse(customURLParam)
 		if err != nil {
 			return rainforest.RunParams{}, err
 		}
@@ -424,8 +426,18 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest, br
 			return rainforest.RunParams{}, errors.New("custom URL scheme must be http or https")
 		}
 
+		var webhookURL *url.URL
+		webhookURL, err = url.Parse(webhookParam)
+		if err != nil {
+			return rainforest.RunParams{}, err
+		}
+
+		if (webhookURL.String() != "") && (webhookURL.Scheme != "http") && (webhookURL.Scheme != "https") {
+			return rainforest.RunParams{}, errors.New("webhook URL scheme must be http or https")
+		}
+
 		var environment *rainforest.Environment
-		environment, err = r.client.CreateTemporaryEnvironment(description, customURL.String())
+		environment, err = r.client.CreateTemporaryEnvironment(description, customURL.String(), webhookURL.String())
 		if err != nil {
 			return rainforest.RunParams{}, err
 		}

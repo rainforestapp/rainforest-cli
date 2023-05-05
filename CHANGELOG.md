@@ -1,5 +1,10 @@
 # Rainforest CLI Changelog
 
+## 3.5.0 - 2023-05-05
+
+- Use webhook for temporary environment if it is set, and enable webhook.
+  - (52f224bf450ba6cdf48bc4daf6d0d3b533bbb97c, @sebaherrera07)
+
 ## 3.4.4 - 2023-03-15
 
 - Use slimmer=true when interacting with the tests API endpoint for download tests.

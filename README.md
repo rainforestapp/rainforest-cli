@@ -401,6 +401,7 @@ Popular command line options are:
 - `--wait RUN_ID` - wait for an existing run to finish instead of starting a new one, and exit with a non-0 code if the run fails. rainforest-cli will exit immediately if the run is already complete.
 - `--fail-fast` - return an error as soon as the first failed result comes in (the run always proceeds until completion, but the CLI will return an error code early). If you don't use it, it will wait until 100% of the run is done. Has no effect with `--bg` and cannot be used together with `--max-reruns`.
 - `--custom-url` - specify the URL for the run to use when testing against an ephemeral environment. This will create a new temporary environment for the run. Temporary environments will be automatically deleted 72 hours after they were last used.
+- `--webhook` - specify the webhook URL for the run to use when testing against an ephemeral environment.
 - `--git-trigger` - only trigger a run when the last commit (for a git repo in the current working directory) has contains `@rainforest` and a list of one or more tags. E.g. "Fix checkout process. @rainforest #checkout" would trigger a run for everything tagged `checkout`. This over-rides `--tag` and any tests specified. If no `@rainforest` is detected it will exit 0.
 - `--description "CI automatic run"` - add an arbitrary description for the run.
 - `--release "1a2b3d"` - add an ID to associate the run with a release. Commonly used values are commit SHAs, build IDs, branch names, etc.

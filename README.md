@@ -428,6 +428,28 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 1. Push to the branch (`git push origin my-new-feature`)
 1. Create a new Pull Request
 
+### Testing your local changes
+First build the application:
+```bash
+go build
+```
+
+Then run the application:
+```bash
+./rainforest-cli [global flags] <command> [command-specific-flags] [arguments]
+
+# Example
+./rainforest-cli run 1234 --token <token> --execution-method automation --skip-update
+```
+
+To run the unit tests:
+```bash
+go test
+
+# For verbose output
+go test -v
+```
+
 ## Release Process
 
 ### Development PR

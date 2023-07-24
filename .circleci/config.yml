@@ -258,7 +258,9 @@ workflows:
   test_and_deploy:
     jobs:
       - validate_formatting
-      - test
+      - test:
+          context:
+            - circlemator
       - validate_goreleaser_config
       - integration_test:
           context:

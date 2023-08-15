@@ -82,6 +82,9 @@ type fakeRunnerClient struct {
 	mu sync.Mutex
 	// "inherit" from RF API
 	testRfAPI
+
+	temporaryEnvironmentURL     string
+	temporaryEnvironmentWebhook string
 }
 
 func (r *fakeRunnerClient) CheckRunStatus(runID int) (*rainforest.RunStatus, error) {
@@ -117,6 +120,8 @@ func (r *fakeRunnerClient) UpdateTest(t *rainforest.RFTest, branchID int) error 
 }
 
 func (r *fakeRunnerClient) CreateTemporaryEnvironment(n string, s string, t string) (*rainforest.Environment, error) {
+	r.temporaryEnvironmentURL = s
+	r.temporaryEnvironmentWebhook = t
 	return &r.environment, nil
 }
 
@@ -219,8 +224,8 @@ func TestMakeRunParams(t *testing.T) {
 		},
 		{
 			mappings: map[string]interface{}{
-				"custom-url": "https://www.rainforestqa.com",
-				"webhook":    "https://www.rainforestqa.com/endpoint",
+				"custom-url": "https://www.rainforestqa.com/foo#",
+				"webhook":    "https://www.rainforestqa.com/endpoint#",
 			},
 			args: cli.Args{},
 			expected: rainforest.RunParams{
@@ -274,8 +279,20 @@ func TestMakeRunParams(t *testing.T) {
 		c := newFakeContext(testCase.mappings, testCase.args)
 		r := newRunner()
 		fakeEnv := rainforest.Environment{ID: fakeEnvID, Name: "the foo environment"}
-		r.client = &fakeRunnerClient{environment: fakeEnv}
+		client := &fakeRunnerClient{environment: fakeEnv}
+		r.client = client
 		res, err := r.makeRunParams(c, nil, 0)
+
+		customURLParam := c.String("custom-url")
+		webhookParam := c.String("webhook")
+
+		if customURLParam != "" && client.temporaryEnvironmentURL != customURLParam {
+			t.Errorf("Expected to call CreateTemporaryEnvironment with url %#v instead got %#v", customURLParam, client.temporaryEnvironmentURL)
+		}
+
+		if webhookParam != "" && client.temporaryEnvironmentWebhook != webhookParam {
+			t.Errorf("Expected to call CreateTemporaryEnvironment with webhook %#v instead got %#v", webhookParam, client.temporaryEnvironmentWebhook)
+		}
 
 		if err != nil {
 			t.Errorf("Error trying to create params: %v", err)

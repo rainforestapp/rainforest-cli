@@ -437,7 +437,7 @@ func (r *runner) makeRunParams(c cliContext, localTests []*rainforest.RFTest, br
 		}
 
 		var environment *rainforest.Environment
-		environment, err = r.client.CreateTemporaryEnvironment(description, customURL.String(), webhookURL.String())
+		environment, err = r.client.CreateTemporaryEnvironment(description, customURLParam, webhookParam)
 		if err != nil {
 			return rainforest.RunParams{}, err
 		}

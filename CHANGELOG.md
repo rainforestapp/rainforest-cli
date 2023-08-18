@@ -1,5 +1,10 @@
 # Rainforest CLI Changelog
 
+## 3.5.1 - 2023-08-18
+
+- Retain `#` in urls and webhooks with empty fragments when creating temporary environments
+  - (1212393e387292d88fba464abf7d7eabe1b1a0b5, @philip-maina)
+
 ## 3.5.0 - 2023-05-05
 
 - Use webhook for temporary environment if it is set, and enable webhook.

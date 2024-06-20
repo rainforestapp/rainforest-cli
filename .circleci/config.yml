@@ -11,8 +11,8 @@ windows-param: &windows-param
 executors:
   mac:
     macos:
-      xcode: 14.2.0
-    resource_class: macos.x86.medium.gen2
+      xcode: 15.4.0
+    resource_class: macos.m1.medium.gen1
   linux:
     docker:
       - image: cimg/go:1.22.3-node
@@ -25,7 +25,7 @@ commands:
       - run:
           name: Install go
           command: |
-            curl -L https://golang.org/dl/go1.22.3.darwin-amd64.tar.gz | tar zxf -
+            curl -L https://golang.org/dl/go1.22.3.darwin-arm64.tar.gz | tar zxf -
             echo "export PATH=$PATH:`pwd`/go/bin" >> $BASH_ENV
             source $BASH_ENV
             go version

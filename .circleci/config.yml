@@ -117,7 +117,7 @@ commands:
             - run:
                 name: Start a run that will fail
                 command: |
-                  ./rainforest.exe --skip-update run --run-group 9503
+                  ./rainforest.exe --skip-update run --run-group 16936
                   if ($LastExitCode -gt 0) {
                     echo "TESTING ::: Got the expected non-zero exit code."
                     exit 0
@@ -132,7 +132,7 @@ commands:
                 name: Start a run that will fail
                 command: |
                   set +e
-                  ./rainforest --skip-update run --run-group 9503
+                  ./rainforest --skip-update run --run-group 16936
                   if [[ $? != 0 ]]; then
                     echo "TESTING ::: Got the expected non-zero exit code. ✅"
                     echo 0
@@ -152,7 +152,7 @@ commands:
             - run:
                 name: Start a run that will fail
                 command: |
-                  ./rainforest.exe --skip-update run --run-group 9503 --junit-file junit-fail.xml
+                  ./rainforest.exe --skip-update run --run-group 16936 --junit-file junit-fail.xml
                   if ($LastExitCode -gt 0) {
                     echo "TESTING ::: Got the expected non-zero exit code."
                     exit 0
@@ -167,7 +167,7 @@ commands:
                 name: Start a run that will fail, with junit
                 command: |
                   set +e
-                  ./rainforest --skip-update run --run-group 9503 --junit-file junit-fail.xml
+                  ./rainforest --skip-update run --run-group 16936 --junit-file junit-fail.xml
                   if [[ $? != 0 ]]; then
                     echo "TESTING ::: Got the expected non-zero exit code. ✅"
                     echo 0

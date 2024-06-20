@@ -200,6 +200,7 @@ jobs:
     executor: linux
     steps:
       - checkout
+      - run: git submodule update --init
       - run:
           name: Get Junit Reporter
           command: go install github.com/jstemmer/go-junit-report@latest
@@ -220,6 +221,7 @@ jobs:
     executor: << parameters.platform >>
     steps:
       - checkout
+      - run: git submodule update --init
       - when:
           condition:
             equal: [ << parameters.platform >>,  mac ]
@@ -242,6 +244,7 @@ jobs:
     executor: linux
     steps:
       - checkout
+      - run: git submodule update --init
       - run:
           name: Release via GoReleaser
           command: |

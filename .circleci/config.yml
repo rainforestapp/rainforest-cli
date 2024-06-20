@@ -15,7 +15,7 @@ executors:
     resource_class: macos.x86.medium.gen2
   linux:
     docker:
-      - image: cimg/go:1.17.1-node
+      - image: cimg/go:1.22.3-node
   windows: win/default
 
 commands:
@@ -25,7 +25,7 @@ commands:
       - run:
           name: Install go
           command: |
-            curl -L https://golang.org/dl/go1.17.1.darwin-amd64.tar.gz | tar zxf -
+            curl -L https://golang.org/dl/go1.22.3.darwin-amd64.tar.gz | tar zxf -
             echo "export PATH=$PATH:`pwd`/go/bin" >> $BASH_ENV
             source $BASH_ENV
             go version
@@ -185,7 +185,7 @@ jobs:
       - checkout
       - run:
           name: Install GoReleaser
-          command: go install github.com/goreleaser/goreleaser@v1.6.3
+          command: go install github.com/goreleaser/goreleaser@v1.26.2
       - run:
           name: Check GoReleaser Config
           command: goreleaser check
@@ -246,7 +246,7 @@ jobs:
           name: Release via GoReleaser
           command: |
             export GITHUB_TOKEN=$GITHUB_ACCESS_TOKEN
-            curl -sfL https://goreleaser.com/static/run | VERSION=v1.6.3 bash
+            curl -sfL https://goreleaser.com/static/run | VERSION=v1.26.2 bash
       - run:
           name: Show checksums
           command: cat dist/checksums.txt

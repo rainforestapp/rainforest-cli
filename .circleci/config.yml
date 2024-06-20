@@ -132,14 +132,16 @@ commands:
                 name: Start a run that will fail
                 command: |
                   set +e
-                  ./rainforest --skip-update run --run-group 16936
+                  ./rainforest --skip-update run --run-group 16936 2>&1 | tee out
                   if [[ $? != 0 ]]; then
                     echo "TESTING ::: Got the expected non-zero exit code. ✅"
-                    echo 0
                   else
                     echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
-                    echo 1
+                    exit 1
                   fi
+
+                  set -e
+                  grep -q "is now complete and has failed" out
 
   fail_junit:
     parameters:
@@ -167,14 +169,16 @@ commands:
                 name: Start a run that will fail, with junit
                 command: |
                   set +e
-                  ./rainforest --skip-update run --run-group 16936 --junit-file junit-fail.xml
+                  ./rainforest --skip-update run --run-group 16936 --junit-file junit-fail.xml 2>&1 | tee out
                   if [[ $? != 0 ]]; then
                     echo "TESTING ::: Got the expected non-zero exit code. ✅"
-                    echo 0
                   else
                     echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
-                    echo 1
+                    exit 1
                   fi
+
+                  set -e
+                  grep -q "is now complete and has failed" out
       - store_test_results:
           path: junit-fail.xml
 

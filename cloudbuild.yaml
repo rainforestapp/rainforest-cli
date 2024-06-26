@@ -4,6 +4,7 @@ steps:
   args:
   - '-c'
   - |
+    git submodule update --init
     docker build -t "gcr.io/$PROJECT_ID/rainforest-cli:$COMMIT_SHA" .
     if [ "$BRANCH_NAME" == "master" ]; then
       docker tag "gcr.io/$PROJECT_ID/rainforest-cli:$COMMIT_SHA" gcr.io/$PROJECT_ID/rainforest-cli:latest

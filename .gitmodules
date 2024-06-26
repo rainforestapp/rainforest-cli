@@ -1,0 +1,3 @@
+[submodule "dependencies/wiretap"]
+	path = dependencies/wiretap
+	url = https://github.com/sandialabs/wiretap

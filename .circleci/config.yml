@@ -11,11 +11,11 @@ windows-param: &windows-param
 executors:
   mac:
     macos:
-      xcode: 14.2.0
-    resource_class: macos.x86.medium.gen2
+      xcode: 15.4.0
+    resource_class: macos.m1.medium.gen1
   linux:
     docker:
-      - image: cimg/go:1.17.1-node
+      - image: cimg/go:1.22.3-node
   windows: win/default
 
 commands:
@@ -25,7 +25,7 @@ commands:
       - run:
           name: Install go
           command: |
-            curl -L https://golang.org/dl/go1.17.1.darwin-amd64.tar.gz | tar zxf -
+            curl -L https://golang.org/dl/go1.22.3.darwin-arm64.tar.gz | tar zxf -
             echo "export PATH=$PATH:`pwd`/go/bin" >> $BASH_ENV
             source $BASH_ENV
             go version
@@ -117,7 +117,7 @@ commands:
             - run:
                 name: Start a run that will fail
                 command: |
-                  ./rainforest.exe --skip-update run --run-group 9503
+                  ./rainforest.exe --skip-update run --run-group 16936
                   if ($LastExitCode -gt 0) {
                     echo "TESTING ::: Got the expected non-zero exit code."
                     exit 0
@@ -132,14 +132,16 @@ commands:
                 name: Start a run that will fail
                 command: |
                   set +e
-                  ./rainforest --skip-update run --run-group 9503
+                  ./rainforest --skip-update run --run-group 16936 2>&1 | tee out
                   if [[ $? != 0 ]]; then
                     echo "TESTING ::: Got the expected non-zero exit code. ✅"
-                    echo 0
                   else
                     echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
-                    echo 1
+                    exit 1
                   fi
+
+                  set -e
+                  grep -q "is now complete and has failed" out
 
   fail_junit:
     parameters:
@@ -152,7 +154,7 @@ commands:
             - run:
                 name: Start a run that will fail
                 command: |
-                  ./rainforest.exe --skip-update run --run-group 9503 --junit-file junit-fail.xml
+                  ./rainforest.exe --skip-update run --run-group 16936 --junit-file junit-fail.xml
                   if ($LastExitCode -gt 0) {
                     echo "TESTING ::: Got the expected non-zero exit code."
                     exit 0
@@ -167,14 +169,16 @@ commands:
                 name: Start a run that will fail, with junit
                 command: |
                   set +e
-                  ./rainforest --skip-update run --run-group 9503 --junit-file junit-fail.xml
+                  ./rainforest --skip-update run --run-group 16936 --junit-file junit-fail.xml 2>&1 | tee out
                   if [[ $? != 0 ]]; then
                     echo "TESTING ::: Got the expected non-zero exit code. ✅"
-                    echo 0
                   else
                     echo "TESTING ::: Got UNEXPECTED zero exit code. 🚨"
-                    echo 1
+                    exit 1
                   fi
+
+                  set -e
+                  grep -q "is now complete and has failed" out
       - store_test_results:
           path: junit-fail.xml
 
@@ -185,7 +189,7 @@ jobs:
       - checkout
       - run:
           name: Install GoReleaser
-          command: go install github.com/goreleaser/goreleaser@v1.6.3
+          command: go install github.com/goreleaser/goreleaser@v1.26.2
       - run:
           name: Check GoReleaser Config
           command: goreleaser check
@@ -200,6 +204,7 @@ jobs:
     executor: linux
     steps:
       - checkout
+      - run: git submodule update --init
       - run:
           name: Get Junit Reporter
           command: go install github.com/jstemmer/go-junit-report@latest
@@ -220,6 +225,7 @@ jobs:
     executor: << parameters.platform >>
     steps:
       - checkout
+      - run: git submodule update --init
       - when:
           condition:
             equal: [ << parameters.platform >>,  mac ]
@@ -242,11 +248,12 @@ jobs:
     executor: linux
     steps:
       - checkout
+      - run: git submodule update --init
       - run:
           name: Release via GoReleaser
           command: |
             export GITHUB_TOKEN=$GITHUB_ACCESS_TOKEN
-            curl -sfL https://goreleaser.com/static/run | VERSION=v1.6.3 bash
+            curl -sfL https://goreleaser.com/static/run | VERSION=v1.26.2 bash
       - run:
           name: Show checksums
           command: cat dist/checksums.txt

@@ -635,8 +635,23 @@ func main() {
 				},
 			},
 		},
+		{
+			Name:         "direct-connect",
+			Usage:        "Start a Rainforest Direct Connect session",
+			OnUsageError: onCommandUsageErrorHandler("direct-connect"),
+			Description:  "Starts a Direct Connect Session for the given tunnel-id",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "tunnel-id",
+					Usage: "tunnel-id",
+					Value: "default",
+				},
+			},
+			Action: func(c *cli.Context) error {
+				return launchDirectConnect(c, api)
+			},
+		},
 	}
-
 	app.Run(shuffleFlags(os.Args))
 }
 

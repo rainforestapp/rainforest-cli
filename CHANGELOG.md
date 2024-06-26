@@ -1,5 +1,10 @@
 # Rainforest CLI Changelog
 
+## 3.6.0 - 2024-06-26
+
+- Add `direct-connect` command to support Rainforest Direct Connect
+  - (e37d749f37a11a77b1244907cf28615f54e2123c, @ubergeek42)
+
 ## 3.5.1 - 2023-08-18
 
 - Retain `#` in urls and webhooks with empty fragments when creating temporary environments

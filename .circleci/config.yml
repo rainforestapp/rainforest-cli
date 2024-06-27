@@ -260,6 +260,29 @@ jobs:
       - store_artifacts:
           path: dist/checksums.txt
 
+  direct_connect_integration_test:
+    executor: linux
+    steps:
+      - checkout
+      - run: git submodule update --init
+      - go_build
+      - run:
+          name: Start the direct connect tunnel
+          command: |
+            RAINFOREST_API_TOKEN=$RAINFOREST_DC_API_TOKEN ./rainforest --skip-update direct-connect --tunnel-id 6
+          background: true
+      - run:
+          name: Start a simple python http server
+          command: |
+            echo "RainforestCLI Direct Connect Test" > /tmp/index.html
+            python3 -m http.server 3000 --directory /tmp
+          background: true
+      - run:
+          name: Start a run that uses the direct connect tunnel
+          command: |
+            sleep 5 # give the tunnel a little bit of time to come up
+            ./rainforest --skip-update run --custom-url http://$(hostname -i):3000 --run-group 16953
+
 workflows:
   version: 2
   test_and_deploy:
@@ -267,6 +290,14 @@ workflows:
       - validate_formatting
       - test
       - validate_goreleaser_config
+      - direct_connect_integration_test:
+          context:
+            - DockerHub
+            - RFCliDirectConnectTest
+          requires:
+            - validate_formatting
+            - test
+            - validate_goreleaser_config
       - integration_test:
           context:
             - RainforestQA

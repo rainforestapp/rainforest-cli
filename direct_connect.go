@@ -31,7 +31,11 @@ import (
 
 func launchDirectConnect(c cliContext, rfApi *rainforest.Client) error {
 	tunnelId := c.String("tunnel-id")
-	log.Println("Starting Direct Connect Tunnel for tunnel ID:", tunnelId)
+	if tunnelId == "" {
+		log.Println("Starting Direct Connect Tunnel")
+	} else {
+		log.Println("Starting Direct Connect Tunnel for tunnel ID:", tunnelId)
+	}
 
 	// Generate a wireguard public/private keypair
 	privateKey, err := wgtypes.GeneratePrivateKey()
@@ -152,7 +156,7 @@ func launchDirectConnect(c cliContext, rfApi *rainforest.Client) error {
 		apiHandler(tnetWireguard, ipv4Addr, uint16(80))
 		wg.Done()
 	}()
-	log.Printf("Rainforest Direct Connect running (PID: %d)! Press Ctrl+C to exit\n", os.Getpid())
+	log.Printf("Rainforest Direct Connect running (name: %d, PID: %d)! Press Ctrl+C to exit\n", serverDetails.Name, os.Getpid())
 
 	wg.Wait()
 

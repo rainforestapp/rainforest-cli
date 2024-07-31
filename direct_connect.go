@@ -156,7 +156,7 @@ func launchDirectConnect(c cliContext, rfApi *rainforest.Client) error {
 		apiHandler(tnetWireguard, ipv4Addr, uint16(80))
 		wg.Done()
 	}()
-	log.Printf("Rainforest Direct Connect running (name: %d, PID: %d)! Press Ctrl+C to exit\n", serverDetails.Name, os.Getpid())
+	log.Printf("Rainforest Direct Connect running (name: %s, PID: %d)! Press Ctrl+C to exit\n", serverDetails.Name, os.Getpid())
 
 	wg.Wait()
 

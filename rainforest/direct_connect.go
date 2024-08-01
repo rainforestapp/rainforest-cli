@@ -12,6 +12,7 @@ type DirectConnectConnection struct {
 	ServerPublicKey string `json:"server_public_key"`
 	ServerPort      int    `json:"server_port"`
 	ServerEndpoint  string `json:"server_endpoint"`
+	Name            string `json:"name"`
 }
 
 // SetupDirectConnectTunnel tells Rainforest to set up a Direct Connect tunnel for us

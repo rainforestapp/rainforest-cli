@@ -429,8 +429,9 @@ Email [help@rainforestqa.com](mailto:help@rainforestqa.com) if you're having tro
 1. Create a new Pull Request
 
 ### Testing your local changes
-First build the application:
+First, make sure you have the submodules updated, then build the application:
 ```bash
+git submodule update --init
 go build
 ```
 

@@ -1,5 +1,14 @@
 # Rainforest CLI Changelog
 
+## 3.6.1 - 2024-08-01
+
+- Remove `default` value for direct-connect `tunnel-id` param
+  - (42db471809b8d3d618ee6fe688dbc82b31be50dc, @sebaherrera07)
+- Fix printf format string
+  - (55eea57fcf259daea656b0cd70478f5fce4dc508, @ubergeek42)
+- Add instruction for submodule install to README
+  - (e112e7a4550b8eacec34364afaf5c35f9c84cd51, @sebaherrera07)
+
 ## 3.6.0 - 2024-06-26
 
 - Add `direct-connect` command to support Rainforest Direct Connect

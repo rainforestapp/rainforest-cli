@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 3.6.2 - 2025-06-13
+- Fix RFML embedded download links
+  - (22cdbb00a608194b45a632c37a20e0edd3b3288a, @ubergeek42)
+
 ## 3.6.1 - 2024-08-01
 
 - Remove `default` value for direct-connect `tunnel-id` param

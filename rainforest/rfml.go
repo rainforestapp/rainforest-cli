@@ -446,6 +446,7 @@ func (c *Client) ParseEmbeddedFiles(test *RFTest) error {
 				uploadedFileInfo = uploadedFile{
 					ID:        awsInfo.FileID,
 					Signature: awsInfo.FileSignature,
+					Key:       awsInfo.FileKey,
 					Digest:    fileDigest,
 				}
 				// Add to the mappings for future reference
@@ -457,7 +458,7 @@ func (c *Client) ParseEmbeddedFiles(test *RFTest) error {
 			if embed.stepVar == "screenshot" {
 				replacement = fmt.Sprintf("{{ file.screenshot(%v, %v) }}", uploadedFileInfo.ID, sig)
 			} else if embed.stepVar == "download" {
-				replacement = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", uploadedFileInfo.ID, sig, filepath.Base(filePath))
+				replacement = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", uploadedFileInfo.Key, sig, filepath.Base(filePath))
 			}
 
 			out = strings.Replace(out, embed.text, replacement, 1)

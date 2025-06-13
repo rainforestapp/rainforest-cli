@@ -652,8 +652,10 @@ func TestParseEmbeddedFiles(t *testing.T) {
 
 	existingDownloadID := 4321
 	existingDownloadSignature := "existing_download_signature"
+	existingDownloadKey := "c1234_t5678_1234567890abcdef"
 	newDownloadID := 7654
 	newDownloadSignature := "new_download_signature"
+	newDownloadKey := "c5678_t5678_1234567890abcdef"
 
 	// Set up fake AWS server for uploads
 	awsTestServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -676,7 +678,7 @@ func TestParseEmbeddedFiles(t *testing.T) {
 		case "GET":
 			files := []uploadedFile{
 				{ID: existingScreenshotID, Digest: screenshotDigest, Signature: existingScreenshotSignature},
-				{ID: existingDownloadID, Digest: downloadDigest, Signature: existingDownloadSignature},
+				{ID: existingDownloadID, Digest: downloadDigest, Signature: existingDownloadSignature, Key: existingDownloadKey},
 			}
 			json.NewEncoder(w).Encode(files)
 
@@ -703,6 +705,7 @@ func TestParseEmbeddedFiles(t *testing.T) {
 				awsInfo = awsFileInfo{
 					FileID:        newDownloadID,
 					FileSignature: newDownloadSignature,
+					FileKey:       newDownloadKey,
 					URL:           awsURL,
 					Key:           "key",
 					AccessID:      "accessId",
@@ -732,7 +735,7 @@ func TestParseEmbeddedFiles(t *testing.T) {
 		t.Errorf("Expected to find %v in %v", expectedStr, step.Action)
 	}
 
-	expectedStr = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", existingDownloadID,
+	expectedStr = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", existingDownloadKey,
 		existingDownloadSignature[0:6], filepath.Base(existingDownloadPath))
 	if !strings.Contains(step.Response, expectedStr) {
 		t.Errorf("Expected to find %v in %v", expectedStr, step.Response)
@@ -745,7 +748,7 @@ func TestParseEmbeddedFiles(t *testing.T) {
 		t.Errorf("Expected to find %v in %v", expectedStr, step.Action)
 	}
 
-	expectedStr = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", newDownloadID, newDownloadSignature[0:6],
+	expectedStr = fmt.Sprintf("{{ file.download(%v, %v, %v) }}", newDownloadKey, newDownloadSignature[0:6],
 		filepath.Base(newDownloadPath))
 	if !strings.Contains(step.Response, expectedStr) {
 		t.Errorf("Expected to find %v in %v", expectedStr, step.Response)

@@ -22,6 +22,7 @@ type uploadedFile struct {
 	MimeType  string `json:"mime_type"`
 	Size      int64  `json:"size"`
 	Name      string `json:"name"`
+	Key       string `json:"file_key"`
 }
 
 // getUploadedFiles returns information for all all files uploaded to the
@@ -42,6 +43,7 @@ func (c *Client) getUploadedFiles(testID int) ([]uploadedFile, error) {
 type awsFileInfo struct {
 	FileID        int    `json:"file_id"`
 	FileSignature string `json:"file_signature"`
+	FileKey       string `json:"file_key"`
 	URL           string `json:"aws_url"`
 	Key           string `json:"aws_key"`
 	AccessID      string `json:"aws_access_id"`

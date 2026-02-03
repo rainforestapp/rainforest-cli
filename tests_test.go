@@ -233,10 +233,11 @@ func TestNewRFMLTest(t *testing.T) {
 }
 
 type testRfAPI struct {
-	testIDs          []rainforest.TestIDPair
-	tests            []rainforest.RFTest
-	handleCreateTest func(*rainforest.RFTest)
-	handleUpdateTest func(*rainforest.RFTest, int)
+	testIDs            []rainforest.TestIDPair
+	tests              []rainforest.RFTest
+	handleCreateTest   func(*rainforest.RFTest)
+	handleUpdateTest   func(*rainforest.RFTest, int)
+	handleCreateTestAI func(*rainforest.AITestRequest) (*rainforest.AITestResponse, error)
 	testBranchAPI
 }
 
@@ -274,6 +275,17 @@ func (t *testRfAPI) UpdateTest(test *rainforest.RFTest, branchID int) error {
 func (t *testRfAPI) ParseEmbeddedFiles(_ *rainforest.RFTest) error {
 	// implement when needed
 	return errStub
+}
+
+func (t *testRfAPI) CreateTestWithAI(request *rainforest.AITestRequest) (*rainforest.AITestResponse, error) {
+	if t.handleCreateTestAI != nil {
+		return t.handleCreateTestAI(request)
+	}
+	return &rainforest.AITestResponse{
+		TestID: 12345,
+		Title:  request.Title,
+		State:  "enabled",
+	}, nil
 }
 
 func createTestFolder(testFolderPath string) error {
@@ -1233,4 +1245,107 @@ func setupTestRFMLDir() string {
 	}
 
 	return dir
+}
+
+func TestGenerateAITest(t *testing.T) {
+	testAPI := new(testRfAPI)
+	var capturedRequest *rainforest.AITestRequest
+	testAPI.handleCreateTestAI = func(req *rainforest.AITestRequest) (*rainforest.AITestResponse, error) {
+		capturedRequest = req
+		return &rainforest.AITestResponse{TestID: 12345, Title: req.Title, State: "enabled"}, nil
+	}
+
+	t.Run("validation errors", func(t *testing.T) {
+		validationTests := []struct {
+			name        string
+			args        cli.Args
+			mappings    map[string]interface{}
+			expectedErr string
+		}{
+			{"missing prompt", cli.Args{}, map[string]interface{}{}, "provide a prompt"},
+			{"missing start-uri and url", cli.Args{"Test"}, map[string]interface{}{"title": "T", "platform": "windows11_chrome"}, "either --start-uri or --url"},
+			{"both start-uri and url", cli.Args{"Test"}, map[string]interface{}{"title": "T", "platform": "windows11_chrome", "start-uri": "/", "url": "https://ex.com"}, "either --start-uri or --url"},
+			{"invalid platform characters", cli.Args{"Test"}, map[string]interface{}{"title": "T", "start-uri": "/", "platform": "Windows Chrome!"}, "Invalid platform name"},
+			{"both auth methods", cli.Args{"Test"}, map[string]interface{}{"title": "T", "start-uri": "/", "platform": "windows11_chrome", "credentials": "u/p", "login-snippet-id": 123}, "Cannot specify both"},
+		}
+
+		for _, tt := range validationTests {
+			t.Run(tt.name, func(t *testing.T) {
+				ctx := newFakeContext(tt.mappings, tt.args)
+				err := generateAITest(ctx, testAPI)
+				if err == nil || !strings.Contains(err.Error(), tt.expectedErr) {
+					t.Errorf("Expected error containing %q, got: %v", tt.expectedErr, err)
+				}
+			})
+		}
+	})
+
+	t.Run("successful generation", func(t *testing.T) {
+		successTests := []struct {
+			name     string
+			mappings map[string]interface{}
+			validate func(*testing.T, *rainforest.AITestRequest)
+		}{
+			{
+				name:     "with start-uri",
+				mappings: map[string]interface{}{"start-uri": "/login", "title": "Login", "platform": "windows11_chrome"},
+				validate: func(t *testing.T, req *rainforest.AITestRequest) {
+					if req.StartURI != "/login" || req.Title != "Login" {
+						t.Errorf("Expected start_uri=/login, title=Login, got: %+v", req)
+					}
+				},
+			},
+			{
+				name:     "with full URL",
+				mappings: map[string]interface{}{"title": "Cart Test", "url": "https://example.com", "platform": "windows11_chrome"},
+				validate: func(t *testing.T, req *rainforest.AITestRequest) {
+					if req.FullURL != "https://example.com" {
+						t.Errorf("Expected full_url=https://example.com, got: %v", req.FullURL)
+					}
+				},
+			},
+			{
+				name:     "with custom platform",
+				mappings: map[string]interface{}{"title": "Platform Test", "start-uri": "/", "platform": "windows10_chrome"},
+				validate: func(t *testing.T, req *rainforest.AITestRequest) {
+					if len(req.Browsers) != 1 || req.Browsers[0] != "windows10_chrome" {
+						t.Errorf("Expected browser=[windows10_chrome], got: %v", req.Browsers)
+					}
+				},
+			},
+			{
+				name:     "with credentials",
+				mappings: map[string]interface{}{"title": "Credentials Test", "start-uri": "/", "platform": "windows11_chrome", "credentials": "user/pass", "environment-id": 999},
+				validate: func(t *testing.T, req *rainforest.AITestRequest) {
+					if req.PromptCredentials != "user/pass" || req.EnvironmentID != 999 {
+						t.Errorf("Expected credentials and env_id set, got: %+v", req)
+					}
+				},
+			},
+			{
+				name:     "with login snippet",
+				mappings: map[string]interface{}{"title": "Snippet Test", "start-uri": "/", "platform": "windows11_chrome", "login-snippet-id": 54321},
+				validate: func(t *testing.T, req *rainforest.AITestRequest) {
+					if req.LoginSnippetID != 54321 {
+						t.Errorf("Expected login_snippet_id=54321, got: %v", req.LoginSnippetID)
+					}
+				},
+			},
+		}
+
+		for _, tt := range successTests {
+			t.Run(tt.name, func(t *testing.T) {
+				capturedRequest = nil
+				ctx := newFakeContext(tt.mappings, cli.Args{"Test prompt"})
+				if err := generateAITest(ctx, testAPI); err != nil {
+					t.Fatalf("Unexpected error: %v", err)
+				}
+				if capturedRequest == nil {
+					t.Fatal("Request not captured")
+				}
+				tt.validate(t, capturedRequest)
+			})
+		}
+	})
+
 }

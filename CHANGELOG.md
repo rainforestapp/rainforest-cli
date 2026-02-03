@@ -1,5 +1,9 @@
 # Rainforest CLI Changelog
 
+## 3.8.0 - 2026-02-10
+- Add `generate` command for AI test generation
+  - (72027b92a907c4b9cf060c4ea06c92b3c7b290ca, @sebaherrera07)
+
 ## 3.7.0 - 2026-02-09
 - Update Go from 1.22.3 to 1.25.7
   - (e0dc14e8c0c327daf6884a0e69e93482d156adae, @sebaherrera07)

@@ -37,9 +37,13 @@ commands:
           command: |
             $ProgressPreference = 'SilentlyContinue'
             Invoke-WebRequest -Uri "https://golang.org/dl/go1.25.7.windows-amd64.zip" -OutFile "go.zip"
-            Expand-Archive -Path go.zip -DestinationPath .
-            $env:Path = "$PWD\go\bin;$env:Path"
-            [Environment]::SetEnvironmentVariable("Path", "$PWD\go\bin;$env:Path", "User")
+            Remove-Item -Path C:\Go -Recurse -Force -ErrorAction SilentlyContinue
+            Expand-Archive -Path go.zip -DestinationPath C:\
+            # Prepend new Go to PATH for this step
+            $env:Path = "C:\Go\bin;$env:Path"
+            # Persist at Machine level for subsequent steps
+            $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+            [Environment]::SetEnvironmentVariable("Path", "C:\Go\bin;$machinePath", "Machine")
             go version
           shell: powershell.exe
   go_build:

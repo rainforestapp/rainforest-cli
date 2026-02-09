@@ -861,11 +861,12 @@ func TestDownloadTests(t *testing.T) {
 	if os.IsNotExist(err) {
 		t.Fatalf("Expected RFML test does not exist: %v", expectedRFMLPath)
 	}
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 
 	if fileInfo.Name() != expectedFileName {
 		t.Errorf("Expected RFML file path %v, got %v", expectedRFMLPath, fileInfo.Name())
-	} else if err != nil {
-		t.Fatalf("%v", err)
 	}
 
 	var contents []byte

@@ -29,6 +29,19 @@ commands:
             echo "export PATH=$PATH:`pwd`/go/bin" >> $BASH_ENV
             source $BASH_ENV
             go version
+  install_go_windows:
+    description: "Install Go on Windows"
+    steps:
+      - run:
+          name: Install go
+          command: |
+            $ProgressPreference = 'SilentlyContinue'
+            Invoke-WebRequest -Uri "https://golang.org/dl/go1.25.7.windows-amd64.zip" -OutFile "go.zip"
+            Expand-Archive -Path go.zip -DestinationPath .
+            $env:Path = "$PWD\go\bin;$env:Path"
+            [Environment]::SetEnvironmentVariable("Path", "$PWD\go\bin;$env:Path", "User")
+            go version
+          shell: powershell.exe
   go_build:
     description: "go build, and output cli version"
     parameters:
@@ -189,7 +202,7 @@ jobs:
       - checkout
       - run:
           name: Install GoReleaser
-          command: go install github.com/goreleaser/goreleaser/v2@latest
+          command: go install github.com/goreleaser/goreleaser/v2@v2.13.3
       - run:
           name: Check GoReleaser Config
           command: goreleaser check
@@ -235,6 +248,7 @@ jobs:
           condition:
             equal: [ << parameters.platform >>,  windows ]
           steps:
+            - install_go_windows
             - go_build:
                 windows: true
       - unless:

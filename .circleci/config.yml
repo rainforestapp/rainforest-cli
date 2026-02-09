@@ -189,7 +189,7 @@ jobs:
       - checkout
       - run:
           name: Install GoReleaser
-          command: go install github.com/goreleaser/goreleaser@v1.26.2
+          command: go install github.com/goreleaser/goreleaser/v2@latest
       - run:
           name: Check GoReleaser Config
           command: goreleaser check

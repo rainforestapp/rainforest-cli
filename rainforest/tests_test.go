@@ -415,7 +415,7 @@ func TestUpdateTest(t *testing.T) {
 
 		data, err = ioutil.ReadAll(r.Body)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Errorf("%v", err)
 			return
 		}
 
@@ -468,7 +468,7 @@ func TestUpdateTest(t *testing.T) {
 		var data []byte
 		data, err = ioutil.ReadAll(r.Body)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Errorf("%v", err)
 			return
 		}
 		bodyStr = string(data)
@@ -535,7 +535,7 @@ func TestUpdateTest(t *testing.T) {
 		var data []byte
 		data, err = ioutil.ReadAll(r.Body)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Errorf("%v", err)
 			return
 		}
 		bodyStr = string(data)

@@ -53,7 +53,7 @@ func TestGetPresignedPOST(t *testing.T) {
 
 	presignedPost, err := client.GetPresignedPOST(extension, siteID, environmentID, appSlot)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%v", err)
 	}
 	if presignedPost.URL != awsURL {
 		t.Errorf("Incorrect aws URL returned on PresignedPost data")
@@ -221,7 +221,7 @@ func TestUpdateURL(t *testing.T) {
 		var data SiteEnvironmentUpdate
 		err := decoder.Decode(&data)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Errorf("%v", err)
 		}
 		if data.URL != fullURLToSet() {
 			t.Errorf("New URL not found in body of put")
@@ -239,7 +239,7 @@ func TestUpdateURL(t *testing.T) {
 	}
 	err := client.UpdateURL(siteID, environmentID, appSlot, newURL)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%v", err)
 	}
 
 	appSlot = 2
@@ -249,7 +249,7 @@ func TestUpdateURL(t *testing.T) {
 	}
 	err = client.UpdateURL(siteID, environmentID, appSlot, newURL)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%v", err)
 	}
 
 	appSlot = 5
@@ -259,7 +259,7 @@ func TestUpdateURL(t *testing.T) {
 	}
 	err = client.UpdateURL(siteID, environmentID, appSlot, newURL)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%v", err)
 	}
 
 	siteID = 2
@@ -271,7 +271,7 @@ func TestUpdateURL(t *testing.T) {
 	}
 	err = client.UpdateURL(siteID, environmentID, appSlot, newURL)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%v", err)
 	}
 
 	appSlot = 2
@@ -281,7 +281,7 @@ func TestUpdateURL(t *testing.T) {
 	}
 	err = client.UpdateURL(siteID, environmentID, appSlot, newURL)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%v", err)
 	}
 
 	appSlot = 3
@@ -291,6 +291,6 @@ func TestUpdateURL(t *testing.T) {
 	}
 	err = client.UpdateURL(siteID, environmentID, appSlot, newURL)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%v", err)
 	}
 }

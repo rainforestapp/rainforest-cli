@@ -865,13 +865,13 @@ func TestDownloadTests(t *testing.T) {
 	if fileInfo.Name() != expectedFileName {
 		t.Errorf("Expected RFML file path %v, got %v", expectedRFMLPath, fileInfo.Name())
 	} else if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err)
 	}
 
 	var contents []byte
 	contents, err = ioutil.ReadFile(expectedRFMLPath)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err)
 	}
 
 	rfmlText := string(contents)
@@ -923,7 +923,7 @@ func TestDownloadTests(t *testing.T) {
 
 	contents, err = ioutil.ReadFile(expectedRFMLPath)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err)
 	}
 	rfmlText = string(contents)
 

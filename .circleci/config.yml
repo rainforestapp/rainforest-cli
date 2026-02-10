@@ -253,7 +253,7 @@ jobs:
           name: Release via GoReleaser
           command: |
             export GITHUB_TOKEN=$GITHUB_ACCESS_TOKEN
-            curl -sfL https://goreleaser.com/static/run | VERSION=v1.26.2 bash
+            curl -sfL https://goreleaser.com/static/run | VERSION=v2.13.3 bash
       - run:
           name: Show checksums
           command: cat dist/checksums.txt

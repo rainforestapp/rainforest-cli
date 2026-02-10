@@ -29,23 +29,6 @@ commands:
             echo "export PATH=$PATH:`pwd`/go/bin" >> $BASH_ENV
             source $BASH_ENV
             go version
-  install_go_windows:
-    description: "Install Go on Windows"
-    steps:
-      - run:
-          name: Install go
-          command: |
-            $ProgressPreference = 'SilentlyContinue'
-            Invoke-WebRequest -Uri "https://golang.org/dl/go1.25.7.windows-amd64.zip" -OutFile "go.zip"
-            Remove-Item -Path C:\Go -Recurse -Force -ErrorAction SilentlyContinue
-            Expand-Archive -Path go.zip -DestinationPath C:\
-            # Prepend new Go to PATH for this step
-            $env:Path = "C:\Go\bin;$env:Path"
-            # Persist at Machine level for subsequent steps
-            $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
-            [Environment]::SetEnvironmentVariable("Path", "C:\Go\bin;$machinePath", "Machine")
-            go version
-          shell: powershell.exe
   go_build:
     description: "go build, and output cli version"
     parameters:
@@ -252,7 +235,6 @@ jobs:
           condition:
             equal: [ << parameters.platform >>,  windows ]
           steps:
-            - install_go_windows
             - go_build:
                 windows: true
       - unless:

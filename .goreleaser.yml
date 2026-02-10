@@ -1,4 +1,6 @@
 # GoReleaser config documentation: https://goreleaser.com/customization/
+version: 2
+
 before:
   hooks:
     # You may remove this if you don't use go modules.
@@ -23,14 +25,13 @@ builds:
       - windows
       - darwin
 archives:
-  - 
-    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
-    builds:
+  - name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    ids:
       - rainforest
       - rainforest-cli
     format_overrides:
       - goos: windows
-        format: zip
+        formats: ['zip']
 release:
   github:
     owner: rainforestapp
@@ -42,7 +43,7 @@ source:
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ .Tag }}-next"
 changelog:
   sort: asc
   filters:

@@ -1,5 +1,13 @@
 # Rainforest CLI Changelog
 
+## 3.7.0 - 2026-02-09
+- Update Go from 1.22.3 to 1.25.7
+  - (e0dc14e8c0c327daf6884a0e69e93482d156adae, @sebaherrera07)
+- Update dependencies to latest versions to fix security vulnerabilities
+  - (4a9935ca306f8c68c2e94ff24411ff63d4ed7a2d, @sebaherrera07)
+- Update goreleaser to v2
+  - (52bebeb9c61abfbe1d3193be121a89ee592f5b0c, @sebaherrera07)
+
 ## 3.6.2 - 2025-06-13
 - Fix RFML embedded download links
   - (22cdbb00a608194b45a632c37a20e0edd3b3288a, @ubergeek42)

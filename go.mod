@@ -10,7 +10,7 @@ require (
 	github.com/rhysd/go-github-selfupdate v1.2.3
 	github.com/satori/go.uuid v1.2.0
 	github.com/ukd1/go.detectci v0.0.0-20210512015713-5570f6cb6bb1
-	github.com/urfave/cli v1.22.15
+	github.com/urfave/cli v1.22.17
 	github.com/whilp/git-urls v1.0.0
 	golang.zx2c4.com/wireguard v0.0.0-20220920152132-bb719d3a6e2c
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20221104135756-97bc4ad4a1cb
@@ -21,7 +21,7 @@ require (
 require (
 	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 // indirect
 	github.com/aws/aws-sdk-go v1.34.18 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-ping/ping v1.1.0 // indirect
 	github.com/google/btree v1.1.2 // indirect

@@ -5,7 +5,7 @@ go 1.25.7
 require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/gyuho/goraph v0.0.0-20160328020532-d460590d53a9
-	github.com/olekukonko/tablewriter v0.0.5
+	github.com/olekukonko/tablewriter v1.1.3
 	github.com/rainforestapp/testutil v0.0.0-20170615220520-c9155e7da96e
 	github.com/rhysd/go-github-selfupdate v1.2.3
 	github.com/satori/go.uuid v1.2.0
@@ -21,7 +21,11 @@ require (
 require (
 	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 // indirect
 	github.com/aws/aws-sdk-go v1.34.18 // indirect
+	github.com/clipperhouse/displaywidth v0.6.2 // indirect
+	github.com/clipperhouse/stringish v0.1.1 // indirect
+	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
+	github.com/fatih/color v1.18.0 // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-ping/ping v1.1.0 // indirect
 	github.com/google/btree v1.1.2 // indirect
@@ -32,8 +36,13 @@ require (
 	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf // indirect
 	github.com/jmespath/go-jmespath v0.3.0 // indirect
 	github.com/libp2p/go-reuseport v0.2.0 // indirect
-	github.com/mattn/go-runewidth v0.0.9 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
+	github.com/olekukonko/cat v0.0.0-20250911104152-50322a0618f6 // indirect
+	github.com/olekukonko/errors v1.1.0 // indirect
+	github.com/olekukonko/ll v0.1.4-0.20260115111900-9e59c2286df0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
 	github.com/ulikunitz/xz v0.5.15 // indirect

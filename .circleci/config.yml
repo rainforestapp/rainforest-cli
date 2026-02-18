@@ -307,7 +307,9 @@ workflows:
             - validate_goreleaser_config
           matrix:
             parameters:
-              platform: [linux, mac]
+              # NOTE: mac removed — macos resource classes (m1, m4pro) are not
+              # available on the current CircleCI plan. Re-add when plan is updated.
+              platform: [linux]
               test:
                 - [pass]
                 - [pass_junit]

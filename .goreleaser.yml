@@ -24,11 +24,21 @@ builds:
       - linux
       - windows
       - darwin
+  - id: rainforest-mcp
+    main: ./cmd/rainforest-mcp
+    env:
+      - CGO_ENABLED=0
+    binary: rainforest-mcp
+    goos:
+      - linux
+      - windows
+      - darwin
 archives:
   - name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     ids:
       - rainforest
       - rainforest-cli
+      - rainforest-mcp
     format_overrides:
       - goos: windows
         formats: ['zip']

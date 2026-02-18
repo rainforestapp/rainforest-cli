@@ -12,7 +12,7 @@ executors:
   mac:
     macos:
       xcode: 15.4.0
-    resource_class: macos.m1.medium.gen1
+    resource_class: macos.m4pro.medium
   linux:
     docker:
       - image: cimg/go:1.25.7-node

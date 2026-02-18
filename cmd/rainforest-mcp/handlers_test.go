@@ -36,12 +36,12 @@ type mockClient struct {
 	err error
 
 	// Capture calls
-	lastCreatedTest  *rainforest.RFTest
-	lastUpdatedTest  *rainforest.RFTest
-	lastRunParams    rainforest.RunParams
-	lastDeletedID    int
-	lastCreatedBranch *rainforest.Branch
-	lastMergedID     int
+	lastCreatedTest     *rainforest.RFTest
+	lastUpdatedTest     *rainforest.RFTest
+	lastRunParams       rainforest.RunParams
+	lastDeletedID       int
+	lastCreatedBranch   *rainforest.Branch
+	lastMergedID        int
 	lastDeletedBranchID int
 }
 

@@ -22,11 +22,6 @@ func registerTools(s *server.MCPServer, client apiClient) {
 	s.AddTool(createTestTool(), h.createTest)
 	s.AddTool(deleteTestTool(), h.deleteTest)
 
-	// Step-level tools
-	s.AddTool(addTestStepTool(), h.addTestStep)
-	s.AddTool(updateTestStepTool(), h.updateTestStep)
-	s.AddTool(deleteTestStepTool(), h.deleteTestStep)
-	s.AddTool(moveTestStepTool(), h.moveTestStep)
 
 	// Run management tools
 	s.AddTool(startRunTool(), h.startRun)
@@ -179,99 +174,6 @@ func deleteTestTool() mcp.Tool {
 		mcp.WithNumber("test_id",
 			mcp.Required(),
 			mcp.Description("The test ID to delete"),
-		),
-	)
-}
-
-// --- Step-level tool definitions ---
-
-func addTestStepTool() mcp.Tool {
-	return mcp.NewTool("add_test_step",
-		mcp.WithDescription("Add a new step to an existing test. A step consists of an action (instruction for the tester) and a response (verification question ending with '?'). By default the step is appended to the end."),
-		mcp.WithReadOnlyHintAnnotation(false),
-		mcp.WithDestructiveHintAnnotation(false),
-		mcp.WithIdempotentHintAnnotation(false),
-		mcp.WithNumber("test_id",
-			mcp.Required(),
-			mcp.Description("The test ID to add the step to"),
-		),
-		mcp.WithString("action",
-			mcp.Required(),
-			mcp.Description("The action/instruction for the tester"),
-		),
-		mcp.WithString("response",
-			mcp.Required(),
-			mcp.Description("The verification question (should end with '?')"),
-		),
-		mcp.WithNumber("position",
-			mcp.Description("0-based position to insert the step at. Defaults to the end of the step list."),
-		),
-		mcp.WithBoolean("redirect",
-			mcp.Description("Whether this step causes a page redirect (defaults to true)"),
-		),
-	)
-}
-
-func updateTestStepTool() mcp.Tool {
-	return mcp.NewTool("update_test_step",
-		mcp.WithDescription("Update an existing step in a test. You can update the action, response, and/or redirect flag. Only the fields you provide will be changed."),
-		mcp.WithReadOnlyHintAnnotation(false),
-		mcp.WithDestructiveHintAnnotation(false),
-		mcp.WithIdempotentHintAnnotation(true),
-		mcp.WithNumber("test_id",
-			mcp.Required(),
-			mcp.Description("The test ID containing the step"),
-		),
-		mcp.WithNumber("step_index",
-			mcp.Required(),
-			mcp.Description("0-based index of the step to update"),
-		),
-		mcp.WithString("action",
-			mcp.Description("New action/instruction text"),
-		),
-		mcp.WithString("response",
-			mcp.Description("New verification question text"),
-		),
-		mcp.WithBoolean("redirect",
-			mcp.Description("Whether this step causes a page redirect"),
-		),
-	)
-}
-
-func deleteTestStepTool() mcp.Tool {
-	return mcp.NewTool("delete_test_step",
-		mcp.WithDescription("Delete a step from a test by its index."),
-		mcp.WithReadOnlyHintAnnotation(false),
-		mcp.WithDestructiveHintAnnotation(true),
-		mcp.WithIdempotentHintAnnotation(false),
-		mcp.WithNumber("test_id",
-			mcp.Required(),
-			mcp.Description("The test ID containing the step"),
-		),
-		mcp.WithNumber("step_index",
-			mcp.Required(),
-			mcp.Description("0-based index of the step to delete"),
-		),
-	)
-}
-
-func moveTestStepTool() mcp.Tool {
-	return mcp.NewTool("move_test_step",
-		mcp.WithDescription("Move a step from one position to another within a test."),
-		mcp.WithReadOnlyHintAnnotation(false),
-		mcp.WithDestructiveHintAnnotation(false),
-		mcp.WithIdempotentHintAnnotation(true),
-		mcp.WithNumber("test_id",
-			mcp.Required(),
-			mcp.Description("The test ID containing the step"),
-		),
-		mcp.WithNumber("from_index",
-			mcp.Required(),
-			mcp.Description("0-based index of the step to move"),
-		),
-		mcp.WithNumber("to_index",
-			mcp.Required(),
-			mcp.Description("0-based index to move the step to"),
 		),
 	)
 }

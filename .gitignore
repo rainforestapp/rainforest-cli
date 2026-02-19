@@ -10,3 +10,5 @@ rainforest-cli.exe
 /vendor
 build/
 dist/
+.claude/
+.mcp.json

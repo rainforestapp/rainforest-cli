@@ -94,13 +94,15 @@ type RFTest struct {
 	Priority     string                   `json:"priority,omitempty"`
 	StartURI     string                   `json:"start_uri"`
 	SiteID       int                      `json:"site_id,omitempty"`
-	Description  string                   `json:"description,omitempty"`
-	Tags         []string                 `json:"tags"`
-	PlatformsMap []map[string]interface{} `json:"browsers"`
-	Elements     []testElement            `json:"elements,omitempty"`
-	HasWisp      bool                     `json:"has_wisp"`
-	FeatureID    FeatureIDInt             `json:"feature_id,omitempty"`
-	Type         string                   `json:"type"`
+	Description        string                   `json:"description,omitempty"`
+	CoverageSummary    string                   `json:"coverage_summary,omitempty"`
+	InitialNavigateURL string                   `json:"initial_navigate_url,omitempty"`
+	Tags               []string                 `json:"tags"`
+	PlatformsMap       []map[string]interface{} `json:"browsers"`
+	Elements           []testElement            `json:"elements,omitempty"`
+	HasWisp            bool                     `json:"has_wisp"`
+	FeatureID          FeatureIDInt             `json:"feature_id,omitempty"`
+	Type               string                   `json:"type"`
 
 	// Platforms and Steps are helper fields
 	Platforms []string      `json:"-"`

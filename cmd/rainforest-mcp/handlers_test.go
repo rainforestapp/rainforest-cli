@@ -37,7 +37,6 @@ type mockClient struct {
 
 	// Capture calls
 	lastCreatedTest     *rainforest.RFTest
-	lastUpdatedTest     *rainforest.RFTest
 	lastRunParams       rainforest.RunParams
 	lastDeletedID       int
 	lastCreatedBranch   *rainforest.Branch
@@ -89,7 +88,6 @@ func (m *mockClient) CreateTest(test *rainforest.RFTest) error {
 	return m.err
 }
 func (m *mockClient) UpdateTest(test *rainforest.RFTest, branchID int) error {
-	m.lastUpdatedTest = test
 	return m.err
 }
 func (m *mockClient) DeleteTest(testID int) error {
@@ -459,160 +457,6 @@ func TestCreateTest_MissingTitle(t *testing.T) {
 	}
 	if !isErrorResult(result) {
 		t.Fatal("expected error result for missing title")
-	}
-}
-
-// --- Step operation tests ---
-
-// makeTestWithSteps creates a test with pre-populated Steps for step operation tests.
-// Since our handler calls PrepareToWriteAsRFML which needs Elements, we set up
-// Elements properly so the unmarshal works.
-func makeTestWithSteps() *rainforest.RFTest {
-	return &rainforest.RFTest{
-		TestID:   100,
-		RFMLID:   "step_test",
-		Title:    "Step Test",
-		State:    "enabled",
-		StartURI: "/",
-		Tags:     []string{},
-		Type:     "test",
-	}
-}
-
-func makeStepTestClient() *mockClient {
-	return &mockClient{
-		test: makeTestWithSteps(),
-		testPairs: []rainforest.TestIDPair{
-			{ID: 100, RFMLID: "step_test"},
-		},
-	}
-}
-
-func TestAddTestStep_Append(t *testing.T) {
-	mc := makeStepTestClient()
-	h := &handlers{client: mc}
-
-	result, err := h.addTestStep(context.Background(), makeRequest(map[string]interface{}{
-		"test_id":  float64(100),
-		"action":   "Click the button",
-		"response": "Is the button clicked?",
-	}))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if isErrorResult(result) {
-		t.Fatalf("unexpected error result: %s", resultText(result))
-	}
-
-	// Verify update was called
-	if mc.lastUpdatedTest == nil {
-		t.Fatal("expected UpdateTest to be called")
-	}
-
-	var resp map[string]interface{}
-	if err := json.Unmarshal([]byte(resultText(result)), &resp); err != nil {
-		t.Fatalf("failed to parse result: %v", err)
-	}
-	if resp["total_steps"].(float64) != 1 {
-		t.Errorf("expected total_steps=1, got %v", resp["total_steps"])
-	}
-}
-
-func TestAddTestStep_MissingAction(t *testing.T) {
-	mc := makeStepTestClient()
-	h := &handlers{client: mc}
-
-	result, err := h.addTestStep(context.Background(), makeRequest(map[string]interface{}{
-		"test_id":  float64(100),
-		"response": "Is something visible?",
-	}))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !isErrorResult(result) {
-		t.Fatal("expected error result for missing action")
-	}
-}
-
-func TestUpdateTestStep_OutOfRange(t *testing.T) {
-	mc := makeStepTestClient()
-	h := &handlers{client: mc}
-
-	// Test with out-of-range index on empty test (no Elements = no Steps)
-	result, err := h.updateTestStep(context.Background(), makeRequest(map[string]interface{}{
-		"test_id":    float64(100),
-		"step_index": float64(0),
-		"action":     "New action",
-	}))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !isErrorResult(result) {
-		t.Fatal("expected error result for out-of-range index on empty test")
-	}
-}
-
-func TestUpdateTestStep_MissingTestID(t *testing.T) {
-	mc := makeStepTestClient()
-	h := &handlers{client: mc}
-
-	result, err := h.updateTestStep(context.Background(), makeRequest(map[string]interface{}{
-		"step_index": float64(0),
-	}))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !isErrorResult(result) {
-		t.Fatal("expected error result for missing test_id")
-	}
-}
-
-func TestDeleteTestStep_OutOfRange(t *testing.T) {
-	mc := makeStepTestClient()
-	h := &handlers{client: mc}
-
-	result, err := h.deleteTestStep(context.Background(), makeRequest(map[string]interface{}{
-		"test_id":    float64(100),
-		"step_index": float64(5),
-	}))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !isErrorResult(result) {
-		t.Fatal("expected error result for out-of-range index")
-	}
-}
-
-func TestMoveTestStep_MissingFromIndex(t *testing.T) {
-	mc := makeStepTestClient()
-	h := &handlers{client: mc}
-
-	result, err := h.moveTestStep(context.Background(), makeRequest(map[string]interface{}{
-		"test_id":  float64(100),
-		"to_index": float64(0),
-	}))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !isErrorResult(result) {
-		t.Fatal("expected error result for missing from_index")
-	}
-}
-
-func TestMoveTestStep_OutOfRange(t *testing.T) {
-	mc := makeStepTestClient()
-	h := &handlers{client: mc}
-
-	result, err := h.moveTestStep(context.Background(), makeRequest(map[string]interface{}{
-		"test_id":    float64(100),
-		"from_index": float64(0),
-		"to_index":   float64(5),
-	}))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !isErrorResult(result) {
-		t.Fatal("expected error result for out-of-range indices")
 	}
 }
 

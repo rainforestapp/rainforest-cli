@@ -167,17 +167,19 @@ func (h *handlers) listTests(ctx context.Context, req mcp.CallToolRequest) (*mcp
 
 // testResponse is the structured response for get_test.
 type testResponse struct {
-	ID        int            `json:"id"`
-	RFMLID    string         `json:"rfml_id"`
-	Title     string         `json:"title"`
-	State     string         `json:"state"`
-	StartURI  string         `json:"start_uri"`
-	SiteID    int            `json:"site_id,omitempty"`
-	Tags      []string       `json:"tags"`
-	Platforms []string       `json:"platforms"`
-	FeatureID int            `json:"feature_id,omitempty"`
-	Type      string         `json:"type"`
-	Steps     []stepResponse `json:"steps"`
+	ID              int            `json:"id"`
+	RFMLID          string         `json:"rfml_id"`
+	Title           string         `json:"title"`
+	State           string         `json:"state"`
+	StartURI        string         `json:"start_uri"`
+	StartURL        string         `json:"start_url,omitempty"`
+	SiteID          int            `json:"site_id,omitempty"`
+	Tags            []string       `json:"tags"`
+	Platforms       []string       `json:"platforms"`
+	FeatureID       int            `json:"feature_id,omitempty"`
+	Type            string         `json:"type"`
+	CoverageSummary string         `json:"coverage_summary,omitempty"`
+	Steps           []stepResponse `json:"steps"`
 }
 
 type stepResponse struct {
@@ -215,16 +217,18 @@ func (h *handlers) getTest(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 	}
 
 	resp := testResponse{
-		ID:        test.TestID,
-		RFMLID:    test.RFMLID,
-		Title:     test.Title,
-		State:     test.State,
-		StartURI:  test.StartURI,
-		SiteID:    test.SiteID,
-		Tags:      test.Tags,
-		Platforms: test.Platforms,
-		FeatureID: int(test.FeatureID),
-		Type:      test.Type,
+		ID:              test.TestID,
+		RFMLID:          test.RFMLID,
+		Title:           test.Title,
+		State:           test.State,
+		StartURI:        test.StartURI,
+		StartURL:        test.InitialNavigateURL,
+		SiteID:          test.SiteID,
+		Tags:            test.Tags,
+		Platforms:        test.Platforms,
+		FeatureID:        int(test.FeatureID),
+		Type:             test.Type,
+		CoverageSummary: test.CoverageSummary,
 	}
 	if resp.Tags == nil {
 		resp.Tags = []string{}
@@ -371,225 +375,6 @@ func (h *handlers) deleteTest(ctx context.Context, req mcp.CallToolRequest) (*mc
 
 	return jsonResult(map[string]string{
 		"message": fmt.Sprintf("Test %d deleted successfully", testID),
-	})
-}
-
-// --- Step-level handlers ---
-
-// fetchAndParseSteps is a helper for step operations.
-// It fetches a test, parses its elements into steps, and returns everything needed for modification.
-func (h *handlers) fetchAndParseSteps(testID int) (*rainforest.RFTest, *rainforest.TestIDCollection, error) {
-	test, err := h.client.GetTest(testID)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get test %d: %v", testID, err)
-	}
-
-	testIDPairs, err := h.client.GetTestIDs()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get test ID mappings: %v", err)
-	}
-	coll := rainforest.NewTestIDCollection(testIDPairs)
-
-	if err := test.PrepareToWriteAsRFML(*coll, false); err != nil {
-		return nil, nil, fmt.Errorf("failed to parse test steps: %v", err)
-	}
-
-	return test, coll, nil
-}
-
-// saveSteps marshals steps back to elements and pushes the update.
-func (h *handlers) saveSteps(test *rainforest.RFTest, coll *rainforest.TestIDCollection) error {
-	test.Source = "rainforest-cli"
-	if test.Tags == nil {
-		test.Tags = []string{}
-	}
-	if err := test.PrepareToUploadFromRFML(*coll); err != nil {
-		return fmt.Errorf("failed to prepare test: %v", err)
-	}
-	if err := h.client.UpdateTest(test, rainforest.NO_BRANCH); err != nil {
-		return fmt.Errorf("failed to update test: %v", err)
-	}
-	return nil
-}
-
-func (h *handlers) addTestStep(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	testID, err := requireInt(req, "test_id")
-	if err != nil {
-		return errResult("%v", err)
-	}
-	action, err := requireString(req, "action")
-	if err != nil {
-		return errResult("%v", err)
-	}
-	response, err := requireString(req, "response")
-	if err != nil {
-		return errResult("%v", err)
-	}
-
-	redirect := true
-	if r, ok := req.GetArguments()["redirect"].(bool); ok {
-		redirect = r
-	}
-
-	test, coll, err := h.fetchAndParseSteps(testID)
-	if err != nil {
-		return errResult("%v", err)
-	}
-
-	newStep := rainforest.RFTestStep{
-		Action:   action,
-		Response: response,
-		Redirect: redirect,
-	}
-
-	// Insert at position or append
-	if posRaw, ok := req.GetArguments()["position"].(float64); ok {
-		pos := int(posRaw)
-		if pos < 0 || pos > len(test.Steps) {
-			return errResult("position %d is out of range (0-%d)", pos, len(test.Steps))
-		}
-		// Insert at position
-		test.Steps = append(test.Steps, nil)
-		copy(test.Steps[pos+1:], test.Steps[pos:])
-		test.Steps[pos] = newStep
-	} else {
-		test.Steps = append(test.Steps, newStep)
-	}
-
-	if err := h.saveSteps(test, coll); err != nil {
-		return errResult("%v", err)
-	}
-
-	return jsonResult(map[string]interface{}{
-		"message":     "Step added successfully",
-		"test_id":     testID,
-		"total_steps": len(test.Steps),
-	})
-}
-
-func (h *handlers) updateTestStep(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	testID, err := requireInt(req, "test_id")
-	if err != nil {
-		return errResult("%v", err)
-	}
-	stepIndex, err := requireInt(req, "step_index")
-	if err != nil {
-		return errResult("%v", err)
-	}
-
-	test, coll, err := h.fetchAndParseSteps(testID)
-	if err != nil {
-		return errResult("%v", err)
-	}
-
-	if stepIndex < 0 || stepIndex >= len(test.Steps) {
-		return errResult("step_index %d is out of range (0-%d)", stepIndex, len(test.Steps)-1)
-	}
-
-	step, ok := test.Steps[stepIndex].(rainforest.RFTestStep)
-	if !ok {
-		return errResult("step at index %d is an embedded test reference, not an editable step", stepIndex)
-	}
-
-	if action, ok := req.GetArguments()["action"].(string); ok {
-		step.Action = action
-	}
-	if response, ok := req.GetArguments()["response"].(string); ok {
-		step.Response = response
-	}
-	if redirect, ok := req.GetArguments()["redirect"].(bool); ok {
-		step.Redirect = redirect
-	}
-
-	test.Steps[stepIndex] = step
-
-	if err := h.saveSteps(test, coll); err != nil {
-		return errResult("%v", err)
-	}
-
-	return jsonResult(map[string]interface{}{
-		"message":  "Step updated successfully",
-		"test_id":  testID,
-		"step":     stepIndex,
-		"action":   step.Action,
-		"response": step.Response,
-	})
-}
-
-func (h *handlers) deleteTestStep(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	testID, err := requireInt(req, "test_id")
-	if err != nil {
-		return errResult("%v", err)
-	}
-	stepIndex, err := requireInt(req, "step_index")
-	if err != nil {
-		return errResult("%v", err)
-	}
-
-	test, coll, err := h.fetchAndParseSteps(testID)
-	if err != nil {
-		return errResult("%v", err)
-	}
-
-	if stepIndex < 0 || stepIndex >= len(test.Steps) {
-		return errResult("step_index %d is out of range (0-%d)", stepIndex, len(test.Steps)-1)
-	}
-
-	test.Steps = append(test.Steps[:stepIndex], test.Steps[stepIndex+1:]...)
-
-	if err := h.saveSteps(test, coll); err != nil {
-		return errResult("%v", err)
-	}
-
-	return jsonResult(map[string]interface{}{
-		"message":     "Step deleted successfully",
-		"test_id":     testID,
-		"total_steps": len(test.Steps),
-	})
-}
-
-func (h *handlers) moveTestStep(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	testID, err := requireInt(req, "test_id")
-	if err != nil {
-		return errResult("%v", err)
-	}
-	fromIndex, err := requireInt(req, "from_index")
-	if err != nil {
-		return errResult("%v", err)
-	}
-	toIndex, err := requireInt(req, "to_index")
-	if err != nil {
-		return errResult("%v", err)
-	}
-
-	test, coll, err := h.fetchAndParseSteps(testID)
-	if err != nil {
-		return errResult("%v", err)
-	}
-
-	if fromIndex < 0 || fromIndex >= len(test.Steps) {
-		return errResult("from_index %d is out of range (0-%d)", fromIndex, len(test.Steps)-1)
-	}
-	if toIndex < 0 || toIndex >= len(test.Steps) {
-		return errResult("to_index %d is out of range (0-%d)", toIndex, len(test.Steps)-1)
-	}
-
-	// Remove the step from its current position
-	step := test.Steps[fromIndex]
-	test.Steps = append(test.Steps[:fromIndex], test.Steps[fromIndex+1:]...)
-	// Insert at new position
-	test.Steps = append(test.Steps[:toIndex], append([]interface{}{step}, test.Steps[toIndex:]...)...)
-
-	if err := h.saveSteps(test, coll); err != nil {
-		return errResult("%v", err)
-	}
-
-	return jsonResult(map[string]interface{}{
-		"message":     "Step moved successfully",
-		"test_id":     testID,
-		"from":        fromIndex,
-		"to":          toIndex,
-		"total_steps": len(test.Steps),
 	})
 }
 

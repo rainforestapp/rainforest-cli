@@ -181,13 +181,16 @@ type testResponse struct {
 }
 
 type stepResponse struct {
-	Index      int    `json:"index"`
-	Type       string `json:"type"`                  // "step" or "embedded_test"
-	ActionType string `json:"action_type,omitempty"` // rfa action type: "comment", "click", "type", "wait", "observe"
-	Action     string `json:"action,omitempty"`      // human-readable description
-	Response   string `json:"response,omitempty"`
-	Redirect   bool   `json:"redirect"`
-	RFMLID     string `json:"rfml_id,omitempty"` // for embedded tests
+	Index      int            `json:"index"`
+	Type       string         `json:"type"`                  // "step" or "embedded_test"
+	ActionType string         `json:"action_type,omitempty"` // rfa action type: "comment", "click", "type", "wait", "observe"
+	Action     string         `json:"action,omitempty"`      // human-readable description
+	Response   string         `json:"response,omitempty"`
+	Redirect   bool           `json:"redirect"`
+	RFMLID     string         `json:"rfml_id,omitempty"` // for embedded tests
+	TestID     int            `json:"test_id,omitempty"` // for embedded tests
+	Title      string         `json:"title,omitempty"`   // for embedded tests
+	Steps      []stepResponse `json:"steps,omitempty"`   // for embedded tests: their expanded steps
 }
 
 func (h *handlers) getTest(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -230,44 +233,7 @@ func (h *handlers) getTest(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 		resp.Platforms = []string{}
 	}
 
-	// Collect all UI element IDs we need to resolve
-	uiElementIDs := map[int]bool{}
-	for _, step := range test.Steps {
-		if s, ok := step.(rainforest.RFTestStep); ok && s.RfaTargetUIElementID > 0 {
-			uiElementIDs[s.RfaTargetUIElementID] = true
-		}
-	}
-
-	// Fetch UI element names
-	uiElementNames := map[int]string{}
-	for id := range uiElementIDs {
-		elem, err := h.client.GetUIElement(id)
-		if err == nil && elem != nil {
-			uiElementNames[id] = elem.Noun.Noun.Element
-		}
-	}
-
-	for i, step := range test.Steps {
-		switch s := step.(type) {
-		case rainforest.RFTestStep:
-			action := formatStepAction(s, uiElementNames)
-			resp.Steps = append(resp.Steps, stepResponse{
-				Index:      i,
-				Type:       "step",
-				ActionType: s.RfaActionType,
-				Action:     action,
-				Response:   s.Response,
-				Redirect:   s.Redirect,
-			})
-		case rainforest.RFEmbeddedTest:
-			resp.Steps = append(resp.Steps, stepResponse{
-				Index:    i,
-				Type:     "embedded_test",
-				RFMLID:   s.RFMLID,
-				Redirect: s.Redirect,
-			})
-		}
-	}
+	resp.Steps = h.expandSteps(test.Steps, coll, 0)
 	if resp.Steps == nil {
 		resp.Steps = []stepResponse{}
 	}
@@ -837,6 +803,69 @@ func getStringOr(req mcp.CallToolRequest, key, defaultVal string) string {
 // uniqueID returns a unique identifier based on timestamp.
 func uniqueID() int64 {
 	return time.Now().UnixNano()
+}
+
+// expandSteps converts parsed Steps into stepResponse objects, recursively expanding embedded tests.
+// maxDepth prevents infinite recursion (embedded tests can contain embedded tests).
+func (h *handlers) expandSteps(steps []interface{}, coll *rainforest.TestIDCollection, depth int) []stepResponse {
+	const maxDepth = 5
+
+	// Collect UI element IDs from all steps at this level
+	uiElementIDs := map[int]bool{}
+	for _, step := range steps {
+		if s, ok := step.(rainforest.RFTestStep); ok && s.RfaTargetUIElementID > 0 {
+			uiElementIDs[s.RfaTargetUIElementID] = true
+		}
+	}
+
+	// Fetch UI element names
+	uiElementNames := map[int]string{}
+	for id := range uiElementIDs {
+		elem, err := h.client.GetUIElement(id)
+		if err == nil && elem != nil {
+			uiElementNames[id] = elem.Noun.Noun.Element
+		}
+	}
+
+	var result []stepResponse
+	for i, step := range steps {
+		switch s := step.(type) {
+		case rainforest.RFTestStep:
+			action := formatStepAction(s, uiElementNames)
+			result = append(result, stepResponse{
+				Index:      i,
+				Type:       "step",
+				ActionType: s.RfaActionType,
+				Action:     action,
+				Response:   s.Response,
+				Redirect:   s.Redirect,
+			})
+		case rainforest.RFEmbeddedTest:
+			sr := stepResponse{
+				Index:    i,
+				Type:     "embedded_test",
+				RFMLID:   s.RFMLID,
+				Redirect: s.Redirect,
+			}
+
+			// Resolve the embedded test's ID and fetch it
+			if depth < maxDepth {
+				if embeddedTestID, err := coll.GetTestID(s.RFMLID); err == nil {
+					sr.TestID = embeddedTestID
+					if embeddedTest, err := h.client.GetTest(embeddedTestID); err == nil {
+						sr.Title = embeddedTest.Title
+						if err := embeddedTest.PrepareToWriteAsRFML(*coll, false); err == nil {
+							sr.Steps = h.expandSteps(embeddedTest.Steps, coll, depth+1)
+						}
+					}
+				}
+			}
+
+			result = append(result, sr)
+		}
+	}
+
+	return result
 }
 
 // formatStepAction returns a human-readable action description for a step.

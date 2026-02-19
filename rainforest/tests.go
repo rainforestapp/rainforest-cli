@@ -122,12 +122,22 @@ type testElement struct {
 	Details  testElementDetails `json:"element"`
 }
 
+// rfaAction represents a Rainforest Automation action attached to a step.
+// Modern tests use rfa_action instead of the legacy action/response fields.
+type rfaAction struct {
+	ID     int                    `json:"id,omitempty"`
+	Text   string                 `json:"text,omitempty"`
+	Action string                 `json:"action,omitempty"` // e.g. "comment", "click", "type", "wait"
+	Target map[string]interface{} `json:"target,omitempty"`
+}
+
 // testElementDetails is one of the helpers to construct the proper JSON test sturcture
 type testElementDetails struct {
-	ID       int           `json:"id,omitempty"`
-	Action   string        `json:"action,omitempty"`
-	Response string        `json:"response,omitempty"`
-	Elements []testElement `json:"elements,omitempty"` // for embedded tests
+	ID        int           `json:"id,omitempty"`
+	Action    string        `json:"action,omitempty"`
+	Response  string        `json:"response,omitempty"`
+	RfaAction *rfaAction    `json:"rfa_action,omitempty"`
+	Elements  []testElement `json:"elements,omitempty"` // for embedded tests
 }
 
 // mapPlatforms fills the browsers field with format recognized by the API
@@ -188,7 +198,13 @@ func (t *RFTest) unmarshalElements(coll TestIDCollection, flattenedSteps bool) e
 	for _, element := range t.Elements {
 		switch element.Type {
 		case "step":
-			step := RFTestStep{Action: element.Details.Action, Response: element.Details.Response, Redirect: element.Redirect}
+			action := element.Details.Action
+			response := element.Details.Response
+			// Fall back to rfa_action for modern tests where action/response are null
+			if action == "" && element.Details.RfaAction != nil {
+				action = rfaActionDescription(element.Details.RfaAction)
+			}
+			step := RFTestStep{Action: action, Response: response, Redirect: element.Redirect}
 			t.Steps = append(t.Steps, step)
 		case "test":
 			if flattenedSteps {
@@ -213,7 +229,12 @@ func flattenEmbeddedTestElement(element *testElement) []interface{} {
 	var steps []interface{}
 
 	if element.Type == "step" {
-		step := RFTestStep{Action: element.Details.Action, Response: element.Details.Response, Redirect: element.Redirect}
+		action := element.Details.Action
+		response := element.Details.Response
+		if action == "" && element.Details.RfaAction != nil {
+			action = rfaActionDescription(element.Details.RfaAction)
+		}
+		step := RFTestStep{Action: action, Response: response, Redirect: element.Redirect}
 		steps = []interface{}{step}
 	} else if element.Type == "test" {
 		for _, el := range element.Details.Elements {
@@ -225,6 +246,22 @@ func flattenEmbeddedTestElement(element *testElement) []interface{} {
 	}
 
 	return steps
+}
+
+// rfaActionDescription returns a human-readable description of an rfa_action.
+// For "comment" actions, it returns the text directly. For other action types
+// (click, type, wait, etc.), it builds a description from the action type and text.
+func rfaActionDescription(rfa *rfaAction) string {
+	if rfa.Text != "" {
+		if rfa.Action == "comment" {
+			return rfa.Text
+		}
+		return fmt.Sprintf("[%s] %s", rfa.Action, rfa.Text)
+	}
+	if rfa.Action != "" {
+		return fmt.Sprintf("[%s]", rfa.Action)
+	}
+	return ""
 }
 
 // PrepareToUploadFromRFML uses different helper methods to prepare struct for API upload

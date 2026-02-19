@@ -11,8 +11,8 @@ windows-param: &windows-param
 executors:
   mac:
     macos:
-      xcode: 15.4.0
-    resource_class: macos.m1.medium.gen1
+      xcode: 26.3.0
+    resource_class: m4pro.medium
   linux:
     docker:
       - image: cimg/go:1.25.7-node

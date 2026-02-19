@@ -13,7 +13,7 @@ import (
 
 const (
 	// Version of the app in SemVer
-	version = "3.7.0"
+	version = "3.8.0"
 	// This is the default spec folder for RFML tests
 	defaultSpecFolder = "./spec/rainforest"
 )
@@ -357,6 +357,49 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				return newRFMLTest(c)
+			},
+		},
+		{
+			Name:         "generate",
+			Aliases:      []string{"gen", "ai"},
+			Usage:        "Generate a new test using AI",
+			OnUsageError: onCommandUsageErrorHandler("generate"),
+			ArgsUsage:    "[prompt]",
+			Description: "Generate a new Rainforest test using AI based on a natural language prompt. " +
+				"The prompt should describe what the test should do. " +
+				"Example: rainforest generate \"Log in with valid credentials and verify the dashboard loads\"",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "title",
+					Usage: "Title for the generated test.",
+				},
+				cli.StringFlag{
+					Name:  "start-uri",
+					Usage: "The starting `URI` path for the test (e.g., /login).",
+				},
+				cli.StringFlag{
+					Name:  "url",
+					Usage: "The full starting `URL` for the test (alternative to --start-uri).",
+				},
+				cli.StringFlag{
+					Name:  "platform",
+					Usage: "Specify the `PLATFORM` to use for AI generation (e.g., windows10_chrome, windows11_chrome).",
+				},
+				cli.IntFlag{
+					Name:  "environment-id",
+					Usage: "The `ENVIRONMENT-ID` to use for the test.",
+				},
+				cli.StringFlag{
+					Name:  "credentials",
+					Usage: "Free-form credentials information to pass to the AI for test generation (e.g., \"username: admin, password: secret123\"). This is an opaque string passed to the AI model. Mutually exclusive with --login-snippet-id.",
+				},
+				cli.IntFlag{
+					Name:  "login-snippet-id",
+					Usage: "The `ID` of a snippet to use for login steps. Mutually exclusive with --credentials.",
+				},
+			},
+			Action: func(c *cli.Context) error {
+				return generateAITest(c, api)
 			},
 		},
 		{

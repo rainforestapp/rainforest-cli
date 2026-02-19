@@ -387,6 +387,111 @@ func TestHasUploadableFiles(t *testing.T) {
 	}
 }
 
+func TestCreateTestWithAI(t *testing.T) {
+	setup()
+	defer cleanup()
+
+	mux.HandleFunc("/tests", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			t.Errorf("Expected POST, got %v", r.Method)
+			return
+		}
+
+		body, _ := ioutil.ReadAll(r.Body)
+
+		// Verify request serialization
+		var req AITestRequest
+		if err := json.Unmarshal(body, &req); err != nil {
+			t.Errorf("Failed to unmarshal request: %v", err)
+			return
+		}
+		if req.Title != "Test login flow" || req.Prompt != "Log in with valid credentials" || req.StartURI != "/login" {
+			t.Errorf("Unexpected request fields: %+v", req)
+		}
+
+		json.NewEncoder(w).Encode(AITestResponse{TestID: 12345, Title: req.Title, State: "enabled"})
+	})
+
+	response, err := client.CreateTestWithAI(&AITestRequest{
+		Title: "Test login flow", Type: "test", StartURI: "/login", Prompt: "Log in with valid credentials",
+		Browsers: []string{"windows11_chrome"},
+	})
+
+	if err != nil || response.TestID != 12345 {
+		t.Errorf("Unexpected result: %+v, err: %v", response, err)
+	}
+}
+
+func TestCreateTestWithAIValidation(t *testing.T) {
+	setup()
+	defer cleanup()
+
+	validBrowser := []string{"windows11_chrome"}
+
+	testCases := []struct {
+		name        string
+		request     *AITestRequest
+		expectedErr string
+	}{
+		{
+			name: "multiple browsers",
+			request: &AITestRequest{
+				Title: "Test", Type: "test", StartURI: "/", Prompt: "Test prompt",
+				Browsers: []string{"windows11_chrome", "windows10_chrome"},
+			},
+			expectedErr: "only supports one browser",
+		},
+		{
+			name: "invalid type",
+			request: &AITestRequest{
+				Title: "Test", Type: "snippet", StartURI: "/", Prompt: "Test prompt", Browsers: validBrowser,
+			},
+			expectedErr: "Type must be 'test'",
+		},
+		{
+			name: "missing prompt",
+			request: &AITestRequest{
+				Title: "Test", Type: "test", StartURI: "/", Prompt: "", Browsers: validBrowser,
+			},
+			expectedErr: "Prompt is required",
+		},
+		{
+			name: "mutually exclusive credentials",
+			request: &AITestRequest{
+				Title: "Test", Type: "test", StartURI: "/", Prompt: "Test prompt",
+				PromptCredentials: "user / pass", LoginSnippetID: 12345, Browsers: validBrowser,
+			},
+			expectedErr: "Cannot specify both",
+		},
+		{
+			name: "missing both StartURI and FullURL",
+			request: &AITestRequest{
+				Title: "Test", Type: "test", Prompt: "Test prompt", Browsers: validBrowser,
+			},
+			expectedErr: "Either StartURI or FullURL must be provided",
+		},
+		{
+			name: "mutually exclusive StartURI and FullURL",
+			request: &AITestRequest{
+				Title: "Test", Type: "test", StartURI: "/", FullURL: "https://example.com",
+				Prompt: "Test prompt", Browsers: validBrowser,
+			},
+			expectedErr: "Only one of StartURI or FullURL",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := client.CreateTestWithAI(tc.request)
+			if err == nil {
+				t.Errorf("Expected error for %s", tc.name)
+			} else if !strings.Contains(err.Error(), tc.expectedErr) {
+				t.Errorf("Expected error containing %q, got: %v", tc.expectedErr, err.Error())
+			}
+		})
+	}
+}
+
 func TestUpdateTest(t *testing.T) {
 	// Test just the required attributes
 	rfTest := RFTest{

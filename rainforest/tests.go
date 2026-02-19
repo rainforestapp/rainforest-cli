@@ -533,3 +533,71 @@ func (c *Client) UpdateTest(test *RFTest, branchID int) error {
 	}
 	return nil
 }
+
+// AITestRequest represents the parameters needed to create a test using AI generation
+type AITestRequest struct {
+	Title             string   `json:"title,omitempty"`
+	Type              string   `json:"type"`
+	StartURI          string   `json:"start_uri,omitempty"`
+	FullURL           string   `json:"full_url,omitempty"`
+	Prompt            string   `json:"prompt"`
+	Browsers          []string `json:"browsers,omitempty"`
+	EnvironmentID     int      `json:"environment_id,omitempty"`
+	PromptCredentials string   `json:"prompt_credentials,omitempty"`
+	LoginSnippetID    int      `json:"login_snippet_id,omitempty"`
+}
+
+// AITestResponse represents the response from the AI test generation API
+type AITestResponse struct {
+	TestID int    `json:"id"`
+	Title  string `json:"title"`
+	State  string `json:"state"`
+}
+
+// CreateTestWithAI creates a new test using AI generation
+func (c *Client) CreateTestWithAI(request *AITestRequest) (*AITestResponse, error) {
+	// AI test generation only supports one browser at a time
+	if len(request.Browsers) > 1 {
+		return nil, errors.New("AI test generation only supports one browser at a time")
+	}
+
+	// Ensure type is "test"
+	if request.Type != "test" {
+		return nil, errors.New("Type must be 'test' for AI test generation")
+	}
+
+	// Ensure prompt is provided
+	if request.Prompt == "" {
+		return nil, errors.New("Prompt is required for AI test generation")
+	}
+
+	// Ensure at least one of StartURI or FullURL is provided
+	if request.StartURI == "" && request.FullURL == "" {
+		return nil, errors.New("Either StartURI or FullURL must be provided for AI test generation")
+	}
+
+	// Ensure StartURI and FullURL are mutually exclusive
+	if request.StartURI != "" && request.FullURL != "" {
+		return nil, errors.New("Only one of StartURI or FullURL may be provided for AI test generation")
+	}
+
+	// Validate mutually exclusive login parameters
+	if request.PromptCredentials != "" && request.LoginSnippetID > 0 {
+		return nil, errors.New("Cannot specify both prompt_credentials and login_snippet_id. Choose one login method")
+	}
+
+	// Prepare request
+	req, err := c.NewRequest("POST", "tests", request)
+	if err != nil {
+		return nil, err
+	}
+
+	// Send request and process response
+	var response AITestResponse
+	_, err = c.Do(req, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}

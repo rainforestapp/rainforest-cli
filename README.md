@@ -195,6 +195,34 @@ Download specific tests based on their id on the Rainforest dashboard
 rainforest download 33445 11232 1337
 ```
 
+#### Generating Tests with AI
+
+Generate a new test using AI based on a natural language prompt. `--title` and `--platform` are required. Commonly used platforms include: `windows10_chrome`, `windows11_chrome`, and `windows11_chrome_fhd`; unsupported values will be rejected by the Rainforest API. Note: AI test generation only supports one platform at a time.
+
+```bash
+rainforest generate "Log in with valid credentials and verify the dashboard loads" --title "Login Flow" --start-uri /login --platform windows11_chrome
+```
+
+You can also use a full URL instead of a start URI.
+
+```bash
+rainforest generate "Add an item to the shopping cart" --title "Add to Cart" --url https://example.com/shop --platform windows11_chrome
+```
+
+Provide credentials information for the AI to use during test generation. This is a free-form string passed to the AI model.
+
+```bash
+rainforest generate "Log in as admin user" --title "Admin Login" --start-uri /admin --platform windows11_chrome --credentials "username: admin, password: secret123"
+```
+
+Alternatively, use a login snippet for authentication.
+
+```bash
+rainforest generate "Verify dashboard features" --title "Dashboard Features" --start-uri /dashboard --platform windows11_chrome --login-snippet-id 54321
+```
+
+Note: `--credentials` and `--login-snippet-id` are mutually exclusive.
+
 #### Running Local RFML Tests Only
 
 If you want to run a local set of RFML files (for instance in a CI environment), use the `run -f` option:

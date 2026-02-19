@@ -12,7 +12,7 @@ executors:
   mac:
     macos:
       xcode: 15.4.0
-    resource_class: macos.m4pro.medium
+    resource_class: m4pro.medium
   linux:
     docker:
       - image: cimg/go:1.25.7-node
@@ -307,9 +307,7 @@ workflows:
             - validate_goreleaser_config
           matrix:
             parameters:
-              # NOTE: mac removed — macos resource classes (m1, m4pro) are not
-              # available on the current CircleCI plan. Re-add when plan is updated.
-              platform: [linux]
+              platform: [linux, mac]
               test:
                 - [pass]
                 - [pass_junit]

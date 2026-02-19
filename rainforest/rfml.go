@@ -186,7 +186,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 				}
 			case 2:
 				if line == "" {
-					parsedStep := RFTestStep{currStep[0], currStep[1], currStepRedirect}
+					parsedStep := RFTestStep{Action: currStep[0], Response: currStep[1], Redirect: currStepRedirect}
 					parsedRFTest.Steps = append(parsedRFTest.Steps, parsedStep)
 					// Reset temp vars to defaults
 					currStep = make([]string, 0, 2)
@@ -204,7 +204,7 @@ func (r *RFMLReader) ReadAll() (*RFTest, error) {
 	}
 
 	if len(currStep) == 2 {
-		parsedStep := RFTestStep{currStep[0], currStep[1], currStepRedirect}
+		parsedStep := RFTestStep{Action: currStep[0], Response: currStep[1], Redirect: currStepRedirect}
 		parsedRFTest.Steps = append(parsedRFTest.Steps, parsedStep)
 	}
 

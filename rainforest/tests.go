@@ -125,10 +125,38 @@ type testElement struct {
 // rfaAction represents a Rainforest Automation action attached to a step.
 // Modern tests use rfa_action instead of the legacy action/response fields.
 type rfaAction struct {
-	ID     int                    `json:"id,omitempty"`
-	Text   string                 `json:"text,omitempty"`
-	Action string                 `json:"action,omitempty"` // e.g. "comment", "click", "type", "wait"
-	Target map[string]interface{} `json:"target,omitempty"`
+	ID         int            `json:"id,omitempty"`
+	Text       string         `json:"text,omitempty"`
+	Action     string         `json:"action,omitempty"` // "comment", "click", "type", "wait", "observe"
+	Button     string         `json:"button,omitempty"` // for click: "left", "right"
+	Hold       bool           `json:"hold,omitempty"`   // for click: long press
+	Seconds    float64        `json:"seconds,omitempty"`
+	Visibility *bool          `json:"visibility,omitempty"` // for observe
+	Target     *rfaElementRef `json:"target,omitempty"`     // for click
+	Object     *rfaElementRef `json:"object,omitempty"`     // for observe
+}
+
+// rfaElementRef is a reference to a UI element in an rfa_action.
+type rfaElementRef struct {
+	ID   int    `json:"id"`
+	Type string `json:"type"` // "ui_element_reference"
+}
+
+// UIElement represents a Rainforest UI element with its visual description.
+type UIElement struct {
+	ID   int           `json:"id"`
+	Noun UIElementNoun `json:"noun"`
+}
+
+// UIElementNoun contains the nested noun description.
+type UIElementNoun struct {
+	Noun UIElementDetails `json:"noun"`
+}
+
+// UIElementDetails contains the element name and search description.
+type UIElementDetails struct {
+	Element    string `json:"element"`
+	SearchTerm string `json:"search_term"`
 }
 
 // testElementDetails is one of the helpers to construct the proper JSON test sturcture
@@ -198,13 +226,7 @@ func (t *RFTest) unmarshalElements(coll TestIDCollection, flattenedSteps bool) e
 	for _, element := range t.Elements {
 		switch element.Type {
 		case "step":
-			action := element.Details.Action
-			response := element.Details.Response
-			// Fall back to rfa_action for modern tests where action/response are null
-			if action == "" && element.Details.RfaAction != nil {
-				action = rfaActionDescription(element.Details.RfaAction)
-			}
-			step := RFTestStep{Action: action, Response: response, Redirect: element.Redirect}
+			step := buildStepFromElement(&element)
 			t.Steps = append(t.Steps, step)
 		case "test":
 			if flattenedSteps {
@@ -229,12 +251,7 @@ func flattenEmbeddedTestElement(element *testElement) []interface{} {
 	var steps []interface{}
 
 	if element.Type == "step" {
-		action := element.Details.Action
-		response := element.Details.Response
-		if action == "" && element.Details.RfaAction != nil {
-			action = rfaActionDescription(element.Details.RfaAction)
-		}
-		step := RFTestStep{Action: action, Response: response, Redirect: element.Redirect}
+		step := buildStepFromElement(element)
 		steps = []interface{}{step}
 	} else if element.Type == "test" {
 		for _, el := range element.Details.Elements {
@@ -248,9 +265,43 @@ func flattenEmbeddedTestElement(element *testElement) []interface{} {
 	return steps
 }
 
+// buildStepFromElement creates an RFTestStep from a testElement, including rfa_action metadata.
+func buildStepFromElement(element *testElement) RFTestStep {
+	step := RFTestStep{
+		Action:   element.Details.Action,
+		Response: element.Details.Response,
+		Redirect: element.Redirect,
+	}
+
+	rfa := element.Details.RfaAction
+	if rfa == nil {
+		return step
+	}
+
+	// Populate rfa metadata fields
+	step.RfaActionType = rfa.Action
+	step.RfaButton = rfa.Button
+	step.RfaText = rfa.Text
+	step.RfaSeconds = rfa.Seconds
+	step.RfaVisibility = rfa.Visibility
+
+	if rfa.Target != nil {
+		step.RfaTargetUIElementID = rfa.Target.ID
+	}
+	if rfa.Object != nil {
+		step.RfaTargetUIElementID = rfa.Object.ID
+	}
+
+	// Build human-readable Action string as fallback
+	if step.Action == "" {
+		step.Action = rfaActionDescription(rfa)
+	}
+
+	return step
+}
+
 // rfaActionDescription returns a human-readable description of an rfa_action.
-// For "comment" actions, it returns the text directly. For other action types
-// (click, type, wait, etc.), it builds a description from the action type and text.
+// This is used as a fallback Action string when the legacy action field is empty.
 func rfaActionDescription(rfa *rfaAction) string {
 	if rfa.Text != "" {
 		if rfa.Action == "comment" {
@@ -312,6 +363,15 @@ type RFTestStep struct {
 	Action   string
 	Response string
 	Redirect bool
+
+	// RfaAction fields for modern (automation) tests.
+	// These are populated by unmarshalElements when rfa_action is present.
+	RfaActionType        string  // "comment", "click", "type", "wait", "observe", etc.
+	RfaButton            string  // for click: "left", "right"
+	RfaText              string  // the raw text from rfa_action
+	RfaSeconds           float64 // for wait
+	RfaTargetUIElementID int     // for click/observe: UI element reference ID
+	RfaVisibility        *bool   // for observe: expected visibility
 }
 
 func (s *RFTestStep) hasUploadableFiles() bool {
@@ -496,6 +556,25 @@ func (c *Client) GetTest(testID int) (*RFTest, error) {
 	testResp.TestID = testID
 	testResp.Execute = true
 	return &testResp, nil
+}
+
+// GetUIElement fetches a UI element by ID from the Rainforest API.
+func (c *Client) GetUIElement(elementID int) (*UIElement, error) {
+	req, err := c.NewRequest(
+		"GET",
+		fmt.Sprintf("ui_elements/%d", elementID),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var elem UIElement
+	_, err = c.Do(req, &elem)
+	if err != nil {
+		return nil, err
+	}
+	return &elem, nil
 }
 
 // DeleteTest deletes test with a specified ID from the RF test suite

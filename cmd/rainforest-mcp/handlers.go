@@ -24,6 +24,7 @@ type apiClient interface {
 	GetTests(params *rainforest.RFTestFilters) ([]rainforest.RFTest, error)
 	GetTest(testID int) (*rainforest.RFTest, error)
 	GetTestIDs() ([]rainforest.TestIDPair, error)
+	GetUIElement(elementID int) (*rainforest.UIElement, error)
 	CreateTest(test *rainforest.RFTest) error
 	UpdateTest(test *rainforest.RFTest, branchID int) error
 	DeleteTest(testID int) error
@@ -180,12 +181,13 @@ type testResponse struct {
 }
 
 type stepResponse struct {
-	Index    int    `json:"index"`
-	Type     string `json:"type"` // "step" or "embedded_test"
-	Action   string `json:"action,omitempty"`
-	Response string `json:"response,omitempty"`
-	Redirect bool   `json:"redirect"`
-	RFMLID   string `json:"rfml_id,omitempty"` // for embedded tests
+	Index      int    `json:"index"`
+	Type       string `json:"type"`                  // "step" or "embedded_test"
+	ActionType string `json:"action_type,omitempty"` // rfa action type: "comment", "click", "type", "wait", "observe"
+	Action     string `json:"action,omitempty"`      // human-readable description
+	Response   string `json:"response,omitempty"`
+	Redirect   bool   `json:"redirect"`
+	RFMLID     string `json:"rfml_id,omitempty"` // for embedded tests
 }
 
 func (h *handlers) getTest(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -228,15 +230,34 @@ func (h *handlers) getTest(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 		resp.Platforms = []string{}
 	}
 
+	// Collect all UI element IDs we need to resolve
+	uiElementIDs := map[int]bool{}
+	for _, step := range test.Steps {
+		if s, ok := step.(rainforest.RFTestStep); ok && s.RfaTargetUIElementID > 0 {
+			uiElementIDs[s.RfaTargetUIElementID] = true
+		}
+	}
+
+	// Fetch UI element names
+	uiElementNames := map[int]string{}
+	for id := range uiElementIDs {
+		elem, err := h.client.GetUIElement(id)
+		if err == nil && elem != nil {
+			uiElementNames[id] = elem.Noun.Noun.Element
+		}
+	}
+
 	for i, step := range test.Steps {
 		switch s := step.(type) {
 		case rainforest.RFTestStep:
+			action := formatStepAction(s, uiElementNames)
 			resp.Steps = append(resp.Steps, stepResponse{
-				Index:    i,
-				Type:     "step",
-				Action:   s.Action,
-				Response: s.Response,
-				Redirect: s.Redirect,
+				Index:      i,
+				Type:       "step",
+				ActionType: s.RfaActionType,
+				Action:     action,
+				Response:   s.Response,
+				Redirect:   s.Redirect,
 			})
 		case rainforest.RFEmbeddedTest:
 			resp.Steps = append(resp.Steps, stepResponse{
@@ -816,4 +837,67 @@ func getStringOr(req mcp.CallToolRequest, key, defaultVal string) string {
 // uniqueID returns a unique identifier based on timestamp.
 func uniqueID() int64 {
 	return time.Now().UnixNano()
+}
+
+// formatStepAction returns a human-readable action description for a step.
+// For modern rfa_action steps, it formats them like:
+//
+//	[comment] Click on the 'Features' option...
+//	[click] left-click on "Create"
+//	[type] "{{random.company}}"
+//	[wait] 2s
+//	[observe] "Submit" is visible
+func formatStepAction(s rainforest.RFTestStep, uiElementNames map[int]string) string {
+	// If there's no rfa action type, use the legacy action string
+	if s.RfaActionType == "" {
+		return s.Action
+	}
+
+	switch s.RfaActionType {
+	case "comment":
+		return fmt.Sprintf("[comment] %s", s.RfaText)
+
+	case "click":
+		targetName := resolveUIElementName(s.RfaTargetUIElementID, uiElementNames)
+		button := s.RfaButton
+		if button == "" {
+			button = "left"
+		}
+		return fmt.Sprintf("[click] %s-click on %s", button, targetName)
+
+	case "type":
+		if s.RfaText != "" {
+			return fmt.Sprintf("[type] %q", s.RfaText)
+		}
+		return "[type]"
+
+	case "wait":
+		if s.RfaSeconds > 0 {
+			return fmt.Sprintf("[wait] %.0fs", s.RfaSeconds)
+		}
+		return "[wait]"
+
+	case "observe":
+		targetName := resolveUIElementName(s.RfaTargetUIElementID, uiElementNames)
+		visibility := "is visible"
+		if s.RfaVisibility != nil && !*s.RfaVisibility {
+			visibility = "is not visible"
+		}
+		return fmt.Sprintf("[observe] %s %s", targetName, visibility)
+
+	default:
+		// Unknown action type — fall back to the generic description
+		return s.Action
+	}
+}
+
+// resolveUIElementName looks up a UI element's name, falling back to a generic label.
+func resolveUIElementName(elementID int, names map[int]string) string {
+	if name, ok := names[elementID]; ok && name != "" {
+		return fmt.Sprintf("%q", name)
+	}
+	if elementID > 0 {
+		return fmt.Sprintf("element #%d", elementID)
+	}
+	return "unknown element"
 }

@@ -96,6 +96,16 @@ func (m *mockClient) DeleteTest(testID int) error {
 	m.lastDeletedID = testID
 	return m.err
 }
+func (m *mockClient) GetUIElement(elementID int) (*rainforest.UIElement, error) {
+	return &rainforest.UIElement{
+		ID: elementID,
+		Noun: rainforest.UIElementNoun{
+			Noun: rainforest.UIElementDetails{
+				Element: "MockElement",
+			},
+		},
+	}, nil
+}
 
 func (m *mockClient) CreateRun(params rainforest.RunParams) (*rainforest.RunStatus, error) {
 	m.lastRunParams = params
